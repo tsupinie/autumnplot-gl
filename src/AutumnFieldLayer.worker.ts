@@ -1,11 +1,10 @@
 
-import mapboxgl from "mapbox-gl";
-
 import { getMinZoom } from "./utils";
 import { BarbDimSpec, PolylineSpec, LineSpec } from "./AutumnFieldTypes";
 
 import * as Comlink from 'comlink';
 import { BillboardSpec } from "./BillboardCollection";
+import { LngLat } from "./AutumnMap";
 
 function makeBarbElements(field_lats: Float32Array, field_lons: Float32Array, field_u: Float32Array, field_v: Float32Array, thin_fac_base: number, 
     BARB_DIMS: BarbDimSpec) : BillboardSpec {
@@ -44,7 +43,7 @@ function makeBarbElements(field_lats: Float32Array, field_lons: Float32Array, fi
             const barb_mag = Math.round(Math.hypot(u, v) / 5) * 5;
             const barb_ang = 90 - Math.atan2(-v, -u) * 180 / Math.PI;
 
-            const pt_ll = mapboxgl.MercatorCoordinate.fromLngLat({'lng': lon, 'lat': lat});
+            const pt_ll = new LngLat(lon, lat).toMercatorCoord();
 
             // These contain a degenerate triangle on either end to imitate primitive restarting
             //  (see https://groups.google.com/g/webgl-dev-list/c/KLfiwj4jax0/m/cKiezrhRz8MJ?pli=1)
@@ -83,7 +82,7 @@ function makeDomainVerticesAndTexCoords(field_lats: Float32Array, field_lons: Fl
     const corners = [...field_lats].map(lat => {
         return [{'lng': field_lons[lbi], 'lat': lat},
                 {'lng': field_lons[ubi], 'lat': lat}]
-    }).flat().map(pt => mapboxgl.MercatorCoordinate.fromLngLat(pt));
+    }).flat().map(pt => new LngLat(pt.lng, pt.lat).toMercatorCoord());
     const verts = corners.map(cd => [cd.x, cd.y]).flat();
 
     const tex_coords = [...field_lats].map((lat, ilat) => {
