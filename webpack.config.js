@@ -22,7 +22,7 @@ module.exports = {
         filename: 'autumn-contour-gl.js',
         globalObject: 'this',
         library: {
-            name: 'autumncontourgl',
+            name: 'acgl',
             type: 'umd',
         }
     },
@@ -35,4 +35,13 @@ module.exports = {
             root: 'luxon',
         },
     },
+
+    devServer: {
+        static: {
+            directory: path.join(__dirname, 'public'),
+        },
+
+        compress: true,
+        port: 9000,
+    }
 };
