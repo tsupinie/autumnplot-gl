@@ -57,10 +57,10 @@ class Colormap {
  */
 function makeTextureImage(colormap: Colormap) {
     const cmap_image = document.createElement('canvas');
-    cmap_image.width = this.cmap.length;
+    cmap_image.width = colormap.colormap.length;
     cmap_image.height = 1;
 
-    let ctx = this.cmap_image.getContext('2d');
+    let ctx = cmap_image.getContext('2d');
 
     colormap.getMap().forEach((stop, istop) => {
         if (ctx === null) {
