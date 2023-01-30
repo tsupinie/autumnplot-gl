@@ -1,3 +1,4 @@
+import { hex2rgb, hsv2rgb, rgb2hex, rgb2hsv } from "./utils";
 
 interface ColorStop {
     level: number;
@@ -5,48 +6,73 @@ interface ColorStop {
     opacity: number;
 }
 
-interface ColorbarInfo {
-    label: string;
-    ticks: number[];
-}
-
-interface _Colormap {
-    colors: ColorStop[];
-    colorbar: ColorbarInfo;
-}
-
 /** A class representing a color map */
 class Colormap {
-    readonly colormap: _Colormap;
+    readonly colormap: ColorStop[];
     readonly length: number;
 
     /**
      * Create a color map
      * @param colormap - The specification for this colormap. (TAS: Yuck.)
      */
-    constructor(colormap: _Colormap) {
+    constructor(colormap: ColorStop[]) {
         this.colormap = colormap
-        this.length = colormap['colors'].length;
-    }
-
-    getMap() {
-        return this.colormap['colors'];
-    }
-
-    getColorbarInfo() : ColorbarInfo {
-        return this.colormap['colorbar'];
+        this.length = colormap.length;
     }
 
     getLevels() : number [] {
-        return this.getMap().map(s => s['level']);
+        return this.colormap.map(s => s['level']);
     }
 
     getColors() : string[] {
-        return this.getMap().map(s => s['color']);
+        return this.colormap.map(s => s['color']);
     }
 
     getOpacities() : number[] {
-        return this.getMap().map(s => s['opacity']);
+        return this.colormap.map(s => s['opacity']);
+    }
+
+    static diverging(color1: string, color2: string, level_min: number, level_max: number, n_levels: number) {
+        const stops: ColorStop[] = [];
+        const level_step = (level_max - level_min) / (n_levels - 1);
+        const crossover = (level_max + level_min) / 2;
+        const crossover_hsv: [number, number, number] = [0, 0, 0.9];
+
+        const color1_hsv = rgb2hsv(hex2rgb(color1));
+        const color2_hsv = rgb2hsv(hex2rgb(color2));
+
+        for (let istop = 0; istop < n_levels; istop++) {
+            const level = level_min + istop * level_step;
+            let h, s, v;
+            if (level < crossover) {
+                const interp_fac = (crossover - level) / (crossover - level_min);
+
+                [h, s, v] = [
+                    color1_hsv[0], 
+                    crossover_hsv[1] + (color1_hsv[1] - crossover_hsv[1]) * interp_fac,
+                    crossover_hsv[2] + (color1_hsv[2] - crossover_hsv[2]) * interp_fac]
+            }
+            else if (level >= crossover) {
+                const interp_fac = (level - crossover) / (level_max - crossover);
+                
+                [h, s, v] = [
+                    color2_hsv[0], 
+                    crossover_hsv[1] + (color2_hsv[1] - crossover_hsv[1]) * interp_fac,
+                    crossover_hsv[2] + (color2_hsv[2] - crossover_hsv[2]) * interp_fac]
+            }
+            const color = rgb2hex(hsv2rgb([h, s, v]));
+            stops.push({'level': level, 'color': color, 'opacity': 1});
+        }
+
+        return new Colormap(stops);
+    }
+
+    static redblue(level_min: number, level_max: number, n_levels: number) {
+        return Colormap.diverging('#ff0000', '#0000ff', level_min, level_max, n_levels);
+    }
+
+    static bluered(level_min: number, level_max: number, n_levels: number) {
+        return Colormap.diverging('#0000ff', '#ff0000', level_min, level_max, n_levels);
     }
 }
 
@@ -62,7 +88,7 @@ function makeTextureImage(colormap: Colormap) {
 
     let ctx = cmap_image.getContext('2d');
 
-    colormap.getMap().forEach((stop, istop) => {
+    colormap.colormap.forEach((stop, istop) => {
         if (ctx === null) {
             throw "Could not get rendering context for colormap image canvas";
         }
