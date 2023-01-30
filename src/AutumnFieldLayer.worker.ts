@@ -86,8 +86,8 @@ function makeDomainVerticesAndTexCoords(field_lats: Float32Array, field_lons: Fl
     const verts = corners.map(cd => [cd.x, cd.y]).flat();
 
     const tex_coords = [...field_lats].map((lat, ilat) => {
-        return [{'s': (ilat + 0.5) / (tex_height), 'r': 0.5 / (tex_width + 1)}, 
-                {'s': (ilat + 0.5) / (tex_height), 'r': (ni + 0.5) / (tex_width + 1)}];
+        return [{'s': (ilat + 0.5) / tex_height, 'r': 0.505 / (tex_width + 1.07)}, 
+                {'s': (ilat + 0.5) / tex_height, 'r': (ni + 0.505) / (tex_width + 1.07)}];
     }).flat().map(tc => [tc['r'], tc['s']]).flat();
 
     return {'vertices': new Float32Array(verts), 'tex_coords': new Float32Array(tex_coords)}
