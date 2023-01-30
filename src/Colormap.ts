@@ -44,8 +44,9 @@ class Colormap {
         for (let istop = 0; istop < n_levels; istop++) {
             const level = level_min + istop * level_step;
             let h, s, v;
+            let interp_fac;
             if (level < crossover) {
-                const interp_fac = (crossover - level) / (crossover - level_min);
+                interp_fac = (crossover - level) / (crossover - level_min);
 
                 [h, s, v] = [
                     color1_hsv[0], 
@@ -53,7 +54,7 @@ class Colormap {
                     crossover_hsv[2] + (color1_hsv[2] - crossover_hsv[2]) * interp_fac]
             }
             else if (level >= crossover) {
-                const interp_fac = (level - crossover) / (level_max - crossover);
+                interp_fac = (level - crossover) / (level_max - crossover);
                 
                 [h, s, v] = [
                     color2_hsv[0], 
@@ -61,7 +62,7 @@ class Colormap {
                     crossover_hsv[2] + (color2_hsv[2] - crossover_hsv[2]) * interp_fac]
             }
             const color = rgb2hex(hsv2rgb([h, s, v]));
-            stops.push({'level': level, 'color': color, 'opacity': 1});
+            stops.push({'level': level, 'color': color, 'opacity': Math.min(2 * interp_fac, 1)});
         }
 
         return new Colormap(stops);
