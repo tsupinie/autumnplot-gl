@@ -6,26 +6,30 @@
         <link href='https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.css' rel='stylesheet' />
         <script src="autumn-contour-gl.js"></script>
         <script>
-            const nx = 66, ny = 35;
-            const grid = new acgl.PlateCarreeGrid(nx, ny, -130, 22, -64, 52);
+            const nx = 121, ny = 61;
+            const grid = new acgl.PlateCarreeGrid(nx, ny, -130, 20, -65, 55);
             let hght = [], u = [], v = [];
             for (i = 0; i < nx; i++) {
                 for (j = 0; j < ny; j++) {
                     const idx = i + j * nx;
-                    hght[idx] = 10 * Math.cos(6 * Math.PI * i / nx) * Math.cos(4 * Math.PI * j / ny);
-                    u[idx] = 30 * Math.cos(6 * Math.PI * i / nx) * Math.sin(4 * Math.PI * j / ny);
-                    v[idx] = -30 * Math.sin(6 * Math.PI * i / nx) * Math.cos(4 * Math.PI * j / ny);
+                    hght[idx] = 10 * Math.cos(6 * Math.PI * i / (nx - 1)) * Math.cos(3 * Math.PI * j / (ny - 1));
+                    u[idx] = 30 * Math.cos(6 * Math.PI * (i - 0.5) / (nx - 1)) * Math.sin(3 * Math.PI * (j - 0.5) / (ny - 1));
+                    v[idx] = -30 * Math.sin(6 * Math.PI * (i - 0.5) / (nx - 1)) * Math.cos(3 * Math.PI * (j - 0.5) / (ny - 1));
                 }
             }
+
+            const colormap = acgl.Colormap.bluered(-10, 10, 20);
 
             const raw_hght_field = new acgl.RawDataField(grid, new Float32Array(hght));
             const raw_u_field = new acgl.RawDataField(grid, new Float32Array(u));
             const raw_v_field = new acgl.RawDataField(grid, new Float32Array(v));
 
             const cntr = new acgl.FieldContour(raw_hght_field, {interval: 1, color: '#000000'});
-            const barbs = new acgl.FieldBarbs({'u': raw_u_field, 'v': raw_v_field}, {color: '#000000', thin_fac: 8});
+            const filled = new acgl.FieldContourFill(raw_hght_field, {'cmap': colormap, 'opacity': 0.6});
+            const barbs = new acgl.FieldBarbs({'u': raw_u_field, 'v': raw_v_field}, {color: '#000000', thin_fac: 16});
 
             const hght_layer = new acgl.AutumnFieldLayer('height', cntr);
+            const hght_fill_layer = new acgl.AutumnFieldLayer('height-fill', filled);
             const barb_layer = new acgl.AutumnFieldLayer('barbs', barbs);
         </script>
         <style>
@@ -49,7 +53,7 @@
         });
         
         map.on('load', () => {
-            console.log(map);
+            map.addLayer(hght_fill_layer, 'railway_transit_tunnel');
             map.addLayer(hght_layer, 'railway_transit_tunnel');
             map.addLayer(barb_layer, 'railway_transit_tunnel');
         })
