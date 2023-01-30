@@ -9,7 +9,11 @@ import { AutumnMap } from './AutumnMap';
 class FieldContourFill extends Field {
     readonly field: RawDataField;
     readonly cmap: Colormap;
+    readonly opacity: number;
+
+    /** @internal */
     readonly cmap_image: HTMLCanvasElement;
+    /** @internal */
     readonly index_map: Float32Array;
 
     /** @internal */
@@ -31,11 +35,13 @@ class FieldContourFill extends Field {
      * @param field - The field to create filled contours from
      * @param opts  - Various options to use when creating the filled contours
      */
-    constructor(field: RawDataField, opts: {'cmap': Colormap}) {
+    constructor(field: RawDataField, opts: {'cmap': Colormap, 'opacity': number}) {
         super();
 
         this.field = field;
         this.cmap = opts['cmap'];
+        this.opacity = opts['opacity'];
+
         this.cmap_image = makeTextureImage(this.cmap);
 
         const levels = this.cmap.getLevels();
@@ -90,6 +96,7 @@ class FieldContourFill extends Field {
         uniform sampler2D u_cmap_nonlin_sampler;
         uniform highp float u_cmap_min;
         uniform highp float u_cmap_max;
+        uniform highp float u_opacity;
 
         void main() {
             highp vec4 fill_val = texture2D(u_fill_sampler, v_tex_coord);
@@ -101,7 +108,7 @@ class FieldContourFill extends Field {
 
             highp vec4 nonlin_val = texture2D(u_cmap_nonlin_sampler, vec2(clamp(normed_val, 0.0, 1.0), 0.5));
             lowp vec4 color = texture2D(u_cmap_sampler, vec2(nonlin_val.r, 0.5));
-            color.a = color.a * 0.6;
+            color.a = color.a * u_opacity;
             gl_FragColor = color;
         }`;
         
@@ -140,7 +147,7 @@ class FieldContourFill extends Field {
 
         this.program.use(
             {'a_pos': this.vertices, 'a_tex_coord': this.texcoords},
-            {'u_cmap_min': this.cmap.getLevels()[0], 'u_cmap_max': this.cmap.getLevels()[this.cmap.length - 1], 'u_matrix': matrix},
+            {'u_cmap_min': this.cmap.getLevels()[0], 'u_cmap_max': this.cmap.getLevels()[this.cmap.length - 1], 'u_matrix': matrix, 'u_opacity': this.opacity},
             {'u_fill_sampler': this.fill_texture, 'u_cmap_sampler': this.cmap_texture, 'u_cmap_nonlin_sampler': this.cmap_nonlin_texture}
         );
 
