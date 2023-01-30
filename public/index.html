@@ -13,8 +13,8 @@
                 for (j = 0; j < ny; j++) {
                     const idx = i + j * nx;
                     hght[idx] = 10 * Math.cos(6 * Math.PI * i / (nx - 1)) * Math.cos(3 * Math.PI * j / (ny - 1));
-                    u[idx] = 30 * Math.cos(6 * Math.PI * (i - 0.5) / (nx - 1)) * Math.sin(3 * Math.PI * (j - 0.5) / (ny - 1));
-                    v[idx] = -30 * Math.sin(6 * Math.PI * (i - 0.5) / (nx - 1)) * Math.cos(3 * Math.PI * (j - 0.5) / (ny - 1));
+                    u[idx] = 30 * Math.cos(6 * Math.PI * i / (nx - 1)) * Math.sin(3 * Math.PI * j / (ny - 1));
+                    v[idx] = -30 * Math.sin(6 * Math.PI * i / (nx - 1)) * Math.cos(3 * Math.PI * j / (ny - 1));
                 }
             }
 
