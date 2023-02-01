@@ -104,7 +104,7 @@ class FieldContourFill extends Field {
             highp vec4 fill_val = texture2D(u_fill_sampler, v_tex_coord);
             lowp float normed_val = (fill_val.r - u_cmap_min) / (u_cmap_max - u_cmap_min);
             
-            if (normed_val <= 0.0) {
+            if (normed_val < 0.0 || normed_val > 1.0) {
                 discard;
             }
 
