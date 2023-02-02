@@ -1,27 +1,27 @@
 import { hex2rgb, hsv2rgb, rgb2hex, rgb2hsv } from "./utils";
 
 interface ColorStop {
-    level: number;
     color: string;
     opacity: number;
 }
 
 /** A class representing a color map */
 class Colormap {
+    readonly levels: number[];
     readonly colormap: ColorStop[];
-    readonly length: number;
 
     /**
      * Create a color map
+     * @param levels   - The list of levels
      * @param colormap - The specification for this colormap. (TAS: Yuck.)
      */
-    constructor(colormap: ColorStop[]) {
-        this.colormap = colormap
-        this.length = colormap.length;
-    }
+    constructor(levels: number[], colormap: ColorStop[]) {
+        if (levels.length != colormap.length + 1) {
+            throw `Mismatch between number of levels (${levels.length}) and number of colors (${colormap.length}; expected ${levels.length - 1})`;
+        }
 
-    getLevels() : number [] {
-        return this.colormap.map(s => s['level']);
+        this.levels = levels;
+        this.colormap = colormap;
     }
 
     getColors() : string[] {
@@ -32,16 +32,18 @@ class Colormap {
         return this.colormap.map(s => s['opacity']);
     }
 
-    static diverging(color1: string, color2: string, level_min: number, level_max: number, n_levels: number) {
+    static diverging(color1: string, color2: string, level_min: number, level_max: number, n_colors: number) {
         const stops: ColorStop[] = [];
-        const level_step = (level_max - level_min) / (n_levels - 1);
+        const levels: number[] = [];
+
+        const level_step = (level_max - level_min) / (n_colors - 1);
         const crossover = (level_max + level_min) / 2;
         const crossover_hsv: [number, number, number] = [0, 0, 0.9];
 
         const color1_hsv = rgb2hsv(hex2rgb(color1));
         const color2_hsv = rgb2hsv(hex2rgb(color2));
 
-        for (let istop = 0; istop < n_levels; istop++) {
+        for (let istop = 0; istop < n_colors; istop++) {
             const level = level_min + istop * level_step;
             let h, s, v;
             let interp_fac;
@@ -62,10 +64,15 @@ class Colormap {
                     crossover_hsv[2] + (color2_hsv[2] - crossover_hsv[2]) * interp_fac]
             }
             const color = rgb2hex(hsv2rgb([h, s, v]));
-            stops.push({'level': level, 'color': color, 'opacity': Math.min(2 * interp_fac, 1)});
+            stops.push({'color': color, 'opacity': Math.min(2 * interp_fac, 1)});
         }
 
-        return new Colormap(stops);
+        for (let ilev = 0; ilev <= n_colors; ilev++) {
+            const level_step = (level_max - level_min) / n_colors;
+            levels.push(level_min + ilev * level_step);
+        }
+
+        return new Colormap(levels, stops);
     }
 
     static redblue(level_min: number, level_max: number, n_levels: number) {
@@ -111,7 +118,7 @@ type ColorbarOrientation = 'horizontal' | 'vertical';
  * @param orientation - The orientation of the color bar ('horizontal' or 'vertical'); defaults to 'vertical'
  */
 function makeColorbar(colormap: Colormap, label: string, ticks?: number[], orientation?: ColorbarOrientation) {
-    ticks === undefined ? colormap.getLevels() : ticks;
+    ticks === undefined ? colormap.levels : ticks;
     orientation = orientation === undefined ? 'vertical' : orientation;
 }
 

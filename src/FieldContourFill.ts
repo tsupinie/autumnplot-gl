@@ -44,7 +44,7 @@ class FieldContourFill extends Field {
 
         this.cmap_image = makeTextureImage(this.cmap);
 
-        const levels = this.cmap.getLevels();
+        const levels = this.cmap.levels;
         const n_lev = levels.length - 1;
 
         // Build a texture to account for nonlinear colormaps (basically inverts the relationship between
@@ -150,7 +150,7 @@ class FieldContourFill extends Field {
 
         this.program.use(
             {'a_pos': this.vertices, 'a_tex_coord': this.texcoords},
-            {'u_cmap_min': this.cmap.getLevels()[0], 'u_cmap_max': this.cmap.getLevels()[this.cmap.length - 1], 'u_matrix': matrix, 'u_opacity': this.opacity, 
+            {'u_cmap_min': this.cmap.levels[0], 'u_cmap_max': this.cmap.levels[this.cmap.levels.length - 1], 'u_matrix': matrix, 'u_opacity': this.opacity,
              'u_n_colormap': this.cmap.colormap.length},
             {'u_fill_sampler': this.fill_texture, 'u_cmap_sampler': this.cmap_texture, 'u_cmap_nonlin_sampler': this.cmap_nonlin_texture}
         );
