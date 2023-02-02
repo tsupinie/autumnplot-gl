@@ -49,9 +49,15 @@ class FieldContourFill extends Field {
 
         // Build a texture to account for nonlinear colormaps (basically inverts the relationship between
         //  the normalized index and the normalized level)
+        const n_nonlin = 101;
+        const map_norm = [];
+        for (let i = 0; i < n_nonlin; i++) {
+            map_norm.push(i / (n_nonlin - 1));
+        }
+
         const input_norm = levels.map((lev, ilev) => ilev / n_lev);
         const cmap_norm = levels.map(lev => (lev - levels[0]) / (levels[n_lev] - levels[0]));
-        const inv_cmap_norm = input_norm.map(lev => {
+        const inv_cmap_norm = map_norm.map(lev => {
             let jlev;
             for (jlev = 0; !(cmap_norm[jlev] <= lev && lev <= cmap_norm[jlev + 1]); jlev++) {}
 
@@ -97,20 +103,20 @@ class FieldContourFill extends Field {
         uniform highp float u_cmap_min;
         uniform highp float u_cmap_max;
         uniform highp float u_opacity;
-        uniform int u_n_colormap;
+        uniform int u_n_index;
 
         void main() {
-            lowp float buffer = 1. / (2. * float(u_n_colormap));
-            highp vec4 fill_val = texture2D(u_fill_sampler, v_tex_coord);
-            lowp float normed_val = (fill_val.r - u_cmap_min) / (u_cmap_max - u_cmap_min);
+            lowp float index_buffer = 1. / (2. * float(u_n_index));
+            highp float fill_val = texture2D(u_fill_sampler, v_tex_coord).r;
+            lowp float normed_val = (fill_val - u_cmap_min) / (u_cmap_max - u_cmap_min);
             
             if (normed_val < 0.0 || normed_val > 1.0) {
                 discard;
             }
 
-            normed_val = buffer + normed_val * (1. - 2. * buffer); // Chop off the half pixels on either end of the texture
-            highp vec4 nonlin_val = texture2D(u_cmap_nonlin_sampler, vec2(normed_val, 0.5));
-            lowp vec4 color = texture2D(u_cmap_sampler, vec2(nonlin_val.r, 0.5));
+            normed_val = index_buffer + normed_val * (1. - 2. * index_buffer); // Chop off the half pixels on either end of the texture
+            highp float nonlin_val = texture2D(u_cmap_nonlin_sampler, vec2(normed_val, 0.5)).r;
+            lowp vec4 color = texture2D(u_cmap_sampler, vec2(nonlin_val, 0.5));
             color.a = color.a * u_opacity;
             gl_FragColor = color;
         }`;
@@ -151,7 +157,7 @@ class FieldContourFill extends Field {
         this.program.use(
             {'a_pos': this.vertices, 'a_tex_coord': this.texcoords},
             {'u_cmap_min': this.cmap.levels[0], 'u_cmap_max': this.cmap.levels[this.cmap.levels.length - 1], 'u_matrix': matrix, 'u_opacity': this.opacity,
-             'u_n_colormap': this.cmap.colormap.length},
+             'u_n_index': this.index_map.length},
             {'u_fill_sampler': this.fill_texture, 'u_cmap_sampler': this.cmap_texture, 'u_cmap_nonlin_sampler': this.cmap_nonlin_texture}
         );
 
