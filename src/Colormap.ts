@@ -196,4 +196,4 @@ function makeColorbar(colormap: Colormap, opts: ColorbarOptions) {
 }
 
 export {Colormap, makeColorbar, makeTextureImage}
-export type {ColorbarOrientation};
+export type {ColorbarOrientation, ColorbarOptions};
