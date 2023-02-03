@@ -170,7 +170,8 @@ function makeColorbar(colormap: Colormap, opts: ColorbarOptions) {
         createElement('rect', attrs, gbar);
     });
 
-    colormap.levels.forEach((level, ilevel) => {
+    ticks.forEach(level => {
+        const ilevel = colormap.levels.indexOf(level);
         const gtick = createElement('g', {transform: `translate(0, ${bar_height * (1 - ilevel / n_colors)})`}, gticks);
         createElement('line', {stroke: '#000000', x2: -6}, gtick);
         const text = createElement('text', {fill: '#000000', x: -9, dy: '0.32em', style: `font-family: ${fontface};`}, gtick);
