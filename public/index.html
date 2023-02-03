@@ -24,7 +24,7 @@
             const raw_u_field = new acgl.RawDataField(grid, new Float32Array(u));
             const raw_v_field = new acgl.RawDataField(grid, new Float32Array(v));
 
-            const cntr = new acgl.FieldContour(raw_hght_field, {interval: 1, color: '#000000'});
+            const cntr = new acgl.FieldContour(raw_hght_field, {interval: 1, color: '#000000', thinner: zoom => zoom < 5 ? 2 : 1});
             const filled = new acgl.FieldContourFill(raw_hght_field, {'cmap': colormap, 'opacity': 0.6});
             const barbs = new acgl.FieldBarbs({'u': raw_u_field, 'v': raw_v_field}, {color: '#000000', thin_fac: 16});
 

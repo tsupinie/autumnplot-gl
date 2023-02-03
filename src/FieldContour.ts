@@ -10,6 +10,7 @@ class FieldContour extends Field {
     readonly field: RawDataField;
     readonly color: [number, number, number];
     readonly interval: number;
+    readonly thinner: (zoom: number) => number;
 
     /** @internal */
     map: AutumnMap | null;
@@ -36,7 +37,7 @@ class FieldContour extends Field {
      * @param field - The field to contour
      * @param opts  - Various options to use when creating the contours
      */
-    constructor(field: RawDataField, opts: {'color': string, 'interval': number}) {
+    constructor(field: RawDataField, opts: {'color': string, 'interval': number, 'thinner': (zoom: number) => number}) {
         super();
 
         this.field = field;
@@ -45,6 +46,8 @@ class FieldContour extends Field {
 
         const color = hex2rgba(opts['color']);
         this.color = [color[0], color[1], color[2]];
+
+        this.thinner = opts['thinner'];
 
         this.map = null;
         this.program = null;
@@ -149,7 +152,7 @@ class FieldContour extends Field {
             this.fill_texture === null || this.texcoords === null || this.grid_spacing === null || this.tex_width === null || this.tex_height === null) return;
 
         const zoom = this.map.getZoom();
-        const intv = zoom < 5 ? this.interval * 2 : this.interval;
+        const intv = this.thinner(zoom) * this.interval;
         const cutoff = 0.5 / intv;
         const step_size = [0.25 / this.tex_width, 0.25 / this.tex_height];
         const zoom_fac = Math.pow(2, zoom);
