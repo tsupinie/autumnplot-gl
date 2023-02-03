@@ -19,6 +19,7 @@
             }
 
             const colormap = acgl.Colormap.bluered(-10, 10, 20);
+            const svg = acgl.makeColorbar(colormap, {label: "Height Perturbation (m)", fontface: 'Trebuchet MS'});
 
             const raw_hght_field = new acgl.RawDataField(grid, new Float32Array(hght));
             const raw_u_field = new acgl.RawDataField(grid, new Float32Array(u));
@@ -36,13 +37,28 @@
             body {
                 margin: 0px;
             }
+            div#colorbar {
+                position: absolute;
+                display:inline-block;
+                width: 65px;
+                height: 100vh;
+                z-index: 10;
+                background-color: #ffffffbb;
+            }
+            div#colorbar svg {
+                position: absolute;
+                top: 50%;
+                transform: translate(0, -50%);
+            }
             div#map {
+                display: inline-block;
                 width: 100%;
                 height: 100vh;
             }
         </style>
     </head>
     <body>
+        <div id='colorbar'></div>
         <div id='map'></div>
         <script>
         const map = new maplibregl.Map({
@@ -56,7 +72,9 @@
             map.addLayer(hght_fill_layer, 'railway_transit_tunnel');
             map.addLayer(hght_layer, 'railway_transit_tunnel');
             map.addLayer(barb_layer, 'railway_transit_tunnel');
-        })
+        });
+
+        document.getElementById('colorbar').appendChild(svg);
         </script>
     </body>
 </html>

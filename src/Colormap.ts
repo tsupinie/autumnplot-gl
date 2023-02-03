@@ -109,17 +109,89 @@ function makeTextureImage(colormap: Colormap) {
 }
 
 type ColorbarOrientation = 'horizontal' | 'vertical';
+interface ColorbarOptions {
+    label?: string;
+    ticks?: number[];
+    orientation?: ColorbarOrientation;
+    fontface?: string;
+};
 
 /**
  * Make a color bar SVG
- * @param colormap    - The color map to use
- * @param label       - What to use as the label on the color bar
- * @param ticks       - Where to place the ticks along the color bar; defaults to use all levels from the color map
- * @param orientation - The orientation of the color bar ('horizontal' or 'vertical'); defaults to 'vertical'
+ * @param colormap - The color map to use
+ * @param opts     - The options for creating the colorbar
  */
-function makeColorbar(colormap: Colormap, label: string, ticks?: number[], orientation?: ColorbarOrientation) {
-    ticks === undefined ? colormap.levels : ticks;
-    orientation = orientation === undefined ? 'vertical' : orientation;
+function makeColorbar(colormap: Colormap, opts: ColorbarOptions) {
+    const label = opts.label || "";
+    const ticks = opts.ticks || colormap.levels;
+    const orientation = opts.orientation || 'vertical';
+    const fontface = opts.fontface || 'sans-serif';
+
+    const createElement = (tagname: string, attributes?: Record<string, string | number>, parent?: SVGElement) => {
+        const elem = document.createElementNS('http://www.w3.org/2000/svg', tagname);
+
+        if (attributes !== undefined) {
+            Object.entries(attributes).forEach(([k, v]) => {
+                elem.setAttribute(k, v.toString());
+            });
+        }
+
+        if (parent !== undefined) {
+            parent.appendChild(elem);
+        }
+
+        return elem;
+    };
+
+    const height = 600;
+    const width = height / 9;
+
+    const bar_left = 53;
+    const bar_bottom = 7;
+    const bar_width = 10;
+    const bar_height = height - 2 * bar_bottom;
+
+    const n_colors = colormap.colormap.length;
+
+    const root = createElement('svg', {width: width, height: height});
+    const gbar = createElement('g', {}, root);
+    const gticks = createElement('g', {'text-anchor': 'end', transform: `translate(${bar_left}, ${bar_bottom})`}, root);
+
+    colormap.colormap.forEach((color, icolor) => {
+        const attrs = {
+            x: bar_left,
+            y: bar_bottom + bar_height * (1 - (icolor + 1) / n_colors),
+            width: bar_width,
+            height: height / n_colors,
+            fill: color.color,
+            opacity: color.opacity
+        }
+
+        createElement('rect', attrs, gbar);
+    });
+
+    colormap.levels.forEach((level, ilevel) => {
+        const gtick = createElement('g', {transform: `translate(0, ${bar_height * (1 - ilevel / n_colors)})`}, gticks);
+        createElement('line', {stroke: '#000000', x2: -6}, gtick);
+        const text = createElement('text', {fill: '#000000', x: -9, dy: '0.32em', style: `font-family: ${fontface};`}, gtick);
+        text.textContent = level.toString();
+    });
+
+    const outline_attrs = {
+        x: bar_left,
+        y: bar_bottom,
+        width: bar_width,
+        height: bar_height,
+        stroke: '#000000',
+        fill: 'none'
+    };
+    createElement('rect', outline_attrs, root);
+
+    const label_attrs = {fill: '#000000', transform: `translate(15, ${height / 2}) rotate(-90)`, 'text-anchor': 'middle', style: `font-family: ${fontface};`};
+    const label_elem = createElement('text', label_attrs, root);
+    label_elem.textContent = label;
+
+    return root;
 }
 
 export {Colormap, makeColorbar, makeTextureImage}
