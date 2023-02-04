@@ -109,9 +109,11 @@ function makeTextureImage(colormap: Colormap) {
 }
 
 type ColorbarOrientation = 'horizontal' | 'vertical';
+type ColorbarTickDirection = 'top' | 'bottom' | 'left' | 'right';
 interface ColorbarOptions {
     label?: string;
     ticks?: number[];
+    tick_direction?: ColorbarTickDirection;
     orientation?: ColorbarOrientation;
     fontface?: string;
 };
@@ -126,6 +128,13 @@ function makeColorbar(colormap: Colormap, opts: ColorbarOptions) {
     const ticks = opts.ticks || colormap.levels;
     const orientation = opts.orientation || 'vertical';
     const fontface = opts.fontface || 'sans-serif';
+
+    const tick_dir = opts.tick_direction || (orientation == 'vertical' ? 'left' : 'bottom');
+
+    if (orientation == 'vertical' && (tick_dir == 'top' || tick_dir == 'bottom') ||
+        orientation == 'horizontal' && (tick_dir == 'left' || tick_dir == 'right')) {
+        throw `tick_direction of '${tick_dir} doesn't match an orientation of ${orientation}`;
+    }
 
     const createElement = (tagname: string, attributes?: Record<string, string | number>, parent?: SVGElement) => {
         const elem = document.createElementNS('http://www.w3.org/2000/svg', tagname);
@@ -143,44 +152,94 @@ function makeColorbar(colormap: Colormap, opts: ColorbarOptions) {
         return elem;
     };
 
-    const height = 600;
-    const width = height / 9;
+    const bar_long_size = 600;
+    const bar_cross_size = bar_long_size / 9;
+    const bar_long_pad = 11;
+    const bar_cross_pad = 3;
+    const bar_thickness = 10;
 
-    const bar_left = 53;
-    const bar_bottom = 7;
-    const bar_width = 10;
-    const bar_height = height - 2 * bar_bottom;
+    let height: number, width: number, bar_left: number, bar_top: number, bar_width: number, bar_height: number;
+
+    if (orientation == 'vertical') {
+        height = bar_long_size;
+        width = bar_cross_size;
+
+        bar_left = tick_dir == 'left' ? bar_cross_size - bar_cross_pad - bar_thickness : bar_cross_pad;
+        bar_top = bar_long_pad;
+        bar_width = bar_thickness;
+        bar_height = bar_long_size - 2 * bar_long_pad;
+    }
+    else {
+        width = bar_long_size;
+        height = bar_cross_size - 6;
+
+        bar_left = bar_long_pad;
+        bar_top = tick_dir == 'bottom' ? bar_cross_pad : bar_cross_size - 6 - bar_cross_pad - bar_thickness;
+        bar_height = bar_thickness;
+        bar_width = bar_long_size - 2 * bar_long_pad;
+    }
 
     const n_colors = colormap.colormap.length;
 
     const root = createElement('svg', {width: width, height: height});
     const gbar = createElement('g', {}, root);
-    const gticks = createElement('g', {'text-anchor': 'end', transform: `translate(${bar_left}, ${bar_bottom})`}, root);
+
+    let gtickattrs;
+    if (orientation == 'vertical') {
+        gtickattrs = tick_dir == 'left' ? {'text-anchor': 'end', transform: `translate(${bar_left}, ${bar_top})`} : 
+                                          {transform: `translate(${bar_left + bar_width}, ${bar_top})`}
+    }
+    else {
+        gtickattrs = tick_dir == 'bottom' ? {'text-anchor': 'middle', transform: `translate(${bar_left}, ${bar_top + bar_height})`} : 
+                                            {'text-anchor': 'middle', transform: `translate(${bar_left}, ${bar_top})`}
+    }
+    const gticks = createElement('g', gtickattrs, root);
 
     colormap.colormap.forEach((color, icolor) => {
-        const attrs = {
-            x: bar_left,
-            y: bar_bottom + bar_height * (1 - (icolor + 1) / n_colors),
-            width: bar_width,
-            height: height / n_colors,
-            fill: color.color,
-            opacity: color.opacity
+        let attrs: Record<string, string | number> = {};
+
+        if (orientation == 'vertical') {
+            attrs = {
+                x: bar_left, y: bar_top + bar_height * (1 - (icolor + 1) / n_colors), width: bar_width, height: bar_height / n_colors};
+        }
+        else {
+            attrs = {x: bar_left + bar_width * icolor / n_colors, y: bar_top, width: bar_width / n_colors, height: bar_height};
         }
 
-        createElement('rect', attrs, gbar);
+        createElement('rect', {...attrs, fill: color.color, opacity: color.opacity}, gbar);
     });
 
     ticks.forEach(level => {
         const ilevel = colormap.levels.indexOf(level);
-        const gtick = createElement('g', {transform: `translate(0, ${bar_height * (1 - ilevel / n_colors)})`}, gticks);
-        createElement('line', {stroke: '#000000', x2: -6}, gtick);
-        const text = createElement('text', {fill: '#000000', x: -9, dy: '0.32em', style: `font-family: ${fontface};`}, gtick);
+        const tickattrs = orientation == 'vertical' ? {transform: `translate(0, ${bar_height * (1 - ilevel / n_colors)})`} : 
+                                                      {transform: `translate(${bar_width * ilevel / n_colors}, 0)`};
+        const gtick = createElement('g', tickattrs, gticks);
+
+        let lineattrs;
+        if (orientation == 'vertical') {
+            lineattrs = tick_dir == 'left' ? {x2: -6} : {x2: 6};
+        }
+        else {
+            lineattrs = tick_dir == 'bottom' ? {y2 : 6} : {y2: -6};
+        }
+
+        createElement('line', {...lineattrs, stroke: '#000000'}, gtick);
+
+        let textattrs;
+        if (orientation == 'vertical') {
+            textattrs = tick_dir == 'left' ? {x: -9, dy: '0.32em'} : {x: 9, dy: '0.32em'};
+        }
+        else {
+            textattrs = tick_dir == 'bottom' ? {y: 9, dy: '0.8em'} : {y: -9, dy: '0em'};
+        }
+
+        const text = createElement('text', {...textattrs, fill: '#000000', style: `font-family: ${fontface};`}, gtick);
         text.textContent = level.toString();
     });
 
     const outline_attrs = {
         x: bar_left,
-        y: bar_bottom,
+        y: bar_top,
         width: bar_width,
         height: bar_height,
         stroke: '#000000',
@@ -188,12 +247,18 @@ function makeColorbar(colormap: Colormap, opts: ColorbarOptions) {
     };
     createElement('rect', outline_attrs, root);
 
-    const label_attrs = {fill: '#000000', transform: `translate(15, ${height / 2}) rotate(-90)`, 'text-anchor': 'middle', style: `font-family: ${fontface};`};
-    const label_elem = createElement('text', label_attrs, root);
+    let labelattrs;
+    if (orientation == 'vertical') {
+        labelattrs = tick_dir == 'left' ? {transform: `translate(15, ${height / 2}) rotate(-90)`} : {transform: `translate(${width - 6}, ${height / 2}) rotate(-90)`};
+    }
+    else {
+        labelattrs = tick_dir == 'bottom' ? {transform: `translate(${width / 2}, ${height - 5})`} : {transform: `translate(${width / 2}, 15)`}
+    }
+    const label_elem = createElement('text', {...labelattrs, fill: '#000000', 'text-anchor': 'middle', style: `font-family: ${fontface};`}, root);
     label_elem.textContent = label;
 
     return root;
 }
 
 export {Colormap, makeColorbar, makeTextureImage}
-export type {ColorbarOrientation, ColorbarOptions};
+export type {ColorbarOrientation, ColorbarTickDirection, ColorbarOptions};

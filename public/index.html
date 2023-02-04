@@ -19,7 +19,9 @@
             }
 
             const colormap = acgl.Colormap.bluered(-10, 10, 20);
-            const svg = acgl.makeColorbar(colormap, {label: "Height Perturbation (m)", fontface: 'Trebuchet MS', ticks: [-10, -8, -6, -4, -2, 0, 2, 4, 6, 8, 10]});
+            //const colormap = new acgl.Colormap(colormap_.levels.slice(0, 10).concat(colormap_.levels.slice(19)), colormap_.colormap.slice(0, 10).concat(colormap_.colormap.slice(19)));
+            const svg = acgl.makeColorbar(colormap, {label: "Height Perturbation (m)", fontface: 'Trebuchet MS', ticks: [-10, -8, -6, -4, -2, 0, 2, 4, 6, 8, 10],
+                                                     orientation: 'vertical', tick_direction: 'right'});
 
             const raw_hght_field = new acgl.RawDataField(grid, new Float32Array(hght));
             const raw_u_field = new acgl.RawDataField(grid, new Float32Array(u));
@@ -37,7 +39,8 @@
             body {
                 margin: 0px;
             }
-            div#colorbar {
+
+            div#colorbar.left {
                 position: absolute;
                 display:inline-block;
                 width: 65px;
@@ -45,11 +48,28 @@
                 z-index: 10;
                 background-color: #ffffffbb;
             }
-            div#colorbar svg {
+            div#colorbar.left svg {
                 position: absolute;
                 top: 50%;
                 transform: translate(0, -50%);
             }
+
+            div#colorbar.bottom {
+                position: absolute;
+                display:inline-block;
+                bottom: 0%;
+                width: 100%;
+                height: 67px;
+                z-index: 10;
+                background-color: #ffffffbb;
+            }
+            div#colorbar.bottom svg {
+                position: absolute;
+                bottom: 0%;
+                left: 50%;
+                transform: translate(-50%, 0);
+            }
+
             div#map {
                 display: inline-block;
                 width: 100%;
@@ -58,14 +78,14 @@
         </style>
     </head>
     <body>
-        <div id='colorbar'></div>
+        <div id='colorbar' class="left"></div>
         <div id='map'></div>
         <script>
         const map = new maplibregl.Map({
             container: 'map',
             style: 'https://api.maptiler.com/maps/basic-v2/style.json?key=UWqkVQQbiXnCvm3VQ2BF', // stylesheet location
-            center: [-97.5, 38.5], // starting position [lng, lat]
-            zoom: 4 // starting zoom
+            center: [-100.5, 35.5], // starting position [lng, lat]
+            zoom: 6 // starting zoom
         });
         
         map.on('load', () => {
