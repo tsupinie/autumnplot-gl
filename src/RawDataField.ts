@@ -68,19 +68,6 @@ class PlateCarreeGrid {
     getCoords() {
         return this._ll_cache.getValue();
     }
-
-    static fromBuffer(buffer: Uint8Array, offset: number) {
-        const dims = new Uint16Array(buffer.buffer, offset, 2);
-        const [ni, nj] = [...dims];
-
-        const grid_def = new Float32Array(buffer.buffer, offset + 4, 4);
-        const [ll_lon, ll_lat, ur_lon, ur_lat] = [...grid_def];
-
-        return {
-            'grid': new PlateCarreeGrid(ni, nj, ll_lon, ll_lat, ur_lon, ur_lat),
-            'nbytesread': 20
-        }
-    }
 }
 
 class LambertGrid {
@@ -107,16 +94,6 @@ class LambertGrid {
 
     getCoords() {
         return this._ll_cache.getValue();
-    }
-
-    static fromBuffer(buffer: Uint8Array, offset: number) {
-        const dims = new Uint16Array(buffer.buffer, offset, 2);
-        const [ni, nj] = [...dims];
-
-        return {
-            'grid': new LambertGrid(ni, nj),
-            'nbytesread': 4
-        };
     }
 }
 
