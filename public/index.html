@@ -19,9 +19,8 @@
             }
 
             const colormap = acgl.Colormap.bluered(-10, 10, 20);
-            //const colormap = new acgl.Colormap(colormap_.levels.slice(0, 10).concat(colormap_.levels.slice(19)), colormap_.colormap.slice(0, 10).concat(colormap_.colormap.slice(19)));
             const svg = acgl.makeColorbar(colormap, {label: "Height Perturbation (m)", fontface: 'Trebuchet MS', ticks: [-10, -8, -6, -4, -2, 0, 2, 4, 6, 8, 10],
-                                                     orientation: 'vertical', tick_direction: 'right'});
+                                                     orientation: 'horizontal', tick_direction: 'bottom'});
 
             const raw_hght_field = new acgl.RawDataField(grid, new Float32Array(hght));
             const raw_u_field = new acgl.RawDataField(grid, new Float32Array(u));
@@ -78,7 +77,7 @@
         </style>
     </head>
     <body>
-        <div id='colorbar' class="left"></div>
+        <div id='colorbar' class="bottom"></div>
         <div id='map'></div>
         <script>
         const map = new maplibregl.Map({

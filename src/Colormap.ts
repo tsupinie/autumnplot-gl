@@ -223,7 +223,7 @@ function makeColorbar(colormap: Colormap, opts: ColorbarOptions) {
             lineattrs = tick_dir == 'bottom' ? {y2 : 6} : {y2: -6};
         }
 
-        createElement('line', {...lineattrs, stroke: '#000000'}, gtick);
+        createElement('line', {...lineattrs, stroke: '#000000', 'stroke-width': 1.5}, gtick);
 
         let textattrs;
         if (orientation == 'vertical') {
@@ -243,6 +243,7 @@ function makeColorbar(colormap: Colormap, opts: ColorbarOptions) {
         width: bar_width,
         height: bar_height,
         stroke: '#000000',
+        'stroke-width': 1.5,
         fill: 'none'
     };
     createElement('rect', outline_attrs, root);
