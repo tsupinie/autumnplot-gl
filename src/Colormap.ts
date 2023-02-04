@@ -75,12 +75,12 @@ class Colormap {
         return new Colormap(levels, stops);
     }
 
-    static redblue(level_min: number, level_max: number, n_levels: number) {
-        return Colormap.diverging('#ff0000', '#0000ff', level_min, level_max, n_levels);
+    static redblue(level_min: number, level_max: number, n_colors: number) {
+        return Colormap.diverging('#ff0000', '#0000ff', level_min, level_max, n_colors);
     }
 
-    static bluered(level_min: number, level_max: number, n_levels: number) {
-        return Colormap.diverging('#0000ff', '#ff0000', level_min, level_max, n_levels);
+    static bluered(level_min: number, level_max: number, n_colors: number) {
+        return Colormap.diverging('#0000ff', '#ff0000', level_min, level_max, n_colors);
     }
 }
 
