@@ -2,7 +2,7 @@
 import { Field, layer_worker } from "./Field";
 import { PolylineCollection, LineSpec} from "./PolylineCollection";
 import { BillboardCollection, BillboardSpec } from "./BillboardCollection";
-import { Hodograph } from "./AutumnFieldTypes";
+import { WindProfile } from "./AutumnFieldTypes";
 import { getMinZoom, hex2rgba } from './utils';
 import { LngLat } from "./AutumnMap";
 
@@ -77,7 +77,7 @@ const HODO_HEIGHT_TEXTURE = _createHodoHeightTexture();
 
 /** A class representing a a field of hodograph plots */
 class FieldHodographs extends Field {
-    readonly profiles: Hodograph[];
+    readonly profiles: WindProfile[];
     readonly bgcolor: [number, number, number];
     readonly thin_fac: number;
 
@@ -95,7 +95,7 @@ class FieldHodographs extends Field {
      * @param profiles - A list of profiles to use
      * @param opts     - Various options to use when creating the hodographs 
      */
-    constructor(profiles: Hodograph[], opts: {'bgcolor': string, 'thin_fac': number}) {
+    constructor(profiles: WindProfile[], opts: {'bgcolor': string, 'thin_fac': number}) {
         super();
         
         this.profiles = profiles;

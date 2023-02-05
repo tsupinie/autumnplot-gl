@@ -1,4 +1,9 @@
 {
     "entryPoints": ["src/index.ts"],
     "out": "docs",
+    "intentionallyNotExported": [
+        "BillboardCollection", "BillboardSpec", "PolylineCollection",
+        "WGLTexture", "WGLBuffer", "WGLProgram",
+        "Cache", "Coords"
+    ],
 }

@@ -1,5 +1,5 @@
 
-interface Hodograph {
+interface WindProfile {
     lat: number;
     lon: number;
     jlat: number;
@@ -35,4 +35,4 @@ interface LineSpec {
     texcoords: [number, number][];
 }
 
-export type {Hodograph, BarbDimSpec, PolylineSpec, LineSpec};
+export type {WindProfile, BarbDimSpec, PolylineSpec, LineSpec};

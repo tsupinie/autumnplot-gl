@@ -111,8 +111,8 @@ class LambertGrid {
     }
 }
 
-type Grid = PlateCarreeGrid | LambertGrid;
-type GridType = typeof PlateCarreeGrid | typeof LambertGrid;
+type Grid = PlateCarreeGrid; // | LambertGrid;
+type GridType = typeof PlateCarreeGrid; // | typeof LambertGrid;
 
 /** A class representing a raw 2D field of gridded data, such as height or u wind. */
 class RawDataField {
@@ -180,4 +180,4 @@ class RawDataField {
 type RawVectorField = {u: RawDataField, v: RawDataField};
 
 export {RawDataField, PlateCarreeGrid};
-export type {RawVectorField};
+export type {RawVectorField, Grid};
