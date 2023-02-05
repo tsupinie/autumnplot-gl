@@ -5,7 +5,23 @@ import { WGLBuffer, WGLProgram, WGLTexture } from './wgl';
 import { RawDataField } from './RawDataField';
 import { AutumnMap } from './AutumnMap';
 
-/** A class representing a filled contoured field */
+interface FieldContourFillOptions {
+    /** The color map to use when creating the fills */
+    cmap: Colormap;
+
+    /** 
+     * The opacity for the filled contours 
+     * @default 1
+     */
+    opacity?: number;
+}
+
+/** 
+ * A filled contoured field 
+ * @example
+ * // Create a field of filled contours with the provided color map
+ * const fill = new FieldContourFill(wind_speed_field, {cmap: color_map});
+ */
 class FieldContourFill extends Field {
     readonly field: RawDataField;
     readonly cmap: Colormap;
@@ -33,14 +49,14 @@ class FieldContourFill extends Field {
     /**
      * Create a filled contoured field
      * @param field - The field to create filled contours from
-     * @param opts  - Various options to use when creating the filled contours
+     * @param opts  - Options for creating the filled contours
      */
-    constructor(field: RawDataField, opts: {'cmap': Colormap, 'opacity': number}) {
+    constructor(field: RawDataField, opts: FieldContourFillOptions) {
         super();
 
         this.field = field;
-        this.cmap = opts['cmap'];
-        this.opacity = opts['opacity'];
+        this.cmap = opts.cmap;
+        this.opacity = opts.opacity || 1.;
 
         this.cmap_image = makeTextureImage(this.cmap);
 
@@ -75,6 +91,10 @@ class FieldContourFill extends Field {
         this.cmap_nonlin_texture = null;
     }
 
+    /**
+     * @internal
+     * Add the filled contours to a map
+     */
     async onAdd(map: AutumnMap, gl: WebGLRenderingContext) {
         // Basic procedure for the filled contours inspired by https://blog.mbq.me/webgl-weather-globe/
         gl.getExtension('OES_texture_float');
@@ -150,6 +170,10 @@ class FieldContourFill extends Field {
         this.cmap_nonlin_texture = new WGLTexture(gl, cmap_nonlin_image);
     }
 
+    /**
+     * @internal
+     * Render the filled contours
+     */
     render(gl: WebGLRenderingContext, matrix: number[]) {
         if (this.program === null || this.vertices === null || this.texcoords === null ||
             this.fill_texture === null || this.cmap_texture === null || this.cmap_nonlin_texture === null) return;
@@ -169,3 +193,4 @@ class FieldContourFill extends Field {
 }
 
 export default FieldContourFill;
+export type {FieldContourFillOptions};

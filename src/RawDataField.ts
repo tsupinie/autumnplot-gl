@@ -177,4 +177,7 @@ class RawDataField {
     }
 }
 
+type RawVectorField = {u: RawDataField, v: RawDataField};
+
 export {RawDataField, PlateCarreeGrid};
+export type {RawVectorField};

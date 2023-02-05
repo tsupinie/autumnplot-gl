@@ -146,19 +146,29 @@ interface ColorbarOptions {
     /** The label to place along the color bar */
     label?: string;
 
-    /** An array of numbers to use as the tick locations. The default is to use all the levels in the color map provided to {@link makeColorbar}. */
+    /** 
+     * An array of numbers to use as the tick locations. 
+     * @default Use all the levels in the color map provided to {@link makeColorbar}.
+     */
     ticks?: number[];
 
     /** 
-     * The direction the ticks should face. Valid values are 'left' and 'right' (the default being 'left') if orientation is 'vertical' and 'top' and 
-     * 'bottom' (the default being 'bottom') if orientation is 'horizontal'.
+     * The direction the ticks should face. Valid values are 'left' and 'right' if orientation is 'vertical' and 'top' and 
+     * 'bottom' if orientation is 'horizontal'.
+     * @default 'left' if orientation is 'vertical' and 'bottom' if orientation is 'horizontal'
      */
     tick_direction?: ColorbarTickDirection;
 
-    /** The orientation for the color bar. Valid values are 'horizontal' and 'vertical'. The default is 'vertical'. */
+    /** 
+     * The orientation for the color bar. Valid values are 'horizontal' and 'vertical'.
+     * @default 'vertical'
+     */
     orientation?: ColorbarOrientation;
 
-    /** A font face to use for the label and tick values. The default is 'sans-serif'. */
+    /** 
+     * A font face to use for the label and tick values.
+     * @default 'sans-serif'
+     */
     fontface?: string;
 };
 

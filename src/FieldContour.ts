@@ -5,7 +5,35 @@ import { RawDataField } from './RawDataField';
 import { hex2rgba } from './utils';
 import { WGLBuffer, WGLProgram, WGLTexture } from './wgl';
 
-/** A class respresenting a field to contour */
+interface FieldContourOptions {
+    /** 
+     * The color of the contours as a hex color string 
+     * @default '#000000'
+     */
+    color?: string;
+
+    /** 
+     * The contour interval 
+     * @default 1
+     */
+    interval?: number;
+
+    /** 
+     * A function to thin the contours based on zoom level. The function should take a zoom level and return a number `n` that means to only show every 
+     * `n`th contour.
+     * @default Don't thin the contours on any zoom level
+     */
+    thinner?: (zoom: number) => number;
+}
+
+/** 
+ * A field of contoured data. The contours can optionally be thinned based on map zoom level.
+ * @example
+ * // Create a contoured height field, with black contours every 30 m (assuming the height field is in 
+ * // meters) and only using every other contour when the map zoom level is less than 5.
+ * const contours = new FieldContour(height_field, {color: '#000000', interval: 30, 
+ *                                                  thinner: zoom => zoom < 5 ? 2 : 1});
+ */
 class FieldContour extends Field {
     readonly field: RawDataField;
     readonly color: [number, number, number];
@@ -35,19 +63,19 @@ class FieldContour extends Field {
     /**
      * Create a contoured field
      * @param field - The field to contour
-     * @param opts  - Various options to use when creating the contours
+     * @param opts  - Options for creating the contours
      */
-    constructor(field: RawDataField, opts: {'color': string, 'interval': number, 'thinner': (zoom: number) => number}) {
+    constructor(field: RawDataField, opts: FieldContourOptions) {
         super();
 
         this.field = field;
 
-        this.interval = opts['interval'];
+        this.interval = opts.interval || 1;
 
-        const color = hex2rgba(opts['color']);
+        const color = hex2rgba(opts.color || '#000000');
         this.color = [color[0], color[1], color[2]];
 
-        this.thinner = opts['thinner'];
+        this.thinner = opts.thinner || (() => 1);
 
         this.map = null;
         this.program = null;
@@ -61,6 +89,10 @@ class FieldContour extends Field {
         this.tex_height = null;
     }
 
+    /**
+     * @internal
+     * Add the contours to a map
+     */
     async onAdd(map: AutumnMap, gl: WebGLRenderingContext) {
         // Basic procedure for these contours from https://www.shadertoy.com/view/lltBWM
         this.map = map;
@@ -147,6 +179,10 @@ class FieldContour extends Field {
         this.texcoords = new WGLBuffer(gl, verts_tex_coords['tex_coords'], 2, gl.TRIANGLE_STRIP);
     }
 
+    /**
+     * @internal
+     * Render the contours
+     */
     render(gl: WebGLRenderingContext, matrix: number[]) {
         if (this.map === null || this.program === null || this.vertices === null || this.latitudes === null || 
             this.fill_texture === null || this.texcoords === null || this.grid_spacing === null || this.tex_width === null || this.tex_height === null) return;
@@ -172,3 +208,4 @@ class FieldContour extends Field {
 }
 
 export default FieldContour;
+export type {FieldContourOptions};

@@ -2,27 +2,27 @@
 import { Field, layer_worker } from "./Field";
 import { BillboardCollection } from './BillboardCollection';
 import { hex2rgba } from './utils';
-import { RawDataField } from "./RawDataField";
+import { RawDataField, RawVectorField } from "./RawDataField";
 import { AutumnMap } from "./AutumnMap";
 
 const BARB_DIMS = {
-    'BARB_WIDTH': 85,
-    'BARB_HEIGHT': 256,
-    'BARB_TEX_WRAP': 60,
-    'BARB_TEX_WIDTH': 1024,
-    'BARB_TEX_HEIGHT': 1024,
-    'MAX_BARB': 235
+    BARB_WIDTH: 85,
+    BARB_HEIGHT: 256,
+    BARB_TEX_WRAP: 60,
+    BARB_TEX_WIDTH: 1024,
+    BARB_TEX_HEIGHT: 1024,
+    MAX_BARB: 235
 }
 
 function _createBarbTexture() : HTMLCanvasElement {
     let canvas = document.createElement('canvas');
 
-    canvas.width = BARB_DIMS['BARB_TEX_WIDTH'];
-    canvas.height = BARB_DIMS['BARB_TEX_HEIGHT'];
+    canvas.width = BARB_DIMS.BARB_TEX_WIDTH;
+    canvas.height = BARB_DIMS.BARB_TEX_HEIGHT;
     
     function drawWindBarb(ctx: CanvasRenderingContext2D, tipx: number, tipy: number, mag: number) : void {
-        const elem_full_size = BARB_DIMS['BARB_WIDTH'] / 2 - 4;
-        //const staff_length = BARB_DIMS['BARB_HEIGHT'] - 13 - BARB_DIMS['BARB_WIDTH'] / 2 - elem_full_size / 2;
+        const elem_full_size = BARB_DIMS.BARB_WIDTH / 2 - 4;
+        //const staff_length = BARB_DIMS.BARB_HEIGHT - 13 - BARB_DIMS.BARB_WIDTH / 2 - elem_full_size / 2;
         const elem_spacing = elem_full_size / 2;
         
         if (mag < 2.5) {
@@ -112,9 +112,9 @@ function _createBarbTexture() : HTMLCanvasElement {
     ctx.lineWidth = 8;
     ctx.miterLimit = 4;
     
-    for (let ibarb = 0; ibarb <= BARB_DIMS['MAX_BARB']; ibarb += 5) {
-        const x_pos = (ibarb % BARB_DIMS['BARB_TEX_WRAP']) / 5 * BARB_DIMS['BARB_WIDTH'] + BARB_DIMS['BARB_WIDTH'] / 2;
-        const y_pos = Math.floor(ibarb / BARB_DIMS['BARB_TEX_WRAP']) * BARB_DIMS['BARB_HEIGHT'] + BARB_DIMS['BARB_WIDTH'] / 2;
+    for (let ibarb = 0; ibarb <= BARB_DIMS.MAX_BARB; ibarb += 5) {
+        const x_pos = (ibarb % BARB_DIMS.BARB_TEX_WRAP) / 5 * BARB_DIMS.BARB_WIDTH + BARB_DIMS.BARB_WIDTH / 2;
+        const y_pos = Math.floor(ibarb / BARB_DIMS.BARB_TEX_WRAP) * BARB_DIMS.BARB_HEIGHT + BARB_DIMS.BARB_WIDTH / 2;
         drawWindBarb(ctx, x_pos, y_pos, ibarb);
     }
 
@@ -123,9 +123,32 @@ function _createBarbTexture() : HTMLCanvasElement {
 
 const BARB_TEXTURE = _createBarbTexture();
 
-/** A class representing a field of wind barbs */
+interface FieldBarbsOptions {
+    /** 
+     * The color to use for the barbs as a hex color string;.
+     * @default '#000000'
+     */
+    color?: string;
+
+    /** 
+     * How much to thin the barbs at zoom level 1 on the map. This effectively means to plot every `n`th barb in the i and j directions, where `n` = 
+     * `thin_fac`. `thin_fac` should be a power of 2. 
+     * @default 1
+     */
+    thin_fac?: number;
+}
+
+/** 
+ * A class representing a field of wind barbs. The barbs are automatically thinned based on the zoom level on the map; the user only has to provide a
+ * thinning factor at zoom level 1.
+ * @example
+ * // Create a barb field with black barbs and plotting every 16th wind barb in both i and j at zoom level 1
+ * const vector_field = {u: u_field, v: v_field};
+ * const barbs = new FieldBarbs(vector_field, {color: '#000000', thin_fac: 16});
+ */
 class FieldBarbs extends Field {
-    readonly fields: {'u': RawDataField, 'v': RawDataField}
+    /** The vector field */
+    readonly fields: RawVectorField;
     readonly color: [number, number, number];
     readonly thin_fac: number;
 
@@ -137,37 +160,45 @@ class FieldBarbs extends Field {
     /**
      * Create a field of wind barbs
      * @param fields - The u and v fields to use as an object
-     * @param opts   - Various options to use in creating the wind barbs
+     * @param opts   - Options for creating the wind barbs
      */
-    constructor(fields: {'u': RawDataField, 'v': RawDataField}, opts: {'color': string, 'thin_fac': number}) {
+    constructor(fields: RawVectorField, opts: FieldBarbsOptions) {
         super();
 
         this.fields = fields;
 
-        const color = hex2rgba(opts['color']);
+        const color = hex2rgba(opts.color || '#000000');
         this.color = [color[0], color[1], color[2]];
-        this.thin_fac = opts['thin_fac'];
+        this.thin_fac = opts.thin_fac || 1;
 
         this.map = null;
         this.barb_billboards = null;
     }
 
+    /**
+     * @internal 
+     * Add the barb field to a map
+     */
     async onAdd(map: AutumnMap, gl: WebGLRenderingContext) {
         this.map = map;
 
         const {lons: field_lons, lats: field_lats} = this.fields['u'].grid.getCoords();
 
-        const barb_elements = await layer_worker.makeBarbElements(field_lats, field_lons, this.fields['u'].data, this.fields['v'].data, this.thin_fac, BARB_DIMS);
-        const barb_image = {'format': gl.RGBA, 'type': gl.UNSIGNED_BYTE, 'image': BARB_TEXTURE, 'mag_filter': gl.NEAREST};
+        const barb_elements = await layer_worker.makeBarbElements(field_lats, field_lons, this.fields.u.data, this.fields.v.data, this.thin_fac, BARB_DIMS);
+        const barb_image = {format: gl.RGBA, type: gl.UNSIGNED_BYTE, image: BARB_TEXTURE, mag_filter: gl.NEAREST};
 
         const barb_height = 27.5;
-        const barb_aspect = BARB_DIMS['BARB_WIDTH'] / BARB_DIMS['BARB_HEIGHT'];
+        const barb_aspect = BARB_DIMS.BARB_WIDTH / BARB_DIMS.BARB_HEIGHT;
         const barb_width = barb_height * barb_aspect;
 
         this.barb_billboards = new BillboardCollection(gl, barb_elements, barb_image, 
             [barb_width, barb_height], this.color);
     }
 
+    /**
+     * @internal 
+     * Render the barb field
+     */
     render(gl: WebGLRenderingContext, matrix: number[]) {
         if (this.map === null || this.barb_billboards === null) return;
 
@@ -182,3 +213,4 @@ class FieldBarbs extends Field {
 }
 
 export default FieldBarbs;
+export type {FieldBarbsOptions};
