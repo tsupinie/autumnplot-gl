@@ -24,6 +24,7 @@ interface Coords {
     lats: Float32Array;
 }
 
+/** A plate carree (a.k.a. lat/lon) grid with uniform grid spacing */
 class PlateCarreeGrid {
     readonly type: 'latlon';
 
@@ -34,8 +35,18 @@ class PlateCarreeGrid {
     readonly ur_lon: number;
     readonly ur_lat: number;
 
+    /** @private */
     readonly _ll_cache: Cache<[], Coords>;
 
+    /**
+     * Create a plate carree grid
+     * @param ni     - The number of grid points in the i (longitude) direction
+     * @param nj     - The number of grid points in the j (latitude) direction
+     * @param ll_lon - The longitude of the lower left corner of the grid
+     * @param ll_lat - The latitude of the lower left corner of the grid
+     * @param ur_lon - The longitude of the upper right corner of the grid
+     * @param ur_lat - The latitude of the upper right corner of the grid
+     */
     constructor(ni: number, nj: number, ll_lon: number, ll_lat: number, ur_lon: number, ur_lat: number) {
         this.type = 'latlon';
 
@@ -65,6 +76,9 @@ class PlateCarreeGrid {
         });
     }
 
+    /**
+     * Get a list of longitudes and latitudes on the grid (internal method)
+     */
     getCoords() {
         return this._ll_cache.getValue();
     }
@@ -100,12 +114,19 @@ class LambertGrid {
 type Grid = PlateCarreeGrid | LambertGrid;
 type GridType = typeof PlateCarreeGrid | typeof LambertGrid;
 
+/** A class representing a raw 2D field of gridded data, such as height or u wind. */
 class RawDataField {
     readonly grid: Grid;
     readonly data: Float32Array;
 
+    /** @private */
     readonly _pad_cache: Cache<[], {width: number, height: number, data: Float32Array}>;
 
+    /**
+     * Create a data field. 
+     * @param grid - The grid on which the data are defined
+     * @param data - The data, which should be given as a 1D array in row-major order, with the first element being at the lower-left corner of the grid.
+     */
     constructor(grid: Grid, data: Float32Array) {
         this.grid = grid;
         this.data = data;
@@ -126,10 +147,22 @@ class RawDataField {
         })
     }
     
+    /**
+     * Pad the data such that both axes are a power of 2 in length (internal method)
+     */
     getPaddedData() {
         return this._pad_cache.getValue();
     }
 
+    /**
+     * Create a new field by aggregating a number of fields using a specific function
+     * @param func - A function that will be applied each element of the field. It should take the same number of arguments as fields you have and return a single number.
+     * @param args - The RawDataFields to aggregate
+     * @returns a new gridded field
+     * @example
+     * // Compute wind speed from u and v
+     * wind_speed_field = RawDataField.aggreateFields(Math.hypot, u_field, v_field);
+     */
     static aggregateFields(func: (...args: number[]) => number, ...args: RawDataField[]) {
         function* mapGenerator<T, U>(gen: Generator<T>, func: (arg: T) => U) {
             for (const elem of gen) {

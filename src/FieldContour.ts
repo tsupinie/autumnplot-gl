@@ -12,24 +12,24 @@ class FieldContour extends Field {
     readonly interval: number;
     readonly thinner: (zoom: number) => number;
 
-    /** @internal */
+    /** @private */
     map: AutumnMap | null;
-    /** @internal */
+    /** @private */
     program: WGLProgram | null;
-    /** @internal */
+    /** @private */
     vertices: WGLBuffer | null;
-    /** @internal */
+    /** @private */
     latitudes: WGLBuffer | null;
-    /** @internal */
+    /** @private */
     fill_texture: WGLTexture | null;
-    /** @internal */
+    /** @private */
     texcoords: WGLBuffer | null;
-    /** @internal */
+    /** @private */
     grid_spacing: number | null;
 
-    /** @internal */
+    /** @private */
     tex_width: number | null;
-    /** @internal */
+    /** @private */
     tex_height: number | null;
 
     /**

@@ -129,9 +129,9 @@ class FieldBarbs extends Field {
     readonly color: [number, number, number];
     readonly thin_fac: number;
 
-    /** @internal */
+    /** @private */
     map: AutumnMap | null;
-    /** @internal */
+    /** @private */
     barb_billboards: BillboardCollection | null;
 
     /**

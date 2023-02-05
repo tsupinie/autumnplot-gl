@@ -81,9 +81,13 @@ class FieldHodographs extends Field {
     readonly bgcolor: [number, number, number];
     readonly thin_fac: number;
 
+    /** @private */
     map: mapboxgl.Map | null;
+    /** @private */
     bg_billboard: BillboardCollection | null;
+    /** @private */
     hodo_line: PolylineCollection | null;
+    /** @private */
     sm_line: PolylineCollection | null;
 
     /**

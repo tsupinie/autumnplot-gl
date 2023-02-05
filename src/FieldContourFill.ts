@@ -11,23 +11,23 @@ class FieldContourFill extends Field {
     readonly cmap: Colormap;
     readonly opacity: number;
 
-    /** @internal */
+    /** @private */
     readonly cmap_image: HTMLCanvasElement;
-    /** @internal */
+    /** @private */
     readonly index_map: Float32Array;
 
-    /** @internal */
+    /** @private */
     program: WGLProgram | null;
-    /** @internal */
+    /** @private */
     vertices: WGLBuffer | null;
 
-    /** @internal */
+    /** @private */
     fill_texture: WGLTexture | null;
-    /** @internal */
+    /** @private */
     texcoords: WGLBuffer | null;
-    /** @internal */
+    /** @private */
     cmap_texture: WGLTexture | null;
-    /** @internal */
+    /** @private */
     cmap_nonlin_texture: WGLTexture | null;
 
     /**
