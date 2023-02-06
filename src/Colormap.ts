@@ -148,7 +148,7 @@ interface ColorBarOptions {
 
     /** 
      * An array of numbers to use as the tick locations. 
-     * @default Use all the levels in the color map provided to {@link makeColorbar}.
+     * @default Use all the levels in the color map provided to {@link makeColorBar}.
      */
     ticks?: number[];
 
