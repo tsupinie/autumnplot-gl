@@ -52,9 +52,9 @@ Finally, add it to the map. The interface for Mapbox and MapLibre are the same, 
 ```javascript
 const map = new maplibregl.Map({
     container: 'map',
-    style: 'https://api.maptiler.com/maps/basic-v2/style.json?key=' + maptier_api_key, // stylesheet location
-    center: [-97.5, 38.5], // starting position [lng, lat]
-    zoom: 4 // starting zoom
+    style: 'https://api.maptiler.com/maps/basic-v2/style.json?key=' + maptiler_api_key,
+    center: [-97.5, 38.5],
+    zoom: 4
 });
 
 map.on('load', () => {
