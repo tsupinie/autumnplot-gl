@@ -9,13 +9,13 @@ autumnplot-gl provides a solution to this problem by making hardware-accelerated
 ## Usage
 autumnplot-gl is designed to be used with either [Mapbox GL JS](https://docs.mapbox.com/mapbox-gl-js/guides/) or [MapLibre GL JS](https://maplibre.org/maplibre-gl-js-docs/) mapping libraries.
 
-To use autumnplot-gl, include it on your webpage like so:
+To use autumnplot-gl, grab both the files from `dist/` and put them in the same directory in your project. Then add this to your web page:
 
 ```html
-<script src="autumnplot-gl.js"></src>
+<script src="path/to/autumnplot-gl.js"></src>
 ```
 
-This exposes the API via the `apgl` global variable. 
+This exposes the API via the `apgl` global variable. (Side note: if anyone knows how to make webpack 5 output a different name for the web worker file, I'm all ears.)
 
 ### A basic contour plot
 The first step in plotting data is to create a grid. Currently, the only supported grid is PlateCarree (a.k.a. Lat/Lon), but support for a Lambert Conformal conic grid is planned.
