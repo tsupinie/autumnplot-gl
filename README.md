@@ -79,6 +79,8 @@ map.on('load', () => {
 });
 ```
 
+The density of the wind barbs is automatically varied based on the map zoom level. The `'thin_fac': 16` option means to plot every 16th wind barb in the i and j directions, and this is defined at zoom level 1. So at zoom level 2, it will plot every 8th wind barb, and at zoom level 3 every 4th wind barb, and so on. Because it divides in 2 for every deeper zoom level, `'thin_fac'` should be a power of 2.
+
 ### Filled contours
 
 Plotting filled contours is also similar to plotting regular contours, but there's some additional steps for the color map. A couple color maps are available by default, but if you have the colors you want, creating your own is (relatively) painless (hopefully). First, set up the colormap. Here, we'll just use the bluered colormap included by default.
