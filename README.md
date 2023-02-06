@@ -9,7 +9,7 @@ autumnplot-gl provides a solution to this problem by making hardware-accelerated
 ## Usage
 autumnplot-gl is designed to be used with either [Mapbox GL JS](https://docs.mapbox.com/mapbox-gl-js/guides/) or [MapLibre GL JS](https://maplibre.org/maplibre-gl-js-docs/) mapping libraries.
 
-To use autumnplot-gl, grab both the files from `dist/` and put them in the same directory in your project. Then add this to your web page:
+To use autumnplot-gl, grab both the files from [dist/](https://github.com/tsupinie/autumnplot-gl/tree/main/dist) and put them in the same directory in your project. Then add this to your web page:
 
 ```html
 <script src="path/to/autumnplot-gl.js"></src>
