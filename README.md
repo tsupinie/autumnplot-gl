@@ -126,7 +126,7 @@ map.on('load', () => {
 });
 ```
 
-The second argument to `addField()` is the key to associate with this field. This example uses the absolute time, but you could just as easily use 'f00', 'f01', ... or anything else that's relevant as long as it's unique. Now to set the active time (i.e., the time that gets plotted):
+The second argument to `addField()` is the key to associate with this field. This example uses the absolute time, but you could just as easily use `'f00'`, `'f01'`, ... or anything else that's relevant as long as it's unique. Now to set the active time (i.e., the time that gets plotted):
 
 ```javascript
 // Set the active field in the map layer (the map updates automatically)
