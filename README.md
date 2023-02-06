@@ -26,7 +26,7 @@ const nx = 121, ny = 61;
 const grid = new apgl.PlateCarreeGrid(nx, ny, -130, 20, -65, 55);
 ```
 
-Next, create a RawScalarField with the data. autumnplot-gl doesn't care about how data gets to the browser, but it should end up in a Float32Array in row-major order with the first element being at the southwest corner of the grid. A future version might include support for reading from, say, a Zarr file. Once you have your data in that format, to create the raw data field:
+Next, create a RawScalarField with the data. autumnplot-gl doesn't care about how data get to the browser, but it should end up in a Float32Array in row-major order with the first element being at the southwest corner of the grid. A future version might include support for reading from, say, a Zarr file. Once you have your data in that format, to create the raw data field:
 
 ```javascript
 // Create the raw data field
@@ -62,7 +62,7 @@ map.on('load', () => {
 });
 ```
 
-The 'railway_transit_tunnel' argument is a layer in the map style, and this means to add your layer just below that layer on the map. This usually produces better results than just blindly slapping all your layers on top of all the map (though the map style itself my require some tweaking to produce the best results).
+The `'railway_transit_tunnel'` argument is a layer in the map style, and this means to add your layer just below that layer on the map. This usually produces better results than just blindly slapping all your layers on top of all the map (though the map style itself my require some tweaking to produce the best results).
 
 ### Barbs
 
