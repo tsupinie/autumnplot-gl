@@ -24,7 +24,6 @@
         "webpack-dev-server": "^4.11.1"
     },
     "dependencies": {
-        "comlink": "^4.3.1",
-        "luxon": "^3.2.1"
+        "comlink": "^4.3.1"
     }
 }

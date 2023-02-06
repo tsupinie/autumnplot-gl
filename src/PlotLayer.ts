@@ -1,10 +1,7 @@
 
-import { DateTime } from 'luxon';
 import { MapType } from './Map';
 
 import { PlotComponent } from './PlotComponent';
-
-const ENV_FMT = 'yyyyMMddHH';
 
 abstract class PlotLayerBase {
     readonly type: 'custom';
@@ -20,7 +17,7 @@ abstract class PlotLayerBase {
 }
 
 /** 
- * A static map layer. The data are assumed to be static in time. If the data have a time component (e.g., a model forecast), an {@link PlotTimeLayer} 
+ * A static map layer. The data are assumed to be static in time. If the data have a time component (e.g., a model forecast), an {@link MultiPlotLayer} 
  * may be more appropriate.
  * @example
  * // Create map layers from provided fields
@@ -59,20 +56,20 @@ class PlotLayer extends PlotLayerBase {
 }
 
 /**
- * A time-varying map layer. If the data don't have a time component that you wish to display, it might be easier to use an {@link PlotLayer} instead.
+ * A varying map layer. If the data don't have a varying component, such as over time, it might be easier to use an {@link PlotLayer} instead.
  * @example
- * // Create a time-varying map layer
- * height_layer = new PlotTimeLayer('height-contours');
+ * // Create a varying map layer
+ * height_layer = new MultiPlotLayer('height-contours');
  * 
  * // Add some fields to it
- * height_layer.addField(height_contour_f00, DateTime.utc(2023, 1, 12, 12, 0));
- * height_layer.addField(height_contour_f01, DateTime.utc(2023, 1, 12, 13, 0));
- * height_layer.addField(height_contour_f02, DateTime.utc(2023, 1, 12, 14, 0));
+ * height_layer.addField(height_contour_f00, '20230112_1200');
+ * height_layer.addField(height_contour_f01, '20230112_1300');
+ * height_layer.addField(height_contour_f02, '20230112_1400');
  * 
  * // Set the date/time in the map layer
- * height_layer.setDatetime(Datetime.utc(2023, 1, 12, 12, 0));
+ * height_layer.setActiveKey('20230112_1200');
  */
-class PlotTimeLayer extends PlotLayerBase {
+class MultiPlotLayer extends PlotLayerBase {
     /** @private */
     fields: Record<string, PlotComponent>;
     /** @private */
@@ -125,12 +122,10 @@ class PlotTimeLayer extends PlotLayerBase {
     }
 
     /**
-     * Set the layer's date/time
-     * @param dt - The new date/time
+     * Set the active key
+     * @param key - The new key
      */
-    setDatetime(dt: DateTime) {
-        const key = dt.toFormat(ENV_FMT);
-
+    setActiveKey(key: string) {
         const old_field_key = this.field_key;
         this.field_key = key;
 
@@ -141,10 +136,8 @@ class PlotTimeLayer extends PlotLayerBase {
      * Get a list of all dates/times that have been added to the layer
      * @returns An array of dates/times
      */
-    getDatetimes() {
-        let dts = Object.keys(this.fields).map(key => DateTime.fromFormat(key, ENV_FMT, {'zone': 'utc'}));
-        dts.sort((a, b) => a.toMillis() - b.toMillis());
-        return dts;
+    getKeys() {
+        return Object.keys(this.fields);
     }
 
     /**
@@ -152,8 +145,7 @@ class PlotTimeLayer extends PlotLayerBase {
      * @param field - The field to add
      * @param dt    - The date/time at which the field is valid
      */
-    addField(field: PlotComponent, dt: DateTime) {
-        const key = dt.toFormat(ENV_FMT);
+    addField(field: PlotComponent, key: string) {
         const old_field_key = this.field_key;
 
         if (this.map !== null && this.gl !== null && field !== null) {
@@ -177,4 +169,4 @@ class PlotTimeLayer extends PlotLayerBase {
     }
 }
 
-export {PlotLayer, PlotTimeLayer};
+export {PlotLayer, MultiPlotLayer};

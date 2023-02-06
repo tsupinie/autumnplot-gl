@@ -27,15 +27,6 @@ module.exports = {
         }
     },
 
-    externals: {
-        luxon: {
-            commonjs: 'luxon',
-            commonjs2: 'luxon',
-            amd: 'luxon',
-            root: 'luxon',
-        },
-    },
-
     devServer: {
         static: {
             directory: path.join(__dirname, 'public'),

@@ -5,7 +5,7 @@ import ContourFill, {ContourFillOptions} from "./ContourFill";
 import Barbs, {BarbsOptions} from "./Barbs";
 import Hodographs from './Hodographs';
 
-import { PlotLayer, PlotTimeLayer } from './PlotLayer';
+import { PlotLayer, MultiPlotLayer } from './PlotLayer';
 import { WindProfile } from "./AutumnTypes";
 import { MapType } from "./Map";
 import { ColorMap, makeColorBar, Color, ColorbarOrientation, ColorbarTickDirection, ColorBarOptions } from './ColorMap';
@@ -16,7 +16,7 @@ export {PlotComponent,
         Contour, ContourOptions,
         ContourFill, ContourFillOptions,
         Hodographs, WindProfile,
-        PlotLayer, PlotTimeLayer, 
+        PlotLayer, MultiPlotLayer, 
         MapType,
         ColorMap, makeColorBar, Color, ColorbarOrientation, ColorbarTickDirection, ColorBarOptions,
         RawScalarField, RawVectorField, Grid, PlateCarreeGrid};
