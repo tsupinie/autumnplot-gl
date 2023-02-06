@@ -1,9 +1,9 @@
 
-import { Field, layer_worker } from "./Field";
+import { PlotComponent, layer_worker } from "./PlotComponent";
 import { BillboardCollection } from './BillboardCollection';
 import { hex2rgba } from './utils';
-import { RawDataField, RawVectorField } from "./RawDataField";
-import { AutumnMap } from "./AutumnMap";
+import { RawVectorField } from "./RawField";
+import { MapType } from "./Map";
 
 const BARB_DIMS = {
     BARB_WIDTH: 85,
@@ -123,7 +123,7 @@ function _createBarbTexture() : HTMLCanvasElement {
 
 const BARB_TEXTURE = _createBarbTexture();
 
-interface FieldBarbsOptions {
+interface BarbsOptions {
     /** 
      * The color to use for the barbs as a hex color string;.
      * @default '#000000'
@@ -144,16 +144,16 @@ interface FieldBarbsOptions {
  * @example
  * // Create a barb field with black barbs and plotting every 16th wind barb in both i and j at zoom level 1
  * const vector_field = {u: u_field, v: v_field};
- * const barbs = new FieldBarbs(vector_field, {color: '#000000', thin_fac: 16});
+ * const barbs = new Barbs(vector_field, {color: '#000000', thin_fac: 16});
  */
-class FieldBarbs extends Field {
+class Barbs extends PlotComponent {
     /** The vector field */
     readonly fields: RawVectorField;
     readonly color: [number, number, number];
     readonly thin_fac: number;
 
     /** @private */
-    map: AutumnMap | null;
+    map: MapType | null;
     /** @private */
     barb_billboards: BillboardCollection | null;
 
@@ -162,7 +162,7 @@ class FieldBarbs extends Field {
      * @param fields - The u and v fields to use as an object
      * @param opts   - Options for creating the wind barbs
      */
-    constructor(fields: RawVectorField, opts: FieldBarbsOptions) {
+    constructor(fields: RawVectorField, opts: BarbsOptions) {
         super();
 
         this.fields = fields;
@@ -179,7 +179,7 @@ class FieldBarbs extends Field {
      * @internal 
      * Add the barb field to a map
      */
-    async onAdd(map: AutumnMap, gl: WebGLRenderingContext) {
+    async onAdd(map: MapType, gl: WebGLRenderingContext) {
         this.map = map;
 
         const {lons: field_lons, lats: field_lats} = this.fields['u'].grid.getCoords();
@@ -212,5 +212,5 @@ class FieldBarbs extends Field {
     }
 }
 
-export default FieldBarbs;
-export type {FieldBarbsOptions};
+export default Barbs;
+export type {BarbsOptions};

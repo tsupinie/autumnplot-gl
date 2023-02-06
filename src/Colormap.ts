@@ -9,7 +9,7 @@ interface Color {
 }
 
 /** A mapping from values to colors */
-class Colormap {
+class ColorMap {
     readonly levels: number[];
     readonly colors: Color[];
 
@@ -42,7 +42,7 @@ class Colormap {
     }
 
     /**
-     * Create a diverging colormap using two input colors
+     * Create a diverging color map using two input colors
      * @param color1    - The color corresponding to the lowest value in the color map
      * @param color2    - The color corresponding to the highest value in the color map
      * @param level_min - The lowest value in the color map
@@ -90,7 +90,7 @@ class Colormap {
             levels.push(level_min + ilev * level_step);
         }
 
-        return new Colormap(levels, stops);
+        return new ColorMap(levels, stops);
     }
 
     /**
@@ -101,7 +101,7 @@ class Colormap {
      * @returns a Colormap object
      */
     static redblue(level_min: number, level_max: number, n_colors: number) {
-        return Colormap.diverging('#ff0000', '#0000ff', level_min, level_max, n_colors);
+        return ColorMap.diverging('#ff0000', '#0000ff', level_min, level_max, n_colors);
     }
 
     /**
@@ -112,7 +112,7 @@ class Colormap {
      * @returns a Colormap object
      */
     static bluered(level_min: number, level_max: number, n_colors: number) {
-        return Colormap.diverging('#0000ff', '#ff0000', level_min, level_max, n_colors);
+        return ColorMap.diverging('#0000ff', '#ff0000', level_min, level_max, n_colors);
     }
 }
 
@@ -121,7 +121,7 @@ class Colormap {
  * @param colormap - The color map to use
  * @returns A canvas element containing each color of the color map
  */
-function makeTextureImage(colormap: Colormap) {
+function makeTextureImage(colormap: ColorMap) {
     const cmap_image = document.createElement('canvas');
     cmap_image.width = colormap.colors.length;
     cmap_image.height = 1;
@@ -142,7 +142,7 @@ function makeTextureImage(colormap: Colormap) {
 
 type ColorbarOrientation = 'horizontal' | 'vertical';
 type ColorbarTickDirection = 'top' | 'bottom' | 'left' | 'right';
-interface ColorbarOptions {
+interface ColorBarOptions {
     /** The label to place along the color bar */
     label?: string;
 
@@ -175,17 +175,17 @@ interface ColorbarOptions {
 /**
  * Make an SVG containing a color bar. The color bar can either be oriented horizontal or vertical, and a label can be provided.
  * @param colormap - The color map to use
- * @param opts     - The options for creating the colorbar
+ * @param opts     - The options for creating the color bar
  * @returns An SVGElement containing the color bar image.
  * @example
- * // Create the colorbar
- * const svg = makeColorbar(color_map, {label: 'Wind Speed (kts)', orientation: 'horizontal', 
+ * // Create the color bar
+ * const svg = makeColorBar(color_map, {label: 'Wind Speed (kts)', orientation: 'horizontal', 
  *                                      fontface: 'Trebuchet MS'});
  * 
  * // Add colorbar to the page
  * document.getElementById('colorbar-container').appendChild(svg);
  */
-function makeColorbar(colormap: Colormap, opts: ColorbarOptions) {
+function makeColorBar(colormap: ColorMap, opts: ColorBarOptions) {
     const label = opts.label || "";
     const ticks = opts.ticks || colormap.levels;
     const orientation = opts.orientation || 'vertical';
@@ -323,5 +323,5 @@ function makeColorbar(colormap: Colormap, opts: ColorbarOptions) {
     return root;
 }
 
-export {Colormap, makeColorbar, makeTextureImage}
-export type {Color, ColorbarOrientation, ColorbarTickDirection, ColorbarOptions};
+export {ColorMap, makeColorBar, makeTextureImage}
+export type {Color, ColorbarOrientation, ColorbarTickDirection, ColorBarOptions};

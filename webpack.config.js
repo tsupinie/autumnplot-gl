@@ -19,10 +19,10 @@ module.exports = {
 
     output: {
         path: path.resolve(__dirname, 'dist'),
-        filename: 'autumn-contour-gl.js',
+        filename: 'autumnplot-gl.js',
         globalObject: 'this',
         library: {
-            name: 'acgl',
+            name: 'apgl',
             type: 'umd',
         }
     },

@@ -1,6 +1,6 @@
 
 import { WGLBuffer, WGLProgram, WGLTexture, WGLTextureSpec } from "./wgl";
-import { PolylineSpec, LineSpec } from "./AutumnFieldTypes";
+import { PolylineSpec, LineSpec } from "./AutumnTypes";
 
 class PolylineCollection {
     readonly width: number;

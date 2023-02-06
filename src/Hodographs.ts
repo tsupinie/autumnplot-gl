@@ -1,10 +1,10 @@
 
-import { Field, layer_worker } from "./Field";
+import { PlotComponent, layer_worker } from "./PlotComponent";
 import { PolylineCollection, LineSpec} from "./PolylineCollection";
 import { BillboardCollection, BillboardSpec } from "./BillboardCollection";
-import { WindProfile } from "./AutumnFieldTypes";
+import { WindProfile } from "./AutumnTypes";
 import { getMinZoom, hex2rgba } from './utils';
-import { LngLat } from "./AutumnMap";
+import { LngLat } from "./Map";
 
 const HODO_BG_DIMS = {
     'TEX_SIZE': 256,
@@ -76,7 +76,7 @@ function _createHodoHeightTexture() {
 const HODO_HEIGHT_TEXTURE = _createHodoHeightTexture();
 
 /** A class representing a a field of hodograph plots */
-class FieldHodographs extends Field {
+class Hodographs extends PlotComponent {
     readonly profiles: WindProfile[];
     readonly bgcolor: [number, number, number];
     readonly thin_fac: number;
@@ -200,4 +200,4 @@ class FieldHodographs extends Field {
     }
 }
 
-export default FieldHodographs;
+export default Hodographs;

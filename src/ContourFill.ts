@@ -1,13 +1,13 @@
 
-import { Field, layer_worker } from './Field';
-import { Colormap, makeTextureImage } from './Colormap';
+import { PlotComponent, layer_worker } from './PlotComponent';
+import { ColorMap, makeTextureImage } from './ColorMap';
 import { WGLBuffer, WGLProgram, WGLTexture } from './wgl';
-import { RawDataField } from './RawDataField';
-import { AutumnMap } from './AutumnMap';
+import { RawScalarField } from './RawField';
+import { MapType } from './Map';
 
-interface FieldContourFillOptions {
+interface ContourFillOptions {
     /** The color map to use when creating the fills */
-    cmap: Colormap;
+    cmap: ColorMap;
 
     /** 
      * The opacity for the filled contours 
@@ -20,11 +20,11 @@ interface FieldContourFillOptions {
  * A filled contoured field 
  * @example
  * // Create a field of filled contours with the provided color map
- * const fill = new FieldContourFill(wind_speed_field, {cmap: color_map});
+ * const fill = new ContourFill(wind_speed_field, {cmap: color_map});
  */
-class FieldContourFill extends Field {
-    readonly field: RawDataField;
-    readonly cmap: Colormap;
+class ContourFill extends PlotComponent {
+    readonly field: RawScalarField;
+    readonly cmap: ColorMap;
     readonly opacity: number;
 
     /** @private */
@@ -51,7 +51,7 @@ class FieldContourFill extends Field {
      * @param field - The field to create filled contours from
      * @param opts  - Options for creating the filled contours
      */
-    constructor(field: RawDataField, opts: FieldContourFillOptions) {
+    constructor(field: RawScalarField, opts: ContourFillOptions) {
         super();
 
         this.field = field;
@@ -95,7 +95,7 @@ class FieldContourFill extends Field {
      * @internal
      * Add the filled contours to a map
      */
-    async onAdd(map: AutumnMap, gl: WebGLRenderingContext) {
+    async onAdd(map: MapType, gl: WebGLRenderingContext) {
         // Basic procedure for the filled contours inspired by https://blog.mbq.me/webgl-weather-globe/
         gl.getExtension('OES_texture_float');
         gl.getExtension('OES_texture_float_linear');
@@ -192,5 +192,5 @@ class FieldContourFill extends Field {
     }
 }
 
-export default FieldContourFill;
-export type {FieldContourFillOptions};
+export default ContourFill;
+export type {ContourFillOptions};

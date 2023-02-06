@@ -1,12 +1,12 @@
 
 import { DateTime } from 'luxon';
-import { AutumnMap } from './AutumnMap';
+import { MapType } from './Map';
 
-import { Field } from './Field';
+import { PlotComponent } from './PlotComponent';
 
 const ENV_FMT = 'yyyyMMddHH';
 
-abstract class AutumnFieldLayerBase {
+abstract class PlotLayerBase {
     readonly type: 'custom';
     readonly id: string;
 
@@ -15,28 +15,28 @@ abstract class AutumnFieldLayerBase {
         this.id = id;
     }
 
-    abstract onAdd(map: AutumnMap, gl: WebGLRenderingContext) : void;
+    abstract onAdd(map: MapType, gl: WebGLRenderingContext) : void;
     abstract render(gl: WebGLRenderingContext, matrix: number[]) : void;
 }
 
 /** 
- * A static map layer. The data are assumed to be static in time. If the data have a time component (e.g., a model forecast), an {@link AutumnTimeFieldLayer} 
+ * A static map layer. The data are assumed to be static in time. If the data have a time component (e.g., a model forecast), an {@link PlotTimeLayer} 
  * may be more appropriate.
  * @example
  * // Create map layers from provided fields
- * const height_layer = new AutumnFieldLayer('height-contours', height_contours);
- * const wind_speed_layer = new AutumnFieldLayer('wind-speed-fill', wind_speed_fill);
- * const barb_layer = new AutumnFieldLayer('barbs', wind_barbs);
+ * const height_layer = new PlotLayer('height-contours', height_contours);
+ * const wind_speed_layer = new PlotLayer('wind-speed-fill', wind_speed_fill);
+ * const barb_layer = new PlotLayer('barbs', wind_barbs);
  */
-class AutumnFieldLayer extends AutumnFieldLayerBase {
-    readonly field: Field;
+class PlotLayer extends PlotLayerBase {
+    readonly field: PlotComponent;
 
     /**
      * Create a map layer from a field
      * @param id    - A unique id for this layer
      * @param field - The field to plot in this layer
      */
-    constructor(id: string, field: Field) {
+    constructor(id: string, field: PlotComponent) {
         super(id);
         this.field = field;
     }
@@ -45,7 +45,7 @@ class AutumnFieldLayer extends AutumnFieldLayerBase {
      * @internal
      * Add this layer to a map
      */
-    onAdd(map: AutumnMap, gl: WebGLRenderingContext) {
+    onAdd(map: MapType, gl: WebGLRenderingContext) {
         this.field.onAdd(map, gl);
     }
 
@@ -59,10 +59,10 @@ class AutumnFieldLayer extends AutumnFieldLayerBase {
 }
 
 /**
- * A time-varying map layer. If the data don't have a time component that you wish to display, it might be easier to use an {@link AutumnFieldLayer} instead.
+ * A time-varying map layer. If the data don't have a time component that you wish to display, it might be easier to use an {@link PlotLayer} instead.
  * @example
  * // Create a time-varying map layer
- * height_layer = new AutumnTimeFieldLayer('height-contours');
+ * height_layer = new PlotTimeLayer('height-contours');
  * 
  * // Add some fields to it
  * height_layer.addField(height_contour_f00, DateTime.utc(2023, 1, 12, 12, 0));
@@ -72,14 +72,14 @@ class AutumnFieldLayer extends AutumnFieldLayerBase {
  * // Set the date/time in the map layer
  * height_layer.setDatetime(Datetime.utc(2023, 1, 12, 12, 0));
  */
-class AutumnTimeFieldLayer extends AutumnFieldLayerBase {
+class PlotTimeLayer extends PlotLayerBase {
     /** @private */
-    fields: Record<string, Field>;
+    fields: Record<string, PlotComponent>;
     /** @private */
     field_key: string | null;
 
     /** @private */
-    map: AutumnMap | null;
+    map: MapType | null;
     /** @private */
     gl: WebGLRenderingContext | null
 
@@ -100,7 +100,7 @@ class AutumnTimeFieldLayer extends AutumnFieldLayerBase {
      * @internal
      * Add this layer to a map
      */
-    onAdd(map: AutumnMap, gl: WebGLRenderingContext) {
+    onAdd(map: MapType, gl: WebGLRenderingContext) {
         this.map = map;
         this.gl = gl;
 
@@ -152,7 +152,7 @@ class AutumnTimeFieldLayer extends AutumnFieldLayerBase {
      * @param field - The field to add
      * @param dt    - The date/time at which the field is valid
      */
-    addField(field: Field, dt: DateTime) {
+    addField(field: PlotComponent, dt: DateTime) {
         const key = dt.toFormat(ENV_FMT);
         const old_field_key = this.field_key;
 
@@ -177,4 +177,4 @@ class AutumnTimeFieldLayer extends AutumnFieldLayerBase {
     }
 }
 
-export {AutumnFieldLayer, AutumnTimeFieldLayer};
+export {PlotLayer, PlotTimeLayer};

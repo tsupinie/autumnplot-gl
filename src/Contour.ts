@@ -1,11 +1,11 @@
 
-import { AutumnMap } from './AutumnMap';
-import { Field, layer_worker } from './Field';
-import { RawDataField } from './RawDataField';
+import { MapType } from './Map';
+import { PlotComponent, layer_worker } from './PlotComponent';
+import { RawScalarField } from './RawField';
 import { hex2rgba } from './utils';
 import { WGLBuffer, WGLProgram, WGLTexture } from './wgl';
 
-interface FieldContourOptions {
+interface ContourOptions {
     /** 
      * The color of the contours as a hex color string 
      * @default '#000000'
@@ -31,17 +31,17 @@ interface FieldContourOptions {
  * @example
  * // Create a contoured height field, with black contours every 30 m (assuming the height field is in 
  * // meters) and only using every other contour when the map zoom level is less than 5.
- * const contours = new FieldContour(height_field, {color: '#000000', interval: 30, 
+ * const contours = new Contour(height_field, {color: '#000000', interval: 30, 
  *                                                  thinner: zoom => zoom < 5 ? 2 : 1});
  */
-class FieldContour extends Field {
-    readonly field: RawDataField;
+class Contour extends PlotComponent {
+    readonly field: RawScalarField;
     readonly color: [number, number, number];
     readonly interval: number;
     readonly thinner: (zoom: number) => number;
 
     /** @private */
-    map: AutumnMap | null;
+    map: MapType | null;
     /** @private */
     program: WGLProgram | null;
     /** @private */
@@ -65,7 +65,7 @@ class FieldContour extends Field {
      * @param field - The field to contour
      * @param opts  - Options for creating the contours
      */
-    constructor(field: RawDataField, opts: FieldContourOptions) {
+    constructor(field: RawScalarField, opts: ContourOptions) {
         super();
 
         this.field = field;
@@ -93,7 +93,7 @@ class FieldContour extends Field {
      * @internal
      * Add the contours to a map
      */
-    async onAdd(map: AutumnMap, gl: WebGLRenderingContext) {
+    async onAdd(map: MapType, gl: WebGLRenderingContext) {
         // Basic procedure for these contours from https://www.shadertoy.com/view/lltBWM
         this.map = map;
 
@@ -207,5 +207,5 @@ class FieldContour extends Field {
     }
 }
 
-export default FieldContour;
-export type {FieldContourOptions};
+export default Contour;
+export type {ContourOptions};

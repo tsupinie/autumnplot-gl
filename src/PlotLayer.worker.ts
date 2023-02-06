@@ -1,10 +1,10 @@
 
 import { getMinZoom } from "./utils";
-import { BarbDimSpec, PolylineSpec, LineSpec } from "./AutumnFieldTypes";
+import { BarbDimSpec, PolylineSpec, LineSpec } from "./AutumnTypes";
 
 import * as Comlink from 'comlink';
 import { BillboardSpec } from "./BillboardCollection";
-import { LngLat } from "./AutumnMap";
+import { LngLat } from "./Map";
 
 function makeBarbElements(field_lats: Float32Array, field_lons: Float32Array, field_u: Float32Array, field_v: Float32Array, thin_fac_base: number, 
     BARB_DIMS: BarbDimSpec) : BillboardSpec {
@@ -330,8 +330,8 @@ const ep_interface = {
     'makePolyLines': makePolylines
 }
 
-type AutumnFieldLayerWorker = typeof ep_interface;
+type PlotLayerWorker = typeof ep_interface;
 
 Comlink.expose(ep_interface);
 
-export type {AutumnFieldLayerWorker}
+export type {PlotLayerWorker}

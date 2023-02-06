@@ -2,7 +2,7 @@
 import mapboxgl from 'mapbox-gl';
 import maplibregl from 'maplibre-gl';
 
-type AutumnMap = mapboxgl.Map | maplibregl.Map;
+type MapType = mapboxgl.Map | maplibregl.Map;
 
 function mercatorXfromLng(lng: number) {
     return (180 + lng) / 360;
@@ -46,4 +46,4 @@ function mercatorYfromLat(lat: number) {
 }
 
 export {LngLat};
-export type {AutumnMap};
+export type {MapType};

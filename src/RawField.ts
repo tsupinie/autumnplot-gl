@@ -115,7 +115,7 @@ type Grid = PlateCarreeGrid; // | LambertGrid;
 type GridType = typeof PlateCarreeGrid; // | typeof LambertGrid;
 
 /** A class representing a raw 2D field of gridded data, such as height or u wind. */
-class RawDataField {
+class RawScalarField {
     readonly grid: Grid;
     readonly data: Float32Array;
 
@@ -157,13 +157,13 @@ class RawDataField {
     /**
      * Create a new field by aggregating a number of fields using a specific function
      * @param func - A function that will be applied each element of the field. It should take the same number of arguments as fields you have and return a single number.
-     * @param args - The RawDataFields to aggregate
+     * @param args - The RawScalarFields to aggregate
      * @returns a new gridded field
      * @example
      * // Compute wind speed from u and v
-     * wind_speed_field = RawDataField.aggreateFields(Math.hypot, u_field, v_field);
+     * wind_speed_field = RawScalarField.aggreateFields(Math.hypot, u_field, v_field);
      */
-    static aggregateFields(func: (...args: number[]) => number, ...args: RawDataField[]) {
+    static aggregateFields(func: (...args: number[]) => number, ...args: RawScalarField[]) {
         function* mapGenerator<T, U>(gen: Generator<T>, func: (arg: T) => U) {
             for (const elem of gen) {
                 yield func(elem);
@@ -173,11 +173,11 @@ class RawDataField {
         const zipped_args = zip(...args.map(a => a.data));
         const agg_data = new Float32Array(mapGenerator(zipped_args, (a: number[]): number => func(...a)));
 
-        return new RawDataField(args[0].grid, agg_data);
+        return new RawScalarField(args[0].grid, agg_data);
     }
 }
 
-type RawVectorField = {u: RawDataField, v: RawDataField};
+type RawVectorField = {u: RawScalarField, v: RawScalarField};
 
-export {RawDataField, PlateCarreeGrid};
+export {RawScalarField, PlateCarreeGrid};
 export type {RawVectorField, Grid};
