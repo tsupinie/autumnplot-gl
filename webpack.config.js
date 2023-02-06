@@ -20,6 +20,7 @@ module.exports = {
     output: {
         path: path.resolve(__dirname, 'dist'),
         filename: 'autumnplot-gl.js',
+        clean: true,
         globalObject: 'this',
         library: {
             name: 'apgl',
