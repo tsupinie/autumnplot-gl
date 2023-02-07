@@ -9,7 +9,13 @@ module.exports = {
                 test: /\.ts?$/,
                 use: 'ts-loader',
                 exclude: /node_modules/,
-            }
+            },
+            // GLSL Shaders
+            {
+                test: [/\.glsl$/],
+                loader: 'webpack-glsl-loader',
+                exclude: /node_modules/,
+            },
         ],
     },
 
