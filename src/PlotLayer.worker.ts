@@ -35,6 +35,7 @@ function makeBarbElements(field_lats: Float32Array, field_lons: Float32Array, fi
     const barb_height_frac = BARB_HEIGHT / BARB_TEX_HEIGHT;
 
     field_lats.forEach((lat, ilat) => {
+        const flip_barb = lat < 0;
         field_lons.forEach((lon, ilon) => {
             const zoom = getMinZoom(ilat, ilon, thin_fac_base);
 
@@ -60,12 +61,22 @@ function makeBarbElements(field_lats: Float32Array, field_lons: Float32Array, fi
             const i_barb = (barb_mag % BARB_TEX_WRAP) / 5;
             const j_barb = Math.floor(barb_mag / BARB_TEX_WRAP);
 
-            tex_coords[istart_tc + 0 ] =  i_barb      * barb_width_frac; tex_coords[istart_tc + 1 ] =  j_barb      * barb_height_frac;
-            tex_coords[istart_tc + 2 ] =  i_barb      * barb_width_frac; tex_coords[istart_tc + 3 ] =  j_barb      * barb_height_frac;
-            tex_coords[istart_tc + 4 ] = (i_barb + 1) * barb_width_frac; tex_coords[istart_tc + 5 ] =  j_barb      * barb_height_frac;
-            tex_coords[istart_tc + 6 ] =  i_barb      * barb_width_frac; tex_coords[istart_tc + 7 ] = (j_barb + 1) * barb_height_frac;
-            tex_coords[istart_tc + 8 ] = (i_barb + 1) * barb_width_frac; tex_coords[istart_tc + 9 ] = (j_barb + 1) * barb_height_frac;
-            tex_coords[istart_tc + 10] = (i_barb + 1) * barb_width_frac; tex_coords[istart_tc + 11] = (j_barb + 1) * barb_height_frac;
+            if (flip_barb) {
+                tex_coords[istart_tc + 0 ] = (i_barb + 1) * barb_width_frac; tex_coords[istart_tc + 1 ] =  j_barb      * barb_height_frac;
+                tex_coords[istart_tc + 2 ] = (i_barb + 1) * barb_width_frac; tex_coords[istart_tc + 3 ] =  j_barb      * barb_height_frac;
+                tex_coords[istart_tc + 4 ] =  i_barb      * barb_width_frac; tex_coords[istart_tc + 5 ] =  j_barb      * barb_height_frac;
+                tex_coords[istart_tc + 6 ] = (i_barb + 1) * barb_width_frac; tex_coords[istart_tc + 7 ] = (j_barb + 1) * barb_height_frac;
+                tex_coords[istart_tc + 8 ] =  i_barb      * barb_width_frac; tex_coords[istart_tc + 9 ] = (j_barb + 1) * barb_height_frac;
+                tex_coords[istart_tc + 10] =  i_barb      * barb_width_frac; tex_coords[istart_tc + 11] = (j_barb + 1) * barb_height_frac;
+            }
+            else {
+                tex_coords[istart_tc + 0 ] =  i_barb      * barb_width_frac; tex_coords[istart_tc + 1 ] =  j_barb      * barb_height_frac;
+                tex_coords[istart_tc + 2 ] =  i_barb      * barb_width_frac; tex_coords[istart_tc + 3 ] =  j_barb      * barb_height_frac;
+                tex_coords[istart_tc + 4 ] = (i_barb + 1) * barb_width_frac; tex_coords[istart_tc + 5 ] =  j_barb      * barb_height_frac;
+                tex_coords[istart_tc + 6 ] =  i_barb      * barb_width_frac; tex_coords[istart_tc + 7 ] = (j_barb + 1) * barb_height_frac;
+                tex_coords[istart_tc + 8 ] = (i_barb + 1) * barb_width_frac; tex_coords[istart_tc + 9 ] = (j_barb + 1) * barb_height_frac;
+                tex_coords[istart_tc + 10] = (i_barb + 1) * barb_width_frac; tex_coords[istart_tc + 11] = (j_barb + 1) * barb_height_frac;
+            }
 
             istart_pts += (n_pts_per_poly * n_coords_per_pt_pts);
             istart_tc += (n_pts_per_poly * n_coords_per_pt_tc);
