@@ -8,7 +8,7 @@ import Hodographs from './Hodographs';
 import { PlotLayer, MultiPlotLayer } from './PlotLayer';
 import { WindProfile } from "./AutumnTypes";
 import { MapType } from "./Map";
-import { ColorMap, makeColorBar, Color, ColorbarOrientation, ColorbarTickDirection, ColorBarOptions } from './ColorMap';
+import { ColorMap, pw_speed500mb, makeColorBar, Color, ColorbarOrientation, ColorbarTickDirection, ColorBarOptions } from './ColorMap';
 import { RawScalarField, RawVectorField, Grid, PlateCarreeGrid } from "./RawField";
 
 export {PlotComponent,
@@ -18,5 +18,5 @@ export {PlotComponent,
         Hodographs, WindProfile,
         PlotLayer, MultiPlotLayer, 
         MapType,
-        ColorMap, makeColorBar, Color, ColorbarOrientation, ColorbarTickDirection, ColorBarOptions,
+        ColorMap, pw_speed500mb, makeColorBar, Color, ColorbarOrientation, ColorbarTickDirection, ColorBarOptions,
         RawScalarField, RawVectorField, Grid, PlateCarreeGrid};

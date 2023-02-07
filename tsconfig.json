@@ -8,6 +8,7 @@
         "allowJs": true,
         "allowSyntheticDefaultImports": true,
         "moduleResolution": "node",
-        "downlevelIteration": true
+        "downlevelIteration": true,
+        "resolveJsonModule": true
     }
 }

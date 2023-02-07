@@ -1,5 +1,7 @@
 import { hex2rgb, hsv2rgb, rgb2hex, rgb2hsv } from "./utils";
 
+import spd500_colormap_data from "./json/pw500speed_colormap.json";
+
 interface Color {
     /** The color as a hex color string */
     color: string;
@@ -115,6 +117,8 @@ class ColorMap {
         return ColorMap.diverging('#0000ff', '#ff0000', level_min, level_max, n_colors);
     }
 }
+
+const pw_speed500mb = new ColorMap(spd500_colormap_data.levels, spd500_colormap_data.colors);
 
 /**
  * Make a canvas image corresponding to a color map
@@ -323,5 +327,5 @@ function makeColorBar(colormap: ColorMap, opts: ColorBarOptions) {
     return root;
 }
 
-export {ColorMap, makeColorBar, makeTextureImage}
+export {ColorMap, pw_speed500mb, makeColorBar, makeTextureImage}
 export type {Color, ColorbarOrientation, ColorbarTickDirection, ColorBarOptions};
