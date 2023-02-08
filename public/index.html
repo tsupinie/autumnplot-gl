@@ -5,6 +5,7 @@
         <script src='https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.js'></script>
         <link href='https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.css' rel='stylesheet' />
         <script src="autumnplot-gl.js"></script>
+        <script src="maptiler.js"></script>
         <script>
             const nx = 121, ny = 61;
             const grid = new apgl.PlateCarreeGrid(nx, ny, -130, 20, -65, 55);
@@ -82,15 +83,16 @@
         <script>
         const map = new maplibregl.Map({
             container: 'map',
-            style: 'https://api.maptiler.com/maps/basic-v2/style.json?key=UWqkVQQbiXnCvm3VQ2BF', // stylesheet location
+            style: 'https://api.maptiler.com/maps/dbc6e216-3574-4e78-93f9-ab90ff4905a4/style.json?key=' + MAPTILER_API_KEY, // stylesheet location
             center: [-100.5, 35.5], // starting position [lng, lat]
             zoom: 6 // starting zoom
         });
         
         map.on('load', () => {
-            map.addLayer(hght_fill_layer, 'railway_transit_tunnel');
-            map.addLayer(hght_layer, 'railway_transit_tunnel');
-            map.addLayer(barb_layer, 'railway_transit_tunnel');
+            //console.log(map.style.stylesheet.layers.map(lyr => lyr.id));
+            map.addLayer(hght_fill_layer, 'aeroway');
+            map.addLayer(hght_layer, 'aeroway');
+            map.addLayer(barb_layer, 'aeroway');
         });
 
         document.getElementById('colorbar').appendChild(svg);
