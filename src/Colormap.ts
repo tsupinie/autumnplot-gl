@@ -218,9 +218,16 @@ function makeColorBar(colormap: ColorMap, opts: ColorBarOptions) {
         return elem;
     };
 
+    const getNChar = (n: number) => {
+        return Math.floor(Math.log10(Math.abs(n))) + (n < 0 ? 2 : 1);
+    }
+
+    const chars_left = getNChar(ticks[0]);
+    const chars_right = getNChar(ticks[ticks.length - 1]);
+
     const bar_long_size = 600;
     const bar_cross_size = bar_long_size / 9;
-    const bar_long_pad = 11;
+    const bar_long_pad = orientation == 'horizontal' ? Math.max(chars_left, chars_right) * 4.5 : 5;
     const bar_cross_pad = 3;
     const bar_thickness = 10;
 
