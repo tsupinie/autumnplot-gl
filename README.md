@@ -12,7 +12,7 @@ autumnplot-gl is designed to be used with either [Mapbox GL JS](https://docs.map
 To use autumnplot-gl, grab both the files from [dist/](https://github.com/tsupinie/autumnplot-gl/tree/main/dist) and put them in the same directory in your project. Then add this to your web page:
 
 ```html
-<script src="path/to/autumnplot-gl.js"></src>
+<script src="path/to/autumnplot-gl.js"></script>
 ```
 
 This exposes the API via the `apgl` global variable. (Side note: if anyone knows how to make webpack 5 output a different name for the web worker file, I'm all ears.)
