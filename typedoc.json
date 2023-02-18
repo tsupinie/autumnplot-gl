@@ -6,4 +6,5 @@
         "WGLTexture", "WGLBuffer", "WGLProgram",
         "Cache", "Coords"
     ],
+    "theme": "markdown"
 }
