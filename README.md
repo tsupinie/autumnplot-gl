@@ -7,15 +7,7 @@ Lots of meteorological data web sites have a model where the data live on a cent
 autumnplot-gl provides a solution to this problem by making hardware-accelerated data plotting in the browser easy. This was designed with meteorological data in mind, but anyone wanting to contour geospatial data on a map can use autumnplot-gl.
 
 ## Usage
-autumnplot-gl is designed to be used with either [Mapbox GL JS](https://docs.mapbox.com/mapbox-gl-js/guides/) or [MapLibre GL JS](https://maplibre.org/maplibre-gl-js-docs/) mapping libraries.
-
-To use autumnplot-gl, grab both the files from [dist/](https://github.com/tsupinie/autumnplot-gl/tree/main/dist) and put them in the same directory in your project. Then add this to your web page:
-
-```html
-<script src="path/to/autumnplot-gl.js"></script>
-```
-
-This exposes the API via the `apgl` global variable. (Side note: if anyone knows how to make webpack 5 output a different name for the web worker file, I'm all ears.)
+autumnplot-gl is designed to be used with either [Mapbox GL JS](https://docs.mapbox.com/mapbox-gl-js/guides/) or [MapLibre GL JS](https://maplibre.org/maplibre-gl-js-docs/) mapping libraries. Pre-built autumnplot-gl javascript files area available [here](https://tsupinie.github.io/autumnplot-gl/dist/). Adding them to your page exposes the API via the `apgl` environment variable.
 
 ### A basic contour plot
 The first step in plotting data is to create a grid. Currently, the only supported grid is PlateCarree (a.k.a. Lat/Lon), but support for a Lambert Conformal conic grid is planned.
@@ -136,7 +128,7 @@ height_layer.setActiveKey('20230112_1200');
 ```
 
 ## Links
-[Github](https://github.com/tsupinie/autumnplot-gl) | API docs (link will be here when it's available)
+[Github](https://github.com/tsupinie/autumnplot-gl) | [API docs](https://tsupinie.github.io/autumnplot-gl/)
 
 ## Closing thoughts
 Even though autumnplot-gl is currently an extremely new package with relatively limited capability, I hope folks see potential and find it useful. Any contributions to fill out some missing features are welcome.
