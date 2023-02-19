@@ -3,6 +3,8 @@ import { hex2rgb, hsv2rgb, rgb2hex, rgb2hsv } from "./utils";
 import spd500_colormap_data from "./json/pw500speed_colormap.json";
 import spd850_colormap_data from "./json/pw850speed_colormap.json";
 import cape_colormap_data from "./json/pwcape_colormap.json";
+import t2m_colormap_data from "./json/pwt2m_colormap.json";
+import td2m_colormap_data from "./json/pwtd2m_colormap.json";
 
 interface Color {
     /** The color as a hex color string */
@@ -134,9 +136,12 @@ class ColorMap {
     }
 }
 
+// Some built-in colormaps
 const pw_speed500mb = new ColorMap(spd500_colormap_data.levels, spd500_colormap_data.colors).withOpacity((levl, levu) => Math.min((levu - 20) / 10, 1.));
 const pw_speed850mb = new ColorMap(spd850_colormap_data.levels, spd850_colormap_data.colors).withOpacity((levl, levu) => Math.min((levu - 20) / 10, 1.));
 const pw_cape = new ColorMap(cape_colormap_data.levels, cape_colormap_data.colors).withOpacity((levl, levu) => Math.min(levu / 1000., 1.));
+const pw_t2m = new ColorMap(t2m_colormap_data.levels, t2m_colormap_data.colors);
+const pw_td2m = new ColorMap(td2m_colormap_data.levels, td2m_colormap_data.colors);
 
 /**
  * Make a canvas image corresponding to a color map
@@ -352,5 +357,5 @@ function makeColorBar(colormap: ColorMap, opts: ColorBarOptions) {
     return root;
 }
 
-export {ColorMap, pw_speed500mb, pw_speed850mb, pw_cape, makeColorBar, makeTextureImage}
+export {ColorMap, pw_speed500mb, pw_speed850mb, pw_cape, pw_t2m, pw_td2m, makeColorBar, makeTextureImage}
 export type {Color, ColorbarOrientation, ColorbarTickDirection, ColorBarOptions};
