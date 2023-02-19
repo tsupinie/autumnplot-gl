@@ -127,6 +127,11 @@ The second argument to `addField()` is the key to associate with this field. Thi
 height_layer.setActiveKey('20230112_1200');
 ```
 
+## Map tiles
+The above exmple uses map tiles from [Maptiler](https://www.maptiler.com/). Map tiles from Maptiler or Mapbox or others are free up to a (reasonably generous) limit, but the pricing can be a tad steep after reaching the limit. The tiles from these services are extremely detailed, and really what you're paying for there is the hardware to store, process, and serve that data. While these tiles are very nice, the detail is way overkill for a lot of uses in meteorology. 
+
+So, I've created some [less-detailed map tiles](https://tsupinie.github.io/autumnplot-gl/tiles/) that are small enough that they can be hosted without dedicated hardware. However the tradeoff is that they're only useful down to zoom level 8 or 9 on the map, such that the viewport is somewhere between half a US state and a few counties in size. If that's good enough for you, then these tiles could be useful.
+
 ## Links
 [Github](https://github.com/tsupinie/autumnplot-gl) | [API docs](https://tsupinie.github.io/autumnplot-gl/)
 
