@@ -10,6 +10,10 @@ interface Color {
     opacity: number;
 }
 
+function isColor(obj: any): obj is Color {
+    return (typeof obj == 'object') && 'color' in obj && 'opacity' in obj;
+}
+
 /** A mapping from values to colors */
 class ColorMap {
     readonly levels: number[];
@@ -20,13 +24,13 @@ class ColorMap {
      * @param levels - The list of levels. The number of levels should always be one more than the number of colors.
      * @param colors - A list of colors
      */
-    constructor(levels: number[], colors: Color[]) {
+    constructor(levels: number[], colors: Color[] | string[]) {
         if (levels.length != colors.length + 1) {
             throw `Mismatch between number of levels (${levels.length}) and number of colors (${colors.length}; expected ${levels.length - 1})`;
         }
 
         this.levels = levels;
-        this.colors = colors;
+        this.colors = colors.map(c => isColor(c) ? c : {'color': c, 'opacity': 1.});
     }
 
     /**
