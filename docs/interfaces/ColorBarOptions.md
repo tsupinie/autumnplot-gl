@@ -26,7 +26,7 @@ A font face to use for the label and tick values.
 
 #### Defined in
 
-ColorMap.ts:176
+[Colormap.ts:176](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/Colormap.ts#L176)
 
 ___
 
@@ -38,7 +38,7 @@ The label to place along the color bar
 
 #### Defined in
 
-ColorMap.ts:151
+[Colormap.ts:151](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/Colormap.ts#L151)
 
 ___
 
@@ -54,7 +54,7 @@ The orientation for the color bar. Valid values are 'horizontal' and 'vertical'.
 
 #### Defined in
 
-ColorMap.ts:170
+[Colormap.ts:170](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/Colormap.ts#L170)
 
 ___
 
@@ -71,7 +71,7 @@ The direction the ticks should face. Valid values are 'left' and 'right' if orie
 
 #### Defined in
 
-ColorMap.ts:164
+[Colormap.ts:164](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/Colormap.ts#L164)
 
 ___
 
@@ -87,4 +87,4 @@ Use all the levels in the color map provided to [makeColorBar](../modules.md#mak
 
 #### Defined in
 
-ColorMap.ts:157
+[Colormap.ts:157](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/Colormap.ts#L157)

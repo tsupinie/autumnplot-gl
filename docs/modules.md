@@ -50,7 +50,7 @@
 
 #### Defined in
 
-ColorMap.ts:147
+[Colormap.ts:147](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/Colormap.ts#L147)
 
 ___
 
@@ -60,7 +60,7 @@ ___
 
 #### Defined in
 
-ColorMap.ts:148
+[Colormap.ts:148](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/Colormap.ts#L148)
 
 ___
 
@@ -70,7 +70,7 @@ ___
 
 #### Defined in
 
-[RawField.ts:114](https://github.com/tsupinie/autumnplot-gl/blob/3306c37/src/RawField.ts#L114)
+[RawField.ts:114](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/RawField.ts#L114)
 
 ___
 
@@ -80,7 +80,7 @@ ___
 
 #### Defined in
 
-[Map.ts:5](https://github.com/tsupinie/autumnplot-gl/blob/3306c37/src/Map.ts#L5)
+[Map.ts:5](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/Map.ts#L5)
 
 ___
 
@@ -97,7 +97,7 @@ ___
 
 #### Defined in
 
-[RawField.ts:180](https://github.com/tsupinie/autumnplot-gl/blob/3306c37/src/RawField.ts#L180)
+[RawField.ts:180](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/RawField.ts#L180)
 
 ## Variables
 
@@ -107,7 +107,7 @@ ___
 
 #### Defined in
 
-ColorMap.ts:121
+[Colormap.ts:121](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/Colormap.ts#L121)
 
 ## Functions
 
@@ -143,4 +143,4 @@ An SVGElement containing the color bar image.
 
 #### Defined in
 
-ColorMap.ts:192
+[Colormap.ts:192](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/Colormap.ts#L192)

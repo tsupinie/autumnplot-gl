@@ -38,7 +38,7 @@ Create a data field.
 
 #### Defined in
 
-[RawField.ts:130](https://github.com/tsupinie/autumnplot-gl/blob/3306c37/src/RawField.ts#L130)
+[RawField.ts:130](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/RawField.ts#L130)
 
 ## Properties
 
@@ -48,7 +48,7 @@ Create a data field.
 
 #### Defined in
 
-[RawField.ts:123](https://github.com/tsupinie/autumnplot-gl/blob/3306c37/src/RawField.ts#L123)
+[RawField.ts:123](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/RawField.ts#L123)
 
 ___
 
@@ -58,7 +58,7 @@ ___
 
 #### Defined in
 
-[RawField.ts:120](https://github.com/tsupinie/autumnplot-gl/blob/3306c37/src/RawField.ts#L120)
+[RawField.ts:120](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/RawField.ts#L120)
 
 ___
 
@@ -68,7 +68,7 @@ ___
 
 #### Defined in
 
-[RawField.ts:119](https://github.com/tsupinie/autumnplot-gl/blob/3306c37/src/RawField.ts#L119)
+[RawField.ts:119](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/RawField.ts#L119)
 
 ## Methods
 
@@ -90,7 +90,7 @@ Pad the data such that both axes are a power of 2 in length (internal method)
 
 #### Defined in
 
-[RawField.ts:153](https://github.com/tsupinie/autumnplot-gl/blob/3306c37/src/RawField.ts#L153)
+[RawField.ts:153](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/RawField.ts#L153)
 
 ___
 
@@ -122,4 +122,4 @@ a new gridded field
 
 #### Defined in
 
-[RawField.ts:166](https://github.com/tsupinie/autumnplot-gl/blob/3306c37/src/RawField.ts#L166)
+[RawField.ts:166](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/RawField.ts#L166)

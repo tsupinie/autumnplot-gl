@@ -55,7 +55,7 @@ Create a field of hodographs
 
 #### Defined in
 
-[Hodographs.ts:98](https://github.com/tsupinie/autumnplot-gl/blob/3306c37/src/Hodographs.ts#L98)
+[Hodographs.ts:98](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/Hodographs.ts#L98)
 
 ## Properties
 
@@ -65,7 +65,7 @@ Create a field of hodographs
 
 #### Defined in
 
-[Hodographs.ts:87](https://github.com/tsupinie/autumnplot-gl/blob/3306c37/src/Hodographs.ts#L87)
+[Hodographs.ts:87](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/Hodographs.ts#L87)
 
 ___
 
@@ -75,7 +75,7 @@ ___
 
 #### Defined in
 
-[Hodographs.ts:81](https://github.com/tsupinie/autumnplot-gl/blob/3306c37/src/Hodographs.ts#L81)
+[Hodographs.ts:81](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/Hodographs.ts#L81)
 
 ___
 
@@ -85,7 +85,7 @@ ___
 
 #### Defined in
 
-[Hodographs.ts:89](https://github.com/tsupinie/autumnplot-gl/blob/3306c37/src/Hodographs.ts#L89)
+[Hodographs.ts:89](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/Hodographs.ts#L89)
 
 ___
 
@@ -95,7 +95,7 @@ ___
 
 #### Defined in
 
-[Hodographs.ts:85](https://github.com/tsupinie/autumnplot-gl/blob/3306c37/src/Hodographs.ts#L85)
+[Hodographs.ts:85](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/Hodographs.ts#L85)
 
 ___
 
@@ -105,7 +105,7 @@ ___
 
 #### Defined in
 
-[Hodographs.ts:80](https://github.com/tsupinie/autumnplot-gl/blob/3306c37/src/Hodographs.ts#L80)
+[Hodographs.ts:80](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/Hodographs.ts#L80)
 
 ___
 
@@ -115,7 +115,7 @@ ___
 
 #### Defined in
 
-[Hodographs.ts:91](https://github.com/tsupinie/autumnplot-gl/blob/3306c37/src/Hodographs.ts#L91)
+[Hodographs.ts:91](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/Hodographs.ts#L91)
 
 ___
 
@@ -125,7 +125,7 @@ ___
 
 #### Defined in
 
-[Hodographs.ts:82](https://github.com/tsupinie/autumnplot-gl/blob/3306c37/src/Hodographs.ts#L82)
+[Hodographs.ts:82](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/Hodographs.ts#L82)
 
 ## Methods
 
@@ -139,7 +139,7 @@ ___
 
 #### Defined in
 
-[Hodographs.ts:182](https://github.com/tsupinie/autumnplot-gl/blob/3306c37/src/Hodographs.ts#L182)
+[Hodographs.ts:182](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/Hodographs.ts#L182)
 
 ___
 
@@ -164,7 +164,7 @@ ___
 
 #### Defined in
 
-[Hodographs.ts:113](https://github.com/tsupinie/autumnplot-gl/blob/3306c37/src/Hodographs.ts#L113)
+[Hodographs.ts:113](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/Hodographs.ts#L113)
 
 ___
 
@@ -189,4 +189,4 @@ ___
 
 #### Defined in
 
-[Hodographs.ts:168](https://github.com/tsupinie/autumnplot-gl/blob/3306c37/src/Hodographs.ts#L168)
+[Hodographs.ts:168](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/Hodographs.ts#L168)
