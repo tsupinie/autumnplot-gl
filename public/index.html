@@ -19,7 +19,8 @@
                 }
             }
 
-            const svg = apgl.makeColorBar(apgl.pw_speed500mb, {label: "Wind Speed (kts)", fontface: 'Trebuchet MS', 
+            const colormap = apgl.pw_speed500mb
+            const svg = apgl.makeColorBar(colormap, {label: "Wind Speed (kts)", fontface: 'Trebuchet MS', 
                                                      ticks: [20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140],
                                                      orientation: 'horizontal', tick_direction: 'bottom'});
 
@@ -29,7 +30,7 @@
             const raw_ws_field = apgl.RawScalarField.aggregateFields(Math.hypot, raw_u_field, raw_v_field);
 
             const cntr = new apgl.Contour(raw_hght_field, {interval: 1, color: '#000000', thinner: zoom => zoom < 5 ? 2 : 1});
-            const filled = new apgl.ContourFill(raw_ws_field, {'cmap': apgl.pw_speed500mb, 'opacity': 0.8});
+            const filled = new apgl.ContourFill(raw_ws_field, {'cmap': colormap, 'opacity': 0.8});
             const barbs = new apgl.Barbs({'u': raw_u_field, 'v': raw_v_field}, {color: '#000000', thin_fac: 16});
 
             const hght_layer = new apgl.PlotLayer('height', cntr);

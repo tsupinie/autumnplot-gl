@@ -48,6 +48,16 @@ class ColorMap {
     }
 
     /**
+     * Make a new color map with different opacities. The opacities are set by func.
+     * @param func - A function which takes the two levels associated with a color (an upper and lower bound) and returns an opacity in the range from 0 to 1.
+     * @returns A new color map
+     */
+    withOpacity(func: (level_lower: number, level_upper: number) => number) {
+        const new_colors = this.colors.map((c, ic) => { return {'color': c['color'], 'opacity': func(this.levels[ic], this.levels[ic + 1])}; });
+        return new ColorMap(this.levels, new_colors);
+    }
+
+    /**
      * Create a diverging color map using two input colors
      * @param color1    - The color corresponding to the lowest value in the color map
      * @param color2    - The color corresponding to the highest value in the color map
@@ -122,7 +132,7 @@ class ColorMap {
     }
 }
 
-const pw_speed500mb = new ColorMap(spd500_colormap_data.levels, spd500_colormap_data.colors);
+const pw_speed500mb = new ColorMap(spd500_colormap_data.levels, spd500_colormap_data.colors).withOpacity((levl, levu) => Math.min((levu - 20) / 10, 1.));
 
 /**
  * Make a canvas image corresponding to a color map
