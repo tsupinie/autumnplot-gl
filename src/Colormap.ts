@@ -112,28 +112,6 @@ class ColorMap {
 
         return new ColorMap(levels, stops);
     }
-
-    /**
-     * Create a diverging red/blue colormap, where red corresponds to the lowest value and blue corresponds to the highest value
-     * @param level_min - The lowest value in the color map
-     * @param level_max - The highest value in the color map
-     * @param n_colors  - The number of colors
-     * @returns a Colormap object
-     */
-    static redblue(level_min: number, level_max: number, n_colors: number) {
-        return ColorMap.diverging('#ff0000', '#0000ff', level_min, level_max, n_colors);
-    }
-
-    /**
-     * Create a diverging blue/red colormap, where blue corresponds to the lowest value and red corresponds to the highest value
-     * @param level_min - The lowest value in the color map
-     * @param level_max - The highest value in the color map
-     * @param n_colors  - The number of colors
-     * @returns a Colormap object
-     */
-    static bluered(level_min: number, level_max: number, n_colors: number) {
-        return ColorMap.diverging('#0000ff', '#ff0000', level_min, level_max, n_colors);
-    }
 }
 
 // Some built-in colormaps
@@ -142,6 +120,28 @@ const pw_speed850mb = new ColorMap(spd850_colormap_data.levels, spd850_colormap_
 const pw_cape = new ColorMap(cape_colormap_data.levels, cape_colormap_data.colors).withOpacity((levl, levu) => Math.min(levu / 1000., 1.));
 const pw_t2m = new ColorMap(t2m_colormap_data.levels, t2m_colormap_data.colors);
 const pw_td2m = new ColorMap(td2m_colormap_data.levels, td2m_colormap_data.colors);
+
+/**
+ * Create a diverging red/blue colormap, where red corresponds to the lowest value and blue corresponds to the highest value
+ * @param level_min - The lowest value in the color map
+ * @param level_max - The highest value in the color map
+ * @param n_colors  - The number of colors
+ * @returns a Colormap object
+ */
+const redblue = (level_min: number, level_max: number, n_colors: number) => {
+    return ColorMap.diverging('#ff0000', '#0000ff', level_min, level_max, n_colors);
+}
+
+/**
+ * Create a diverging blue/red colormap, where blue corresponds to the lowest value and red corresponds to the highest value
+ * @param level_min - The lowest value in the color map
+ * @param level_max - The highest value in the color map
+ * @param n_colors  - The number of colors
+ * @returns a Colormap object
+ */
+const bluered = (level_min: number, level_max: number, n_colors: number) => {
+    return ColorMap.diverging('#0000ff', '#ff0000', level_min, level_max, n_colors);
+}
 
 /**
  * Make a canvas image corresponding to a color map
@@ -357,5 +357,5 @@ function makeColorBar(colormap: ColorMap, opts: ColorBarOptions) {
     return root;
 }
 
-export {ColorMap, pw_speed500mb, pw_speed850mb, pw_cape, pw_t2m, pw_td2m, makeColorBar, makeTextureImage}
+export {ColorMap, bluered, redblue, pw_speed500mb, pw_speed850mb, pw_cape, pw_t2m, pw_td2m, makeColorBar, makeTextureImage}
 export type {Color, ColorbarOrientation, ColorbarTickDirection, ColorBarOptions};

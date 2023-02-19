@@ -78,7 +78,7 @@ The density of the wind barbs is automatically varied based on the map zoom leve
 Plotting filled contours is also similar to plotting regular contours, but there's some additional steps for the color map. A couple color maps are available by default, but if you have the colors you want, creating your own is (relatively) painless (hopefully). First, set up the colormap. Here, we'll just use the bluered colormap included by default.
 
 ```javascript
-const colormap = apgl.ColorMap.bluered(-10, 10, 20);
+const colormap = apgl.colormaps.bluered(-10, 10, 20);
 const fills = new apgl.ContourFilled(height, {cmap: colormap});
 const height_fill_layer = new apgl.PlotLayer('height-fill', fills);
 
