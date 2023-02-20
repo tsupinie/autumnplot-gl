@@ -75,7 +75,7 @@ The density of the wind barbs is automatically varied based on the map zoom leve
 
 ### Filled contours
 
-Plotting filled contours is also similar to plotting regular contours, but there's some additional steps for the color map. A couple color maps are available by default, but if you have the colors you want, creating your own is (relatively) painless (hopefully). First, set up the colormap. Here, we'll just use the bluered colormap included by default.
+Plotting filled contours is also similar to plotting regular contours, but there's some additional steps for the color map. A couple color maps are available by default (see [here](#built-in-color-maps) for more details), but if you have the colors you want, creating your own is (relatively) painless (hopefully). First, set up the colormap. Here, we'll just use the bluered colormap included by default.
 
 ```javascript
 const colormap = apgl.ColorMap.bluered(-10, 10, 20);
@@ -91,6 +91,7 @@ Normally, when you have color-filled contours, you have a color bar on the plot.
 
 ```javascript
 const colorbar_svg = apgl.makeColorBar(colormap, {label: "Height Perturbation (m)", 
+                                                  ticks: [-10, -8, -6, -4, -2, 0, 2, 4, 6, 8, 10],
                                                   orientation: 'horizontal', 
                                                   tick_direction: 'bottom'});
 
@@ -126,6 +127,18 @@ The second argument to `addField()` is the key to associate with this field. Thi
 // Set the active field in the map layer (the map updates automatically)
 height_layer.setActiveKey('20230112_1200');
 ```
+
+## Built-in color maps
+autumnplot-gl comes with several built-in color maps, accessible from `apgl.colormaps`. These are basic blue/red and red/blue diverging color maps plus a selection from [PivotalWeather](https://www.pivotalweather.com). The blue/red and red/blue are functions that take a minimum contour level, a maximum contour level, and a number of colors. For example, this creates a blue/red colormap starting at -10, ending at 10, and with 20 colors:
+
+```javascript
+const colormap = apgl.colormaps.bluered(-10, 10, 20);
+```
+
+Here are all the colormaps available:
+
+![colormaps](https://user-images.githubusercontent.com/885575/219983547-b5dd5603-f882-43f5-b57a-e19295fb4b64.png)
+
 
 ## Map tiles
 The above exmple uses map tiles from [Maptiler](https://www.maptiler.com/). Map tiles from Maptiler or Mapbox or others are free up to a (reasonably generous) limit, but the pricing can be a tad steep after reaching the limit. The tiles from these services are extremely detailed, and really what you're paying for there is the hardware to store, process, and serve that data. While these tiles are very nice, the detail is way overkill for a lot of uses in meteorology. 
