@@ -24,7 +24,7 @@
 
 #### Defined in
 
-[AutumnTypes.ts:6](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/AutumnTypes.ts#L6)
+[AutumnTypes.ts:6](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/AutumnTypes.ts#L6)
 
 ___
 
@@ -34,7 +34,7 @@ ___
 
 #### Defined in
 
-[AutumnTypes.ts:5](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/AutumnTypes.ts#L5)
+[AutumnTypes.ts:5](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/AutumnTypes.ts#L5)
 
 ___
 
@@ -44,7 +44,7 @@ ___
 
 #### Defined in
 
-[AutumnTypes.ts:3](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/AutumnTypes.ts#L3)
+[AutumnTypes.ts:3](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/AutumnTypes.ts#L3)
 
 ___
 
@@ -54,7 +54,7 @@ ___
 
 #### Defined in
 
-[AutumnTypes.ts:4](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/AutumnTypes.ts#L4)
+[AutumnTypes.ts:4](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/AutumnTypes.ts#L4)
 
 ___
 
@@ -64,7 +64,7 @@ ___
 
 #### Defined in
 
-[AutumnTypes.ts:7](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/AutumnTypes.ts#L7)
+[AutumnTypes.ts:7](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/AutumnTypes.ts#L7)
 
 ___
 
@@ -74,7 +74,7 @@ ___
 
 #### Defined in
 
-[AutumnTypes.ts:8](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/AutumnTypes.ts#L8)
+[AutumnTypes.ts:8](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/AutumnTypes.ts#L8)
 
 ___
 
@@ -84,7 +84,7 @@ ___
 
 #### Defined in
 
-[AutumnTypes.ts:9](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/AutumnTypes.ts#L9)
+[AutumnTypes.ts:9](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/AutumnTypes.ts#L9)
 
 ___
 
@@ -94,7 +94,7 @@ ___
 
 #### Defined in
 
-[AutumnTypes.ts:10](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/AutumnTypes.ts#L10)
+[AutumnTypes.ts:10](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/AutumnTypes.ts#L10)
 
 ___
 
@@ -104,4 +104,4 @@ ___
 
 #### Defined in
 
-[AutumnTypes.ts:11](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/AutumnTypes.ts#L11)
+[AutumnTypes.ts:11](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/AutumnTypes.ts#L11)

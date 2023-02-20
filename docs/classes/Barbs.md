@@ -59,7 +59,7 @@ Create a field of wind barbs
 
 #### Defined in
 
-[Barbs.ts:165](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/Barbs.ts#L165)
+[Barbs.ts:165](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Barbs.ts#L165)
 
 ## Properties
 
@@ -69,7 +69,7 @@ Create a field of wind barbs
 
 #### Defined in
 
-[Barbs.ts:158](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/Barbs.ts#L158)
+[Barbs.ts:158](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Barbs.ts#L158)
 
 ___
 
@@ -79,7 +79,7 @@ ___
 
 #### Defined in
 
-[Barbs.ts:152](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/Barbs.ts#L152)
+[Barbs.ts:152](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Barbs.ts#L152)
 
 ___
 
@@ -91,7 +91,7 @@ The vector field
 
 #### Defined in
 
-[Barbs.ts:151](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/Barbs.ts#L151)
+[Barbs.ts:151](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Barbs.ts#L151)
 
 ___
 
@@ -101,7 +101,7 @@ ___
 
 #### Defined in
 
-[Barbs.ts:156](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/Barbs.ts#L156)
+[Barbs.ts:156](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Barbs.ts#L156)
 
 ___
 
@@ -111,7 +111,7 @@ ___
 
 #### Defined in
 
-[Barbs.ts:153](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/Barbs.ts#L153)
+[Barbs.ts:153](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Barbs.ts#L153)
 
 ## Methods
 
@@ -138,7 +138,7 @@ Add the barb field to a map
 
 #### Defined in
 
-[Barbs.ts:182](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/Barbs.ts#L182)
+[Barbs.ts:182](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Barbs.ts#L182)
 
 ___
 
@@ -165,4 +165,4 @@ Render the barb field
 
 #### Defined in
 
-[Barbs.ts:202](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/Barbs.ts#L202)
+[Barbs.ts:202](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Barbs.ts#L202)

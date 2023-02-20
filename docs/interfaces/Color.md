@@ -19,7 +19,7 @@ The color as a hex color string
 
 #### Defined in
 
-[Colormap.ts:7](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/Colormap.ts#L7)
+[Colormap.ts:11](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Colormap.ts#L11)
 
 ___
 
@@ -31,4 +31,4 @@ The opacity as a number from 0 to 1
 
 #### Defined in
 
-[Colormap.ts:10](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/Colormap.ts#L10)
+[Colormap.ts:14](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Colormap.ts#L14)

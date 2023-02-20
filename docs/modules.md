@@ -36,7 +36,7 @@
 
 ### Variables
 
-- [pw\_speed500mb](modules.md#pw_speed500mb)
+- [colormaps](modules.md#colormaps)
 
 ### Functions
 
@@ -50,7 +50,7 @@
 
 #### Defined in
 
-[Colormap.ts:147](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/Colormap.ts#L147)
+[Colormap.ts:170](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Colormap.ts#L170)
 
 ___
 
@@ -60,7 +60,7 @@ ___
 
 #### Defined in
 
-[Colormap.ts:148](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/Colormap.ts#L148)
+[Colormap.ts:171](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Colormap.ts#L171)
 
 ___
 
@@ -70,7 +70,7 @@ ___
 
 #### Defined in
 
-[RawField.ts:114](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/RawField.ts#L114)
+[RawField.ts:114](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/RawField.ts#L114)
 
 ___
 
@@ -80,7 +80,7 @@ ___
 
 #### Defined in
 
-[Map.ts:5](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/Map.ts#L5)
+[Map.ts:5](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Map.ts#L5)
 
 ___
 
@@ -97,17 +97,29 @@ ___
 
 #### Defined in
 
-[RawField.ts:180](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/RawField.ts#L180)
+[RawField.ts:180](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/RawField.ts#L180)
 
 ## Variables
 
-### pw\_speed500mb
+### colormaps
 
-• `Const` **pw\_speed500mb**: [`ColorMap`](classes/ColorMap.md)
+• `Const` **colormaps**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `bluered` | (`level_min`: `number`, `level_max`: `number`, `n_colors`: `number`) => [`ColorMap`](classes/ColorMap.md) |
+| `pw_cape` | [`ColorMap`](classes/ColorMap.md) |
+| `pw_speed500mb` | [`ColorMap`](classes/ColorMap.md) |
+| `pw_speed850mb` | [`ColorMap`](classes/ColorMap.md) |
+| `pw_t2m` | [`ColorMap`](classes/ColorMap.md) |
+| `pw_td2m` | [`ColorMap`](classes/ColorMap.md) |
+| `redblue` | (`level_min`: `number`, `level_max`: `number`, `n_colors`: `number`) => [`ColorMap`](classes/ColorMap.md) |
 
 #### Defined in
 
-[Colormap.ts:121](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/Colormap.ts#L121)
+[index.ts:15](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/index.ts#L15)
 
 ## Functions
 
@@ -143,4 +155,4 @@ An SVGElement containing the color bar image.
 
 #### Defined in
 
-[Colormap.ts:192](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/Colormap.ts#L192)
+[Colormap.ts:215](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Colormap.ts#L215)

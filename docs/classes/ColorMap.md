@@ -19,9 +19,8 @@ A mapping from values to colors
 
 - [getColors](ColorMap.md#getcolors)
 - [getOpacities](ColorMap.md#getopacities)
-- [bluered](ColorMap.md#bluered)
+- [withOpacity](ColorMap.md#withopacity)
 - [diverging](ColorMap.md#diverging)
-- [redblue](ColorMap.md#redblue)
 
 ## Constructors
 
@@ -36,11 +35,11 @@ Create a color map
 | Name | Type | Description |
 | :------ | :------ | :------ |
 | `levels` | `number`[] | The list of levels. The number of levels should always be one more than the number of colors. |
-| `colors` | [`Color`](../interfaces/Color.md)[] | A list of colors |
+| `colors` | `string`[] \| [`Color`](../interfaces/Color.md)[] | A list of colors |
 
 #### Defined in
 
-[Colormap.ts:23](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/Colormap.ts#L23)
+[Colormap.ts:31](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Colormap.ts#L31)
 
 ## Properties
 
@@ -50,7 +49,7 @@ Create a color map
 
 #### Defined in
 
-[Colormap.ts:16](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/Colormap.ts#L16)
+[Colormap.ts:24](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Colormap.ts#L24)
 
 ___
 
@@ -60,7 +59,7 @@ ___
 
 #### Defined in
 
-[Colormap.ts:15](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/Colormap.ts#L15)
+[Colormap.ts:23](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Colormap.ts#L23)
 
 ## Methods
 
@@ -76,7 +75,7 @@ an array of hex color strings
 
 #### Defined in
 
-[Colormap.ts:35](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/Colormap.ts#L35)
+[Colormap.ts:43](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Colormap.ts#L43)
 
 ___
 
@@ -92,33 +91,31 @@ an array of opacities, one for each color in the color map
 
 #### Defined in
 
-[Colormap.ts:42](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/Colormap.ts#L42)
+[Colormap.ts:50](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Colormap.ts#L50)
 
 ___
 
-### bluered
+### withOpacity
 
-▸ `Static` **bluered**(`level_min`, `level_max`, `n_colors`): [`ColorMap`](ColorMap.md)
+▸ **withOpacity**(`func`): [`ColorMap`](ColorMap.md)
 
-Create a diverging blue/red colormap, where blue corresponds to the lowest value and red corresponds to the highest value
+Make a new color map with different opacities. The opacities are set by func.
 
 #### Parameters
 
 | Name | Type | Description |
 | :------ | :------ | :------ |
-| `level_min` | `number` | The lowest value in the color map |
-| `level_max` | `number` | The highest value in the color map |
-| `n_colors` | `number` | The number of colors |
+| `func` | (`level_lower`: `number`, `level_upper`: `number`) => `number` | A function which takes the two levels associated with a color (an upper and lower bound) and returns an opacity in the range from 0 to 1. |
 
 #### Returns
 
 [`ColorMap`](ColorMap.md)
 
-a Colormap object
+A new color map
 
 #### Defined in
 
-[Colormap.ts:116](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/Colormap.ts#L116)
+[Colormap.ts:59](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Colormap.ts#L59)
 
 ___
 
@@ -146,30 +143,4 @@ a Colormap object
 
 #### Defined in
 
-[Colormap.ts:55](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/Colormap.ts#L55)
-
-___
-
-### redblue
-
-▸ `Static` **redblue**(`level_min`, `level_max`, `n_colors`): [`ColorMap`](ColorMap.md)
-
-Create a diverging red/blue colormap, where red corresponds to the lowest value and blue corresponds to the highest value
-
-#### Parameters
-
-| Name | Type | Description |
-| :------ | :------ | :------ |
-| `level_min` | `number` | The lowest value in the color map |
-| `level_max` | `number` | The highest value in the color map |
-| `n_colors` | `number` | The number of colors |
-
-#### Returns
-
-[`ColorMap`](ColorMap.md)
-
-a Colormap object
-
-#### Defined in
-
-[Colormap.ts:105](https://github.com/tsupinie/autumnplot-gl/blob/749eabd/src/Colormap.ts#L105)
+[Colormap.ts:73](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Colormap.ts#L73)
