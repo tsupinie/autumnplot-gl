@@ -61,15 +61,16 @@ class PlateCarreeGrid {
             const dlon = (this.ur_lon - this.ll_lon) / (this.ni - 1);
             const dlat = (this.ur_lat - this.ll_lat) / (this.nj - 1);
 
-            const lons = new Float32Array(this.ni);
-            const lats = new Float32Array(this.nj);
+            const lons = new Float32Array(this.ni * this.nj);
+            const lats = new Float32Array(this.ni * this.nj);
 
             for (let i = 0; i < this.ni; i++) {
-                lons[i] = this.ll_lon + i * dlon;
-            }
+                for (let j = 0; j < this.nj; j++) {
+                    const idx = i + j * this.ni;
 
-            for (let j = 0; j < this.nj; j++) {
-                lats[j] = this.ll_lat + j * dlat;
+                    lons[idx] = this.ll_lon + i * dlon;
+                    lats[idx] = this.ll_lat + j * dlat;
+                }
             }
 
             return {'lons': lons, 'lats': lats};

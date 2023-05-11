@@ -184,7 +184,8 @@ class Barbs extends PlotComponent {
 
         const {lons: field_lons, lats: field_lats} = this.fields['u'].grid.getCoords();
 
-        const barb_elements = await layer_worker.makeBarbElements(field_lats, field_lons, this.fields.u.data, this.fields.v.data, this.thin_fac, BARB_DIMS);
+        const barb_elements = await layer_worker.makeBarbElements(field_lats, field_lons, this.fields.u.data, this.fields.v.data, 
+            this.fields.u.grid.ni, this.fields.u.grid.nj, this.thin_fac, BARB_DIMS);
         const barb_image = {format: gl.RGBA, type: gl.UNSIGNED_BYTE, image: BARB_TEXTURE, mag_filter: gl.NEAREST};
 
         const barb_height = 27.5;

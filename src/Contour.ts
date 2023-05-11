@@ -109,9 +109,31 @@ class Contour extends PlotComponent {
         const {lats: field_lats, lons: field_lons} = this.field.grid.getCoords();
         const {width: tex_width, height: tex_height, data: tex_data} = this.field.getPaddedData();
 
-        const verts_tex_coords = await layer_worker.makeDomainVerticesAndTexCoords(field_lats, field_lons, tex_width, tex_height);
-        const latitudes = new Float32Array([...field_lats].map(lat => [lat, lat]).flat());
-        this.grid_spacing = Math.abs(latitudes[2] - latitudes[0]);
+        const verts_tex_coords = await layer_worker.makeDomainVerticesAndTexCoords(field_lats, field_lons, this.field.grid.ni, this.field.grid.nj, tex_width, tex_height);
+        this.grid_spacing = Math.abs(field_lons[1] - field_lons[0]);
+
+        const latitudes = new Float32Array(verts_tex_coords['vertices'].length / 2);
+        let ivert = 0;
+
+        for (let i = 0; i < this.field.grid.ni; i++) {
+            for (let j = 0; j < this.field.grid.nj; j++) {
+                const idx = i + j * this.field.grid.ni;
+
+                if (j == 0) {
+                    latitudes[ivert] = field_lats[idx]; latitudes[ivert + 1] = field_lats[idx];
+                    ivert += 2;
+                }
+    
+                latitudes[ivert    ] = field_lats[idx]; latitudes[ivert + 1] = field_lats[idx];
+                latitudes[ivert + 3] = field_lats[idx]; latitudes[ivert + 4] = field_lats[idx];
+                ivert += 4;
+    
+                if (j == this.field.grid.nj - 1) {
+                    latitudes[ivert] = field_lats[idx]; latitudes[ivert + 1] = field_lats[idx];
+                    ivert += 2;
+                }
+            }
+        }
 
         this.vertices = new WGLBuffer(gl, verts_tex_coords['vertices'], 2, gl.TRIANGLE_STRIP);
         this.latitudes = new WGLBuffer(gl, latitudes, 1, gl.TRIANGLE_STRIP);

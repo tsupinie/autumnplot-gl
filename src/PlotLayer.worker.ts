@@ -6,8 +6,8 @@ import * as Comlink from 'comlink';
 import { BillboardSpec } from "./BillboardCollection";
 import { LngLat } from "./Map";
 
-function makeBarbElements(field_lats: Float32Array, field_lons: Float32Array, field_u: Float32Array, field_v: Float32Array, thin_fac_base: number, 
-    BARB_DIMS: BarbDimSpec) : BillboardSpec {
+function makeBarbElements(field_lats: Float32Array, field_lons: Float32Array, field_u: Float32Array, field_v: Float32Array, field_ni: number, field_nj: number,
+    thin_fac_base: number, BARB_DIMS: BarbDimSpec) : BillboardSpec {
         
     const BARB_WIDTH = BARB_DIMS['BARB_WIDTH'];
     const BARB_TEX_WIDTH = BARB_DIMS['BARB_TEX_WIDTH'];
@@ -15,14 +15,12 @@ function makeBarbElements(field_lats: Float32Array, field_lons: Float32Array, fi
     const BARB_TEX_HEIGHT = BARB_DIMS['BARB_TEX_HEIGHT'];
     const BARB_TEX_WRAP = BARB_DIMS['BARB_TEX_WRAP'];
 
-    const n_lats = field_lats.length;
-    const n_lons = field_lons.length;
     const n_pts_per_poly = 6;
     const n_coords_per_pt_pts = 3;
     const n_coords_per_pt_tc = 2;
 
-    const n_elems_pts = n_lats * n_lons * n_pts_per_poly * n_coords_per_pt_pts;
-    const n_elems_tc = n_lats * n_lons * n_pts_per_poly * n_coords_per_pt_tc;
+    const n_elems_pts = field_ni * field_nj * n_pts_per_poly * n_coords_per_pt_pts;
+    const n_elems_tc = field_ni * field_nj * n_pts_per_poly * n_coords_per_pt_tc;
 
     let pts = new Float32Array(n_elems_pts);
     let offset = new Float32Array(n_elems_tc);
@@ -34,13 +32,17 @@ function makeBarbElements(field_lats: Float32Array, field_lons: Float32Array, fi
     const barb_width_frac = BARB_WIDTH / BARB_TEX_WIDTH;
     const barb_height_frac = BARB_HEIGHT / BARB_TEX_HEIGHT;
 
-    field_lats.forEach((lat, ilat) => {
-        const flip_barb = lat < 0;
-        field_lons.forEach((lon, ilon) => {
+    for (let ilat = 0; ilat < field_nj; ilat++) {
+        for (let ilon = 0; ilon < field_ni; ilon++) {
+            const idx = ilat * field_ni + ilon;
+            const lat = field_lats[idx];
+            const lon = field_lons[idx];
+
+            const flip_barb = lat < 0;
             const zoom = getMinZoom(ilat, ilon, thin_fac_base);
 
-            const u = field_u[ilat * n_lons + ilon];
-            const v = field_v[ilat * n_lons + ilon];
+            const u = field_u[idx];
+            const v = field_v[idx];
             const barb_mag = Math.round(Math.hypot(u, v) / 5) * 5;
             const barb_ang = 90 - Math.atan2(-v, -u) * 180 / Math.PI;
 
@@ -80,28 +82,61 @@ function makeBarbElements(field_lats: Float32Array, field_lons: Float32Array, fi
 
             istart_pts += (n_pts_per_poly * n_coords_per_pt_pts);
             istart_tc += (n_pts_per_poly * n_coords_per_pt_tc);
-        });
-    });
+        }
+    }
 
     return {'pts': pts, 'offset': offset, 'tex_coords': tex_coords};
 }
 
-function makeDomainVerticesAndTexCoords(field_lats: Float32Array, field_lons: Float32Array, tex_width: number, tex_height: number) {
-    const ni = field_lons.length;
-    const lbi = 0, ubi = ni - 1;
+function makeDomainVerticesAndTexCoords(field_lats: Float32Array, field_lons: Float32Array, field_ni: number, field_nj: number, tex_width: number, tex_height: number) {
+    const npts = field_lons.length;
+    const lbi = 0, ubi = field_ni - 1;
 
-    const corners = [...field_lats].map(lat => {
-        return [{'lng': field_lons[lbi], 'lat': lat},
-                {'lng': field_lons[ubi], 'lat': lat}]
-    }).flat().map(pt => new LngLat(pt.lng, pt.lat).toMercatorCoord());
-    const verts = corners.map(cd => [cd.x, cd.y]).flat();
+    const verts = new Float32Array(2 * 2 * (field_ni - 1) * (field_nj + 1)).fill(0);
+    const tex_coords = new Float32Array(2 * 2 * (field_ni - 1) * (field_nj + 1)).fill(0);
 
-    const tex_coords = [...field_lats].map((lat, ilat) => {
-        return [{'s': (ilat + 0.5) / tex_height, 'r': 0.505 / (tex_width + 1.07)}, 
-                {'s': (ilat + 0.5) / tex_height, 'r': (ni + 0.505) / (tex_width + 1.07)}];
-    }).flat().map(tc => [tc['r'], tc['s']]).flat();
+    let ivert = 0
+    let itexcoord = 0;
 
-    return {'vertices': new Float32Array(verts), 'tex_coords': new Float32Array(tex_coords)}
+    for (let i = 0; i < field_ni - 1; i++) {
+        for (let j = 0; j < field_nj; j++) {
+            const idx = i + j * field_ni;
+
+            const pt = new LngLat(field_lons[idx], field_lats[idx]).toMercatorCoord();
+            const pt_ip1 = new LngLat(field_lons[idx + 1], field_lats[idx + 1]).toMercatorCoord();
+
+            const r = (i + 0.5) / tex_width;
+            const rp1 = (i + 1.5) / tex_width;
+            const s = (j + 0.5) / tex_height;
+
+
+            if (j == 0) {
+                verts[ivert] = pt.x; verts[ivert + 1] = pt.y;
+                ivert += 2
+
+                tex_coords[itexcoord] = r; tex_coords[itexcoord + 1] = s;
+                itexcoord += 2;
+            }
+
+            verts[ivert    ] = pt.x;     verts[ivert + 1] = pt.y;
+            verts[ivert + 2] = pt_ip1.x; verts[ivert + 3] = pt_ip1.y;
+            ivert += 4;
+
+            tex_coords[itexcoord    ] = r; tex_coords[itexcoord + 1] = s;
+            tex_coords[itexcoord + 2] = rp1; tex_coords[itexcoord + 3] = s;
+            itexcoord += 4;
+
+            if (j == field_nj - 1) {
+                verts[ivert] = pt_ip1.x; verts[ivert + 1] = pt_ip1.y;
+                ivert += 2;
+
+                tex_coords[itexcoord] = rp1; tex_coords[itexcoord + 1] = s;
+                itexcoord += 2;
+            }
+        }
+    }
+
+    return {'vertices': verts, 'tex_coords': tex_coords}
 }
 
 /*
