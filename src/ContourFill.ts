@@ -1,6 +1,6 @@
 
 import { PlotComponent, layer_worker } from './PlotComponent';
-import { ColorMap, makeTextureImage } from './ColorMap';
+import { ColorMap, makeTextureImage } from './Colormap';
 import { WGLBuffer, WGLProgram, WGLTexture } from './wgl';
 import { RawScalarField } from './RawField';
 import { MapType } from './Map';
