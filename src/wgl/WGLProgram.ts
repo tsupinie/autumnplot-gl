@@ -184,8 +184,12 @@ class WGLProgram {
             this.n_verts = this.n_verts === null ? buffer.n_verts : this.n_verts;
             this.draw_mode = this.draw_mode === null ? buffer.draw_mode : this.draw_mode;
 
-            if (this.draw_mode != buffer.draw_mode || this.n_verts != buffer.n_verts) {
-                throw `Unexpected draw mode or number of vertices.`;
+            if (this.draw_mode != buffer.draw_mode) {
+                throw `Unexpected draw mode for attribute buffer ${a_name} (expected ${this.draw_mode}, got ${buffer.draw_mode}).`;
+            }
+
+            if (this.n_verts != buffer.n_verts) {
+                throw `Unexpected number of vertices for attribute buffer ${a_name} (expected ${this.n_verts}, got ${buffer.n_verts}).`;
             }
 
             const {type, location} = this.attributes[a_name];
