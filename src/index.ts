@@ -10,7 +10,7 @@ import { WindProfile } from "./AutumnTypes";
 import { MapType } from "./Map";
 import { ColorMap, bluered, redblue, pw_speed500mb, pw_speed850mb, pw_cape, pw_t2m, pw_td2m, 
          makeColorBar, Color, ColorbarOrientation, ColorbarTickDirection, ColorBarOptions } from './Colormap';
-import { RawScalarField, RawVectorField, Grid, PlateCarreeGrid } from "./RawField";
+import { RawScalarField, RawVectorField, Grid, PlateCarreeGrid, LambertGrid } from "./RawField";
 
 const colormaps = {
     bluered: bluered,
@@ -30,4 +30,4 @@ export {PlotComponent,
         PlotLayer, MultiPlotLayer, 
         MapType,
         ColorMap, colormaps, makeColorBar, Color, ColorbarOrientation, ColorbarTickDirection, ColorBarOptions,
-        RawScalarField, RawVectorField, Grid, PlateCarreeGrid};
+        RawScalarField, RawVectorField, Grid, PlateCarreeGrid, LambertGrid};

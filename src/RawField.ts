@@ -1,4 +1,5 @@
 
+import { lambertConformalConic } from "./Map";
 import { zip } from "./utils";
 
 class Cache<A extends unknown[], R> {
@@ -90,20 +91,49 @@ class LambertGrid {
 
     readonly ni: number;
     readonly nj: number;
+    readonly lon_0: number;
+    readonly lat_0: number;
+    readonly lat_std: [number, number];
+    readonly ll_x: number;
+    readonly ll_y: number;
+    readonly ur_x: number;
+    readonly ur_y: number;
+    readonly lcc: (a: number, b: number, opts?: {inverse: boolean}) => [number, number];
 
     readonly _ll_cache: Cache<[], Coords>;
 
-    constructor(ni: number, nj: number) {
+    constructor(ni: number, nj: number, lon_0: number, lat_0: number, lat_std: [number, number], 
+                ll_x: number, ll_y: number, ur_x: number, ur_y: number) {
         this.type = 'lcc';
 
         this.ni = ni;
         this.nj = nj;
+        this.lon_0 = lon_0;
+        this.lat_0 = lat_0;
+        this.lat_std = lat_std;
+        this.ll_x = ll_x;
+        this.ll_y = ll_y;
+        this.ur_x = ur_x;
+        this.ur_y = ur_y;
+        this.lcc = lambertConformalConic({lon_0: lon_0, lat_0: lat_0, lat_std: lat_std});
 
         this._ll_cache = new Cache(() => {
-            return {
-                'lons': new Float32Array(this.ni),
-                'lats': new Float32Array(this.nj)
+            const lons = new Float32Array(this.ni * this.nj);
+            const lats = new Float32Array(this.ni * this.nj);
+
+            for (let i = 0; i < this.ni; i++) {
+                const x = this.ll_x + (this.ur_x - this.ll_x) * i / (this.ni - 1);
+                for (let j = 0; j < this.nj; j++) {
+                    const y = this.ll_y + (this.ur_y - this.ll_y) * j / (this.nj - 1);
+
+                    const [lon, lat] = this.lcc(x, y, {inverse: true});
+                    const idx = i + j * this.ni;
+                    lons[idx] = lon;
+                    lats[idx] = lat;
+                }
             }
+
+            return {lons: lons, lats: lats};
         });
     }
 
@@ -112,8 +142,8 @@ class LambertGrid {
     }
 }
 
-type Grid = PlateCarreeGrid; // | LambertGrid;
-type GridType = typeof PlateCarreeGrid; // | typeof LambertGrid;
+type Grid = PlateCarreeGrid | LambertGrid;
+type GridType = typeof PlateCarreeGrid | typeof LambertGrid;
 
 /** A class representing a raw 2D field of gridded data, such as height or u wind. */
 class RawScalarField {
@@ -180,5 +210,5 @@ class RawScalarField {
 
 type RawVectorField = {u: RawScalarField, v: RawScalarField};
 
-export {RawScalarField, PlateCarreeGrid};
+export {RawScalarField, PlateCarreeGrid, LambertGrid};
 export type {RawVectorField, Grid};
