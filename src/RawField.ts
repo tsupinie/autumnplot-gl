@@ -84,6 +84,10 @@ class PlateCarreeGrid {
     getCoords() {
         return this._ll_cache.getValue();
     }
+
+    transform(x: number, y: number, opts?: {inverse?: boolean}) {
+        return [x, y];
+    }
 }
 
 class LambertGrid {
@@ -139,6 +143,13 @@ class LambertGrid {
 
     getCoords() {
         return this._ll_cache.getValue();
+    }
+
+    transform(x: number, y: number, opts?: {inverse?: boolean}) {
+        opts = opts === undefined ? {}: opts;
+        const inverse = 'inverse' in opts ? opts.inverse : false;
+
+        return this.lcc(x, y, {inverse: inverse});
     }
 }
 
@@ -208,7 +219,70 @@ class RawScalarField {
     }
 }
 
-type RawVectorField = {u: RawScalarField, v: RawScalarField};
+//type RawVectorField = {u: RawScalarField, v: RawScalarField};
+type VectorRelativeTo = 'earth' | 'grid';
 
-export {RawScalarField, PlateCarreeGrid, LambertGrid};
-export type {RawVectorField, Grid};
+class RawVectorField {
+    readonly u: RawScalarField;
+    readonly v: RawScalarField;
+    readonly relative_to: VectorRelativeTo;
+
+    readonly _rotate_cache: Cache<[], {u: RawScalarField, v: RawScalarField}>
+
+    constructor(u: RawScalarField, v: RawScalarField, relative_to?: VectorRelativeTo) {
+        this.u = u;
+        this.v = v;
+        this.relative_to = relative_to === undefined ? 'grid' : relative_to;
+
+        this._rotate_cache = new Cache(() => {
+            const grid = this.u.grid;
+            const coords = grid.getCoords();
+            const u_rot = new Float32Array(coords.lats.length);
+            const v_rot = new Float32Array(coords.lats.length);
+
+            for (let icd = 0; icd < coords.lats.length; icd++) {
+                const lon = coords.lons[icd];
+                const lat = coords.lats[icd];
+                const u = this.u.data[icd];
+                const v = this.v.data[icd];
+
+                const [x, y] = grid.transform(lon, lat);
+                const [x_pertlon, y_pertlon] = grid.transform(lon + 0.01, lat);
+                const [x_pertlat, y_pertlat] = grid.transform(lon, lat + 0.01);
+
+                const mag_pertlon = Math.hypot(x - x_pertlon, y - y_pertlon);
+                const mag_pertlat = Math.hypot(x - x_pertlat, y - y_pertlat);
+
+                // This is effectively a fully general change of basis from grid coordinates to earth coordinates. Is it overkill? Yeah, probably.
+                const x_dotlon = (x_pertlon - x) / mag_pertlon;
+                const y_dotlon = (y_pertlon - y) / mag_pertlon;
+                const x_dotlat = (x_pertlat - x) / mag_pertlat;
+                const y_dotlat = (y_pertlat - y) / mag_pertlat;
+
+                u_rot[icd] = x_dotlon * u + y_dotlon * v;
+                v_rot[icd] = x_dotlat * u + y_dotlat * v;
+            }
+
+            return {u: new RawScalarField(grid, u_rot), v: new RawScalarField(grid, v_rot)};
+        })
+    }
+
+    get earth_u() {
+        if (this.relative_to == 'earth') {
+            return this.u;
+        }
+        const {u, v} = this._rotate_cache.getValue();
+        return u;
+    }
+
+    get earth_v() {
+        if (this.relative_to == 'earth') {
+            return this.v;
+        }
+        const {u, v} = this._rotate_cache.getValue();
+        return v;
+    }
+}
+
+export {RawScalarField, RawVectorField, PlateCarreeGrid, LambertGrid};
+export type {Grid};
