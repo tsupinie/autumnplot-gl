@@ -1,5 +1,6 @@
 #extension GL_OES_standard_derivatives : enable
 varying highp vec2 v_tex_coord;
+varying highp float v_grid_cell_size;
 varying highp float v_map_scale_fac;
 
 uniform sampler2D u_fill_sampler;
@@ -8,7 +9,6 @@ uniform lowp float u_line_cutoff;
 uniform lowp vec3 u_color;
 uniform lowp vec2 u_step_size;
 uniform lowp float u_zoom_fac;
-uniform highp float u_grid_spacing;
 
 void main() {
     highp float field_val = texture2D(u_fill_sampler, v_tex_coord).r;
@@ -20,8 +20,7 @@ void main() {
     highp float fv_xm1 = texture2D(u_fill_sampler, v_tex_coord - ihat).r;
     highp float fv_yp1 = texture2D(u_fill_sampler, v_tex_coord + jhat).r;
     highp float fv_ym1 = texture2D(u_fill_sampler, v_tex_coord - jhat).r;
-    highp float fwidth_field = sqrt((fv_xp1 - fv_xm1) * (fv_xp1 - fv_xm1) + (fv_yp1 - fv_ym1) * (fv_yp1 - fv_ym1) * v_map_scale_fac * v_map_scale_fac) 
-                                / (2. * u_grid_spacing);
+    highp float fwidth_field = sqrt(((fv_xp1 - fv_xm1) * (fv_xp1 - fv_xm1) + (fv_yp1 - fv_ym1) * (fv_yp1 - fv_ym1)) / (5e5 * v_grid_cell_size));
 
     //gl_FragColor = vec4(fwidth_field, fwidth_field, fwidth_field, 1.0);
 

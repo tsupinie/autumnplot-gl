@@ -50,13 +50,13 @@ class Contour extends PlotComponent {
     /** @private */
     vertices: WGLBuffer | null;
     /** @private */
-    latitudes: WGLBuffer | null;
+    grid_cell_size: WGLBuffer | null;
     /** @private */
     fill_texture: WGLTexture | null;
     /** @private */
     texcoords: WGLBuffer | null;
     /** @private */
-    grid_spacing: number | null;
+    //grid_spacing: number | null;
 
     /** @private */
     tex_width: number | null;
@@ -83,10 +83,9 @@ class Contour extends PlotComponent {
         this.map = null;
         this.program = null;
         this.vertices = null;
-        this.latitudes = null;
+        this.grid_cell_size = null;
         this.fill_texture = null;
         this.texcoords = null;
-        this.grid_spacing = null;
 
         this.tex_width = null;
         this.tex_height = null;
@@ -110,33 +109,39 @@ class Contour extends PlotComponent {
         const {width: tex_width, height: tex_height, data: tex_data} = this.field.getPaddedData();
 
         const verts_tex_coords = await layer_worker.makeDomainVerticesAndTexCoords(field_lats, field_lons, this.field.grid.ni, this.field.grid.nj, tex_width, tex_height);
-        this.grid_spacing = Math.abs(field_lons[1] - field_lons[0]);
 
-        const latitudes = new Float32Array(verts_tex_coords['vertices'].length / 2);
-        let ivert = 0;
+        const grid_cell_size = new Float32Array(verts_tex_coords['vertices'].length / 2);
+        let igcs = 0;
 
-        for (let i = 0; i < this.field.grid.ni; i++) {
-            for (let j = 0; j < this.field.grid.nj; j++) {
-                const idx = i + j * this.field.grid.ni;
+        for (let i = 0; i < this.field.grid.ni - 1; i++) {
+            for (let j = 0; j < this.field.grid.nj - 1; j++) {
+                const ivert = j == 0 ? 2 * (igcs + 1) : 2 * igcs;
+                const x_ll = verts_tex_coords['vertices'][ivert],     y_ll = verts_tex_coords['vertices'][ivert + 1],
+                      x_lr = verts_tex_coords['vertices'][ivert + 2], y_lr = verts_tex_coords['vertices'][ivert + 3],
+                      x_ul = verts_tex_coords['vertices'][ivert + 4], y_ul = verts_tex_coords['vertices'][ivert + 5],
+                      x_ur = verts_tex_coords['vertices'][ivert + 6], y_ur = verts_tex_coords['vertices'][ivert + 7];
+
+                const area = 0.5 * Math.abs(x_ll * (y_lr - y_ul) + x_lr * (y_ul - y_ll) + x_ul * (y_ll - y_lr) + 
+                                            x_ur * (y_ul - y_lr) + x_ul * (y_lr - y_ur) + x_lr * (y_ur - y_ul));
 
                 if (j == 0) {
-                    latitudes[ivert] = field_lats[idx]; latitudes[ivert + 1] = field_lats[idx];
-                    ivert += 2;
+                    grid_cell_size[igcs] = area;
+                    igcs += 1;
                 }
     
-                latitudes[ivert    ] = field_lats[idx]; latitudes[ivert + 1] = field_lats[idx];
-                latitudes[ivert + 3] = field_lats[idx]; latitudes[ivert + 4] = field_lats[idx];
-                ivert += 4;
+                grid_cell_size[igcs] = area; grid_cell_size[igcs + 1] = area;
+                igcs += 2;
     
-                if (j == this.field.grid.nj - 1) {
-                    latitudes[ivert] = field_lats[idx]; latitudes[ivert + 1] = field_lats[idx];
-                    ivert += 2;
+                if (j == this.field.grid.nj - 2) {
+                    grid_cell_size[igcs] = area; grid_cell_size[igcs + 1] = area; 
+                    grid_cell_size[igcs + 2] = area;
+                    igcs += 3;
                 }
             }
         }
 
         this.vertices = new WGLBuffer(gl, verts_tex_coords['vertices'], 2, gl.TRIANGLE_STRIP);
-        this.latitudes = new WGLBuffer(gl, latitudes, 1, gl.TRIANGLE_STRIP);
+        this.grid_cell_size = new WGLBuffer(gl, grid_cell_size, 1, gl.TRIANGLE_STRIP);
 
         this.tex_width = tex_width;
         this.tex_height = tex_height;
@@ -155,8 +160,8 @@ class Contour extends PlotComponent {
      * Render the contours
      */
     render(gl: WebGLRenderingContext, matrix: number[]) {
-        if (this.map === null || this.program === null || this.vertices === null || this.latitudes === null || 
-            this.fill_texture === null || this.texcoords === null || this.grid_spacing === null || this.tex_width === null || this.tex_height === null) return;
+        if (this.map === null || this.program === null || this.vertices === null || this.grid_cell_size === null || 
+            this.fill_texture === null || this.texcoords === null || this.tex_width === null || this.tex_height === null) return;
 
         const zoom = this.map.getZoom();
         const intv = this.thinner(zoom) * this.interval;
@@ -165,9 +170,9 @@ class Contour extends PlotComponent {
         const zoom_fac = Math.pow(2, zoom);
 
         this.program.use(
-            {'a_pos': this.vertices, 'a_latitude': this.latitudes, 'a_tex_coord': this.texcoords},
+            {'a_pos': this.vertices, 'a_grid_cell_size': this.grid_cell_size, 'a_tex_coord': this.texcoords},
             {'u_contour_interval': intv, 'u_line_cutoff': cutoff, 'u_color': this.color, 'u_step_size': step_size, 'u_zoom_fac': zoom_fac,
-             'u_grid_spacing': this.grid_spacing, 'u_matrix': matrix},
+             'u_matrix': matrix},
             {'u_fill_sampler': this.fill_texture}
         );
 
