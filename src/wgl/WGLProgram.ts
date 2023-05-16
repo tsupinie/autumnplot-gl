@@ -119,7 +119,7 @@ class WGLProgram {
             this.attributes[a_name] = {'type': type, 'location': gl.getAttribLocation(this.prog, a_name)};
         }
 
-        for (const match of vertex_shader_src.matchAll(/uniform +([\w ]+?) +([\w_]+);[\s]*$/mg)) {
+        for (const match of vertex_shader_src.matchAll(/uniform +([\w ]+?) +([\w_]+)(?:[\s]*\[.*\])?;[\s]*$/mg)) {
             const [full_match, type, u_name] = match;
             const type_parts = type.split(' ');
 
@@ -131,7 +131,7 @@ class WGLProgram {
             this.uniforms[u_name] = {'type': type_parts[type_parts.length - 1], 'location': uniform_loc};
         }
 
-        for (const match of fragment_shader_src.matchAll(/uniform +([\w ]+?) +([\w_]+);[\s]*$/mg)) {
+        for (const match of fragment_shader_src.matchAll(/uniform +([\w ]+?) +([\w_]+)(?:[\s]*\[.*\])?;[\s]*$/mg)) {
             const [full_match, type, u_name] = match;
             const type_parts = type.split(' ');
 
@@ -215,6 +215,9 @@ class WGLProgram {
             }
             else if (type === 'float' && typeof value == 'number') {
                 this.gl.uniform1f(location, value);
+            }
+            else if (type === 'float' && value instanceof Array) {
+                this.gl.uniform1fv(location, value);
             }
             else if (type === 'vec2' && value instanceof Array) {
                 this.gl.uniform2fv(location, value);
