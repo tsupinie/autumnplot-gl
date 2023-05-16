@@ -173,6 +173,10 @@ class RawScalarField {
         this.grid = grid;
         this.data = data;
 
+        if (grid.ni * grid.nj != data.length) {
+            throw `Data size (${data.length}) doesn't match the grid dimensions (${grid.ni} x ${grid.nj}; expected ${grid.ni * grid.nj} points)`;
+        }
+
         this._pad_cache = new Cache(() => {
             const pad_width = Math.pow(2, Math.ceil(Math.log2(this.grid.ni)));
             const pad_height = Math.pow(2, Math.ceil(Math.log2(this.grid.nj)));
