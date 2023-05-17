@@ -3,6 +3,7 @@ import { PlotComponent } from "./PlotComponent";
 import Contour, {ContourOptions} from "./Contour";
 import ContourFill, {ContourFillOptions} from "./ContourFill";
 import Barbs, {BarbsOptions} from "./Barbs";
+import Paintball, {PaintballOptions} from "./Paintball";
 import Hodographs from './Hodographs';
 
 import { PlotLayer, MultiPlotLayer } from './PlotLayer';
@@ -26,6 +27,7 @@ export {PlotComponent,
         Barbs, BarbsOptions,
         Contour, ContourOptions,
         ContourFill, ContourFillOptions,
+        Paintball, PaintballOptions,
         Hodographs, WindProfile,
         PlotLayer, MultiPlotLayer, 
         MapType,
