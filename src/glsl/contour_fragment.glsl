@@ -37,7 +37,7 @@ void main() {
         highp float highest_contour;
 
         for (int ncnt = 0; ncnt < MAX_N_CONTOURS; ncnt++) {
-            if (ncnt > u_num_contours) { break; }
+            if (ncnt >= u_num_contours) { break; }
 
             min_contour_diff = min(min_contour_diff, u_contour_levels[ncnt + 1] - u_contour_levels[ncnt]);
 
