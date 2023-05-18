@@ -161,9 +161,6 @@ class RawScalarField {
     readonly grid: Grid;
     readonly data: Float32Array;
 
-    /** @private */
-    readonly _pad_cache: Cache<[], {width: number, height: number, data: Float32Array}>;
-
     /**
      * Create a data field. 
      * @param grid - The grid on which the data are defined
@@ -176,28 +173,6 @@ class RawScalarField {
         if (grid.ni * grid.nj != data.length) {
             throw `Data size (${data.length}) doesn't match the grid dimensions (${grid.ni} x ${grid.nj}; expected ${grid.ni * grid.nj} points)`;
         }
-
-        this._pad_cache = new Cache(() => {
-            const pad_width = Math.pow(2, Math.ceil(Math.log2(this.grid.ni)));
-            const pad_height = Math.pow(2, Math.ceil(Math.log2(this.grid.nj)));
-    
-            const data_pad = new Float32Array(pad_width * pad_height);
-    
-            for (let irow = 0; irow < this.grid.nj; irow++) {
-                data_pad.set(this.data.slice(irow * this.grid.ni, (irow + 1) * this.grid.ni), irow * pad_width);
-                data_pad.set(this.data.slice((irow + 1) * this.grid.ni - 1, (irow + 1) * this.grid.ni), irow * pad_width + this.grid.ni);
-            }
-            data_pad.set(this.data.slice((this.grid.nj - 1) * this.grid.ni, this.grid.nj * this.grid.ni), this.grid.nj * pad_width);
-    
-            return {'width': pad_width, 'height': pad_height, 'data': data_pad};
-        })
-    }
-    
-    /**
-     * Pad the data such that both axes are a power of 2 in length (internal method)
-     */
-    getPaddedData() {
-        return this._pad_cache.getValue();
     }
 
     /**

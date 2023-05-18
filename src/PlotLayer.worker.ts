@@ -88,7 +88,7 @@ function makeBarbElements(field_lats: Float32Array, field_lons: Float32Array, fi
     return {'pts': pts, 'offset': offset, 'tex_coords': tex_coords};
 }
 
-function makeDomainVerticesAndTexCoords(field_lats: Float32Array, field_lons: Float32Array, field_ni: number, field_nj: number, tex_width: number, tex_height: number) {
+function makeDomainVerticesAndTexCoords(field_lats: Float32Array, field_lons: Float32Array, field_ni: number, field_nj: number) {
     const npts = field_lons.length;
     const lbi = 0, ubi = field_ni - 1;
 
@@ -105,9 +105,9 @@ function makeDomainVerticesAndTexCoords(field_lats: Float32Array, field_lons: Fl
             const pt = new LngLat(field_lons[idx], field_lats[idx]).toMercatorCoord();
             const pt_ip1 = new LngLat(field_lons[idx + 1], field_lats[idx + 1]).toMercatorCoord();
 
-            const r = (i + 0.5) / tex_width;
-            const rp1 = (i + 1.5) / tex_width;
-            const s = (j + 0.5) / tex_height;
+            const r = (i + 0.5) / field_ni;
+            const rp1 = (i + 1.5) / field_ni;
+            const s = (j + 0.5) / field_nj;
 
 
             if (j == 0) {

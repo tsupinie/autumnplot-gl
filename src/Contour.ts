@@ -65,11 +65,6 @@ class Contour extends PlotComponent {
     /** @private */
     //grid_spacing: number | null;
 
-    /** @private */
-    tex_width: number | null;
-    /** @private */
-    tex_height: number | null;
-
     /**
      * Create a contoured field
      * @param field - The field to contour
@@ -94,9 +89,6 @@ class Contour extends PlotComponent {
         this.grid_cell_size = null;
         this.fill_texture = null;
         this.texcoords = null;
-
-        this.tex_width = null;
-        this.tex_height = null;
     }
 
     /**
@@ -114,9 +106,8 @@ class Contour extends PlotComponent {
         this.program = new WGLProgram(gl, contour_vertex_shader_src, contour_fragment_shader_src);
 
         const {lats: field_lats, lons: field_lons} = this.field.grid.getCoords();
-        const {width: tex_width, height: tex_height, data: tex_data} = this.field.getPaddedData();
 
-        const verts_tex_coords = await layer_worker.makeDomainVerticesAndTexCoords(field_lats, field_lons, this.field.grid.ni, this.field.grid.nj, tex_width, tex_height);
+        const verts_tex_coords = await layer_worker.makeDomainVerticesAndTexCoords(field_lats, field_lons, this.field.grid.ni, this.field.grid.nj);
 
         const grid_cell_size = new Float32Array(verts_tex_coords['vertices'].length / 2);
         let igcs = 0;
@@ -151,11 +142,8 @@ class Contour extends PlotComponent {
         this.vertices = new WGLBuffer(gl, verts_tex_coords['vertices'], 2, gl.TRIANGLE_STRIP);
         this.grid_cell_size = new WGLBuffer(gl, grid_cell_size, 1, gl.TRIANGLE_STRIP);
 
-        this.tex_width = tex_width;
-        this.tex_height = tex_height;
-
         const fill_image = {'format': gl.LUMINANCE, 'type': gl.FLOAT, 
-            'width': tex_width, 'height': tex_height, 'image': tex_data,
+            'width': this.field.grid.ni, 'height': this.field.grid.nj, 'image': this.field.data,
             'mag_filter': gl.LINEAR,
         };
 
@@ -169,12 +157,12 @@ class Contour extends PlotComponent {
      */
     render(gl: WebGLRenderingContext, matrix: number[]) {
         if (this.map === null || this.program === null || this.vertices === null || this.grid_cell_size === null || 
-            this.fill_texture === null || this.texcoords === null || this.tex_width === null || this.tex_height === null) return;
+            this.fill_texture === null || this.texcoords === null) return;
 
         const zoom = this.map.getZoom();
         const intv = this.thinner(zoom) * this.interval;
         const cutoff = 0.5 / intv;
-        const step_size = [0.25 / this.tex_width, 0.25 / this.tex_height];
+        const step_size = [0.25 / this.field.grid.ni, 0.25 / this.field.grid.nj];
         const zoom_fac = Math.pow(2, zoom);
 
         let uniforms = {'u_contour_interval': intv, 'u_line_cutoff': cutoff, 'u_color': this.color, 'u_step_size': step_size, 'u_zoom_fac': zoom_fac,
