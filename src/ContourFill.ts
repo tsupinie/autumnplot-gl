@@ -105,11 +105,9 @@ class ContourFill extends PlotComponent {
         
         this.program = new WGLProgram(gl, contourfill_vertex_shader_src, contourfill_fragment_shader_src);
 
-        const {lats: field_lats, lons: field_lons} = this.field.grid.getCoords();
-
-        const verts_tex_coords = await layer_worker.makeDomainVerticesAndTexCoords(field_lats, field_lons, this.field.grid.ni, this.field.grid.nj);
-
-        this.vertices = new WGLBuffer(gl, verts_tex_coords['vertices'], 2, gl.TRIANGLE_STRIP);
+        const {vertices: verts_buf, texcoords: tex_coords_buf} = await this.field.grid.getWGLBuffers(gl);
+        this.vertices = verts_buf;
+        this.texcoords = tex_coords_buf;
 
         const fill_image = {'format': gl.LUMINANCE, 'type': gl.FLOAT,
             'width': this.field.grid.ni, 'height': this.field.grid.nj, 'image': this.field.data,
@@ -117,7 +115,6 @@ class ContourFill extends PlotComponent {
         };
 
         this.fill_texture = new WGLTexture(gl, fill_image);
-        this.texcoords = new WGLBuffer(gl, verts_tex_coords['tex_coords'], 2, gl.TRIANGLE_STRIP);
 
         const cmap_image = {'format': gl.RGBA, 'type': gl.UNSIGNED_BYTE, 'image': this.cmap_image, 'mag_filter': gl.NEAREST};
         this.cmap_texture = new WGLTexture(gl, cmap_image);

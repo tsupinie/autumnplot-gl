@@ -1,6 +1,8 @@
 
 import { lambertConformalConic } from "./Map";
+import { layer_worker } from "./PlotComponent";
 import { zip } from "./utils";
+import { WGLBuffer } from "./wgl";
 
 class Cache<A extends unknown[], R> {
     cached_value: R | null;
@@ -25,12 +27,46 @@ interface Coords {
     lats: Float32Array;
 }
 
-/** A plate carree (a.k.a. lat/lon) grid with uniform grid spacing */
-class PlateCarreeGrid {
-    readonly type: 'latlon';
+async function makeWGLDomainBuffers(gl: WebGLRenderingContext, grid: Grid) {
+    const {lats: field_lats, lons: field_lons} = grid.getCoords();
+    const domain_coords = await layer_worker.makeDomainVerticesAndTexCoords(field_lats, field_lons, grid.ni, grid.nj);
 
+    const vertices = new WGLBuffer(gl, domain_coords['vertices'], 2, gl.TRIANGLE_STRIP);
+    const texcoords = new WGLBuffer(gl, domain_coords['tex_coords'], 2, gl.TRIANGLE_STRIP);
+    const grid_cell_size = new WGLBuffer(gl, domain_coords['grid_cell_size'], 1, gl.TRIANGLE_STRIP);
+
+    return {'vertices': vertices, 'texcoords': texcoords, 'cellsize': grid_cell_size};
+}
+
+type GridType = 'latlon' | 'lcc';
+
+abstract class Grid {
+    readonly type: GridType;
     readonly ni: number;
     readonly nj: number;
+
+    readonly _buffer_cache: Cache<[WebGLRenderingContext], Promise<{'vertices': WGLBuffer, 'texcoords': WGLBuffer, 'cellsize': WGLBuffer}>>;
+
+    constructor(type: GridType, ni: number, nj: number) {
+        this.type = type;
+        this.ni = ni;
+        this.nj = nj;
+
+        this._buffer_cache = new Cache((gl: WebGLRenderingContext) => {
+            return makeWGLDomainBuffers(gl, this);
+        });
+    }
+
+    abstract getCoords(): Coords;
+    abstract transform(x: number, y: number, opts?: {inverse?: boolean}): [number, number];
+    
+    async getWGLBuffers(gl: WebGLRenderingContext) {
+        return await this._buffer_cache.getValue(gl);
+    }
+}
+
+/** A plate carree (a.k.a. lat/lon) grid with uniform grid spacing */
+class PlateCarreeGrid extends Grid {
     readonly ll_lon: number;
     readonly ll_lat: number;
     readonly ur_lon: number;
@@ -49,10 +85,8 @@ class PlateCarreeGrid {
      * @param ur_lat - The latitude of the upper right corner of the grid
      */
     constructor(ni: number, nj: number, ll_lon: number, ll_lat: number, ur_lon: number, ur_lat: number) {
-        this.type = 'latlon';
+        super('latlon', ni, nj);
 
-        this.ni = ni;
-        this.nj = nj;
         this.ll_lon = ll_lon;
         this.ll_lat = ll_lat;
         this.ur_lon = ur_lon;
@@ -86,15 +120,11 @@ class PlateCarreeGrid {
     }
 
     transform(x: number, y: number, opts?: {inverse?: boolean}) {
-        return [x, y];
+        return [x, y] as [number, number];
     }
 }
 
-class LambertGrid {
-    readonly type: 'lcc';
-
-    readonly ni: number;
-    readonly nj: number;
+class LambertGrid extends Grid {
     readonly lon_0: number;
     readonly lat_0: number;
     readonly lat_std: [number, number];
@@ -108,10 +138,8 @@ class LambertGrid {
 
     constructor(ni: number, nj: number, lon_0: number, lat_0: number, lat_std: [number, number], 
                 ll_x: number, ll_y: number, ur_x: number, ur_y: number) {
-        this.type = 'lcc';
+        super('lcc', ni, nj);
 
-        this.ni = ni;
-        this.nj = nj;
         this.lon_0 = lon_0;
         this.lat_0 = lat_0;
         this.lat_std = lat_std;
@@ -152,9 +180,6 @@ class LambertGrid {
         return this.lcc(x, y, {inverse: inverse});
     }
 }
-
-type Grid = PlateCarreeGrid | LambertGrid;
-type GridType = typeof PlateCarreeGrid | typeof LambertGrid;
 
 /** A class representing a raw 2D field of gridded data, such as height or u wind. */
 class RawScalarField {

@@ -105,42 +105,10 @@ class Contour extends PlotComponent {
         
         this.program = new WGLProgram(gl, contour_vertex_shader_src, contour_fragment_shader_src);
 
-        const {lats: field_lats, lons: field_lons} = this.field.grid.getCoords();
-
-        const verts_tex_coords = await layer_worker.makeDomainVerticesAndTexCoords(field_lats, field_lons, this.field.grid.ni, this.field.grid.nj);
-
-        const grid_cell_size = new Float32Array(verts_tex_coords['vertices'].length / 2);
-        let igcs = 0;
-
-        for (let i = 0; i < this.field.grid.ni - 1; i++) {
-            for (let j = 0; j < this.field.grid.nj - 1; j++) {
-                const ivert = j == 0 ? 2 * (igcs + 1) : 2 * igcs;
-                const x_ll = verts_tex_coords['vertices'][ivert],     y_ll = verts_tex_coords['vertices'][ivert + 1],
-                      x_lr = verts_tex_coords['vertices'][ivert + 2], y_lr = verts_tex_coords['vertices'][ivert + 3],
-                      x_ul = verts_tex_coords['vertices'][ivert + 4], y_ul = verts_tex_coords['vertices'][ivert + 5],
-                      x_ur = verts_tex_coords['vertices'][ivert + 6], y_ur = verts_tex_coords['vertices'][ivert + 7];
-
-                const area = 0.5 * Math.abs(x_ll * (y_lr - y_ul) + x_lr * (y_ul - y_ll) + x_ul * (y_ll - y_lr) + 
-                                            x_ur * (y_ul - y_lr) + x_ul * (y_lr - y_ur) + x_lr * (y_ur - y_ul));
-
-                if (j == 0) {
-                    grid_cell_size[igcs] = area;
-                    igcs += 1;
-                }
-    
-                grid_cell_size[igcs] = area; grid_cell_size[igcs + 1] = area;
-                igcs += 2;
-    
-                if (j == this.field.grid.nj - 2) {
-                    grid_cell_size[igcs] = area; grid_cell_size[igcs + 1] = area; 
-                    grid_cell_size[igcs + 2] = area;
-                    igcs += 3;
-                }
-            }
-        }
-
-        this.vertices = new WGLBuffer(gl, verts_tex_coords['vertices'], 2, gl.TRIANGLE_STRIP);
-        this.grid_cell_size = new WGLBuffer(gl, grid_cell_size, 1, gl.TRIANGLE_STRIP);
+        const {vertices: verts_buf, texcoords: tex_coords_buf, cellsize: cellsize_buf} = await this.field.grid.getWGLBuffers(gl);
+        this.vertices = verts_buf;
+        this.texcoords = tex_coords_buf;
+        this.grid_cell_size = cellsize_buf;
 
         const fill_image = {'format': gl.LUMINANCE, 'type': gl.FLOAT, 
             'width': this.field.grid.ni, 'height': this.field.grid.nj, 'image': this.field.data,
@@ -148,7 +116,6 @@ class Contour extends PlotComponent {
         };
 
         this.fill_texture = new WGLTexture(gl, fill_image);
-        this.texcoords = new WGLBuffer(gl, verts_tex_coords['tex_coords'], 2, gl.TRIANGLE_STRIP);
     }
 
     /**
