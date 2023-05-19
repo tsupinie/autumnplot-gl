@@ -186,9 +186,10 @@ class Barbs extends PlotComponent {
 
         const earth_u = this.fields.earth_u;
         const earth_v = this.fields.earth_v;
+        const map_max_zoom = map.getMaxZoom();
 
         const barb_elements = await layer_worker.makeBarbElements(field_lats, field_lons, earth_u.data, earth_v.data, 
-            earth_u.grid.ni, earth_u.grid.nj, this.thin_fac, BARB_DIMS);
+            earth_u.grid.ni, earth_u.grid.nj, this.thin_fac, map_max_zoom, BARB_DIMS);
         const barb_image = {format: gl.RGBA, type: gl.UNSIGNED_BYTE, image: BARB_TEXTURE, mag_filter: gl.NEAREST};
 
         const barb_height = 27.5;

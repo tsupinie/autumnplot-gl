@@ -7,7 +7,7 @@ import { BillboardSpec } from "./BillboardCollection";
 import { LngLat } from "./Map";
 
 function makeBarbElements(field_lats: Float32Array, field_lons: Float32Array, field_u: Float32Array, field_v: Float32Array, field_ni: number, field_nj: number,
-    thin_fac_base: number, BARB_DIMS: BarbDimSpec) : BillboardSpec {
+    thin_fac_base: number, max_zoom: number, BARB_DIMS: BarbDimSpec) : BillboardSpec {
         
     const BARB_WIDTH = BARB_DIMS['BARB_WIDTH'];
     const BARB_TEX_WIDTH = BARB_DIMS['BARB_TEX_WIDTH'];
@@ -19,8 +19,15 @@ function makeBarbElements(field_lats: Float32Array, field_lons: Float32Array, fi
     const n_coords_per_pt_pts = 3;
     const n_coords_per_pt_tc = 2;
 
-    const n_elems_pts = field_ni * field_nj * n_pts_per_poly * n_coords_per_pt_pts;
-    const n_elems_tc = field_ni * field_nj * n_pts_per_poly * n_coords_per_pt_tc;
+    const n_density_tiers = Math.log2(thin_fac_base);
+    const n_inaccessible_tiers = Math.max(n_density_tiers + 1 - max_zoom, 0);
+    const trim_inaccessible = Math.pow(2, n_inaccessible_tiers);
+
+    const field_ni_access = Math.floor((field_ni - 1) / trim_inaccessible) + 1;
+    const field_nj_access = Math.floor((field_nj - 1) / trim_inaccessible) + 1;
+
+    const n_elems_pts = field_ni_access * field_nj_access * n_pts_per_poly * n_coords_per_pt_pts;
+    const n_elems_tc = field_ni_access * field_nj_access * n_pts_per_poly * n_coords_per_pt_tc;
 
     let pts = new Float32Array(n_elems_pts);
     let offset = new Float32Array(n_elems_tc);
@@ -40,6 +47,8 @@ function makeBarbElements(field_lats: Float32Array, field_lons: Float32Array, fi
 
             const flip_barb = lat < 0;
             const zoom = getMinZoom(ilat, ilon, thin_fac_base);
+
+            if (zoom > max_zoom) continue;
 
             const u = field_u[idx];
             const v = field_v[idx];
