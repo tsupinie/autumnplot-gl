@@ -233,9 +233,9 @@ class RawVectorField {
 
     readonly _rotate_cache: Cache<[], {u: RawScalarField, v: RawScalarField}>
 
-    constructor(u: RawScalarField, v: RawScalarField, relative_to?: VectorRelativeTo) {
-        this.u = u;
-        this.v = v;
+    constructor(grid: Grid, u: Float32Array, v: Float32Array, relative_to?: VectorRelativeTo) {
+        this.u = new RawScalarField(grid, u);
+        this.v = new RawScalarField(grid, v);
         this.relative_to = relative_to === undefined ? 'grid' : relative_to;
 
         this._rotate_cache = new Cache(() => {
