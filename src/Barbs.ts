@@ -6,23 +6,23 @@ import { RawVectorField } from "./RawField";
 import { MapType } from "./Map";
 
 const BARB_DIMS = {
-    BARB_WIDTH: 85,
-    BARB_HEIGHT: 256,
-    BARB_TEX_WRAP: 60,
-    BARB_TEX_WIDTH: 1024,
-    BARB_TEX_HEIGHT: 1024,
-    MAX_BARB: 235
+    BB_WIDTH: 85,
+    BB_HEIGHT: 256,
+    BB_TEX_WIDTH: 1024,
+    BB_TEX_HEIGHT: 1024,
+    BB_MAG_MAX: 235,
+    BB_MAG_WRAP: 60,
+    BB_MAG_BIN_SIZE: 5,
 }
 
 function _createBarbTexture() : HTMLCanvasElement {
     let canvas = document.createElement('canvas');
 
-    canvas.width = BARB_DIMS.BARB_TEX_WIDTH;
-    canvas.height = BARB_DIMS.BARB_TEX_HEIGHT;
+    canvas.width = BARB_DIMS.BB_TEX_WIDTH;
+    canvas.height = BARB_DIMS.BB_TEX_HEIGHT;
     
     function drawWindBarb(ctx: CanvasRenderingContext2D, tipx: number, tipy: number, mag: number) : void {
-        const elem_full_size = BARB_DIMS.BARB_WIDTH / 2 - 4;
-        //const staff_length = BARB_DIMS.BARB_HEIGHT - 13 - BARB_DIMS.BARB_WIDTH / 2 - elem_full_size / 2;
+        const elem_full_size = BARB_DIMS.BB_WIDTH / 2 - 4;
         const elem_spacing = elem_full_size / 2;
         
         if (mag < 2.5) {
@@ -112,9 +112,9 @@ function _createBarbTexture() : HTMLCanvasElement {
     ctx.lineWidth = 8;
     ctx.miterLimit = 4;
     
-    for (let ibarb = 0; ibarb <= BARB_DIMS.MAX_BARB; ibarb += 5) {
-        const x_pos = (ibarb % BARB_DIMS.BARB_TEX_WRAP) / 5 * BARB_DIMS.BARB_WIDTH + BARB_DIMS.BARB_WIDTH / 2;
-        const y_pos = Math.floor(ibarb / BARB_DIMS.BARB_TEX_WRAP) * BARB_DIMS.BARB_HEIGHT + BARB_DIMS.BARB_WIDTH / 2;
+    for (let ibarb = 0; ibarb <= BARB_DIMS.BB_MAG_MAX; ibarb += BARB_DIMS.BB_MAG_BIN_SIZE) {
+        const x_pos = (ibarb % BARB_DIMS.BB_MAG_WRAP) / BARB_DIMS.BB_MAG_BIN_SIZE * BARB_DIMS.BB_WIDTH + BARB_DIMS.BB_WIDTH / 2;
+        const y_pos = Math.floor(ibarb / BARB_DIMS.BB_MAG_WRAP) * BARB_DIMS.BB_HEIGHT + BARB_DIMS.BB_WIDTH / 2;
         drawWindBarb(ctx, x_pos, y_pos, ibarb);
     }
 
@@ -181,23 +181,12 @@ class Barbs extends PlotComponent {
      */
     async onAdd(map: MapType, gl: WebGLRenderingContext) {
         this.map = map;
-
-        const {lons: field_lons, lats: field_lats} = this.fields['u'].grid.getCoords();
-
-        const earth_u = this.fields.earth_u;
-        const earth_v = this.fields.earth_v;
         const map_max_zoom = map.getMaxZoom();
 
-        const barb_elements = await layer_worker.makeBarbElements(field_lats, field_lons, earth_u.data, earth_v.data, 
-            earth_u.grid.ni, earth_u.grid.nj, this.thin_fac, map_max_zoom, BARB_DIMS);
         const barb_image = {format: gl.RGBA, type: gl.UNSIGNED_BYTE, image: BARB_TEXTURE, mag_filter: gl.NEAREST};
 
-        const barb_height = 27.5;
-        const barb_aspect = BARB_DIMS.BARB_WIDTH / BARB_DIMS.BARB_HEIGHT;
-        const barb_width = barb_height * barb_aspect;
-
-        this.barb_billboards = new BillboardCollection(gl, barb_elements, barb_image, 
-            [barb_width, barb_height], this.color);
+        this.barb_billboards = new BillboardCollection(gl, this.fields.toEarthRelative(), this.thin_fac, map_max_zoom, barb_image, 
+            BARB_DIMS, this.color, 0.1);
     }
 
     /**

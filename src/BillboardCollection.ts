@@ -1,51 +1,68 @@
 
+import { BillboardSpec } from "./AutumnTypes";
+import { RawVectorField } from "./RawField";
 import { WGLBuffer, WGLProgram, WGLTexture, WGLTextureSpec } from "./wgl";
 
 const billboard_vertex_shader_src = require('./glsl/billboard_vertex.glsl');
 const billboard_fragment_shader_src = require('./glsl/billboard_fragment.glsl');
 
-interface BillboardSpec {
-    pts: Float32Array;
-    offset: Float32Array;
-    tex_coords: Float32Array;
-}
-
 class BillboardCollection {
-    readonly size: number;
-    readonly aspect: number;
+    readonly spec: BillboardSpec;
     readonly color: [number, number, number];
+    readonly size_multiplier: number;
 
     readonly program: WGLProgram;
-    readonly vertices: WGLBuffer;
-    readonly offsets: WGLBuffer;
-
+    vertices: WGLBuffer | null;
+    texcoords: WGLBuffer | null;
     readonly texture: WGLTexture;
-    readonly texcoords: WGLBuffer;
+    readonly u_texture: WGLTexture;
+    readonly v_texture: WGLTexture;
 
-    constructor(gl: WebGLRenderingContext, billboard_elements: BillboardSpec, billboard_image: WGLTextureSpec, billboard_size: [number, number], 
-                billboard_color: [number, number, number]) {
+    constructor(gl: WebGLRenderingContext, field: RawVectorField, thin_fac: number, max_zoom: number, 
+                billboard_image: WGLTextureSpec, billboard_spec: BillboardSpec, billboard_color: [number, number, number], billboard_size_mult: number) {
 
-        const [billboard_width, billboard_height] = billboard_size;
-
-        this.size = billboard_height;
-        this.aspect = billboard_width / billboard_height;
+        this.spec = billboard_spec;
         this.color = billboard_color;
+        this.size_multiplier = billboard_size_mult;
 
         this.program = new WGLProgram(gl, billboard_vertex_shader_src, billboard_fragment_shader_src);
+        this.vertices = null;
+        this.texcoords = null;
 
-        this.vertices = new WGLBuffer(gl, billboard_elements['pts'], 3, gl.TRIANGLE_STRIP);
-        this.offsets = new WGLBuffer(gl, billboard_elements['offset'], 2, gl.TRIANGLE_STRIP);
+        (async () => {
+            const {vertices, texcoords} = await field.grid.getWGLBillboardBuffers(gl, thin_fac, max_zoom);
+            this.vertices = vertices;
+            this.texcoords = texcoords;
+        })();
 
-        this.texcoords = new WGLBuffer(gl, billboard_elements['tex_coords'], 2, gl.TRIANGLE_STRIP);
+        const u_image = {'format': gl.LUMINANCE, 'type': gl.FLOAT,
+            'width': field.grid.ni, 'height': field.grid.nj, 'image': field.u.data,
+            'mag_filter': gl.NEAREST,
+        };
+
+        const v_image = {'format': gl.LUMINANCE, 'type': gl.FLOAT,
+            'width': field.grid.ni, 'height': field.grid.nj, 'image': field.v.data,
+            'mag_filter': gl.NEAREST,
+        };
+
         this.texture = new WGLTexture(gl, billboard_image);
+        this.u_texture = new WGLTexture(gl, u_image);
+        this.v_texture = new WGLTexture(gl, v_image);
     }
 
     render(gl: WebGLRenderingContext, matrix: number[], [map_width, map_height]: [number, number], map_zoom: number, map_bearing: number, map_pitch: number) {
+        if (this.vertices === null || this.texcoords === null) return;
+
+        const bb_size = this.spec.BB_HEIGHT * (map_height / map_width) * this.size_multiplier;
+        const bb_width = this.spec.BB_WIDTH / this.spec.BB_TEX_WIDTH;
+        const bb_height = this.spec.BB_HEIGHT / this.spec.BB_TEX_HEIGHT;
+
         this.program.use(
-            {'a_pos': this.vertices, 'a_offset': this.offsets, 'a_tex_coord': this.texcoords},
-            {'u_billboard_size': this.size * (map_height / map_width), 'u_billboard_aspect': this.aspect, 'u_billboard_color': this.color,
-             'u_matrix': matrix, 'u_map_aspect': map_height / map_width, 'u_zoom': map_zoom, 'u_map_bearing': map_bearing},
-            {'u_sampler': this.texture}
+            {'a_pos': this.vertices, 'a_tex_coord': this.texcoords},
+            {'u_bb_size': bb_size, 'u_bb_width': bb_width, 'u_bb_height': bb_height,
+             'u_bb_mag_bin_size': this.spec.BB_MAG_BIN_SIZE, 'u_bb_mag_wrap': this.spec.BB_MAG_WRAP, // 'u_bb_max_mag': this.spec.BB_MAG_MAX,
+             'u_bb_color': this.color, 'u_matrix': matrix, 'u_map_aspect': map_height / map_width, 'u_zoom': map_zoom, 'u_map_bearing': map_bearing},
+            {'u_sampler': this.texture, 'u_u_sampler': this.u_texture, 'u_v_sampler': this.v_texture}
         );
 
         gl.enable(gl.BLEND);
@@ -56,4 +73,3 @@ class BillboardCollection {
 }
 
 export {BillboardCollection};
-export type {BillboardSpec};

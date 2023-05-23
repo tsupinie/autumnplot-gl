@@ -1,4 +1,5 @@
 
+import { WindProfile } from "./AutumnTypes";
 import { lambertConformalConic } from "./Map";
 import { layer_worker } from "./PlotComponent";
 import { zip } from "./utils";
@@ -38,6 +39,16 @@ async function makeWGLDomainBuffers(gl: WebGLRenderingContext, grid: Grid) {
     return {'vertices': vertices, 'texcoords': texcoords, 'cellsize': grid_cell_size};
 }
 
+async function makeWGLBillboardBuffers(gl: WebGLRenderingContext, grid: Grid, thin_fac: number, max_zoom: number) {
+    const {lats: field_lats, lons: field_lons} = grid.getCoords();
+    const bb_elements = await layer_worker.makeBBElements(field_lats, field_lons, grid.ni, grid.nj, thin_fac, max_zoom);
+
+    const vertices = new WGLBuffer(gl, bb_elements['pts'], 3, gl.TRIANGLE_STRIP);
+    const texcoords = new WGLBuffer(gl, bb_elements['tex_coords'], 2, gl.TRIANGLE_STRIP);
+
+    return {'vertices': vertices, 'texcoords': texcoords};
+}
+
 type GridType = 'latlon' | 'lcc';
 
 abstract class Grid {
@@ -46,6 +57,7 @@ abstract class Grid {
     readonly nj: number;
 
     readonly _buffer_cache: Cache<[WebGLRenderingContext], Promise<{'vertices': WGLBuffer, 'texcoords': WGLBuffer, 'cellsize': WGLBuffer}>>;
+    readonly _billboard_buffer_cache: Cache<[WebGLRenderingContext, number, number], Promise<{'vertices': WGLBuffer, 'texcoords': WGLBuffer}>>;
 
     constructor(type: GridType, ni: number, nj: number) {
         this.type = type;
@@ -55,6 +67,10 @@ abstract class Grid {
         this._buffer_cache = new Cache((gl: WebGLRenderingContext) => {
             return makeWGLDomainBuffers(gl, this);
         });
+
+        this._billboard_buffer_cache = new Cache((gl: WebGLRenderingContext, thin_fac: number, max_zoom: number) => {
+            return makeWGLBillboardBuffers(gl, this, thin_fac, max_zoom);
+        });
     }
 
     abstract getCoords(): Coords;
@@ -62,6 +78,10 @@ abstract class Grid {
     
     async getWGLBuffers(gl: WebGLRenderingContext) {
         return await this._buffer_cache.getValue(gl);
+    }
+
+    async getWGLBillboardBuffers(gl: WebGLRenderingContext, thin_fac: number, max_zoom: number) {
+        return await this._billboard_buffer_cache.getValue(gl, thin_fac, max_zoom);
     }
 }
 
@@ -271,22 +291,46 @@ class RawVectorField {
         })
     }
 
-    get earth_u() {
-        if (this.relative_to == 'earth') {
-            return this.u;
-        }
-        const {u, v} = this._rotate_cache.getValue();
-        return u;
+    get grid() {
+        return this.u.grid
     }
 
-    get earth_v() {
+    toEarthRelative() {
+        let u, v;
         if (this.relative_to == 'earth') {
-            return this.v;
+            u = this.u; v = this.v;
         }
-        const {u, v} = this._rotate_cache.getValue();
-        return v;
+        else {
+            const {u: u_, v: v_} = this._rotate_cache.getValue();
+            u = u_; v = v_;
+        }
+
+        return new RawVectorField(u.grid, u.data, v.data, 'earth');
     }
 }
 
-export {RawScalarField, RawVectorField, PlateCarreeGrid, LambertGrid};
+class RawProfileField {
+    readonly profiles: WindProfile[];
+    readonly grid: Grid;
+
+    constructor(grid: Grid, profiles: WindProfile[]) {
+        this.profiles = profiles;
+        this.grid = grid;
+    }
+
+    getStormMotionGrid() {
+        const u = new Float32Array(this.grid.ni * this.grid.nj);
+        const v = new Float32Array(this.grid.ni * this.grid.nj);
+
+        this.profiles.forEach(prof => {
+            const idx = prof.ilon + this.grid.ni * prof.jlat;
+            u[idx] = prof.smu;
+            v[idx] = prof.smv;
+        });
+
+        return new RawVectorField(this.grid, u, v, 'grid');
+    }
+}
+
+export {RawScalarField, RawVectorField, RawProfileField, PlateCarreeGrid, LambertGrid};
 export type {Grid};

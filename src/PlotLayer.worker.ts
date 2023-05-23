@@ -1,20 +1,13 @@
 
 import { getMinZoom } from "./utils";
-import { BarbDimSpec, PolylineSpec, LineSpec } from "./AutumnTypes";
+import { PolylineSpec, LineSpec } from "./AutumnTypes";
 
 import * as Comlink from 'comlink';
-import { BillboardSpec } from "./BillboardCollection";
 import { LngLat } from "./Map";
 
-function makeBarbElements(field_lats: Float32Array, field_lons: Float32Array, field_u: Float32Array, field_v: Float32Array, field_ni: number, field_nj: number,
-    thin_fac_base: number, max_zoom: number, BARB_DIMS: BarbDimSpec) : BillboardSpec {
+function makeBBElements(field_lats: Float32Array, field_lons: Float32Array, field_ni: number, field_nj: number,
+    thin_fac_base: number, max_zoom: number) {
         
-    const BARB_WIDTH = BARB_DIMS['BARB_WIDTH'];
-    const BARB_TEX_WIDTH = BARB_DIMS['BARB_TEX_WIDTH'];
-    const BARB_HEIGHT = BARB_DIMS['BARB_HEIGHT'];
-    const BARB_TEX_HEIGHT = BARB_DIMS['BARB_TEX_HEIGHT'];
-    const BARB_TEX_WRAP = BARB_DIMS['BARB_TEX_WRAP'];
-
     const n_pts_per_poly = 6;
     const n_coords_per_pt_pts = 3;
     const n_coords_per_pt_tc = 2;
@@ -30,14 +23,10 @@ function makeBarbElements(field_lats: Float32Array, field_lons: Float32Array, fi
     const n_elems_tc = field_ni_access * field_nj_access * n_pts_per_poly * n_coords_per_pt_tc;
 
     let pts = new Float32Array(n_elems_pts);
-    let offset = new Float32Array(n_elems_tc);
     let tex_coords = new Float32Array(n_elems_tc);
 
     let istart_pts = 0;
     let istart_tc = 0;
-
-    const barb_width_frac = BARB_WIDTH / BARB_TEX_WIDTH;
-    const barb_height_frac = BARB_HEIGHT / BARB_TEX_HEIGHT;
 
     for (let ilat = 0; ilat < field_nj; ilat++) {
         for (let ilon = 0; ilon < field_ni; ilon++) {
@@ -45,15 +34,9 @@ function makeBarbElements(field_lats: Float32Array, field_lons: Float32Array, fi
             const lat = field_lats[idx];
             const lon = field_lons[idx];
 
-            const flip_barb = lat < 0;
             const zoom = getMinZoom(ilat, ilon, thin_fac_base);
 
             if (zoom > max_zoom) continue;
-
-            const u = field_u[idx];
-            const v = field_v[idx];
-            const barb_mag = Math.round(Math.hypot(u, v) / 5) * 5;
-            const barb_ang = 90 - Math.atan2(-v, -u) * 180 / Math.PI;
 
             const pt_ll = new LngLat(lon, lat).toMercatorCoord();
 
@@ -64,29 +47,10 @@ function makeBarbElements(field_lats: Float32Array, field_lons: Float32Array, fi
 
                 pts[istart_pts + icrnr * n_coords_per_pt_pts + 0] = pt_ll.x; 
                 pts[istart_pts + icrnr * n_coords_per_pt_pts + 1] = pt_ll.y; 
-                pts[istart_pts + icrnr * n_coords_per_pt_pts + 2] = zoom;
-                offset[istart_tc + icrnr * n_coords_per_pt_tc + 0] = actual_icrnr; 
-                offset[istart_tc + icrnr * n_coords_per_pt_tc + 1] = barb_ang;
-            }
+                pts[istart_pts + icrnr * n_coords_per_pt_pts + 2] = zoom * 4 + actual_icrnr;
 
-            const i_barb = (barb_mag % BARB_TEX_WRAP) / 5;
-            const j_barb = Math.floor(barb_mag / BARB_TEX_WRAP);
-
-            if (flip_barb) {
-                tex_coords[istart_tc + 0 ] = (i_barb + 1) * barb_width_frac; tex_coords[istart_tc + 1 ] =  j_barb      * barb_height_frac;
-                tex_coords[istart_tc + 2 ] = (i_barb + 1) * barb_width_frac; tex_coords[istart_tc + 3 ] =  j_barb      * barb_height_frac;
-                tex_coords[istart_tc + 4 ] =  i_barb      * barb_width_frac; tex_coords[istart_tc + 5 ] =  j_barb      * barb_height_frac;
-                tex_coords[istart_tc + 6 ] = (i_barb + 1) * barb_width_frac; tex_coords[istart_tc + 7 ] = (j_barb + 1) * barb_height_frac;
-                tex_coords[istart_tc + 8 ] =  i_barb      * barb_width_frac; tex_coords[istart_tc + 9 ] = (j_barb + 1) * barb_height_frac;
-                tex_coords[istart_tc + 10] =  i_barb      * barb_width_frac; tex_coords[istart_tc + 11] = (j_barb + 1) * barb_height_frac;
-            }
-            else {
-                tex_coords[istart_tc + 0 ] =  i_barb      * barb_width_frac; tex_coords[istart_tc + 1 ] =  j_barb      * barb_height_frac;
-                tex_coords[istart_tc + 2 ] =  i_barb      * barb_width_frac; tex_coords[istart_tc + 3 ] =  j_barb      * barb_height_frac;
-                tex_coords[istart_tc + 4 ] = (i_barb + 1) * barb_width_frac; tex_coords[istart_tc + 5 ] =  j_barb      * barb_height_frac;
-                tex_coords[istart_tc + 6 ] =  i_barb      * barb_width_frac; tex_coords[istart_tc + 7 ] = (j_barb + 1) * barb_height_frac;
-                tex_coords[istart_tc + 8 ] = (i_barb + 1) * barb_width_frac; tex_coords[istart_tc + 9 ] = (j_barb + 1) * barb_height_frac;
-                tex_coords[istart_tc + 10] = (i_barb + 1) * barb_width_frac; tex_coords[istart_tc + 11] = (j_barb + 1) * barb_height_frac;
+                tex_coords[istart_tc + icrnr * n_coords_per_pt_tc + 0] = ilon / (field_ni - 1);
+                tex_coords[istart_tc + icrnr * n_coords_per_pt_tc + 1] = ilat / (field_nj - 1);
             }
 
             istart_pts += (n_pts_per_poly * n_coords_per_pt_pts);
@@ -94,7 +58,7 @@ function makeBarbElements(field_lats: Float32Array, field_lons: Float32Array, fi
         }
     }
 
-    return {'pts': pts, 'offset': offset, 'tex_coords': tex_coords};
+    return {'pts': pts, 'tex_coords': tex_coords};
 }
 
 function makeDomainVerticesAndTexCoords(field_lats: Float32Array, field_lons: Float32Array, field_ni: number, field_nj: number) {
@@ -406,7 +370,7 @@ function makePolylines(lines: LineSpec[]) : PolylineSpec {
 }
 
 const ep_interface = {
-    'makeBarbElements': makeBarbElements, 
+    'makeBBElements': makeBBElements, 
     'makeDomainVerticesAndTexCoords': makeDomainVerticesAndTexCoords,
     'makePolyLines': makePolylines
 }
