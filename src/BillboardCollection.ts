@@ -29,19 +29,26 @@ class BillboardCollection {
         this.vertices = null;
         this.texcoords = null;
 
+        const n_density_tiers = Math.log2(thin_fac);
+        const n_inaccessible_tiers = Math.max(n_density_tiers + 1 - max_zoom, 0);
+        const trim_inaccessible = Math.pow(2, n_inaccessible_tiers);
+
+        const u_thin = field.u.getThinnedField(trim_inaccessible, trim_inaccessible);
+        const v_thin = field.v.getThinnedField(trim_inaccessible, trim_inaccessible);
+
         (async () => {
-            const {vertices, texcoords} = await field.grid.getWGLBillboardBuffers(gl, thin_fac, max_zoom);
+            const {vertices, texcoords} = await u_thin.grid.getWGLBillboardBuffers(gl, thin_fac / trim_inaccessible, max_zoom);
             this.vertices = vertices;
             this.texcoords = texcoords;
         })();
 
         const u_image = {'format': gl.LUMINANCE, 'type': gl.FLOAT,
-            'width': field.grid.ni, 'height': field.grid.nj, 'image': field.u.data,
+            'width': u_thin.grid.ni, 'height': u_thin.grid.nj, 'image': u_thin.data,
             'mag_filter': gl.NEAREST,
         };
 
         const v_image = {'format': gl.LUMINANCE, 'type': gl.FLOAT,
-            'width': field.grid.ni, 'height': field.grid.nj, 'image': field.v.data,
+            'width': v_thin.grid.ni, 'height': v_thin.grid.nj, 'image': v_thin.data,
             'mag_filter': gl.NEAREST,
         };
 

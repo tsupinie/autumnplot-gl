@@ -75,6 +75,7 @@ abstract class Grid {
 
     abstract getCoords(): Coords;
     abstract transform(x: number, y: number, opts?: {inverse?: boolean}): [number, number];
+    abstract getThinnedGrid(thin_x: number, thin_y: number): Grid;
     
     async getWGLBuffers(gl: WebGLRenderingContext) {
         return await this._buffer_cache.getValue(gl);
@@ -142,6 +143,22 @@ class PlateCarreeGrid extends Grid {
     transform(x: number, y: number, opts?: {inverse?: boolean}) {
         return [x, y] as [number, number];
     }
+
+    getThinnedGrid(thin_x: number, thin_y: number) {
+        const dlon = (this.ur_lon - this.ll_lon) / this.ni;
+        const dlat = (this.ur_lat - this.ll_lat) / this.nj;
+
+        const ni = Math.ceil(this.ni / thin_x);
+        const nj = Math.ceil(this.nj / thin_y);
+        const ni_remove = (this.ni - 1) % thin_x;
+        const nj_remove = (this.nj - 1) % thin_y;
+        const ll_lon = this.ll_lon;
+        const ll_lat = this.ll_lat;
+        const ur_lon = this.ur_lon - ni_remove * dlon;
+        const ur_lat = this.ur_lat - nj_remove * dlat;
+
+        return new PlateCarreeGrid(ni, nj, ll_lon, ll_lat, ur_lon, ur_lat);
+    }
 }
 
 class LambertGrid extends Grid {
@@ -199,6 +216,22 @@ class LambertGrid extends Grid {
 
         return this.lcc(x, y, {inverse: inverse});
     }
+
+    getThinnedGrid(thin_x: number, thin_y: number) {
+        const dx = (this.ur_x - this.ll_x) / this.ni;
+        const dy = (this.ur_y - this.ll_y) / this.nj;
+
+        const ni = Math.ceil(this.ni / thin_x);
+        const nj = Math.ceil(this.nj / thin_y);
+        const ni_remove = (this.ni - 1) % thin_x;
+        const nj_remove = (this.nj - 1) % thin_y;
+        const ll_x = this.ll_x;
+        const ll_y = this.ll_y;
+        const ur_x = this.ur_x - ni_remove * dx;
+        const ur_y = this.ur_y - nj_remove * dy;
+
+        return new LambertGrid(ni, nj, this.lon_0, this.lat_0, this.lat_std, ll_x, ll_y, ur_x, ur_y);
+    }
 }
 
 /** A class representing a raw 2D field of gridded data, such as height or u wind. */
@@ -218,6 +251,22 @@ class RawScalarField {
         if (grid.ni * grid.nj != data.length) {
             throw `Data size (${data.length}) doesn't match the grid dimensions (${grid.ni} x ${grid.nj}; expected ${grid.ni * grid.nj} points)`;
         }
+    }
+
+    getThinnedField(thin_x: number, thin_y: number) {
+        const new_grid = this.grid.getThinnedGrid(thin_x, thin_y);
+        const new_data = new Float32Array(new_grid.ni * new_grid.nj);
+
+        for (let i = 0; i < new_grid.ni; i++) {
+            for (let j = 0 ; j < new_grid.nj; j++) {
+                const idx_old = i * thin_x + this.grid.ni * j * thin_y;
+                const idx = i + new_grid.ni * j;
+
+                new_data[idx] = this.data[idx_old];
+            }
+        }
+
+        return new RawScalarField(new_grid, new_data);
     }
 
     /**
