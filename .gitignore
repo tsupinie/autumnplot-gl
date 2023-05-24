@@ -3,3 +3,7 @@ docs/
 dist/
 
 public/maptiler.js
+public/data
+public/tiles
+public/style.json
+public/tiles.json
