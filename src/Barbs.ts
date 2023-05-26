@@ -181,6 +181,10 @@ class Barbs extends PlotComponent {
      */
     async onAdd(map: MapType, gl: WebGLRenderingContext) {
         this.map = map;
+
+        gl.getExtension('OES_texture_float');
+        gl.getExtension('OES_texture_float_linear');
+        
         const map_max_zoom = map.getMaxZoom();
 
         const barb_image = {format: gl.RGBA, type: gl.UNSIGNED_BYTE, image: BARB_TEXTURE, mag_filter: gl.NEAREST};
