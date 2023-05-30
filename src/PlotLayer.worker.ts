@@ -61,7 +61,7 @@ function makeBBElements(field_lats: Float32Array, field_lons: Float32Array, fiel
     return {'pts': pts, 'tex_coords': tex_coords};
 }
 
-function makeDomainVerticesAndTexCoords(field_lats: Float32Array, field_lons: Float32Array, field_ni: number, field_nj: number) {
+function makeDomainVerticesAndTexCoords(field_lats: Float32Array, field_lons: Float32Array, field_ni: number, field_nj: number, texcoord_margin_r: number, texcoord_margin_s: number) {
     const verts = new Float32Array(2 * 2 * (field_ni - 1) * (field_nj + 1)).fill(0);
     const tex_coords = new Float32Array(2 * 2 * (field_ni - 1) * (field_nj + 1)).fill(0);
     const grid_cell_size = new Float32Array(1 * 2 * (field_ni - 1) * (field_nj + 1)).fill(0);
@@ -76,10 +76,9 @@ function makeDomainVerticesAndTexCoords(field_lats: Float32Array, field_lons: Fl
             const pt = new LngLat(field_lons[idx], field_lats[idx]).toMercatorCoord();
             const pt_ip1 = new LngLat(field_lons[idx + 1], field_lats[idx + 1]).toMercatorCoord();
 
-            const r = (i + 0.5) / field_ni;
-            const rp1 = (i + 1.5) / field_ni;
-            const s = (j + 0.5) / field_nj;
-
+            const r = i / (field_ni - 1) * (1 - 2 * texcoord_margin_r) + texcoord_margin_r;
+            const rp1 = (i + 1) / (field_ni - 1) * (1 - 2 * texcoord_margin_r) + texcoord_margin_r;
+            const s = j / (field_nj - 1) * (1 - 2 * texcoord_margin_s) + texcoord_margin_s;
 
             if (j == 0) {
                 verts[ivert] = pt.x; verts[ivert + 1] = pt.y;

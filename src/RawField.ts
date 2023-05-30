@@ -28,9 +28,20 @@ interface Coords {
     lats: Float32Array;
 }
 
-async function makeWGLDomainBuffers(gl: WebGLRenderingContext, grid: Grid) {
+async function makeWGLDomainBuffers(gl: WebGLRenderingContext, grid: Grid, native_grid?: Grid) {
+    native_grid = native_grid !== undefined ? native_grid: grid;
+
+    const texcoord_margin_r = 1 / (2 * native_grid.ni);
+    const texcoord_margin_s = 1 / (2 * native_grid.nj);
+
+    const grid_cell_size_multiplier = (grid.ni * grid.nj) / (native_grid.ni * native_grid.nj);
+
     const {lats: field_lats, lons: field_lons} = grid.getCoords();
-    const domain_coords = await layer_worker.makeDomainVerticesAndTexCoords(field_lats, field_lons, grid.ni, grid.nj);
+    const domain_coords = await layer_worker.makeDomainVerticesAndTexCoords(field_lats, field_lons, grid.ni, grid.nj, texcoord_margin_r, texcoord_margin_s);
+
+    for (let icd = 0; icd < domain_coords['grid_cell_size'].length; icd++) {
+        domain_coords['grid_cell_size'][icd] *= grid_cell_size_multiplier;
+    }
 
     const vertices = new WGLBuffer(gl, domain_coords['vertices'], 2, gl.TRIANGLE_STRIP);
     const texcoords = new WGLBuffer(gl, domain_coords['tex_coords'], 2, gl.TRIANGLE_STRIP);
@@ -65,13 +76,17 @@ abstract class Grid {
         this.nj = nj;
 
         this._buffer_cache = new Cache((gl: WebGLRenderingContext) => {
-            return makeWGLDomainBuffers(gl, this);
+            const new_ni = Math.max(Math.floor(this.ni / 50), 20);
+            const new_nj = Math.max(Math.floor(this.nj / 50), 20);
+            return makeWGLDomainBuffers(gl, this.copy({ni: new_ni, nj: new_nj}), this);
         });
 
         this._billboard_buffer_cache = new Cache((gl: WebGLRenderingContext, thin_fac: number, max_zoom: number) => {
             return makeWGLBillboardBuffers(gl, this, thin_fac, max_zoom);
         });
     }
+
+    abstract copy(opts?: {ni?: number, nj?: number}): Grid;
 
     abstract getCoords(): Coords;
     abstract transform(x: number, y: number, opts?: {inverse?: boolean}): [number, number];
@@ -131,6 +146,18 @@ class PlateCarreeGrid extends Grid {
 
             return {'lons': lons, 'lats': lats};
         });
+    }
+
+    copy(opts?: {ni?: number, nj?: number, ll_lon?: number, ll_lat?: number, ur_lon?: number, ur_lat?: number}) {
+        opts = opts !== undefined ? opts : {};
+        const ni = opts.ni !== undefined ? opts.ni : this.ni;
+        const nj = opts.nj !== undefined ? opts.nj : this.nj;
+        const ll_lon = opts.ll_lon !== undefined ? opts.ll_lon : this.ll_lon;
+        const ll_lat = opts.ll_lat !== undefined ? opts.ll_lat : this.ll_lat;
+        const ur_lon = opts.ur_lon !== undefined ? opts.ur_lon : this.ur_lon;
+        const ur_lat = opts.ur_lat !== undefined ? opts.ur_lat : this.ur_lat;
+
+        return new PlateCarreeGrid(ni, nj, ll_lon, ll_lat, ur_lon, ur_lat);
     }
 
     /**
@@ -204,6 +231,18 @@ class LambertGrid extends Grid {
 
             return {lons: lons, lats: lats};
         });
+    }
+
+    copy(opts?: {ni?: number, nj?: number, ll_x?: number, ll_y?: number, ur_x?: number, ur_y?: number}) {
+        opts = opts !== undefined ? opts : {};
+        const ni = opts.ni !== undefined ? opts.ni : this.ni;
+        const nj = opts.nj !== undefined ? opts.nj : this.nj;
+        const ll_x = opts.ll_x !== undefined ? opts.ll_x : this.ll_x;
+        const ll_y = opts.ll_y !== undefined ? opts.ll_y : this.ll_y;
+        const ur_x = opts.ur_x !== undefined ? opts.ur_x : this.ur_x;
+        const ur_y = opts.ur_y !== undefined ? opts.ur_y : this.ur_y;
+
+        return new LambertGrid(ni, nj, this.lon_0, this.lat_0, this.lat_std, ll_x, ll_y, ur_x, ur_y);
     }
 
     getCoords() {
