@@ -189,7 +189,7 @@ class Barbs extends PlotComponent {
 
         const barb_image = {format: gl.RGBA, type: gl.UNSIGNED_BYTE, image: BARB_TEXTURE, mag_filter: gl.NEAREST};
 
-        this.barb_billboards = new BillboardCollection(gl, this.fields.toEarthRelative(), this.thin_fac, map_max_zoom, barb_image, 
+        this.barb_billboards = new BillboardCollection(gl, this.fields, this.thin_fac, map_max_zoom, barb_image, 
             BARB_DIMS, this.color, 0.1);
     }
 

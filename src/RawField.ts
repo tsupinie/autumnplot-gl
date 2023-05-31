@@ -379,6 +379,13 @@ class RawVectorField {
         })
     }
 
+    getThinnedField(thin_x: number, thin_y: number) {
+        const thin_u = this.u.getThinnedField(thin_x, thin_y);
+        const thin_v = this.v.getThinnedField(thin_x, thin_y);
+
+        return new RawVectorField(thin_u.grid, thin_u.data, thin_v.data, this.relative_to);
+    }
+
     get grid() {
         return this.u.grid
     }

@@ -33,11 +33,13 @@ class BillboardCollection {
         const n_inaccessible_tiers = Math.max(n_density_tiers + 1 - max_zoom, 0);
         const trim_inaccessible = Math.pow(2, n_inaccessible_tiers);
 
-        const u_thin = field.u.getThinnedField(trim_inaccessible, trim_inaccessible);
-        const v_thin = field.v.getThinnedField(trim_inaccessible, trim_inaccessible);
+        const earth_relative = field.getThinnedField(trim_inaccessible, trim_inaccessible).toEarthRelative();
+
+        const u_thin = earth_relative.u;
+        const v_thin = earth_relative.v;
 
         (async () => {
-            const {vertices, texcoords} = await u_thin.grid.getWGLBillboardBuffers(gl, thin_fac / trim_inaccessible, max_zoom);
+            const {vertices, texcoords} = await earth_relative.grid.getWGLBillboardBuffers(gl, thin_fac / trim_inaccessible, max_zoom);
             this.vertices = vertices;
             this.texcoords = texcoords;
         })();
