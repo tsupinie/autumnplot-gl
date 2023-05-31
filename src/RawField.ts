@@ -66,12 +66,14 @@ abstract class Grid {
     readonly type: GridType;
     readonly ni: number;
     readonly nj: number;
+    readonly is_conformal: boolean;
 
     readonly _buffer_cache: Cache<[WebGLRenderingContext], Promise<{'vertices': WGLBuffer, 'texcoords': WGLBuffer, 'cellsize': WGLBuffer}>>;
     readonly _billboard_buffer_cache: Cache<[WebGLRenderingContext, number, number], Promise<{'vertices': WGLBuffer, 'texcoords': WGLBuffer}>>;
 
-    constructor(type: GridType, ni: number, nj: number) {
+    constructor(type: GridType, is_conformal: boolean, ni: number, nj: number) {
         this.type = type;
+        this.is_conformal = is_conformal;
         this.ni = ni;
         this.nj = nj;
 
@@ -121,7 +123,7 @@ class PlateCarreeGrid extends Grid {
      * @param ur_lat - The latitude of the upper right corner of the grid
      */
     constructor(ni: number, nj: number, ll_lon: number, ll_lat: number, ur_lon: number, ur_lat: number) {
-        super('latlon', ni, nj);
+        super('latlon', true, ni, nj);
 
         this.ll_lon = ll_lon;
         this.ll_lat = ll_lat;
@@ -202,7 +204,7 @@ class LambertGrid extends Grid {
 
     constructor(ni: number, nj: number, lon_0: number, lat_0: number, lat_std: [number, number], 
                 ll_x: number, ll_y: number, ur_x: number, ur_y: number) {
-        super('lcc', ni, nj);
+        super('lcc', true, ni, nj);
 
         this.lon_0 = lon_0;
         this.lat_0 = lat_0;
@@ -360,16 +362,26 @@ class RawVectorField {
 
                 const [x, y] = grid.transform(lon, lat);
                 const [x_pertlon, y_pertlon] = grid.transform(lon + 0.01, lat);
-                const [x_pertlat, y_pertlat] = grid.transform(lon, lat + 0.01);
-
                 const mag_pertlon = Math.hypot(x - x_pertlon, y - y_pertlon);
-                const mag_pertlat = Math.hypot(x - x_pertlat, y - y_pertlat);
 
-                // This is effectively a fully general change of basis from grid coordinates to earth coordinates. Is it overkill? Yeah, probably.
                 const x_dotlon = (x_pertlon - x) / mag_pertlon;
                 const y_dotlon = (y_pertlon - y) / mag_pertlon;
-                const x_dotlat = (x_pertlat - x) / mag_pertlat;
-                const y_dotlat = (y_pertlat - y) / mag_pertlat;
+
+                let x_dotlat, y_dotlat;
+
+                if (grid.is_conformal) {
+                    // If the grid is conformal, v and u are rotated by the same amount in the same direction.
+                    x_dotlat = -y_dotlon;
+                    y_dotlat = x_dotlon;
+                } 
+                else {
+                    // If the grid is non-conformal, we need a fully general change of basis from grid coordinates to earth coordinates.
+                    const [x_pertlat, y_pertlat] = grid.transform(lon, lat + 0.01);
+                    const mag_pertlat = Math.hypot(x - x_pertlat, y - y_pertlat);
+    
+                    x_dotlat = (x_pertlat - x) / mag_pertlat;
+                    y_dotlat = (y_pertlat - y) / mag_pertlat;
+                }
 
                 u_rot[icd] = x_dotlon * u + y_dotlon * v;
                 v_rot[icd] = x_dotlat * u + y_dotlat * v;
