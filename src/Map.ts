@@ -75,6 +75,27 @@ function lambertConformalConic(params: LambertConformalConicParameters) {
         return [x, y];
     }
 
+    const eccen2 = eccen * eccen;
+    const eccen4 = eccen2 * eccen2;
+    const eccen6 = eccen4 * eccen2;
+    const eccen8 = eccen6 * eccen2;
+
+/*
+    const A = eccen2 / 2 + 5 * eccen4 / 24 + eccen6 / 12 + 13 * eccen8 / 360;
+    const B = 7 * eccen4 / 48 + 29 * eccen6 / 240 + 811 * eccen8 / 11520;
+    const C = 7 * eccen6 / 120 + 81 * eccen8 / 1120;
+    const D = 4279 * eccen8 / 161280;
+    const Ap = A - C;
+    const Bp = 2 * B - 4 * D;
+    const Cp = 4 * C;
+    const Dp = 8 * D;
+*/
+
+    const Ap = eccen2 / 2 + 5 * eccen4 / 24 + 3 * eccen6 / 120 - 73 * eccen8 / 2016;
+    const Bp = 7 * eccen4 / 24 + 29 * eccen6 / 120 + 233 * eccen8 / 6720;
+    const Cp = 7 * eccen6 / 30 + 81 * eccen8 / 280;
+    const Dp = 4729 * eccen8 / 20160;
+
     const compute_lcc_inverse = (x: number, y: number) : [number, number] => {
         const theta = Math.atan2(x, rho_0 - y); // These arguments are backwards from what I'd expect ...
         const lon = theta / n + lon_0;
@@ -82,26 +103,6 @@ function lambertConformalConic(params: LambertConformalConicParameters) {
         const t = Math.pow(rho / (semimajor * F), 1 / n);
 
         const chi = Math.PI / 2 - 2 * Math.atan(t);
-        const eccen2 = eccen * eccen;
-        const eccen4 = eccen2 * eccen2;
-        const eccen6 = eccen4 * eccen2;
-        const eccen8 = eccen6 * eccen2;
-
-        /*
-        const A = eccen2 / 2 + 5 * eccen4 / 24 + eccen6 / 12 + 13 * eccen8 / 360;
-        const B = 7 * eccen4 / 48 + 29 * eccen6 / 240 + 811 * eccen8 / 11520;
-        const C = 7 * eccen6 / 120 + 81 * eccen8 / 1120;
-        const D = 4279 * eccen8 / 161280;
-        const Ap = A - C;
-        const Bp = 2 * B - 4 * D;
-        const Cp = 4 * C;
-        const Dp = 8 * D;
-        */
-
-        const Ap = eccen2 / 2 + 5 * eccen4 / 24 + 3 * eccen6 / 120 - 73 * eccen8 / 2016;
-        const Bp = 7 * eccen4 / 24 + 29 * eccen6 / 120 + 233 * eccen8 / 6720;
-        const Cp = 7 * eccen6 / 30 + 81 * eccen8 / 280;
-        const Dp = 4729 * eccen8 / 20160;
         const sin_2chi = Math.sin(2 * chi);
         const cos_2chi = Math.cos(2 * chi);
 
