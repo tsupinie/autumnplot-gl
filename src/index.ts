@@ -9,8 +9,8 @@ import Hodographs from './Hodographs';
 import { PlotLayer, MultiPlotLayer } from './PlotLayer';
 import { WindProfile } from "./AutumnTypes";
 import { MapType } from "./Map";
-import { ColorMap, bluered, redblue, pw_speed500mb, pw_speed850mb, pw_cape, pw_t2m, pw_td2m, 
-         makeColorBar, Color, ColorbarOrientation, ColorbarTickDirection, ColorBarOptions } from './Colormap';
+import { ColorMap, bluered, redblue, pw_speed500mb, pw_speed850mb, pw_cape, pw_t2m, pw_td2m, Color } from './Colormap';
+import { makeColorBar, makePaintballKey, ColorbarOrientation, ColorbarTickDirection, ColorBarOptions, PaintballKeyOptions } from "./ColorBar";
 import { RawScalarField, RawVectorField, RawProfileField, Grid, PlateCarreeGrid, LambertGrid } from "./RawField";
 
 const colormaps = {
@@ -31,5 +31,5 @@ export {PlotComponent,
         Hodographs, WindProfile,
         PlotLayer, MultiPlotLayer, 
         MapType,
-        ColorMap, colormaps, makeColorBar, Color, ColorbarOrientation, ColorbarTickDirection, ColorBarOptions,
+        ColorMap, colormaps, makeColorBar, makePaintballKey, Color, ColorbarOrientation, ColorbarTickDirection, ColorBarOptions, PaintballKeyOptions,
         RawScalarField, RawVectorField, RawProfileField, Grid, PlateCarreeGrid, LambertGrid};
