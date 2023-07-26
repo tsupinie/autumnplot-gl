@@ -439,5 +439,5 @@ class RawProfileField {
     }
 }
 
-export {RawScalarField, RawVectorField, RawProfileField, PlateCarreeGrid, LambertGrid};
-export type {Grid};
+export {RawScalarField, RawVectorField, RawProfileField, PlateCarreeGrid, LambertGrid, Grid};
+export type {GridType, VectorRelativeTo};
