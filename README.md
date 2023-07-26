@@ -13,7 +13,7 @@ autumnplot-gl provides a solution to this problem by making hardware-accelerated
 autumnplot-gl is designed to be used with either [Mapbox GL JS](https://docs.mapbox.com/mapbox-gl-js/guides/) or [MapLibre GL JS](https://maplibre.org/maplibre-gl-js-docs/) mapping libraries. Pre-built autumnplot-gl javascript files area available [here](https://tsupinie.github.io/autumnplot-gl/dist/). Adding them to your page exposes the API via the `apgl` environment variable.
 
 ### A basic contour plot
-The first step in plotting data is to create a grid. Currently, the only supported grid is PlateCarree (a.k.a. Lat/Lon), but support for a Lambert Conformal conic grid is planned.
+The first step in plotting data is to create a grid. Currently, the only supported grids are PlateCarree (a.k.a. Lat/Lon) and Lambert Conformal Conic.
 
 ```javascript
 // Create a grid object that covers the continental United States
@@ -61,11 +61,10 @@ The `'railway_transit_tunnel'` argument is a layer in the map style, and this me
 
 ### Barbs
 
-Wind barb plotting is similar to the contours, but it requires u and v data.
+Wind barb plotting is similar to the contours, but it requires using a `RawVectorField` with u and v data.
 
 ```javascript
-const vector_field = {u: new apgl.RawScalarField(grid, u_data), 
-                      v: new apgl.RawScalarField(grid, v_data)}
+const vector_field = new apgl.RawVectorField(grid, u_data, v_data);
 const barbs = new apgl.Barbs(vector_field, {color: '#000000', thin_fac: 16});
 const barb_layer = new apgl.PlotLayer('barbs', barbs);
 
@@ -74,7 +73,7 @@ map.on('load', () => {
 });
 ```
 
-The density of the wind barbs is automatically varied based on the map zoom level. The `'thin_fac': 16` option means to plot every 16th wind barb in the i and j directions, and this is defined at zoom level 1. So at zoom level 2, it will plot every 8th wind barb, and at zoom level 3 every 4th wind barb, and so on. Because it divides in 2 for every deeper zoom level, `'thin_fac'` should be a power of 2.
+The wind barbs are automatically rotated based on the grid projection. Also, the density of the wind barbs is automatically varied based on the map zoom level. The `'thin_fac': 16` option means to plot every 16th wind barb in the i and j directions, and this is defined at zoom level 1. So at zoom level 2, it will plot every 8th wind barb, and at zoom level 3 every 4th wind barb, and so on. Because it divides in 2 for every deeper zoom level, `'thin_fac'` should be a power of 2.
 
 ### Filled contours
 
@@ -102,7 +101,7 @@ document.getElementById('colorbar-container').appendChild(colorbar_svg);
 ```
 
 ### Varying the data plots
-The previous steps have gone through plotting a static dataset on a map, but in many instances, you want to view a dataset that changes, say over time. Rather than continually remove and add new layers when the user changes the time, which would get tedious and probably wouldn't perform very well, autumnplot-gl provides `MultiPlotLayer`, which allows the plotted data to easily and quickly change over time (or height or any other axis that might be relevant).
+The previous steps have gone through plotting a static dataset on a map, but in many instances, you want to view a dataset that changes, say over time. Rather than continually remove and add new layers when the user changes the time, which would get tedious, waste video RAM, and probably wouldn't perform very well, autumnplot-gl provides `MultiPlotLayer`, which allows the plotted data to easily and quickly change over time (or height or any other axis that might be relevant).
 
 ```javascript
 // Contour some data
@@ -148,8 +147,7 @@ The above exmple uses map tiles from [Maptiler](https://www.maptiler.com/). Map 
 So, I've created some [less-detailed map tiles](https://tsupinie.github.io/autumnplot-gl/tiles/) that are small enough that they can be hosted without dedicated hardware. However the tradeoff is that they're only useful down to zoom level 8 or 9 on the map, such that the viewport is somewhere between half a US state and a few counties in size. If that's good enough for you, then these tiles could be useful.
 
 ## Conspicuous absences
-A few capabilities are missing from this library as of v1.0.
-* Support for grids other than lat/lon grids. I plan to add this in the near future.
+A few capabilities are missing from this library as of v2.0.
 * Helper functions for reading from specific data formats. For instance, I'd like to add support for reading from a zarr file.
 * A whole bunch of little things that ought to be fairly straightforward like tweaking the size of the wind barbs and contour thicknesses.
 * Support for contour labeling. I'd like to add it, but I'm not really sure how I'd do it with the contours as I've implemented them. Any WebGL gurus, get in touch.
