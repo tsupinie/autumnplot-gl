@@ -22,13 +22,12 @@ A class representing a a field of hodograph plots
 - [bgcolor](Hodographs.md#bgcolor)
 - [hodo\_line](Hodographs.md#hodo_line)
 - [map](Hodographs.md#map)
-- [profiles](Hodographs.md#profiles)
+- [profile\_field](Hodographs.md#profile_field)
 - [sm\_line](Hodographs.md#sm_line)
 - [thin\_fac](Hodographs.md#thin_fac)
 
 ### Methods
 
-- [\_getHodoBackgroundElements](Hodographs.md#_gethodobackgroundelements)
 - [onAdd](Hodographs.md#onadd)
 - [render](Hodographs.md#render)
 
@@ -36,7 +35,7 @@ A class representing a a field of hodograph plots
 
 ### constructor
 
-• **new Hodographs**(`profiles`, `opts`)
+• **new Hodographs**(`profile_field`, `opts`)
 
 Create a field of hodographs
 
@@ -44,7 +43,7 @@ Create a field of hodographs
 
 | Name | Type | Description |
 | :------ | :------ | :------ |
-| `profiles` | [`WindProfile`](../interfaces/WindProfile.md)[] | A list of profiles to use |
+| `profile_field` | [`RawProfileField`](RawProfileField.md) | - |
 | `opts` | `Object` | Various options to use when creating the hodographs |
 | `opts.bgcolor` | `string` | - |
 | `opts.thin_fac` | `number` | - |
@@ -55,7 +54,7 @@ Create a field of hodographs
 
 #### Defined in
 
-[Hodographs.ts:98](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Hodographs.ts#L98)
+[Hodographs.ts:106](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Hodographs.ts#L106)
 
 ## Properties
 
@@ -65,7 +64,7 @@ Create a field of hodographs
 
 #### Defined in
 
-[Hodographs.ts:87](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Hodographs.ts#L87)
+[Hodographs.ts:95](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Hodographs.ts#L95)
 
 ___
 
@@ -75,7 +74,7 @@ ___
 
 #### Defined in
 
-[Hodographs.ts:81](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Hodographs.ts#L81)
+[Hodographs.ts:89](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Hodographs.ts#L89)
 
 ___
 
@@ -85,7 +84,7 @@ ___
 
 #### Defined in
 
-[Hodographs.ts:89](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Hodographs.ts#L89)
+[Hodographs.ts:97](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Hodographs.ts#L97)
 
 ___
 
@@ -95,17 +94,17 @@ ___
 
 #### Defined in
 
-[Hodographs.ts:85](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Hodographs.ts#L85)
+[Hodographs.ts:93](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Hodographs.ts#L93)
 
 ___
 
-### profiles
+### profile\_field
 
-• `Readonly` **profiles**: [`WindProfile`](../interfaces/WindProfile.md)[]
+• `Readonly` **profile\_field**: [`RawProfileField`](RawProfileField.md)
 
 #### Defined in
 
-[Hodographs.ts:80](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Hodographs.ts#L80)
+[Hodographs.ts:88](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Hodographs.ts#L88)
 
 ___
 
@@ -115,7 +114,7 @@ ___
 
 #### Defined in
 
-[Hodographs.ts:91](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Hodographs.ts#L91)
+[Hodographs.ts:99](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Hodographs.ts#L99)
 
 ___
 
@@ -125,23 +124,9 @@ ___
 
 #### Defined in
 
-[Hodographs.ts:82](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Hodographs.ts#L82)
+[Hodographs.ts:90](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Hodographs.ts#L90)
 
 ## Methods
-
-### \_getHodoBackgroundElements
-
-▸ **_getHodoBackgroundElements**(): `BillboardSpec`
-
-#### Returns
-
-`BillboardSpec`
-
-#### Defined in
-
-[Hodographs.ts:182](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Hodographs.ts#L182)
-
-___
 
 ### onAdd
 
@@ -164,7 +149,7 @@ ___
 
 #### Defined in
 
-[Hodographs.ts:113](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Hodographs.ts#L113)
+[Hodographs.ts:121](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Hodographs.ts#L121)
 
 ___
 
@@ -189,4 +174,4 @@ ___
 
 #### Defined in
 
-[Hodographs.ts:168](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Hodographs.ts#L168)
+[Hodographs.ts:177](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Hodographs.ts#L177)

@@ -12,6 +12,8 @@
 
   ↳ [`ContourFill`](ContourFill.md)
 
+  ↳ [`Paintball`](Paintball.md)
+
   ↳ [`Hodographs`](Hodographs.md)
 
 ## Table of contents
@@ -50,7 +52,7 @@
 
 #### Defined in
 
-[PlotComponent.ts:11](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/PlotComponent.ts#L11)
+[PlotComponent.ts:11](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/PlotComponent.ts#L11)
 
 ___
 
@@ -71,4 +73,4 @@ ___
 
 #### Defined in
 
-[PlotComponent.ts:12](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/PlotComponent.ts#L12)
+[PlotComponent.ts:12](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/PlotComponent.ts#L12)

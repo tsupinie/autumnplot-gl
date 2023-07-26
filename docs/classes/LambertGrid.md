@@ -1,62 +1,65 @@
-[autumnplot-gl](../README.md) / [Exports](../modules.md) / PlateCarreeGrid
+[autumnplot-gl](../README.md) / [Exports](../modules.md) / LambertGrid
 
-# Class: PlateCarreeGrid
-
-A plate carree (a.k.a. lat/lon) grid with uniform grid spacing
+# Class: LambertGrid
 
 ## Hierarchy
 
 - [`Grid`](Grid.md)
 
-  ↳ **`PlateCarreeGrid`**
+  ↳ **`LambertGrid`**
 
 ## Table of contents
 
 ### Constructors
 
-- [constructor](PlateCarreeGrid.md#constructor)
+- [constructor](LambertGrid.md#constructor)
 
 ### Properties
 
-- [\_billboard\_buffer\_cache](PlateCarreeGrid.md#_billboard_buffer_cache)
-- [\_buffer\_cache](PlateCarreeGrid.md#_buffer_cache)
-- [\_ll\_cache](PlateCarreeGrid.md#_ll_cache)
-- [is\_conformal](PlateCarreeGrid.md#is_conformal)
-- [ll\_lat](PlateCarreeGrid.md#ll_lat)
-- [ll\_lon](PlateCarreeGrid.md#ll_lon)
-- [ni](PlateCarreeGrid.md#ni)
-- [nj](PlateCarreeGrid.md#nj)
-- [type](PlateCarreeGrid.md#type)
-- [ur\_lat](PlateCarreeGrid.md#ur_lat)
-- [ur\_lon](PlateCarreeGrid.md#ur_lon)
+- [\_billboard\_buffer\_cache](LambertGrid.md#_billboard_buffer_cache)
+- [\_buffer\_cache](LambertGrid.md#_buffer_cache)
+- [\_ll\_cache](LambertGrid.md#_ll_cache)
+- [is\_conformal](LambertGrid.md#is_conformal)
+- [lat\_0](LambertGrid.md#lat_0)
+- [lat\_std](LambertGrid.md#lat_std)
+- [lcc](LambertGrid.md#lcc)
+- [ll\_x](LambertGrid.md#ll_x)
+- [ll\_y](LambertGrid.md#ll_y)
+- [lon\_0](LambertGrid.md#lon_0)
+- [ni](LambertGrid.md#ni)
+- [nj](LambertGrid.md#nj)
+- [type](LambertGrid.md#type)
+- [ur\_x](LambertGrid.md#ur_x)
+- [ur\_y](LambertGrid.md#ur_y)
 
 ### Methods
 
-- [copy](PlateCarreeGrid.md#copy)
-- [getCoords](PlateCarreeGrid.md#getcoords)
-- [getThinnedGrid](PlateCarreeGrid.md#getthinnedgrid)
-- [getWGLBillboardBuffers](PlateCarreeGrid.md#getwglbillboardbuffers)
-- [getWGLBuffers](PlateCarreeGrid.md#getwglbuffers)
-- [transform](PlateCarreeGrid.md#transform)
+- [copy](LambertGrid.md#copy)
+- [getCoords](LambertGrid.md#getcoords)
+- [getThinnedGrid](LambertGrid.md#getthinnedgrid)
+- [getWGLBillboardBuffers](LambertGrid.md#getwglbillboardbuffers)
+- [getWGLBuffers](LambertGrid.md#getwglbuffers)
+- [transform](LambertGrid.md#transform)
 
 ## Constructors
 
 ### constructor
 
-• **new PlateCarreeGrid**(`ni`, `nj`, `ll_lon`, `ll_lat`, `ur_lon`, `ur_lat`)
-
-Create a plate carree grid
+• **new LambertGrid**(`ni`, `nj`, `lon_0`, `lat_0`, `lat_std`, `ll_x`, `ll_y`, `ur_x`, `ur_y`)
 
 #### Parameters
 
-| Name | Type | Description |
-| :------ | :------ | :------ |
-| `ni` | `number` | The number of grid points in the i (longitude) direction |
-| `nj` | `number` | The number of grid points in the j (latitude) direction |
-| `ll_lon` | `number` | The longitude of the lower left corner of the grid |
-| `ll_lat` | `number` | The latitude of the lower left corner of the grid |
-| `ur_lon` | `number` | The longitude of the upper right corner of the grid |
-| `ur_lat` | `number` | The latitude of the upper right corner of the grid |
+| Name | Type |
+| :------ | :------ |
+| `ni` | `number` |
+| `nj` | `number` |
+| `lon_0` | `number` |
+| `lat_0` | `number` |
+| `lat_std` | [`number`, `number`] |
+| `ll_x` | `number` |
+| `ll_y` | `number` |
+| `ur_x` | `number` |
+| `ur_y` | `number` |
 
 #### Overrides
 
@@ -64,7 +67,7 @@ Create a plate carree grid
 
 #### Defined in
 
-[RawField.ts:125](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/RawField.ts#L125)
+[RawField.ts:205](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/RawField.ts#L205)
 
 ## Properties
 
@@ -98,11 +101,11 @@ ___
 
 ### \_ll\_cache
 
-• `Readonly` `Private` **\_ll\_cache**: `Cache`<[], `Coords`\>
+• `Readonly` **\_ll\_cache**: `Cache`<[], `Coords`\>
 
 #### Defined in
 
-[RawField.ts:114](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/RawField.ts#L114)
+[RawField.ts:203](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/RawField.ts#L203)
 
 ___
 
@@ -120,23 +123,80 @@ ___
 
 ___
 
-### ll\_lat
+### lat\_0
 
-• `Readonly` **ll\_lat**: `number`
+• `Readonly` **lat\_0**: `number`
 
 #### Defined in
 
-[RawField.ts:109](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/RawField.ts#L109)
+[RawField.ts:195](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/RawField.ts#L195)
 
 ___
 
-### ll\_lon
+### lat\_std
 
-• `Readonly` **ll\_lon**: `number`
+• `Readonly` **lat\_std**: [`number`, `number`]
 
 #### Defined in
 
-[RawField.ts:108](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/RawField.ts#L108)
+[RawField.ts:196](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/RawField.ts#L196)
+
+___
+
+### lcc
+
+• `Readonly` **lcc**: (`a`: `number`, `b`: `number`, `opts?`: { `inverse`: `boolean`  }) => [`number`, `number`]
+
+#### Type declaration
+
+▸ (`a`, `b`, `opts?`): [`number`, `number`]
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `a` | `number` |
+| `b` | `number` |
+| `opts?` | `Object` |
+| `opts.inverse` | `boolean` |
+
+##### Returns
+
+[`number`, `number`]
+
+#### Defined in
+
+[RawField.ts:201](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/RawField.ts#L201)
+
+___
+
+### ll\_x
+
+• `Readonly` **ll\_x**: `number`
+
+#### Defined in
+
+[RawField.ts:197](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/RawField.ts#L197)
+
+___
+
+### ll\_y
+
+• `Readonly` **ll\_y**: `number`
+
+#### Defined in
+
+[RawField.ts:198](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/RawField.ts#L198)
+
+___
+
+### lon\_0
+
+• `Readonly` **lon\_0**: `number`
+
+#### Defined in
+
+[RawField.ts:194](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/RawField.ts#L194)
 
 ___
 
@@ -182,45 +242,45 @@ ___
 
 ___
 
-### ur\_lat
+### ur\_x
 
-• `Readonly` **ur\_lat**: `number`
+• `Readonly` **ur\_x**: `number`
 
 #### Defined in
 
-[RawField.ts:111](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/RawField.ts#L111)
+[RawField.ts:199](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/RawField.ts#L199)
 
 ___
 
-### ur\_lon
+### ur\_y
 
-• `Readonly` **ur\_lon**: `number`
+• `Readonly` **ur\_y**: `number`
 
 #### Defined in
 
-[RawField.ts:110](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/RawField.ts#L110)
+[RawField.ts:200](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/RawField.ts#L200)
 
 ## Methods
 
 ### copy
 
-▸ **copy**(`opts?`): [`PlateCarreeGrid`](PlateCarreeGrid.md)
+▸ **copy**(`opts?`): [`LambertGrid`](LambertGrid.md)
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `opts?` | `Object` |
-| `opts.ll_lat?` | `number` |
-| `opts.ll_lon?` | `number` |
+| `opts.ll_x?` | `number` |
+| `opts.ll_y?` | `number` |
 | `opts.ni?` | `number` |
 | `opts.nj?` | `number` |
-| `opts.ur_lat?` | `number` |
-| `opts.ur_lon?` | `number` |
+| `opts.ur_x?` | `number` |
+| `opts.ur_y?` | `number` |
 
 #### Returns
 
-[`PlateCarreeGrid`](PlateCarreeGrid.md)
+[`LambertGrid`](LambertGrid.md)
 
 #### Overrides
 
@@ -228,15 +288,13 @@ ___
 
 #### Defined in
 
-[RawField.ts:153](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/RawField.ts#L153)
+[RawField.ts:238](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/RawField.ts#L238)
 
 ___
 
 ### getCoords
 
 ▸ **getCoords**(): `Coords`
-
-Get a list of longitudes and latitudes on the grid (internal method)
 
 #### Returns
 
@@ -248,13 +306,13 @@ Get a list of longitudes and latitudes on the grid (internal method)
 
 #### Defined in
 
-[RawField.ts:168](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/RawField.ts#L168)
+[RawField.ts:250](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/RawField.ts#L250)
 
 ___
 
 ### getThinnedGrid
 
-▸ **getThinnedGrid**(`thin_x`, `thin_y`): [`PlateCarreeGrid`](PlateCarreeGrid.md)
+▸ **getThinnedGrid**(`thin_x`, `thin_y`): [`LambertGrid`](LambertGrid.md)
 
 #### Parameters
 
@@ -265,7 +323,7 @@ ___
 
 #### Returns
 
-[`PlateCarreeGrid`](PlateCarreeGrid.md)
+[`LambertGrid`](LambertGrid.md)
 
 #### Overrides
 
@@ -273,7 +331,7 @@ ___
 
 #### Defined in
 
-[RawField.ts:176](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/RawField.ts#L176)
+[RawField.ts:261](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/RawField.ts#L261)
 
 ___
 
@@ -350,4 +408,4 @@ ___
 
 #### Defined in
 
-[RawField.ts:172](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/RawField.ts#L172)
+[RawField.ts:254](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/RawField.ts#L254)

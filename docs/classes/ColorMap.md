@@ -39,7 +39,7 @@ Create a color map
 
 #### Defined in
 
-[Colormap.ts:31](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Colormap.ts#L31)
+[Colormap.ts:31](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Colormap.ts#L31)
 
 ## Properties
 
@@ -49,7 +49,7 @@ Create a color map
 
 #### Defined in
 
-[Colormap.ts:24](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Colormap.ts#L24)
+[Colormap.ts:24](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Colormap.ts#L24)
 
 ___
 
@@ -59,7 +59,7 @@ ___
 
 #### Defined in
 
-[Colormap.ts:23](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Colormap.ts#L23)
+[Colormap.ts:23](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Colormap.ts#L23)
 
 ## Methods
 
@@ -75,7 +75,7 @@ an array of hex color strings
 
 #### Defined in
 
-[Colormap.ts:43](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Colormap.ts#L43)
+[Colormap.ts:43](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Colormap.ts#L43)
 
 ___
 
@@ -91,7 +91,7 @@ an array of opacities, one for each color in the color map
 
 #### Defined in
 
-[Colormap.ts:50](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Colormap.ts#L50)
+[Colormap.ts:50](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Colormap.ts#L50)
 
 ___
 
@@ -115,7 +115,7 @@ A new color map
 
 #### Defined in
 
-[Colormap.ts:59](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Colormap.ts#L59)
+[Colormap.ts:59](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Colormap.ts#L59)
 
 ___
 
@@ -143,4 +143,4 @@ a Colormap object
 
 #### Defined in
 
-[Colormap.ts:73](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Colormap.ts#L73)
+[Colormap.ts:73](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Colormap.ts#L73)

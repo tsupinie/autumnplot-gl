@@ -30,13 +30,11 @@ const contours = new Contour(height_field, {color: '#000000', interval: 30,
 - [color](Contour.md#color)
 - [field](Contour.md#field)
 - [fill\_texture](Contour.md#fill_texture)
-- [grid\_spacing](Contour.md#grid_spacing)
+- [grid\_cell\_size](Contour.md#grid_cell_size)
 - [interval](Contour.md#interval)
-- [latitudes](Contour.md#latitudes)
+- [levels](Contour.md#levels)
 - [map](Contour.md#map)
 - [program](Contour.md#program)
-- [tex\_height](Contour.md#tex_height)
-- [tex\_width](Contour.md#tex_width)
 - [texcoords](Contour.md#texcoords)
 - [thinner](Contour.md#thinner)
 - [vertices](Contour.md#vertices)
@@ -67,7 +65,7 @@ Create a contoured field
 
 #### Defined in
 
-[Contour.ts:71](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Contour.ts#L71)
+[Contour.ts:73](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Contour.ts#L73)
 
 ## Properties
 
@@ -77,7 +75,7 @@ Create a contoured field
 
 #### Defined in
 
-[Contour.ts:42](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Contour.ts#L42)
+[Contour.ts:48](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Contour.ts#L48)
 
 ___
 
@@ -87,7 +85,7 @@ ___
 
 #### Defined in
 
-[Contour.ts:41](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Contour.ts#L41)
+[Contour.ts:47](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Contour.ts#L47)
 
 ___
 
@@ -97,17 +95,17 @@ ___
 
 #### Defined in
 
-[Contour.ts:55](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Contour.ts#L55)
+[Contour.ts:62](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Contour.ts#L62)
 
 ___
 
-### grid\_spacing
+### grid\_cell\_size
 
-• `Private` **grid\_spacing**: `number`
+• `Private` **grid\_cell\_size**: `WGLBuffer`
 
 #### Defined in
 
-[Contour.ts:59](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Contour.ts#L59)
+[Contour.ts:60](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Contour.ts#L60)
 
 ___
 
@@ -117,17 +115,17 @@ ___
 
 #### Defined in
 
-[Contour.ts:43](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Contour.ts#L43)
+[Contour.ts:49](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Contour.ts#L49)
 
 ___
 
-### latitudes
+### levels
 
-• `Private` **latitudes**: `WGLBuffer`
+• `Readonly` **levels**: `number`[]
 
 #### Defined in
 
-[Contour.ts:53](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Contour.ts#L53)
+[Contour.ts:50](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Contour.ts#L50)
 
 ___
 
@@ -137,7 +135,7 @@ ___
 
 #### Defined in
 
-[Contour.ts:47](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Contour.ts#L47)
+[Contour.ts:54](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Contour.ts#L54)
 
 ___
 
@@ -147,27 +145,7 @@ ___
 
 #### Defined in
 
-[Contour.ts:49](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Contour.ts#L49)
-
-___
-
-### tex\_height
-
-• `Private` **tex\_height**: `number`
-
-#### Defined in
-
-[Contour.ts:64](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Contour.ts#L64)
-
-___
-
-### tex\_width
-
-• `Private` **tex\_width**: `number`
-
-#### Defined in
-
-[Contour.ts:62](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Contour.ts#L62)
+[Contour.ts:56](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Contour.ts#L56)
 
 ___
 
@@ -177,7 +155,7 @@ ___
 
 #### Defined in
 
-[Contour.ts:57](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Contour.ts#L57)
+[Contour.ts:64](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Contour.ts#L64)
 
 ___
 
@@ -201,7 +179,7 @@ ___
 
 #### Defined in
 
-[Contour.ts:44](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Contour.ts#L44)
+[Contour.ts:51](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Contour.ts#L51)
 
 ___
 
@@ -211,7 +189,7 @@ ___
 
 #### Defined in
 
-[Contour.ts:51](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Contour.ts#L51)
+[Contour.ts:58](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Contour.ts#L58)
 
 ## Methods
 
@@ -238,7 +216,7 @@ Add the contours to a map
 
 #### Defined in
 
-[Contour.ts:99](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Contour.ts#L99)
+[Contour.ts:98](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Contour.ts#L98)
 
 ___
 
@@ -265,4 +243,4 @@ Render the contours
 
 #### Defined in
 
-[Contour.ts:135](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Contour.ts#L135)
+[Contour.ts:125](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Contour.ts#L125)

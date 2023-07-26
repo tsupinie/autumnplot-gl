@@ -3,6 +3,9 @@ autumnplot-gl / [Exports](modules.md)
 # autumnplot-gl
 Hardware-accelerated geospatial data plotting in the browser
 
+## Links
+[Github](https://github.com/tsupinie/autumnplot-gl) | [API docs](https://tsupinie.github.io/autumnplot-gl/)
+
 ## What is this?
 Lots of meteorological data web sites have a model where the data live on a central server, get plotted on the server, and then the server serves static images to the client. This creates a bottleneck where adding fields and view sectors takes exponentially more processing power for the server. One way around this is to offload the plotting to the client and to have the browser plot the data on a pan-and-zoomable map. Unfortunately, in the past, this has required developing low-level plotting code, and depending on the mapping library, the performance may be poor.
 
@@ -56,7 +59,7 @@ map.on('load', () => {
 });
 ```
 
-The `'railway_transit_tunnel'` argument is a layer in the map style, and this means to add your layer just below that layer on the map. This usually produces better results than just blindly slapping all your layers on top of all the map (though the map style itself my require some tweaking to produce the best results).
+The `'railway_transit_tunnel'` argument is a layer in the map style, and this means to add your layer just below that layer on the map. This usually produces better results than just blindly slapping all your layers on top of all the map (though the map style itself may require some tweaking to produce the best results).
 
 ### Barbs
 
@@ -146,8 +149,12 @@ The above exmple uses map tiles from [Maptiler](https://www.maptiler.com/). Map 
 
 So, I've created some [less-detailed map tiles](https://tsupinie.github.io/autumnplot-gl/tiles/) that are small enough that they can be hosted without dedicated hardware. However the tradeoff is that they're only useful down to zoom level 8 or 9 on the map, such that the viewport is somewhere between half a US state and a few counties in size. If that's good enough for you, then these tiles could be useful.
 
-## Links
-[Github](https://github.com/tsupinie/autumnplot-gl) | [API docs](https://tsupinie.github.io/autumnplot-gl/)
+## Conspicuous absences
+A few capabilities are missing from this library as of v1.0.
+* Support for grids other than lat/lon grids. I plan to add this in the near future.
+* Helper functions for reading from specific data formats. For instance, I'd like to add support for reading from a zarr file.
+* A whole bunch of little things that ought to be fairly straightforward like tweaking the size of the wind barbs and contour thicknesses.
+* Support for contour labeling. I'd like to add it, but I'm not really sure how I'd do it with the contours as I've implemented them. Any WebGL gurus, get in touch.
 
 ## Closing thoughts
 Even though autumnplot-gl is currently an extremely new package with relatively limited capability, I hope folks see potential and find it useful. Any contributions to fill out some missing features are welcome.
