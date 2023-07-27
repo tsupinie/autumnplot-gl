@@ -62,8 +62,6 @@ class Contour extends PlotComponent {
     fill_texture: WGLTexture | null;
     /** @private */
     texcoords: WGLBuffer | null;
-    /** @private */
-    //grid_spacing: number | null;
 
     /**
      * Create a contoured field

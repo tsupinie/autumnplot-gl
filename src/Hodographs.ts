@@ -83,6 +83,20 @@ function _createHodoHeightTexture() {
 
 const HODO_HEIGHT_TEXTURE = _createHodoHeightTexture();
 
+interface HodographOpts {
+    /** 
+     * The color of the hodograph plot background as a hex string
+     */
+    bgcolor?: string;
+
+    /** 
+     * How much to thin the hodographs at zoom level 1 on the map. This effectively means to plot every `n`th hodograph in the i and j directions, where `n` = 
+     * `thin_fac`. `thin_fac` should be a power of 2. 
+     * @default 1
+     */
+    thin_fac?: number;
+}
+
 /** A class representing a a field of hodograph plots */
 class Hodographs extends PlotComponent {
     readonly profile_field: RawProfileField;
@@ -100,17 +114,19 @@ class Hodographs extends PlotComponent {
 
     /**
      * Create a field of hodographs
-     * @param profiles - A list of profiles to use
-     * @param opts     - Various options to use when creating the hodographs 
+     * @param profile_field - The grid of profiles to plot
+     * @param opts          - Various options to use when creating the hodographs 
      */
-    constructor(profile_field: RawProfileField, opts: {'bgcolor': string, 'thin_fac': number}) {
+    constructor(profile_field: RawProfileField, opts?: HodographOpts) {
         super();
+
+        opts = opts || {};
         
         this.profile_field = profile_field;
 
-        const color = hex2rgba(opts['bgcolor']);
+        const color = hex2rgba(opts.bgcolor || '#000000');
         this.bgcolor = [color[0], color[1], color[2]];
-        this.thin_fac = opts['thin_fac'];
+        this.thin_fac = opts.thin_fac || 1;
 
         this.map = null;
         this.bg_billboard = null;
@@ -118,6 +134,10 @@ class Hodographs extends PlotComponent {
         this.sm_line = null;
     }
 
+    /**
+     * @internal
+     * Add the hodographs to a map
+     */
     async onAdd(map: mapboxgl.Map, gl: WebGLRenderingContext) {
         this.map = map;
 
@@ -174,6 +194,10 @@ class Hodographs extends PlotComponent {
         this.sm_line = new PolylineCollection(gl, sm_polyline, sm_image, 1, hodo_scale * bg_size);
     }
 
+    /**
+     * @internal
+     * Render the hodographs
+     */
     render(gl: WebGLRenderingContext, matrix: number[]) {
         if (this.map === null || this.hodo_line === null || this.sm_line === null || this.bg_billboard === null) return;
 

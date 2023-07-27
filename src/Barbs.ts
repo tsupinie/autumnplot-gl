@@ -143,7 +143,7 @@ interface BarbsOptions {
  * thinning factor at zoom level 1.
  * @example
  * // Create a barb field with black barbs and plotting every 16th wind barb in both i and j at zoom level 1
- * const vector_field = {u: u_field, v: v_field};
+ * const vector_field = new RawVectorField(grid, u_data, v_data);
  * const barbs = new Barbs(vector_field, {color: '#000000', thin_fac: 16});
  */
 class Barbs extends PlotComponent {
@@ -159,7 +159,7 @@ class Barbs extends PlotComponent {
 
     /**
      * Create a field of wind barbs
-     * @param fields - The u and v fields to use as an object
+     * @param fields - The vector field to plot as barbs
      * @param opts   - Options for creating the wind barbs
      */
     constructor(fields: RawVectorField, opts: BarbsOptions) {

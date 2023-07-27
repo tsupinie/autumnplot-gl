@@ -190,6 +190,7 @@ class PlateCarreeGrid extends Grid {
     }
 }
 
+/** A Lambert conformal conic grid with uniform grid spacing */
 class LambertGrid extends Grid {
     readonly lon_0: number;
     readonly lat_0: number;
@@ -198,10 +199,25 @@ class LambertGrid extends Grid {
     readonly ll_y: number;
     readonly ur_x: number;
     readonly ur_y: number;
+
+    /** @private */
     readonly lcc: (a: number, b: number, opts?: {inverse: boolean}) => [number, number];
 
+    /** @private */
     readonly _ll_cache: Cache<[], Coords>;
 
+    /**
+     * Create a Lambert conformal conic grid
+     * @param ni      - The number of grid points in the i (longitude) direction
+     * @param nj      - The number of grid points in the j (latitude) direction
+     * @param lon_0   - The standard longitude for the projection; this is also the center longitude for the projection
+     * @param lat_0   - The center latitude for the projection
+     * @param lat_std - The standard latitudes for the projection
+     * @param ll_x    - The x coordinate in projection space of the lower-left corner of the grid
+     * @param ll_y    - The y coordinate in projection space of the lower-left corner of the grid
+     * @param ur_x    - The x coordinate in projection space of the upper-right corner of the grid
+     * @param ur_y    - The y coordinate in projection space of the upper-right corner of the grid
+     */
     constructor(ni: number, nj: number, lon_0: number, lat_0: number, lat_std: [number, number], 
                 ll_x: number, ll_y: number, ur_x: number, ur_y: number) {
         super('lcc', true, ni, nj);
@@ -247,6 +263,9 @@ class LambertGrid extends Grid {
         return new LambertGrid(ni, nj, this.lon_0, this.lat_0, this.lat_std, ll_x, ll_y, ur_x, ur_y);
     }
 
+    /**
+     * Get a list of longitudes and latitudes on the grid (internal method)
+     */
     getCoords() {
         return this._ll_cache.getValue();
     }
@@ -333,16 +352,24 @@ class RawScalarField {
     }
 }
 
-//type RawVectorField = {u: RawScalarField, v: RawScalarField};
 type VectorRelativeTo = 'earth' | 'grid';
 
+/** A class representing a 2D gridded field of vectors */
 class RawVectorField {
     readonly u: RawScalarField;
     readonly v: RawScalarField;
     readonly relative_to: VectorRelativeTo;
 
+    /** @private */
     readonly _rotate_cache: Cache<[], {u: RawScalarField, v: RawScalarField}>
 
+    /**
+     * Create a vector field.
+     * @param grid - The grid on which the vector components are defined
+     * @param u    - The u (east/west) component of the vectors, which should be given as a 1D array in row-major order, with the first element being at the lower-left corner of the grid
+     * @param v    - The v (north/south) component of the vectors, which should be given as a 1D array in row-major order, with the first element being at the lower-left corner of the grid
+     * @param opts - Options for creating the vector field.
+     */
     constructor(grid: Grid, u: Float32Array, v: Float32Array, relative_to?: VectorRelativeTo) {
         this.u = new RawScalarField(grid, u);
         this.v = new RawScalarField(grid, v);
@@ -416,15 +443,22 @@ class RawVectorField {
     }
 }
 
+/** A class grid of wind profiles */
 class RawProfileField {
     readonly profiles: WindProfile[];
     readonly grid: Grid;
 
+    /**
+     * Create a grid of wind profiles
+     * @param grid     - The grid on which the profiles are defined
+     * @param profiles - The wind profiles themselves, which should be given as a 1D array in row-major order, with the first profile being at the lower-left corner of the grid
+     */
     constructor(grid: Grid, profiles: WindProfile[]) {
         this.profiles = profiles;
         this.grid = grid;
     }
 
+    /** Get the gridded storm motion vector field (internal method) */
     getStormMotionGrid() {
         const u = new Float32Array(this.grid.ni * this.grid.nj);
         const v = new Float32Array(this.grid.ni * this.grid.nj);

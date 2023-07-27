@@ -9,11 +9,25 @@ const paintball_vertex_shader_src = require('./glsl/paintball_vertex.glsl');
 const paintball_fragment_shader_src = require('./glsl/paintball_fragment.glsl');
 
 interface PaintballOptions {
+    /**
+     * The list of colors (as hex strings) to use for each member in the paintball plot. The first color corresponds to member 1, the second to member 2, etc.
+     */
     colors?: string[];
-    threshold?: number;
+
+    /**
+     * The opacity of the paintball plot
+     * @default 1
+     */
     opacity?: number;
 }
 
+/** 
+ * A class representing a paintball plot, which is a plot of objects in every member of an ensemble. Objects are usually defined by a single threshold on
+ * a field (such as simulated reflectivity greater than 40 dBZ), but could in theory be defined by any arbitrarily complicated method. In autumnplot-gl,
+ * the data for the paintball plot is given as a single field with the objects from each member encoded as "bits" in the field. Because the field is made up
+ * of single-precision floats, this works for up to 24 members. (Technically speaking, I don't need the quotes around "bits", as they're bits of the 
+ * significand of an IEEE 754 float.)
+ */
 class Paintball extends PlotComponent {
     readonly field: RawScalarField;
     readonly colors: number[];
@@ -29,6 +43,13 @@ class Paintball extends PlotComponent {
     /** @private */
     texcoords: WGLBuffer | null;
 
+    /**
+     * Create a paintball plot
+     * @param field - A scalar field containing the member objects encoded as "bits." The numerical value of each grid point can be constructed like 
+     *               `1.0 * M1 + 2.0 * M2 + 4.0 * M3 + 8.0 * M4 ...`, where `M1` is 1 if that grid point is in an object in member 1 and 0 otherwise,
+     *               `M2` is the same thing for member 2, and `M3` and `M4` and up to `Mn` are the same thing for the rest of the members.
+     * @param opts  - Options for creating the paintball plot
+     */
     constructor(field: RawScalarField, opts?: PaintballOptions) {
         super();
 
@@ -45,6 +66,10 @@ class Paintball extends PlotComponent {
         this.texcoords = null;
     }
 
+    /**
+     * @internal
+     * Add the paintball plot to a map.
+     */
     async onAdd(map: MapType, gl: WebGLRenderingContext) {
         this.program = new WGLProgram(gl, paintball_vertex_shader_src, paintball_fragment_shader_src);
 
@@ -60,6 +85,10 @@ class Paintball extends PlotComponent {
         this.fill_texture = new WGLTexture(gl, fill_image);
     }
 
+    /**
+     * @internal
+     * Render the paintball plot
+     */
     render(gl: WebGLRenderingContext, matrix: number[]) {
         if (this.program === null || this.vertices === null || this.texcoords === null || this.fill_texture === null) return;
 
