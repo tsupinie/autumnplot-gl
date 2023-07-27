@@ -83,7 +83,7 @@ function _createHodoHeightTexture() {
 
 const HODO_HEIGHT_TEXTURE = _createHodoHeightTexture();
 
-interface HodographOpts {
+interface HodographOptions {
     /** 
      * The color of the hodograph plot background as a hex string
      */
@@ -117,7 +117,7 @@ class Hodographs extends PlotComponent {
      * @param profile_field - The grid of profiles to plot
      * @param opts          - Various options to use when creating the hodographs 
      */
-    constructor(profile_field: RawProfileField, opts?: HodographOpts) {
+    constructor(profile_field: RawProfileField, opts?: HodographOptions) {
         super();
 
         opts = opts || {};
@@ -214,3 +214,4 @@ class Hodographs extends PlotComponent {
 }
 
 export default Hodographs;
+export type {HodographOptions};

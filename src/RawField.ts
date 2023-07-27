@@ -354,7 +354,7 @@ class RawScalarField {
 
 type VectorRelativeTo = 'earth' | 'grid';
 
-interface RawVectorFieldOpts {
+interface RawVectorFieldOptions {
     /**
      * Whether the vectors are relative to the grid ('grid') or Earth ('earth')
      * @default 'grid'
@@ -378,7 +378,7 @@ class RawVectorField {
      * @param v    - The v (north/south) component of the vectors, which should be given as a 1D array in row-major order, with the first element being at the lower-left corner of the grid
      * @param opts - Options for creating the vector field.
      */
-    constructor(grid: Grid, u: Float32Array, v: Float32Array, opts?: RawVectorFieldOpts) {
+    constructor(grid: Grid, u: Float32Array, v: Float32Array, opts?: RawVectorFieldOptions) {
         opts = opts === undefined ? {}: opts;
 
         this.u = new RawScalarField(grid, u);
@@ -484,4 +484,4 @@ class RawProfileField {
 }
 
 export {RawScalarField, RawVectorField, RawProfileField, PlateCarreeGrid, LambertGrid, Grid};
-export type {GridType, RawVectorFieldOpts, VectorRelativeTo};
+export type {GridType, RawVectorFieldOptions, VectorRelativeTo};
