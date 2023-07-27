@@ -354,6 +354,14 @@ class RawScalarField {
 
 type VectorRelativeTo = 'earth' | 'grid';
 
+interface RawVectorFieldOpts {
+    /**
+     * Whether the vectors are relative to the grid ('grid') or Earth ('earth')
+     * @default 'grid'
+     */
+    relative_to?: VectorRelativeTo;
+}
+
 /** A class representing a 2D gridded field of vectors */
 class RawVectorField {
     readonly u: RawScalarField;
@@ -370,10 +378,12 @@ class RawVectorField {
      * @param v    - The v (north/south) component of the vectors, which should be given as a 1D array in row-major order, with the first element being at the lower-left corner of the grid
      * @param opts - Options for creating the vector field.
      */
-    constructor(grid: Grid, u: Float32Array, v: Float32Array, relative_to?: VectorRelativeTo) {
+    constructor(grid: Grid, u: Float32Array, v: Float32Array, opts?: RawVectorFieldOpts) {
+        opts = opts === undefined ? {}: opts;
+
         this.u = new RawScalarField(grid, u);
         this.v = new RawScalarField(grid, v);
-        this.relative_to = relative_to === undefined ? 'grid' : relative_to;
+        this.relative_to = opts.relative_to === undefined ? 'grid' : opts.relative_to;
 
         this._rotate_cache = new Cache(() => {
             const grid = this.u.grid;
@@ -422,7 +432,7 @@ class RawVectorField {
         const thin_u = this.u.getThinnedField(thin_x, thin_y);
         const thin_v = this.v.getThinnedField(thin_x, thin_y);
 
-        return new RawVectorField(thin_u.grid, thin_u.data, thin_v.data, this.relative_to);
+        return new RawVectorField(thin_u.grid, thin_u.data, thin_v.data, {relative_to: this.relative_to});
     }
 
     get grid() {
@@ -439,7 +449,7 @@ class RawVectorField {
             u = u_; v = v_;
         }
 
-        return new RawVectorField(u.grid, u.data, v.data, 'earth');
+        return new RawVectorField(u.grid, u.data, v.data, {relative_to: 'earth'});
     }
 }
 
@@ -469,9 +479,9 @@ class RawProfileField {
             v[idx] = prof.smv;
         });
 
-        return new RawVectorField(this.grid, u, v, 'grid');
+        return new RawVectorField(this.grid, u, v, {relative_to: 'grid'});
     }
 }
 
 export {RawScalarField, RawVectorField, RawProfileField, PlateCarreeGrid, LambertGrid, Grid};
-export type {GridType, VectorRelativeTo};
+export type {GridType, RawVectorFieldOpts, VectorRelativeTo};
