@@ -21,6 +21,13 @@ interface PaintballOptions {
     opacity?: number;
 }
 
+interface PaintballGLElems {
+    program: WGLProgram;
+    vertices: WGLBuffer;
+    fill_texture: WGLTexture;
+    texcoords: WGLBuffer;
+}
+
 /** 
  * A class representing a paintball plot, which is a plot of objects in every member of an ensemble. Objects are usually defined by a single threshold on
  * a field (such as simulated reflectivity greater than 40 dBZ), but could in theory be defined by any arbitrarily complicated method. In autumnplot-gl,
@@ -34,14 +41,7 @@ class Paintball extends PlotComponent {
     readonly opacity: number;
 
     /** @private */
-    program: WGLProgram | null;
-    /** @private */
-    vertices: WGLBuffer | null;
-
-    /** @private */
-    fill_texture: WGLTexture | null;
-    /** @private */
-    texcoords: WGLBuffer | null;
+    gl_elems: PaintballGLElems | null;
 
     /**
      * Create a paintball plot
@@ -60,10 +60,7 @@ class Paintball extends PlotComponent {
         this.colors = colors.reverse().map(color => hex2rgba(color)).flat()
         this.opacity = opts.opacity !== undefined ? opts.opacity : 1.;
 
-        this.program = null;
-        this.vertices = null;
-        this.fill_texture = null;
-        this.texcoords = null;
+        this.gl_elems = null;
     }
 
     /**
@@ -72,19 +69,23 @@ class Paintball extends PlotComponent {
      */
     async onAdd(map: MapType, gl: WebGLRenderingContext) {
         gl.getExtension('OES_texture_float');
-        
-        this.program = new WGLProgram(gl, paintball_vertex_shader_src, paintball_fragment_shader_src);
+
+        const program = new WGLProgram(gl, paintball_vertex_shader_src, paintball_fragment_shader_src);
 
         const {vertices: verts_buf, texcoords: tex_coords_buf} = await this.field.grid.getWGLBuffers(gl);
-        this.vertices = verts_buf;
-        this.texcoords = tex_coords_buf;
+        const vertices = verts_buf;
+        const texcoords = tex_coords_buf;
 
         const fill_image = {'format': gl.LUMINANCE, 'type': gl.FLOAT,
             'width': this.field.grid.ni, 'height': this.field.grid.nj, 'image': this.field.data,
             'mag_filter': gl.NEAREST,
         };
 
-        this.fill_texture = new WGLTexture(gl, fill_image);
+        const fill_texture = new WGLTexture(gl, fill_image);
+
+        this.gl_elems = {
+            program: program, vertices: vertices, fill_texture: fill_texture, texcoords: texcoords,
+        };
     }
 
     /**
@@ -92,18 +93,20 @@ class Paintball extends PlotComponent {
      * Render the paintball plot
      */
     render(gl: WebGLRenderingContext, matrix: number[]) {
-        if (this.program === null || this.vertices === null || this.texcoords === null || this.fill_texture === null) return;
+        if (this.gl_elems === null) return;
+        const gl_elems = this.gl_elems;
 
-        this.program.use(
-            {'a_pos': this.vertices, 'a_tex_coord': this.texcoords},
+        // Render to framebuffer
+        gl_elems.program.use(
+            {'a_pos': gl_elems.vertices, 'a_tex_coord': gl_elems.texcoords},
             {'u_matrix': matrix, 'u_opacity': this.opacity, 'u_colors': this.colors, 'u_num_colors': this.colors.length / 4},
-            {'u_fill_sampler': this.fill_texture}
+            {'u_fill_sampler': gl_elems.fill_texture}
         );
 
         gl.enable(gl.BLEND);
         gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 
-        this.program.draw();
+        gl_elems.program.draw();
     }
 }
 
