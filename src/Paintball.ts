@@ -71,6 +71,8 @@ class Paintball extends PlotComponent {
      * Add the paintball plot to a map.
      */
     async onAdd(map: MapType, gl: WebGLRenderingContext) {
+        gl.getExtension('OES_texture_float');
+        
         this.program = new WGLProgram(gl, paintball_vertex_shader_src, paintball_fragment_shader_src);
 
         const {vertices: verts_buf, texcoords: tex_coords_buf} = await this.field.grid.getWGLBuffers(gl);
