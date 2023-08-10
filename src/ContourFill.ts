@@ -19,6 +19,16 @@ interface ContourFillOptions {
     opacity?: number;
 }
 
+interface ContourFillGLElems {
+    program: WGLProgram;
+    vertices: WGLBuffer;
+
+    fill_texture: WGLTexture;
+    texcoords: WGLBuffer;
+    cmap_texture: WGLTexture;
+    cmap_nonlin_texture: WGLTexture;
+}
+
 /** 
  * A filled contoured field 
  * @example
@@ -36,18 +46,7 @@ class ContourFill extends PlotComponent {
     readonly index_map: Float32Array;
 
     /** @private */
-    program: WGLProgram | null;
-    /** @private */
-    vertices: WGLBuffer | null;
-
-    /** @private */
-    fill_texture: WGLTexture | null;
-    /** @private */
-    texcoords: WGLBuffer | null;
-    /** @private */
-    cmap_texture: WGLTexture | null;
-    /** @private */
-    cmap_nonlin_texture: WGLTexture | null;
+    gl_elems: ContourFillGLElems | null;
 
     /**
      * Create a filled contoured field
@@ -86,12 +85,7 @@ class ContourFill extends PlotComponent {
 
         this.index_map = new Float32Array(inv_cmap_norm);
 
-        this.program = null;
-        this.vertices = null;
-        this.fill_texture = null;
-        this.texcoords = null;
-        this.cmap_texture = null;
-        this.cmap_nonlin_texture = null;
+        this.gl_elems = null;
     }
 
     /**
@@ -103,21 +97,21 @@ class ContourFill extends PlotComponent {
         gl.getExtension('OES_texture_float');
         gl.getExtension('OES_texture_float_linear');
         
-        this.program = new WGLProgram(gl, contourfill_vertex_shader_src, contourfill_fragment_shader_src);
+        const program = new WGLProgram(gl, contourfill_vertex_shader_src, contourfill_fragment_shader_src);
 
         const {vertices: verts_buf, texcoords: tex_coords_buf} = await this.field.grid.getWGLBuffers(gl);
-        this.vertices = verts_buf;
-        this.texcoords = tex_coords_buf;
+        const vertices = verts_buf;
+        const texcoords = tex_coords_buf;
 
         const fill_image = {'format': gl.LUMINANCE, 'type': gl.FLOAT,
             'width': this.field.grid.ni, 'height': this.field.grid.nj, 'image': this.field.data,
             'mag_filter': gl.LINEAR,
         };
 
-        this.fill_texture = new WGLTexture(gl, fill_image);
+        const fill_texture = new WGLTexture(gl, fill_image);
 
         const cmap_image = {'format': gl.RGBA, 'type': gl.UNSIGNED_BYTE, 'image': this.cmap_image, 'mag_filter': gl.NEAREST};
-        this.cmap_texture = new WGLTexture(gl, cmap_image);
+        const cmap_texture = new WGLTexture(gl, cmap_image);
 
         const cmap_nonlin_image = {'format': gl.LUMINANCE, 'type': gl.FLOAT, 
             'width': this.index_map.length, 'height': 1,
@@ -125,7 +119,11 @@ class ContourFill extends PlotComponent {
             'mag_filter': gl.LINEAR
         };
 
-        this.cmap_nonlin_texture = new WGLTexture(gl, cmap_nonlin_image);
+        const cmap_nonlin_texture = new WGLTexture(gl, cmap_nonlin_image);
+        this.gl_elems = {
+            program: program, vertices: vertices, texcoords: texcoords, 
+            fill_texture: fill_texture, cmap_texture: cmap_texture, cmap_nonlin_texture: cmap_nonlin_texture,
+        };
     }
 
     /**
@@ -133,20 +131,20 @@ class ContourFill extends PlotComponent {
      * Render the filled contours
      */
     render(gl: WebGLRenderingContext, matrix: number[]) {
-        if (this.program === null || this.vertices === null || this.texcoords === null ||
-            this.fill_texture === null || this.cmap_texture === null || this.cmap_nonlin_texture === null) return;
+        if (this.gl_elems === null) return;
+        const gl_elems = this.gl_elems;
 
-        this.program.use(
-            {'a_pos': this.vertices, 'a_tex_coord': this.texcoords},
+        gl_elems.program.use(
+            {'a_pos': gl_elems.vertices, 'a_tex_coord': gl_elems.texcoords},
             {'u_cmap_min': this.cmap.levels[0], 'u_cmap_max': this.cmap.levels[this.cmap.levels.length - 1], 'u_matrix': matrix, 'u_opacity': this.opacity,
              'u_n_index': this.index_map.length},
-            {'u_fill_sampler': this.fill_texture, 'u_cmap_sampler': this.cmap_texture, 'u_cmap_nonlin_sampler': this.cmap_nonlin_texture}
+            {'u_fill_sampler': gl_elems.fill_texture, 'u_cmap_sampler': gl_elems.cmap_texture, 'u_cmap_nonlin_sampler': gl_elems.cmap_nonlin_texture}
         );
 
         gl.enable(gl.BLEND);
         gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 
-        this.program.draw();
+        gl_elems.program.draw();
     }
 }
 

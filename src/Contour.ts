@@ -35,6 +35,15 @@ interface ContourOptions {
     thinner?: (zoom: number) => number;
 }
 
+interface ContourGLElems {
+    map: MapType;
+    program: WGLProgram;
+    vertices: WGLBuffer;
+    grid_cell_size: WGLBuffer;
+    fill_texture: WGLTexture;
+    texcoords: WGLBuffer;
+}
+
 /** 
  * A field of contoured data. The contours can optionally be thinned based on map zoom level.
  * @example
@@ -51,17 +60,7 @@ class Contour extends PlotComponent {
     readonly thinner: (zoom: number) => number;
 
     /** @private */
-    map: MapType | null;
-    /** @private */
-    program: WGLProgram | null;
-    /** @private */
-    vertices: WGLBuffer | null;
-    /** @private */
-    grid_cell_size: WGLBuffer | null;
-    /** @private */
-    fill_texture: WGLTexture | null;
-    /** @private */
-    texcoords: WGLBuffer | null;
+    gl_elems: ContourGLElems | null;
 
     /**
      * Create a contoured field
@@ -81,12 +80,7 @@ class Contour extends PlotComponent {
 
         this.thinner = opts.thinner || (() => 1);
 
-        this.map = null;
-        this.program = null;
-        this.vertices = null;
-        this.grid_cell_size = null;
-        this.fill_texture = null;
-        this.texcoords = null;
+        this.gl_elems = null;
     }
 
     /**
@@ -95,25 +89,26 @@ class Contour extends PlotComponent {
      */
     async onAdd(map: MapType, gl: WebGLRenderingContext) {
         // Basic procedure for these contours from https://www.shadertoy.com/view/lltBWM
-        this.map = map;
-
         gl.getExtension('OES_texture_float');
         gl.getExtension('OES_texture_float_linear');
         gl.getExtension('OES_standard_derivatives');
         
-        this.program = new WGLProgram(gl, contour_vertex_shader_src, contour_fragment_shader_src);
+        const program = new WGLProgram(gl, contour_vertex_shader_src, contour_fragment_shader_src);
 
         const {vertices: verts_buf, texcoords: tex_coords_buf, cellsize: cellsize_buf} = await this.field.grid.getWGLBuffers(gl);
-        this.vertices = verts_buf;
-        this.texcoords = tex_coords_buf;
-        this.grid_cell_size = cellsize_buf;
+        const vertices = verts_buf;
+        const texcoords = tex_coords_buf;
+        const grid_cell_size = cellsize_buf;
 
         const fill_image = {'format': gl.LUMINANCE, 'type': gl.FLOAT, 
             'width': this.field.grid.ni, 'height': this.field.grid.nj, 'image': this.field.data,
             'mag_filter': gl.LINEAR,
         };
 
-        this.fill_texture = new WGLTexture(gl, fill_image);
+        const fill_texture = new WGLTexture(gl, fill_image);
+        this.gl_elems = {
+            map: map, program: program, vertices: vertices, texcoords: texcoords, grid_cell_size: grid_cell_size, fill_texture: fill_texture
+        };
     }
 
     /**
@@ -121,10 +116,10 @@ class Contour extends PlotComponent {
      * Render the contours
      */
     render(gl: WebGLRenderingContext, matrix: number[]) {
-        if (this.map === null || this.program === null || this.vertices === null || this.grid_cell_size === null || 
-            this.fill_texture === null || this.texcoords === null) return;
+        if (this.gl_elems === null) return;
+        const gl_elems = this.gl_elems;
 
-        const zoom = this.map.getZoom();
+        const zoom = gl_elems.map.getZoom();
         const intv = this.thinner(zoom) * this.interval;
         const cutoff = 0.5 / intv;
         const step_size = [0.25 / this.field.grid.ni, 0.25 / this.field.grid.nj];
@@ -137,16 +132,16 @@ class Contour extends PlotComponent {
             uniforms = {...uniforms, 'u_num_contours': this.levels.length, 'u_contour_levels': this.levels}
         }
 
-        this.program.use(
-            {'a_pos': this.vertices, 'a_grid_cell_size': this.grid_cell_size, 'a_tex_coord': this.texcoords},
+        gl_elems.program.use(
+            {'a_pos': gl_elems.vertices, 'a_grid_cell_size': gl_elems.grid_cell_size, 'a_tex_coord': gl_elems.texcoords},
             uniforms,
-            {'u_fill_sampler': this.fill_texture}
+            {'u_fill_sampler': gl_elems.fill_texture}
         );
 
         gl.enable(gl.BLEND);
         gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 
-        this.program.draw();
+        gl_elems.program.draw();
     }
 }
 

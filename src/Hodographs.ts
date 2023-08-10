@@ -3,7 +3,7 @@ import { PlotComponent, layer_worker } from "./PlotComponent";
 import { PolylineCollection, LineSpec} from "./PolylineCollection";
 import { BillboardCollection } from "./BillboardCollection";
 import { getMinZoom, hex2rgba } from './utils';
-import { LngLat } from "./Map";
+import { LngLat, MapType } from "./Map";
 import { RawProfileField } from "./RawField";
 
 const LINE_WIDTH = 4;
@@ -97,6 +97,13 @@ interface HodographOptions {
     thin_fac?: number;
 }
 
+interface HodographGLElems {
+    map: MapType;
+    bg_billboard: BillboardCollection | null;
+    hodo_line: PolylineCollection | null;
+    sm_line: PolylineCollection | null;
+}
+
 /** A class representing a a field of hodograph plots */
 class Hodographs extends PlotComponent {
     readonly profile_field: RawProfileField;
@@ -104,13 +111,7 @@ class Hodographs extends PlotComponent {
     readonly thin_fac: number;
 
     /** @private */
-    map: mapboxgl.Map | null;
-    /** @private */
-    bg_billboard: BillboardCollection | null;
-    /** @private */
-    hodo_line: PolylineCollection | null;
-    /** @private */
-    sm_line: PolylineCollection | null;
+    gl_elems: HodographGLElems;
 
     /**
      * Create a field of hodographs
@@ -128,10 +129,7 @@ class Hodographs extends PlotComponent {
         this.bgcolor = [color[0], color[1], color[2]];
         this.thin_fac = opts.thin_fac || 1;
 
-        this.map = null;
-        this.bg_billboard = null;
-        this.hodo_line = null;
-        this.sm_line = null;
+        this.gl_elems = null;
     }
 
     /**
@@ -139,15 +137,13 @@ class Hodographs extends PlotComponent {
      * Add the hodographs to a map
      */
     async onAdd(map: mapboxgl.Map, gl: WebGLRenderingContext) {
-        this.map = map;
-
         const hodo_scale = (HODO_BG_DIMS.BB_TEX_WIDTH - LINE_WIDTH / 2) / (HODO_BG_DIMS.BB_TEX_WIDTH * BG_MAX_RING_MAG);
         const bg_size = 140;
 
         const bg_image = {'format': gl.RGBA, 'type': gl.UNSIGNED_BYTE, 'image': HODO_BG_TEXTURE, 'mag_filter': gl.NEAREST};
         const max_zoom = map.getMaxZoom();
 
-        this.bg_billboard = new BillboardCollection(gl, this.profile_field.getStormMotionGrid(), this.thin_fac, max_zoom, bg_image, HODO_BG_DIMS, this.bgcolor, 
+        const bg_billboard = new BillboardCollection(gl, this.profile_field.getStormMotionGrid(), this.thin_fac, max_zoom, bg_image, HODO_BG_DIMS, this.bgcolor, 
                                                     bg_size * 0.004);
 
         const hodo_polyline = await layer_worker.makePolyLines(this.profile_field.profiles.map(prof => {
@@ -165,7 +161,7 @@ class Hodographs extends PlotComponent {
         }));
 
         const height_image = {'format': gl.RGBA, 'type': gl.UNSIGNED_BYTE, 'image': HODO_HEIGHT_TEXTURE, 'mag_filter': gl.NEAREST};
-        this.hodo_line = new PolylineCollection(gl, hodo_polyline, height_image, 1.5, hodo_scale * bg_size);
+        const hodo_line = new PolylineCollection(gl, hodo_polyline, height_image, 1.5, hodo_scale * bg_size);
 
         const sm_polyline = await layer_worker.makePolyLines(this.profile_field.profiles.map(prof => {
             const pt_ll = new LngLat(prof['lon'], prof['lat']).toMercatorCoord();
@@ -191,7 +187,11 @@ class Hodographs extends PlotComponent {
         const sm_image = {'format': gl.RGBA, 'type': gl.UNSIGNED_BYTE, 'width': 1, 'height': 1, 'image': new Uint8Array(byte_color), 
                           'mag_filter': gl.NEAREST}
 
-        this.sm_line = new PolylineCollection(gl, sm_polyline, sm_image, 1, hodo_scale * bg_size);
+        const sm_line = new PolylineCollection(gl, sm_polyline, sm_image, 1, hodo_scale * bg_size);
+
+        this.gl_elems = {
+            map: map, bg_billboard: bg_billboard, hodo_line: hodo_line, sm_line: sm_line
+        };
     }
 
     /**
@@ -199,17 +199,18 @@ class Hodographs extends PlotComponent {
      * Render the hodographs
      */
     render(gl: WebGLRenderingContext, matrix: number[]) {
-        if (this.map === null || this.hodo_line === null || this.sm_line === null || this.bg_billboard === null) return;
+        if (this.gl_elems === null) return;
+        const gl_elems = this.gl_elems;
 
-        const zoom = this.map.getZoom();
-        const map_width = this.map.getCanvas().width;
-        const map_height = this.map.getCanvas().height;
-        const bearing = this.map.getBearing();
-        const pitch = this.map.getPitch();
+        const zoom = gl_elems.map.getZoom();
+        const map_width = gl_elems.map.getCanvas().width;
+        const map_height = gl_elems.map.getCanvas().height;
+        const bearing = gl_elems.map.getBearing();
+        const pitch = gl_elems.map.getPitch();
 
-        this.hodo_line.render(gl, matrix, [map_width, map_height], zoom, bearing, pitch);
-        this.sm_line.render(gl, matrix, [map_width, map_height], zoom, bearing, bearing);
-        this.bg_billboard.render(gl, matrix, [map_width, map_height], zoom, bearing, pitch);
+        gl_elems.hodo_line.render(gl, matrix, [map_width, map_height], zoom, bearing, pitch);
+        gl_elems.sm_line.render(gl, matrix, [map_width, map_height], zoom, bearing, bearing);
+        gl_elems.bg_billboard.render(gl, matrix, [map_width, map_height], zoom, bearing, pitch);
     }
 }
 
