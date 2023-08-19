@@ -3,7 +3,7 @@ import { MapType } from './Map';
 import { PlotComponent, layer_worker } from './PlotComponent';
 import { RawScalarField } from './RawField';
 import { hex2rgba } from './utils';
-import { WGLBuffer, WGLProgram, WGLTexture } from './wgl';
+import { WGLBuffer, WGLProgram, WGLTexture } from 'autumn-wgl';
 
 const contour_vertex_shader_src = require('./glsl/contour_vertex.glsl');
 const contour_fragment_shader_src = require('./glsl/contour_fragment.glsl');

@@ -26,6 +26,7 @@
         "webpack-glsl-loader": "^1.0.1"
     },
     "dependencies": {
+        "autumn-wgl": "^1.0.0",
         "comlink": "^4.3.1"
     }
 }

@@ -1,5 +1,5 @@
 
-import { WGLBuffer, WGLProgram, WGLTexture, WGLTextureSpec } from "./wgl";
+import { WGLBuffer, WGLProgram, WGLTexture, WGLTextureSpec } from "autumn-wgl";
 import { PolylineSpec, LineSpec } from "./AutumnTypes";
 
 const polyline_vertex_src = require('./glsl/polyline_vertex.glsl');

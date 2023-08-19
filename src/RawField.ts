@@ -3,7 +3,7 @@ import { WindProfile } from "./AutumnTypes";
 import { lambertConformalConic } from "./Map";
 import { layer_worker } from "./PlotComponent";
 import { zip } from "./utils";
-import { WGLBuffer } from "./wgl";
+import { WGLBuffer } from "autumn-wgl";
 
 class Cache<A extends unknown[], R> {
     cached_value: R | null;

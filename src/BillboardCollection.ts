@@ -1,7 +1,7 @@
 
 import { BillboardSpec } from "./AutumnTypes";
 import { RawVectorField } from "./RawField";
-import { WGLBuffer, WGLProgram, WGLTexture, WGLTextureSpec } from "./wgl";
+import { WGLBuffer, WGLProgram, WGLTexture, WGLTextureSpec } from "autumn-wgl";
 
 const billboard_vertex_shader_src = require('./glsl/billboard_vertex.glsl');
 const billboard_fragment_shader_src = require('./glsl/billboard_fragment.glsl');

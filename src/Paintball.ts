@@ -3,7 +3,7 @@ import { MapType } from "./Map";
 import { PlotComponent } from "./PlotComponent";
 import { RawScalarField } from "./RawField";
 import { hex2rgba } from "./utils";
-import { WGLBuffer, WGLProgram, WGLTexture } from "./wgl";
+import { WGLBuffer, WGLProgram, WGLTexture } from "autumn-wgl";
 
 const paintball_vertex_shader_src = require('./glsl/paintball_vertex.glsl');
 const paintball_fragment_shader_src = require('./glsl/paintball_fragment.glsl');
