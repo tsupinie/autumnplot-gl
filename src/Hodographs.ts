@@ -51,7 +51,7 @@ function _createHodoBackgroundTexture() {
     return canvas;
 };
 
-const HODO_BG_TEXTURE = _createHodoBackgroundTexture();
+let HODO_BG_TEXTURE: HTMLCanvasElement | null = null;
 
 const HODO_COLORS = [
     {'bounds': [0, 1], 'color': '#ffffcc'}, 
@@ -81,7 +81,7 @@ function _createHodoHeightTexture() {
     return canvas;
 }
 
-const HODO_HEIGHT_TEXTURE = _createHodoHeightTexture();
+let HODO_HEIGHT_TEXTURE: HTMLCanvasElement | null = null;
 
 interface HodographOptions {
     /** 
@@ -140,6 +140,10 @@ class Hodographs extends PlotComponent {
         const hodo_scale = (HODO_BG_DIMS.BB_TEX_WIDTH - LINE_WIDTH / 2) / (HODO_BG_DIMS.BB_TEX_WIDTH * BG_MAX_RING_MAG);
         const bg_size = 140;
 
+        if (HODO_BG_TEXTURE === null) {
+            HODO_BG_TEXTURE = _createHodoBackgroundTexture();
+        }
+
         const bg_image = {'format': gl.RGBA, 'type': gl.UNSIGNED_BYTE, 'image': HODO_BG_TEXTURE, 'mag_filter': gl.NEAREST};
         const max_zoom = map.getMaxZoom();
 
@@ -159,6 +163,10 @@ class Hodographs extends PlotComponent {
                 'texcoords': [...prof['z']].map(z => [z /  max_tex_z, 0.5])
             } as LineSpec;
         }));
+
+        if (HODO_HEIGHT_TEXTURE === null) {
+            HODO_HEIGHT_TEXTURE = _createHodoHeightTexture();
+        }
 
         const height_image = {'format': gl.RGBA, 'type': gl.UNSIGNED_BYTE, 'image': HODO_HEIGHT_TEXTURE, 'mag_filter': gl.NEAREST};
         const hodo_line = new PolylineCollection(gl, hodo_polyline, height_image, 1.5, hodo_scale * bg_size);

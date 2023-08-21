@@ -121,7 +121,7 @@ function _createBarbTexture() : HTMLCanvasElement {
     return canvas;
 }
 
-const BARB_TEXTURE = _createBarbTexture();
+let BARB_TEXTURE: HTMLCanvasElement | null = null;
 
 interface BarbsOptions {
     /** 
@@ -186,6 +186,10 @@ class Barbs extends PlotComponent {
         gl.getExtension('OES_texture_float_linear');
         
         const map_max_zoom = map.getMaxZoom();
+
+        if (BARB_TEXTURE === null) {
+            BARB_TEXTURE = _createBarbTexture();
+        }
 
         const barb_image = {format: gl.RGBA, type: gl.UNSIGNED_BYTE, image: BARB_TEXTURE, mag_filter: gl.NEAREST};
 
