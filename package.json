@@ -2,12 +2,15 @@
     "name": "autumnplot-gl",
     "version": "2.0-beta1",
     "description": "",
-    "main": "index.ts",
+    "main": "lib/index.js",
+    "types": "lib/index.d.ts",
+    "files": ["lib/**/*"],
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
         "docs": "npx typedoc --options typedoc.json",
         "start": "webpack serve --open --mode=development",
-        "build": "webpack --mode=production"
+        "build-dist": "webpack --mode=production",
+        "build-npm": "./scripts/build_npm.sh"
     },
     "keywords": [],
     "author": "Tim Supinie",

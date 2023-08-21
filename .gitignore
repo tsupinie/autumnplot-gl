@@ -1,6 +1,7 @@
 node_modules/
 docs/
 dist/
+lib/
 
 public/maptiler.js
 public/data
