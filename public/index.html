@@ -2,44 +2,14 @@
 <html>
     <head>
         <title>AutumnPlotGL</title>
-        <script src='https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.js'></script>
-        <link href='https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.css' rel='stylesheet' />
+        <script src='https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js'></script>
+        <link href='https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css' rel='stylesheet' />
         <script src="autumnplot-gl.js"></script>
-        <script src="maptiler.js"></script>
-        <script>
-            const nx = 121, ny = 61;
-            const grid = new apgl.PlateCarreeGrid(nx, ny, -130, 20, -65, 55);
-            let hght = [], u = [], v = [];
-            for (i = 0; i < nx; i++) {
-                for (j = 0; j < ny; j++) {
-                    const idx = i + j * nx;
-                    hght[idx] = 10 * (Math.cos(4 * Math.PI * i / (nx - 1)) * Math.cos(2 * Math.PI * j / (ny - 1)) - 0.05 * j);
-                    u[idx] = 60 * (Math.cos(4 * Math.PI * i / (nx - 1)) * Math.sin(2 * Math.PI * j / (ny - 1)) + 0.5);
-                    v[idx] = -60 * Math.sin(4 * Math.PI * i / (nx - 1)) * Math.cos(2 * Math.PI * j / (ny - 1));
-                }
-            }
-
-            const colormap = apgl.colormaps.pw_speed500mb;
-            const svg = apgl.makeColorBar(colormap, {label: "Wind Speed (kts)", fontface: 'Trebuchet MS', 
-                                                     ticks: [20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140],
-                                                     orientation: 'horizontal', tick_direction: 'bottom'});
-
-            const raw_hght_field = new apgl.RawScalarField(grid, new Float32Array(hght));
-            const raw_u_field = new apgl.RawScalarField(grid, new Float32Array(u));
-            const raw_v_field = new apgl.RawScalarField(grid, new Float32Array(v));
-            const raw_ws_field = apgl.RawScalarField.aggregateFields(Math.hypot, raw_u_field, raw_v_field);
-
-            const cntr = new apgl.Contour(raw_hght_field, {interval: 1, color: '#000000', thinner: zoom => zoom < 5 ? 2 : 1});
-            const filled = new apgl.ContourFill(raw_ws_field, {'cmap': colormap, 'opacity': 0.8});
-            const barbs = new apgl.Barbs({'u': raw_u_field, 'v': raw_v_field}, {color: '#000000', thin_fac: 16});
-
-            const hght_layer = new apgl.PlotLayer('height', cntr);
-            const ws_layer = new apgl.PlotLayer('wind-speed', filled);
-            const barb_layer = new apgl.PlotLayer('barbs', barbs);
-        </script>
+        <script src="main.js"></script>
         <style>
             body {
                 margin: 0px;
+                font-family: sans-serif;
             }
 
             div#colorbar.left {
@@ -63,7 +33,7 @@
                 width: 100%;
                 height: 67px;
                 z-index: 10;
-                background-color: #ffffffbb;
+                background-color: #ffffffcc;
             }
             div#colorbar.bottom svg {
                 position: absolute;
@@ -77,27 +47,33 @@
                 width: 100%;
                 height: 100vh;
             }
+
+            div#selection {
+                z-index: 10;
+                display: inline-block;
+                position: absolute;
+                left: 0px;
+                top: 0px;
+                height: 1.8em;
+                background-color: #ffffffcc;
+                padding: 1em;
+                font-size: 1.1em;
+                
+                border-bottom-right-radius: 10px;
+            }
+
+            div#selection select {
+                font-size: 0.9em;
+            }
         </style>
     </head>
     <body>
+        <div id='selection'>
+            View:
+            <select>
+            </select>
+        </div>
         <div id='colorbar' class="bottom"></div>
         <div id='map'></div>
-        <script>
-        const map = new maplibregl.Map({
-            container: 'map',
-            style: 'https://api.maptiler.com/maps/dbc6e216-3574-4e78-93f9-ab90ff4905a4/style.json?key=' + MAPTILER_API_KEY, // stylesheet location
-            center: [-100.5, 35.5], // starting position [lng, lat]
-            zoom: 6 // starting zoom
-        });
-        
-        map.on('load', () => {
-            //console.log(map.style.stylesheet.layers.map(lyr => lyr.id));
-            map.addLayer(ws_layer, 'aeroway');
-            map.addLayer(hght_layer, 'aeroway');
-            map.addLayer(barb_layer, 'aeroway');
-        });
-
-        document.getElementById('colorbar').appendChild(svg);
-        </script>
     </body>
 </html>
