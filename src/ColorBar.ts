@@ -206,7 +206,7 @@ interface PaintballKeyOptions {
 }
 
 /**
- * Make an SVG containing a color key for a paintball plot. The color bar can either be oriented horizontal or vertical, and a label can be provided.
+ * Make an SVG containing a color key for a paintball plot. The key can be split over any number of columns.
  * @param colors - A list of colors 
  * @param labels - The labels corresponding to each color
  * @param opts   - The options for creating the color key
