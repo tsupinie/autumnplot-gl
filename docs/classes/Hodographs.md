@@ -18,17 +18,13 @@ A class representing a a field of hodograph plots
 
 ### Properties
 
-- [bg\_billboard](Hodographs.md#bg_billboard)
 - [bgcolor](Hodographs.md#bgcolor)
-- [hodo\_line](Hodographs.md#hodo_line)
-- [map](Hodographs.md#map)
-- [profiles](Hodographs.md#profiles)
-- [sm\_line](Hodographs.md#sm_line)
+- [gl\_elems](Hodographs.md#gl_elems)
+- [profile\_field](Hodographs.md#profile_field)
 - [thin\_fac](Hodographs.md#thin_fac)
 
 ### Methods
 
-- [\_getHodoBackgroundElements](Hodographs.md#_gethodobackgroundelements)
 - [onAdd](Hodographs.md#onadd)
 - [render](Hodographs.md#render)
 
@@ -36,7 +32,7 @@ A class representing a a field of hodograph plots
 
 ### constructor
 
-• **new Hodographs**(`profiles`, `opts`)
+• **new Hodographs**(`profile_field`, `opts?`)
 
 Create a field of hodographs
 
@@ -44,10 +40,8 @@ Create a field of hodographs
 
 | Name | Type | Description |
 | :------ | :------ | :------ |
-| `profiles` | [`WindProfile`](../interfaces/WindProfile.md)[] | A list of profiles to use |
-| `opts` | `Object` | Various options to use when creating the hodographs |
-| `opts.bgcolor` | `string` | - |
-| `opts.thin_fac` | `number` | - |
+| `profile_field` | [`RawProfileField`](RawProfileField.md) | The grid of profiles to plot |
+| `opts?` | [`HodographOptions`](../interfaces/HodographOptions.md) | Various options to use when creating the hodographs |
 
 #### Overrides
 
@@ -55,19 +49,9 @@ Create a field of hodographs
 
 #### Defined in
 
-[Hodographs.ts:98](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Hodographs.ts#L98)
+[Hodographs.ts:122](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/Hodographs.ts#L122)
 
 ## Properties
-
-### bg\_billboard
-
-• `Private` **bg\_billboard**: `BillboardCollection`
-
-#### Defined in
-
-[Hodographs.ts:87](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Hodographs.ts#L87)
-
-___
 
 ### bgcolor
 
@@ -75,47 +59,27 @@ ___
 
 #### Defined in
 
-[Hodographs.ts:81](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Hodographs.ts#L81)
+[Hodographs.ts:111](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/Hodographs.ts#L111)
 
 ___
 
-### hodo\_line
+### gl\_elems
 
-• `Private` **hodo\_line**: `PolylineCollection`
+• `Private` **gl\_elems**: `HodographGLElems`
 
 #### Defined in
 
-[Hodographs.ts:89](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Hodographs.ts#L89)
+[Hodographs.ts:115](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/Hodographs.ts#L115)
 
 ___
 
-### map
+### profile\_field
 
-• `Private` **map**: `Map`
-
-#### Defined in
-
-[Hodographs.ts:85](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Hodographs.ts#L85)
-
-___
-
-### profiles
-
-• `Readonly` **profiles**: [`WindProfile`](../interfaces/WindProfile.md)[]
+• `Readonly` **profile\_field**: [`RawProfileField`](RawProfileField.md)
 
 #### Defined in
 
-[Hodographs.ts:80](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Hodographs.ts#L80)
-
-___
-
-### sm\_line
-
-• `Private` **sm\_line**: `PolylineCollection`
-
-#### Defined in
-
-[Hodographs.ts:91](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Hodographs.ts#L91)
+[Hodographs.ts:110](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/Hodographs.ts#L110)
 
 ___
 
@@ -125,34 +89,22 @@ ___
 
 #### Defined in
 
-[Hodographs.ts:82](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Hodographs.ts#L82)
+[Hodographs.ts:112](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/Hodographs.ts#L112)
 
 ## Methods
-
-### \_getHodoBackgroundElements
-
-▸ **_getHodoBackgroundElements**(): `BillboardSpec`
-
-#### Returns
-
-`BillboardSpec`
-
-#### Defined in
-
-[Hodographs.ts:182](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Hodographs.ts#L182)
-
-___
 
 ### onAdd
 
 ▸ **onAdd**(`map`, `gl`): `Promise`<`void`\>
+
+Add the hodographs to a map
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `map` | `Map` |
-| `gl` | `WebGLRenderingContext` |
+| `gl` | `WebGLAnyRenderingContext` |
 
 #### Returns
 
@@ -164,7 +116,7 @@ ___
 
 #### Defined in
 
-[Hodographs.ts:113](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Hodographs.ts#L113)
+[Hodographs.ts:140](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/Hodographs.ts#L140)
 
 ___
 
@@ -172,11 +124,13 @@ ___
 
 ▸ **render**(`gl`, `matrix`): `void`
 
+Render the hodographs
+
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `gl` | `WebGLRenderingContext` |
+| `gl` | `WebGLAnyRenderingContext` |
 | `matrix` | `number`[] |
 
 #### Returns
@@ -189,4 +143,4 @@ ___
 
 #### Defined in
 
-[Hodographs.ts:168](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Hodographs.ts#L168)
+[Hodographs.ts:210](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/Hodographs.ts#L210)

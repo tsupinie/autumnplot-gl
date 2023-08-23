@@ -10,12 +10,17 @@
 - [ColorMap](classes/ColorMap.md)
 - [Contour](classes/Contour.md)
 - [ContourFill](classes/ContourFill.md)
+- [Grid](classes/Grid.md)
 - [Hodographs](classes/Hodographs.md)
+- [LambertGrid](classes/LambertGrid.md)
 - [MultiPlotLayer](classes/MultiPlotLayer.md)
+- [Paintball](classes/Paintball.md)
 - [PlateCarreeGrid](classes/PlateCarreeGrid.md)
 - [PlotComponent](classes/PlotComponent.md)
 - [PlotLayer](classes/PlotLayer.md)
+- [RawProfileField](classes/RawProfileField.md)
 - [RawScalarField](classes/RawScalarField.md)
+- [RawVectorField](classes/RawVectorField.md)
 
 ### Interfaces
 
@@ -24,15 +29,19 @@
 - [ColorBarOptions](interfaces/ColorBarOptions.md)
 - [ContourFillOptions](interfaces/ContourFillOptions.md)
 - [ContourOptions](interfaces/ContourOptions.md)
+- [HodographOptions](interfaces/HodographOptions.md)
+- [PaintballKeyOptions](interfaces/PaintballKeyOptions.md)
+- [PaintballOptions](interfaces/PaintballOptions.md)
+- [RawVectorFieldOptions](interfaces/RawVectorFieldOptions.md)
 - [WindProfile](interfaces/WindProfile.md)
 
 ### Type Aliases
 
 - [ColorbarOrientation](modules.md#colorbarorientation)
 - [ColorbarTickDirection](modules.md#colorbartickdirection)
-- [Grid](modules.md#grid)
+- [GridType](modules.md#gridtype)
 - [MapType](modules.md#maptype)
-- [RawVectorField](modules.md#rawvectorfield)
+- [VectorRelativeTo](modules.md#vectorrelativeto)
 
 ### Variables
 
@@ -41,6 +50,7 @@
 ### Functions
 
 - [makeColorBar](modules.md#makecolorbar)
+- [makePaintballKey](modules.md#makepaintballkey)
 
 ## Type Aliases
 
@@ -50,7 +60,7 @@
 
 #### Defined in
 
-[Colormap.ts:170](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Colormap.ts#L170)
+[ColorBar.ts:4](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/ColorBar.ts#L4)
 
 ___
 
@@ -60,17 +70,17 @@ ___
 
 #### Defined in
 
-[Colormap.ts:171](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Colormap.ts#L171)
+[ColorBar.ts:5](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/ColorBar.ts#L5)
 
 ___
 
-### Grid
+### GridType
 
-Ƭ **Grid**: [`PlateCarreeGrid`](classes/PlateCarreeGrid.md)
+Ƭ **GridType**: ``"latlon"`` \| ``"lcc"``
 
 #### Defined in
 
-[RawField.ts:114](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/RawField.ts#L114)
+[RawField.ts:63](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/RawField.ts#L63)
 
 ___
 
@@ -80,24 +90,17 @@ ___
 
 #### Defined in
 
-[Map.ts:5](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Map.ts#L5)
+[Map.ts:5](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/Map.ts#L5)
 
 ___
 
-### RawVectorField
+### VectorRelativeTo
 
-Ƭ **RawVectorField**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `u` | [`RawScalarField`](classes/RawScalarField.md) |
-| `v` | [`RawScalarField`](classes/RawScalarField.md) |
+Ƭ **VectorRelativeTo**: ``"earth"`` \| ``"grid"``
 
 #### Defined in
 
-[RawField.ts:180](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/RawField.ts#L180)
+[RawField.ts:355](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/RawField.ts#L355)
 
 ## Variables
 
@@ -119,7 +122,7 @@ ___
 
 #### Defined in
 
-[index.ts:15](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/index.ts#L15)
+[index.ts:16](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/index.ts#L16)
 
 ## Functions
 
@@ -155,4 +158,40 @@ An SVGElement containing the color bar image.
 
 #### Defined in
 
-[Colormap.ts:215](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Colormap.ts#L215)
+[ColorBar.ts:65](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/ColorBar.ts#L65)
+
+___
+
+### makePaintballKey
+
+▸ **makePaintballKey**(`colors`, `labels`, `opts?`): `SVGElement`
+
+Make an SVG containing a color key for a paintball plot. The key can be split over any number of columns.
+
+**`Example`**
+
+```ts
+// Create the color key
+const svg = makePaintballKey(colors, labels, {n_cols: 2, fontface: 'Trebuchet MS'});
+
+// Add the color key to the page
+document.getElementById('pb-key-container').appendChild(svg);
+```
+
+#### Parameters
+
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `colors` | (`string` \| [`Color`](interfaces/Color.md))[] | A list of colors |
+| `labels` | `string`[] | The labels corresponding to each color |
+| `opts?` | [`PaintballKeyOptions`](interfaces/PaintballKeyOptions.md) | The options for creating the color key |
+
+#### Returns
+
+`SVGElement`
+
+An SVGElement containing the color bar image.
+
+#### Defined in
+
+[ColorBar.ts:221](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/ColorBar.ts#L221)

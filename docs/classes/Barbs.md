@@ -9,7 +9,7 @@ thinning factor at zoom level 1.
 
 ```ts
 // Create a barb field with black barbs and plotting every 16th wind barb in both i and j at zoom level 1
-const vector_field = {u: u_field, v: v_field};
+const vector_field = new RawVectorField(grid, u_data, v_data);
 const barbs = new Barbs(vector_field, {color: '#000000', thin_fac: 16});
 ```
 
@@ -27,10 +27,9 @@ const barbs = new Barbs(vector_field, {color: '#000000', thin_fac: 16});
 
 ### Properties
 
-- [barb\_billboards](Barbs.md#barb_billboards)
 - [color](Barbs.md#color)
 - [fields](Barbs.md#fields)
-- [map](Barbs.md#map)
+- [gl\_elems](Barbs.md#gl_elems)
 - [thin\_fac](Barbs.md#thin_fac)
 
 ### Methods
@@ -50,7 +49,7 @@ Create a field of wind barbs
 
 | Name | Type | Description |
 | :------ | :------ | :------ |
-| `fields` | [`RawVectorField`](../modules.md#rawvectorfield) | The u and v fields to use as an object |
+| `fields` | [`RawVectorField`](RawVectorField.md) | The vector field to plot as barbs |
 | `opts` | [`BarbsOptions`](../interfaces/BarbsOptions.md) | Options for creating the wind barbs |
 
 #### Overrides
@@ -59,19 +58,9 @@ Create a field of wind barbs
 
 #### Defined in
 
-[Barbs.ts:165](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Barbs.ts#L165)
+[Barbs.ts:169](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/Barbs.ts#L169)
 
 ## Properties
-
-### barb\_billboards
-
-• `Private` **barb\_billboards**: `BillboardCollection`
-
-#### Defined in
-
-[Barbs.ts:158](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Barbs.ts#L158)
-
-___
 
 ### color
 
@@ -79,29 +68,29 @@ ___
 
 #### Defined in
 
-[Barbs.ts:152](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Barbs.ts#L152)
+[Barbs.ts:158](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/Barbs.ts#L158)
 
 ___
 
 ### fields
 
-• `Readonly` **fields**: [`RawVectorField`](../modules.md#rawvectorfield)
+• `Readonly` **fields**: [`RawVectorField`](RawVectorField.md)
 
 The vector field
 
 #### Defined in
 
-[Barbs.ts:151](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Barbs.ts#L151)
+[Barbs.ts:157](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/Barbs.ts#L157)
 
 ___
 
-### map
+### gl\_elems
 
-• `Private` **map**: [`MapType`](../modules.md#maptype)
+• `Private` **gl\_elems**: `BarbsGLElems`
 
 #### Defined in
 
-[Barbs.ts:156](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Barbs.ts#L156)
+[Barbs.ts:162](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/Barbs.ts#L162)
 
 ___
 
@@ -111,7 +100,7 @@ ___
 
 #### Defined in
 
-[Barbs.ts:153](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Barbs.ts#L153)
+[Barbs.ts:159](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/Barbs.ts#L159)
 
 ## Methods
 
@@ -126,7 +115,7 @@ Add the barb field to a map
 | Name | Type |
 | :------ | :------ |
 | `map` | [`MapType`](../modules.md#maptype) |
-| `gl` | `WebGLRenderingContext` |
+| `gl` | `WebGLAnyRenderingContext` |
 
 #### Returns
 
@@ -138,7 +127,7 @@ Add the barb field to a map
 
 #### Defined in
 
-[Barbs.ts:182](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Barbs.ts#L182)
+[Barbs.ts:185](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/Barbs.ts#L185)
 
 ___
 
@@ -152,7 +141,7 @@ Render the barb field
 
 | Name | Type |
 | :------ | :------ |
-| `gl` | `WebGLRenderingContext` |
+| `gl` | `WebGLAnyRenderingContext` |
 | `matrix` | `number`[] |
 
 #### Returns
@@ -165,4 +154,4 @@ Render the barb field
 
 #### Defined in
 
-[Barbs.ts:202](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/Barbs.ts#L202)
+[Barbs.ts:209](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/Barbs.ts#L209)

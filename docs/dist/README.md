@@ -1,7 +1,7 @@
 # Pre-built autumnplot-gl JS files
 
 ## Files
-* [autumnplot-gl.js](autumnplot-gl.js): The main code
+* [autumplot-gl.js](autumplot-gl.js): The main code
 * [110.autumnplot-gl.js](110.autumnplot-gl.js): A web worker file
 
 ## Usage

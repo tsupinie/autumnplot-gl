@@ -69,7 +69,7 @@ PlotLayerBase.constructor
 
 #### Defined in
 
-[PlotLayer.ts:87](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/PlotLayer.ts#L87)
+[PlotLayer.ts:88](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/PlotLayer.ts#L88)
 
 ## Properties
 
@@ -79,7 +79,7 @@ PlotLayerBase.constructor
 
 #### Defined in
 
-[PlotLayer.ts:76](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/PlotLayer.ts#L76)
+[PlotLayer.ts:77](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/PlotLayer.ts#L77)
 
 ___
 
@@ -89,17 +89,17 @@ ___
 
 #### Defined in
 
-[PlotLayer.ts:74](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/PlotLayer.ts#L74)
+[PlotLayer.ts:75](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/PlotLayer.ts#L75)
 
 ___
 
 ### gl
 
-• `Private` **gl**: `WebGLRenderingContext`
+• `Private` **gl**: `WebGLAnyRenderingContext`
 
 #### Defined in
 
-[PlotLayer.ts:81](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/PlotLayer.ts#L81)
+[PlotLayer.ts:82](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/PlotLayer.ts#L82)
 
 ___
 
@@ -113,7 +113,7 @@ PlotLayerBase.id
 
 #### Defined in
 
-[PlotLayer.ts:8](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/PlotLayer.ts#L8)
+[PlotLayer.ts:9](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/PlotLayer.ts#L9)
 
 ___
 
@@ -123,7 +123,7 @@ ___
 
 #### Defined in
 
-[PlotLayer.ts:79](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/PlotLayer.ts#L79)
+[PlotLayer.ts:80](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/PlotLayer.ts#L80)
 
 ___
 
@@ -137,7 +137,7 @@ PlotLayerBase.type
 
 #### Defined in
 
-[PlotLayer.ts:7](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/PlotLayer.ts#L7)
+[PlotLayer.ts:8](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/PlotLayer.ts#L8)
 
 ## Methods
 
@@ -157,7 +157,7 @@ PlotLayerBase.type
 
 #### Defined in
 
-[PlotLayer.ts:165](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/PlotLayer.ts#L165)
+[PlotLayer.ts:166](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/PlotLayer.ts#L166)
 
 ___
 
@@ -180,7 +180,7 @@ Add a field valid at a specific date/time
 
 #### Defined in
 
-[PlotLayer.ts:148](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/PlotLayer.ts#L148)
+[PlotLayer.ts:149](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/PlotLayer.ts#L149)
 
 ___
 
@@ -198,7 +198,7 @@ An array of dates/times
 
 #### Defined in
 
-[PlotLayer.ts:139](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/PlotLayer.ts#L139)
+[PlotLayer.ts:140](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/PlotLayer.ts#L140)
 
 ___
 
@@ -213,7 +213,7 @@ Add this layer to a map
 | Name | Type |
 | :------ | :------ |
 | `map` | [`MapType`](../modules.md#maptype) |
-| `gl` | `WebGLRenderingContext` |
+| `gl` | `WebGLAnyRenderingContext` |
 
 #### Returns
 
@@ -225,7 +225,7 @@ PlotLayerBase.onAdd
 
 #### Defined in
 
-[PlotLayer.ts:100](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/PlotLayer.ts#L100)
+[PlotLayer.ts:101](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/PlotLayer.ts#L101)
 
 ___
 
@@ -239,7 +239,7 @@ Render this layer
 
 | Name | Type |
 | :------ | :------ |
-| `gl` | `WebGLRenderingContext` |
+| `gl` | `WebGLAnyRenderingContext` |
 | `matrix` | `number`[] |
 
 #### Returns
@@ -252,7 +252,7 @@ PlotLayerBase.render
 
 #### Defined in
 
-[PlotLayer.ts:117](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/PlotLayer.ts#L117)
+[PlotLayer.ts:118](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/PlotLayer.ts#L118)
 
 ___
 
@@ -274,4 +274,4 @@ Set the active key
 
 #### Defined in
 
-[PlotLayer.ts:128](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/PlotLayer.ts#L128)
+[PlotLayer.ts:129](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/PlotLayer.ts#L129)

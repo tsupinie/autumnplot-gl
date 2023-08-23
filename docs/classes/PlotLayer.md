@@ -58,7 +58,7 @@ PlotLayerBase.constructor
 
 #### Defined in
 
-[PlotLayer.ts:36](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/PlotLayer.ts#L36)
+[PlotLayer.ts:37](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/PlotLayer.ts#L37)
 
 ## Properties
 
@@ -68,7 +68,7 @@ PlotLayerBase.constructor
 
 #### Defined in
 
-[PlotLayer.ts:29](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/PlotLayer.ts#L29)
+[PlotLayer.ts:30](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/PlotLayer.ts#L30)
 
 ___
 
@@ -82,7 +82,7 @@ PlotLayerBase.id
 
 #### Defined in
 
-[PlotLayer.ts:8](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/PlotLayer.ts#L8)
+[PlotLayer.ts:9](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/PlotLayer.ts#L9)
 
 ___
 
@@ -96,7 +96,7 @@ PlotLayerBase.type
 
 #### Defined in
 
-[PlotLayer.ts:7](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/PlotLayer.ts#L7)
+[PlotLayer.ts:8](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/PlotLayer.ts#L8)
 
 ## Methods
 
@@ -111,7 +111,7 @@ Add this layer to a map
 | Name | Type |
 | :------ | :------ |
 | `map` | [`MapType`](../modules.md#maptype) |
-| `gl` | `WebGLRenderingContext` |
+| `gl` | `WebGLAnyRenderingContext` |
 
 #### Returns
 
@@ -123,7 +123,7 @@ PlotLayerBase.onAdd
 
 #### Defined in
 
-[PlotLayer.ts:45](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/PlotLayer.ts#L45)
+[PlotLayer.ts:46](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/PlotLayer.ts#L46)
 
 ___
 
@@ -137,7 +137,7 @@ Render this layer
 
 | Name | Type |
 | :------ | :------ |
-| `gl` | `WebGLRenderingContext` |
+| `gl` | `WebGLAnyRenderingContext` |
 | `matrix` | `number`[] |
 
 #### Returns
@@ -150,4 +150,4 @@ PlotLayerBase.render
 
 #### Defined in
 
-[PlotLayer.ts:53](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/PlotLayer.ts#L53)
+[PlotLayer.ts:54](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/PlotLayer.ts#L54)

@@ -12,13 +12,12 @@ A class representing a raw 2D field of gridded data, such as height or u wind.
 
 ### Properties
 
-- [\_pad\_cache](RawScalarField.md#_pad_cache)
 - [data](RawScalarField.md#data)
 - [grid](RawScalarField.md#grid)
 
 ### Methods
 
-- [getPaddedData](RawScalarField.md#getpaddeddata)
+- [getThinnedField](RawScalarField.md#getthinnedfield)
 - [aggregateFields](RawScalarField.md#aggregatefields)
 
 ## Constructors
@@ -33,24 +32,14 @@ Create a data field.
 
 | Name | Type | Description |
 | :------ | :------ | :------ |
-| `grid` | [`PlateCarreeGrid`](PlateCarreeGrid.md) | The grid on which the data are defined |
+| `grid` | [`Grid`](Grid.md) | The grid on which the data are defined |
 | `data` | `Float32Array` | The data, which should be given as a 1D array in row-major order, with the first element being at the lower-left corner of the grid. |
 
 #### Defined in
 
-[RawField.ts:130](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/RawField.ts#L130)
+[RawField.ts:307](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/RawField.ts#L307)
 
 ## Properties
-
-### \_pad\_cache
-
-• `Readonly` `Private` **\_pad\_cache**: `Cache`<[], { `data`: `Float32Array` ; `height`: `number` ; `width`: `number`  }\>
-
-#### Defined in
-
-[RawField.ts:123](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/RawField.ts#L123)
-
-___
 
 ### data
 
@@ -58,39 +47,38 @@ ___
 
 #### Defined in
 
-[RawField.ts:120](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/RawField.ts#L120)
+[RawField.ts:300](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/RawField.ts#L300)
 
 ___
 
 ### grid
 
-• `Readonly` **grid**: [`PlateCarreeGrid`](PlateCarreeGrid.md)
+• `Readonly` **grid**: [`Grid`](Grid.md)
 
 #### Defined in
 
-[RawField.ts:119](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/RawField.ts#L119)
+[RawField.ts:299](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/RawField.ts#L299)
 
 ## Methods
 
-### getPaddedData
+### getThinnedField
 
-▸ **getPaddedData**(): `Object`
+▸ **getThinnedField**(`thin_x`, `thin_y`): [`RawScalarField`](RawScalarField.md)
 
-Pad the data such that both axes are a power of 2 in length (internal method)
-
-#### Returns
-
-`Object`
+#### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `data` | `Float32Array` |
-| `height` | `number` |
-| `width` | `number` |
+| `thin_x` | `number` |
+| `thin_y` | `number` |
+
+#### Returns
+
+[`RawScalarField`](RawScalarField.md)
 
 #### Defined in
 
-[RawField.ts:153](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/RawField.ts#L153)
+[RawField.ts:316](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/RawField.ts#L316)
 
 ___
 
@@ -122,4 +110,4 @@ a new gridded field
 
 #### Defined in
 
-[RawField.ts:166](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/RawField.ts#L166)
+[RawField.ts:341](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/RawField.ts#L341)

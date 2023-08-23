@@ -12,6 +12,8 @@
 
   ↳ [`ContourFill`](ContourFill.md)
 
+  ↳ [`Paintball`](Paintball.md)
+
   ↳ [`Hodographs`](Hodographs.md)
 
 ## Table of contents
@@ -42,7 +44,7 @@
 | Name | Type |
 | :------ | :------ |
 | `map` | [`MapType`](../modules.md#maptype) |
-| `gl` | `WebGLRenderingContext` |
+| `gl` | `WebGLAnyRenderingContext` |
 
 #### Returns
 
@@ -50,7 +52,7 @@
 
 #### Defined in
 
-[PlotComponent.ts:11](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/PlotComponent.ts#L11)
+[PlotComponent.ts:12](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/PlotComponent.ts#L12)
 
 ___
 
@@ -62,7 +64,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `gl` | `WebGLRenderingContext` |
+| `gl` | `WebGLAnyRenderingContext` |
 | `matrix` | `number`[] |
 
 #### Returns
@@ -71,4 +73,4 @@ ___
 
 #### Defined in
 
-[PlotComponent.ts:12](https://github.com/tsupinie/autumnplot-gl/blob/8d93e31/src/PlotComponent.ts#L12)
+[PlotComponent.ts:13](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/PlotComponent.ts#L13)
