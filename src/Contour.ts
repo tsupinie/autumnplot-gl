@@ -1,9 +1,10 @@
 
+import { WebGLAnyRenderingContext, isWebGL2Ctx } from './AutumnTypes';
 import { MapType } from './Map';
 import { PlotComponent, layer_worker } from './PlotComponent';
 import { RawScalarField } from './RawField';
 import { hex2rgba } from './utils';
-import { WGLBuffer, WGLProgram, WGLTexture } from './wgl';
+import { WGLBuffer, WGLProgram, WGLTexture } from 'autumn-wgl';
 
 const contour_vertex_shader_src = require('./glsl/contour_vertex.glsl');
 const contour_fragment_shader_src = require('./glsl/contour_fragment.glsl');
@@ -16,10 +17,16 @@ interface ContourOptions {
     color?: string;
 
     /** 
-     * The contour interval 
+     * The contour interval for drawing contours at regular intervals
      * @default 1
      */
     interval?: number;
+
+    /**
+     * A list of arbitrary levels (up to 40) to contour. This overrides the `interval` option.
+     * @default Draw contours at regular intervals given by the `interval` option.
+     */
+    levels?: number[];
 
     /** 
      * A function to thin the contours based on zoom level. The function should take a zoom level and return a number `n` that means to only show every 
@@ -27,6 +34,15 @@ interface ContourOptions {
      * @default Don't thin the contours on any zoom level
      */
     thinner?: (zoom: number) => number;
+}
+
+interface ContourGLElems {
+    map: MapType;
+    program: WGLProgram;
+    vertices: WGLBuffer;
+    grid_cell_size: WGLBuffer;
+    fill_texture: WGLTexture;
+    texcoords: WGLBuffer;
 }
 
 /** 
@@ -41,27 +57,11 @@ class Contour extends PlotComponent {
     readonly field: RawScalarField;
     readonly color: [number, number, number];
     readonly interval: number;
+    readonly levels: number[];
     readonly thinner: (zoom: number) => number;
 
     /** @private */
-    map: MapType | null;
-    /** @private */
-    program: WGLProgram | null;
-    /** @private */
-    vertices: WGLBuffer | null;
-    /** @private */
-    latitudes: WGLBuffer | null;
-    /** @private */
-    fill_texture: WGLTexture | null;
-    /** @private */
-    texcoords: WGLBuffer | null;
-    /** @private */
-    grid_spacing: number | null;
-
-    /** @private */
-    tex_width: number | null;
-    /** @private */
-    tex_height: number | null;
+    gl_elems: ContourGLElems | null;
 
     /**
      * Create a contoured field
@@ -74,85 +74,77 @@ class Contour extends PlotComponent {
         this.field = field;
 
         this.interval = opts.interval || 1;
+        this.levels = opts.levels || [];
 
         const color = hex2rgba(opts.color || '#000000');
         this.color = [color[0], color[1], color[2]];
 
         this.thinner = opts.thinner || (() => 1);
 
-        this.map = null;
-        this.program = null;
-        this.vertices = null;
-        this.latitudes = null;
-        this.fill_texture = null;
-        this.texcoords = null;
-        this.grid_spacing = null;
-
-        this.tex_width = null;
-        this.tex_height = null;
+        this.gl_elems = null;
     }
 
     /**
      * @internal
      * Add the contours to a map
      */
-    async onAdd(map: MapType, gl: WebGLRenderingContext) {
+    async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
         // Basic procedure for these contours from https://www.shadertoy.com/view/lltBWM
-        this.map = map;
-
         gl.getExtension('OES_texture_float');
         gl.getExtension('OES_texture_float_linear');
         gl.getExtension('OES_standard_derivatives');
         
-        this.program = new WGLProgram(gl, contour_vertex_shader_src, contour_fragment_shader_src);
+        const program = new WGLProgram(gl, contour_vertex_shader_src, contour_fragment_shader_src);
 
-        const {lats: field_lats, lons: field_lons} = this.field.grid.getCoords();
-        const {width: tex_width, height: tex_height, data: tex_data} = this.field.getPaddedData();
+        const {vertices: verts_buf, texcoords: tex_coords_buf, cellsize: cellsize_buf} = await this.field.grid.getWGLBuffers(gl);
+        const vertices = verts_buf;
+        const texcoords = tex_coords_buf;
+        const grid_cell_size = cellsize_buf;
 
-        const verts_tex_coords = await layer_worker.makeDomainVerticesAndTexCoords(field_lats, field_lons, tex_width, tex_height);
-        const latitudes = new Float32Array([...field_lats].map(lat => [lat, lat]).flat());
-        this.grid_spacing = Math.abs(latitudes[2] - latitudes[0]);
+        const format = isWebGL2Ctx(gl) ? gl.R32F : gl.LUMINANCE;
 
-        this.vertices = new WGLBuffer(gl, verts_tex_coords['vertices'], 2, gl.TRIANGLE_STRIP);
-        this.latitudes = new WGLBuffer(gl, latitudes, 1, gl.TRIANGLE_STRIP);
-
-        this.tex_width = tex_width;
-        this.tex_height = tex_height;
-
-        const fill_image = {'format': gl.LUMINANCE, 'type': gl.FLOAT, 
-            'width': tex_width, 'height': tex_height, 'image': tex_data,
+        const fill_image = {'format': format, 'type': gl.FLOAT, 
+            'width': this.field.grid.ni, 'height': this.field.grid.nj, 'image': this.field.data,
             'mag_filter': gl.LINEAR,
         };
 
-        this.fill_texture = new WGLTexture(gl, fill_image);
-        this.texcoords = new WGLBuffer(gl, verts_tex_coords['tex_coords'], 2, gl.TRIANGLE_STRIP);
+        const fill_texture = new WGLTexture(gl, fill_image);
+        this.gl_elems = {
+            map: map, program: program, vertices: vertices, texcoords: texcoords, grid_cell_size: grid_cell_size, fill_texture: fill_texture
+        };
     }
 
     /**
      * @internal
      * Render the contours
      */
-    render(gl: WebGLRenderingContext, matrix: number[]) {
-        if (this.map === null || this.program === null || this.vertices === null || this.latitudes === null || 
-            this.fill_texture === null || this.texcoords === null || this.grid_spacing === null || this.tex_width === null || this.tex_height === null) return;
+    render(gl: WebGLAnyRenderingContext, matrix: number[]) {
+        if (this.gl_elems === null) return;
+        const gl_elems = this.gl_elems;
 
-        const zoom = this.map.getZoom();
+        const zoom = gl_elems.map.getZoom();
         const intv = this.thinner(zoom) * this.interval;
         const cutoff = 0.5 / intv;
-        const step_size = [0.25 / this.tex_width, 0.25 / this.tex_height];
+        const step_size = [0.25 / this.field.grid.ni, 0.25 / this.field.grid.nj];
         const zoom_fac = Math.pow(2, zoom);
 
-        this.program.use(
-            {'a_pos': this.vertices, 'a_latitude': this.latitudes, 'a_tex_coord': this.texcoords},
-            {'u_contour_interval': intv, 'u_line_cutoff': cutoff, 'u_color': this.color, 'u_step_size': step_size, 'u_zoom_fac': zoom_fac,
-             'u_grid_spacing': this.grid_spacing, 'u_matrix': matrix},
-            {'u_fill_sampler': this.fill_texture}
+        let uniforms = {'u_contour_interval': intv, 'u_line_cutoff': cutoff, 'u_color': this.color, 'u_step_size': step_size, 'u_zoom_fac': zoom_fac,
+                        'u_matrix': matrix, 'u_num_contours': 0, 'u_contour_levels': [0]};
+
+        if (this.levels.length > 0) {
+            uniforms = {...uniforms, 'u_num_contours': this.levels.length, 'u_contour_levels': this.levels}
+        }
+
+        gl_elems.program.use(
+            {'a_pos': gl_elems.vertices, 'a_grid_cell_size': gl_elems.grid_cell_size, 'a_tex_coord': gl_elems.texcoords},
+            uniforms,
+            {'u_fill_sampler': gl_elems.fill_texture}
         );
 
         gl.enable(gl.BLEND);
         gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 
-        this.program.draw();
+        gl_elems.program.draw();
     }
 }
 

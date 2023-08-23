@@ -2,9 +2,8 @@
     "entryPoints": ["src/index.ts"],
     "out": "docs",
     "intentionallyNotExported": [
-        "BillboardCollection", "BillboardSpec", "PolylineCollection",
-        "WGLTexture", "WGLBuffer", "WGLProgram",
-        "Cache", "Coords"
+        "Cache", "Coords",
     ],
-    "theme": "markdown"
+    "theme": "markdown",
+    "githubPages": false
 }

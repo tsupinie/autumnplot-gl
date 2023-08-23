@@ -11,13 +11,14 @@ interface WindProfile {
     z: Float32Array
 }
 
-interface BarbDimSpec {
-    BARB_WIDTH: number;
-    BARB_HEIGHT: number;
-    BARB_TEX_WRAP: number;
-    BARB_TEX_WIDTH: number;
-    BARB_TEX_HEIGHT: number;
-    MAX_BARB: number;
+interface BillboardSpec {
+    BB_WIDTH: number;
+    BB_HEIGHT: number;
+    BB_TEX_WIDTH: number;
+    BB_TEX_HEIGHT: number;
+    BB_MAG_BIN_SIZE: number;
+    BB_MAG_WRAP: number;
+    BB_MAG_MAX: number;
 }
 
 interface PolylineSpec {
@@ -35,4 +36,11 @@ interface LineSpec {
     texcoords: [number, number][];
 }
 
-export type {WindProfile, BarbDimSpec, PolylineSpec, LineSpec};
+type WebGLAnyRenderingContext = WebGLRenderingContext | WebGL2RenderingContext;
+
+function isWebGL2Ctx(gl: WebGLAnyRenderingContext) : gl is WebGL2RenderingContext {
+    return gl.getParameter(gl.VERSION).includes('WebGL 2.0');
+}
+
+export {isWebGL2Ctx};
+export type {WindProfile, BillboardSpec, PolylineSpec, LineSpec, WebGLAnyRenderingContext};

@@ -4,25 +4,26 @@ import { BillboardCollection } from './BillboardCollection';
 import { hex2rgba } from './utils';
 import { RawVectorField } from "./RawField";
 import { MapType } from "./Map";
+import { WebGLAnyRenderingContext } from "./AutumnTypes";
 
 const BARB_DIMS = {
-    BARB_WIDTH: 85,
-    BARB_HEIGHT: 256,
-    BARB_TEX_WRAP: 60,
-    BARB_TEX_WIDTH: 1024,
-    BARB_TEX_HEIGHT: 1024,
-    MAX_BARB: 235
+    BB_WIDTH: 85,
+    BB_HEIGHT: 256,
+    BB_TEX_WIDTH: 1024,
+    BB_TEX_HEIGHT: 1024,
+    BB_MAG_MAX: 235,
+    BB_MAG_WRAP: 60,
+    BB_MAG_BIN_SIZE: 5,
 }
 
 function _createBarbTexture() : HTMLCanvasElement {
     let canvas = document.createElement('canvas');
 
-    canvas.width = BARB_DIMS.BARB_TEX_WIDTH;
-    canvas.height = BARB_DIMS.BARB_TEX_HEIGHT;
+    canvas.width = BARB_DIMS.BB_TEX_WIDTH;
+    canvas.height = BARB_DIMS.BB_TEX_HEIGHT;
     
     function drawWindBarb(ctx: CanvasRenderingContext2D, tipx: number, tipy: number, mag: number) : void {
-        const elem_full_size = BARB_DIMS.BARB_WIDTH / 2 - 4;
-        //const staff_length = BARB_DIMS.BARB_HEIGHT - 13 - BARB_DIMS.BARB_WIDTH / 2 - elem_full_size / 2;
+        const elem_full_size = BARB_DIMS.BB_WIDTH / 2 - 4;
         const elem_spacing = elem_full_size / 2;
         
         if (mag < 2.5) {
@@ -112,16 +113,16 @@ function _createBarbTexture() : HTMLCanvasElement {
     ctx.lineWidth = 8;
     ctx.miterLimit = 4;
     
-    for (let ibarb = 0; ibarb <= BARB_DIMS.MAX_BARB; ibarb += 5) {
-        const x_pos = (ibarb % BARB_DIMS.BARB_TEX_WRAP) / 5 * BARB_DIMS.BARB_WIDTH + BARB_DIMS.BARB_WIDTH / 2;
-        const y_pos = Math.floor(ibarb / BARB_DIMS.BARB_TEX_WRAP) * BARB_DIMS.BARB_HEIGHT + BARB_DIMS.BARB_WIDTH / 2;
+    for (let ibarb = 0; ibarb <= BARB_DIMS.BB_MAG_MAX; ibarb += BARB_DIMS.BB_MAG_BIN_SIZE) {
+        const x_pos = (ibarb % BARB_DIMS.BB_MAG_WRAP) / BARB_DIMS.BB_MAG_BIN_SIZE * BARB_DIMS.BB_WIDTH + BARB_DIMS.BB_WIDTH / 2;
+        const y_pos = Math.floor(ibarb / BARB_DIMS.BB_MAG_WRAP) * BARB_DIMS.BB_HEIGHT + BARB_DIMS.BB_WIDTH / 2;
         drawWindBarb(ctx, x_pos, y_pos, ibarb);
     }
 
     return canvas;
 }
 
-const BARB_TEXTURE = _createBarbTexture();
+let BARB_TEXTURE: HTMLCanvasElement | null = null;
 
 interface BarbsOptions {
     /** 
@@ -138,12 +139,17 @@ interface BarbsOptions {
     thin_fac?: number;
 }
 
+interface BarbsGLElems {
+    map: MapType | null;
+    barb_billboards: BillboardCollection | null;
+}
+
 /** 
  * A class representing a field of wind barbs. The barbs are automatically thinned based on the zoom level on the map; the user only has to provide a
  * thinning factor at zoom level 1.
  * @example
  * // Create a barb field with black barbs and plotting every 16th wind barb in both i and j at zoom level 1
- * const vector_field = {u: u_field, v: v_field};
+ * const vector_field = new RawVectorField(grid, u_data, v_data);
  * const barbs = new Barbs(vector_field, {color: '#000000', thin_fac: 16});
  */
 class Barbs extends PlotComponent {
@@ -153,13 +159,11 @@ class Barbs extends PlotComponent {
     readonly thin_fac: number;
 
     /** @private */
-    map: MapType | null;
-    /** @private */
-    barb_billboards: BillboardCollection | null;
+    gl_elems: BarbsGLElems | null;
 
     /**
      * Create a field of wind barbs
-     * @param fields - The u and v fields to use as an object
+     * @param fields - The vector field to plot as barbs
      * @param opts   - Options for creating the wind barbs
      */
     constructor(fields: RawVectorField, opts: BarbsOptions) {
@@ -171,44 +175,48 @@ class Barbs extends PlotComponent {
         this.color = [color[0], color[1], color[2]];
         this.thin_fac = opts.thin_fac || 1;
 
-        this.map = null;
-        this.barb_billboards = null;
+        this.gl_elems = null;
     }
 
     /**
      * @internal 
      * Add the barb field to a map
      */
-    async onAdd(map: MapType, gl: WebGLRenderingContext) {
-        this.map = map;
+    async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
+        gl.getExtension('OES_texture_float');
+        gl.getExtension('OES_texture_float_linear');
+        
+        const map_max_zoom = map.getMaxZoom();
 
-        const {lons: field_lons, lats: field_lats} = this.fields['u'].grid.getCoords();
+        if (BARB_TEXTURE === null) {
+            BARB_TEXTURE = _createBarbTexture();
+        }
 
-        const barb_elements = await layer_worker.makeBarbElements(field_lats, field_lons, this.fields.u.data, this.fields.v.data, this.thin_fac, BARB_DIMS);
         const barb_image = {format: gl.RGBA, type: gl.UNSIGNED_BYTE, image: BARB_TEXTURE, mag_filter: gl.NEAREST};
 
-        const barb_height = 27.5;
-        const barb_aspect = BARB_DIMS.BARB_WIDTH / BARB_DIMS.BARB_HEIGHT;
-        const barb_width = barb_height * barb_aspect;
+        const barb_billboards = new BillboardCollection(gl, this.fields, this.thin_fac, map_max_zoom, barb_image, 
+            BARB_DIMS, this.color, 0.1);
 
-        this.barb_billboards = new BillboardCollection(gl, barb_elements, barb_image, 
-            [barb_width, barb_height], this.color);
+        this.gl_elems = {
+            map: map, barb_billboards: barb_billboards
+        }
     }
 
     /**
      * @internal 
      * Render the barb field
      */
-    render(gl: WebGLRenderingContext, matrix: number[]) {
-        if (this.map === null || this.barb_billboards === null) return;
+    render(gl: WebGLAnyRenderingContext, matrix: number[]) {
+        if (this.gl_elems === null) return;
+        const gl_elems = this.gl_elems
 
-        const zoom = this.map.getZoom();
-        const map_width = this.map.getCanvas().width;
-        const map_height = this.map.getCanvas().height;
-        const bearing = this.map.getBearing();
-        const pitch = this.map.getPitch();
+        const zoom = gl_elems.map.getZoom();
+        const map_width = gl_elems.map.getCanvas().width;
+        const map_height = gl_elems.map.getCanvas().height;
+        const bearing = gl_elems.map.getBearing();
+        const pitch = gl_elems.map.getPitch();
 
-        this.barb_billboards.render(gl, matrix, [map_width, map_height], zoom, bearing, pitch);
+        gl_elems.barb_billboards.render(gl, matrix, [map_width, map_height], zoom, bearing, pitch);
     }
 }
 

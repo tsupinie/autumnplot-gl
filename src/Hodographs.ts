@@ -1,21 +1,30 @@
 
 import { PlotComponent, layer_worker } from "./PlotComponent";
 import { PolylineCollection, LineSpec} from "./PolylineCollection";
-import { BillboardCollection, BillboardSpec } from "./BillboardCollection";
-import { WindProfile } from "./AutumnTypes";
+import { BillboardCollection } from "./BillboardCollection";
 import { getMinZoom, hex2rgba } from './utils';
-import { LngLat } from "./Map";
+import { LngLat, MapType } from "./Map";
+import { RawProfileField } from "./RawField";
+import { WebGLAnyRenderingContext } from "./AutumnTypes";
+
+const LINE_WIDTH = 4;
+const BG_MAX_RING_MAG = 40;
 
 const HODO_BG_DIMS = {
-    'TEX_SIZE': 256,
-    'LINE_WIDTH': 4,
+    BB_WIDTH: 256,
+    BB_HEIGHT: 256,
+    BB_TEX_WIDTH: 256,
+    BB_TEX_HEIGHT: 256,
+    BB_MAG_MAX: 1000,
+    BB_MAG_WRAP: 1000,
+    BB_MAG_BIN_SIZE: 1000,
 }
 
 function _createHodoBackgroundTexture() {
     let canvas = document.createElement('canvas');
 
-    canvas.width = HODO_BG_DIMS['TEX_SIZE'];
-    canvas.height = HODO_BG_DIMS['TEX_SIZE'];
+    canvas.width = HODO_BG_DIMS.BB_TEX_WIDTH;
+    canvas.height = HODO_BG_DIMS.BB_TEX_HEIGHT;
 
     let ctx = canvas.getContext('2d');
 
@@ -23,27 +32,27 @@ function _createHodoBackgroundTexture() {
         throw "Could not get rendering context for the hodograph background canvas";
     }
 
-    ctx.lineWidth = HODO_BG_DIMS['LINE_WIDTH'];
+    ctx.lineWidth = LINE_WIDTH;
 
-    for (let irng = HODO_BG_DIMS['TEX_SIZE'] / 4; irng <= HODO_BG_DIMS['TEX_SIZE'] / 2; irng += HODO_BG_DIMS['TEX_SIZE'] / 4) {
+    for (let irng = HODO_BG_DIMS.BB_TEX_WIDTH / 4; irng <= HODO_BG_DIMS.BB_TEX_WIDTH / 2; irng += HODO_BG_DIMS.BB_TEX_WIDTH / 4) {
         ctx.beginPath();
-        ctx.arc(HODO_BG_DIMS['TEX_SIZE'] / 2, HODO_BG_DIMS['TEX_SIZE'] / 2, irng - HODO_BG_DIMS['LINE_WIDTH'] / 2, 0, 2 * Math.PI);
+        ctx.arc(HODO_BG_DIMS.BB_TEX_WIDTH / 2, HODO_BG_DIMS.BB_TEX_WIDTH / 2, irng - LINE_WIDTH / 2, 0, 2 * Math.PI);
         ctx.stroke();
     }
 
-    const ctr_x = HODO_BG_DIMS['TEX_SIZE'] / 2, ctr_y = HODO_BG_DIMS['TEX_SIZE'] / 2;
+    const ctr_x = HODO_BG_DIMS.BB_TEX_WIDTH / 2, ctr_y = HODO_BG_DIMS.BB_TEX_WIDTH / 2;
     const arrow_size = 20
     ctx.beginPath()
     ctx.moveTo(ctr_x, ctr_y);
-    ctx.lineTo(ctr_x + arrow_size, ctr_y - arrow_size / 2);
-    ctx.lineTo(ctr_x + arrow_size, ctr_y + arrow_size / 2);
+    ctx.lineTo(ctr_x + arrow_size / 2, ctr_y + arrow_size);
+    ctx.lineTo(ctr_x - arrow_size / 2, ctr_y + arrow_size);
     ctx.lineTo(ctr_x, ctr_y);
     ctx.fill()
 
     return canvas;
 };
 
-const HODO_BG_TEXTURE = _createHodoBackgroundTexture();
+let HODO_BG_TEXTURE: HTMLCanvasElement | null = null;
 
 const HODO_COLORS = [
     {'bounds': [0, 1], 'color': '#ffffcc'}, 
@@ -73,55 +82,76 @@ function _createHodoHeightTexture() {
     return canvas;
 }
 
-const HODO_HEIGHT_TEXTURE = _createHodoHeightTexture();
+let HODO_HEIGHT_TEXTURE: HTMLCanvasElement | null = null;
+
+interface HodographOptions {
+    /** 
+     * The color of the hodograph plot background as a hex string
+     */
+    bgcolor?: string;
+
+    /** 
+     * How much to thin the hodographs at zoom level 1 on the map. This effectively means to plot every `n`th hodograph in the i and j directions, where `n` = 
+     * `thin_fac`. `thin_fac` should be a power of 2. 
+     * @default 1
+     */
+    thin_fac?: number;
+}
+
+interface HodographGLElems {
+    map: MapType;
+    bg_billboard: BillboardCollection | null;
+    hodo_line: PolylineCollection | null;
+    sm_line: PolylineCollection | null;
+}
 
 /** A class representing a a field of hodograph plots */
 class Hodographs extends PlotComponent {
-    readonly profiles: WindProfile[];
+    readonly profile_field: RawProfileField;
     readonly bgcolor: [number, number, number];
     readonly thin_fac: number;
 
     /** @private */
-    map: mapboxgl.Map | null;
-    /** @private */
-    bg_billboard: BillboardCollection | null;
-    /** @private */
-    hodo_line: PolylineCollection | null;
-    /** @private */
-    sm_line: PolylineCollection | null;
+    gl_elems: HodographGLElems;
 
     /**
      * Create a field of hodographs
-     * @param profiles - A list of profiles to use
-     * @param opts     - Various options to use when creating the hodographs 
+     * @param profile_field - The grid of profiles to plot
+     * @param opts          - Various options to use when creating the hodographs 
      */
-    constructor(profiles: WindProfile[], opts: {'bgcolor': string, 'thin_fac': number}) {
+    constructor(profile_field: RawProfileField, opts?: HodographOptions) {
         super();
+
+        opts = opts || {};
         
-        this.profiles = profiles;
+        this.profile_field = profile_field;
 
-        const color = hex2rgba(opts['bgcolor']);
+        const color = hex2rgba(opts.bgcolor || '#000000');
         this.bgcolor = [color[0], color[1], color[2]];
-        this.thin_fac = opts['thin_fac'];
+        this.thin_fac = opts.thin_fac || 1;
 
-        this.map = null;
-        this.bg_billboard = null;
-        this.hodo_line = null;
-        this.sm_line = null;
+        this.gl_elems = null;
     }
 
-    async onAdd(map: mapboxgl.Map, gl: WebGLRenderingContext) {
-        this.map = map;
-
-        const hodo_scale = (HODO_BG_DIMS['TEX_SIZE'] - HODO_BG_DIMS['LINE_WIDTH'] / 2) / (HODO_BG_DIMS['TEX_SIZE'] * 40);
+    /**
+     * @internal
+     * Add the hodographs to a map
+     */
+    async onAdd(map: mapboxgl.Map, gl: WebGLAnyRenderingContext) {
+        const hodo_scale = (HODO_BG_DIMS.BB_TEX_WIDTH - LINE_WIDTH / 2) / (HODO_BG_DIMS.BB_TEX_WIDTH * BG_MAX_RING_MAG);
         const bg_size = 140;
 
-        const bg_elements = this._getHodoBackgroundElements();
+        if (HODO_BG_TEXTURE === null) {
+            HODO_BG_TEXTURE = _createHodoBackgroundTexture();
+        }
+
         const bg_image = {'format': gl.RGBA, 'type': gl.UNSIGNED_BYTE, 'image': HODO_BG_TEXTURE, 'mag_filter': gl.NEAREST};
+        const max_zoom = map.getMaxZoom();
 
-        this.bg_billboard = new BillboardCollection(gl, bg_elements, bg_image, [bg_size, bg_size], this.bgcolor);
+        const bg_billboard = new BillboardCollection(gl, this.profile_field.getStormMotionGrid(), this.thin_fac, max_zoom, bg_image, HODO_BG_DIMS, this.bgcolor, 
+                                                    bg_size * 0.004);
 
-        const hodo_polyline = await layer_worker.makePolyLines(this.profiles.map(prof => {
+        const hodo_polyline = await layer_worker.makePolyLines(this.profile_field.profiles.map(prof => {
             const pt_ll = new LngLat(prof['lon'], prof['lat']).toMercatorCoord();
 
             const zoom = getMinZoom(prof['jlat'], prof['ilon'], this.thin_fac);
@@ -135,10 +165,14 @@ class Hodographs extends PlotComponent {
             } as LineSpec;
         }));
 
-        const height_image = {'format': gl.RGBA, 'type': gl.UNSIGNED_BYTE, 'image': HODO_HEIGHT_TEXTURE, 'mag_filter': gl.NEAREST};
-        this.hodo_line = new PolylineCollection(gl, hodo_polyline, height_image, 1.5, hodo_scale * bg_size);
+        if (HODO_HEIGHT_TEXTURE === null) {
+            HODO_HEIGHT_TEXTURE = _createHodoHeightTexture();
+        }
 
-        const sm_polyline = await layer_worker.makePolyLines(this.profiles.map(prof => {
+        const height_image = {'format': gl.RGBA, 'type': gl.UNSIGNED_BYTE, 'image': HODO_HEIGHT_TEXTURE, 'mag_filter': gl.NEAREST};
+        const hodo_line = new PolylineCollection(gl, hodo_polyline, height_image, 1.5, hodo_scale * bg_size);
+
+        const sm_polyline = await layer_worker.makePolyLines(this.profile_field.profiles.map(prof => {
             const pt_ll = new LngLat(prof['lon'], prof['lat']).toMercatorCoord();
             let ret = {};
 
@@ -162,42 +196,32 @@ class Hodographs extends PlotComponent {
         const sm_image = {'format': gl.RGBA, 'type': gl.UNSIGNED_BYTE, 'width': 1, 'height': 1, 'image': new Uint8Array(byte_color), 
                           'mag_filter': gl.NEAREST}
 
-        this.sm_line = new PolylineCollection(gl, sm_polyline, sm_image, 1, hodo_scale * bg_size);
+        const sm_line = new PolylineCollection(gl, sm_polyline, sm_image, 1, hodo_scale * bg_size);
+
+        this.gl_elems = {
+            map: map, bg_billboard: bg_billboard, hodo_line: hodo_line, sm_line: sm_line
+        };
     }
 
-    render(gl: WebGLRenderingContext, matrix: number[]) {
-        if (this.map === null || this.hodo_line === null || this.sm_line === null || this.bg_billboard === null) return;
+    /**
+     * @internal
+     * Render the hodographs
+     */
+    render(gl: WebGLAnyRenderingContext, matrix: number[]) {
+        if (this.gl_elems === null) return;
+        const gl_elems = this.gl_elems;
 
-        const zoom = this.map.getZoom();
-        const map_width = this.map.getCanvas().width;
-        const map_height = this.map.getCanvas().height;
-        const bearing = this.map.getBearing();
-        const pitch = this.map.getPitch();
+        const zoom = gl_elems.map.getZoom();
+        const map_width = gl_elems.map.getCanvas().width;
+        const map_height = gl_elems.map.getCanvas().height;
+        const bearing = gl_elems.map.getBearing();
+        const pitch = gl_elems.map.getPitch();
 
-        this.hodo_line.render(gl, matrix, [map_width, map_height], zoom, bearing, pitch);
-        this.sm_line.render(gl, matrix, [map_width, map_height], zoom, bearing, bearing);
-        this.bg_billboard.render(gl, matrix, [map_width, map_height], zoom, bearing, pitch);
-    }
-
-    _getHodoBackgroundElements() : BillboardSpec {
-        const background_pts = new Float32Array(this.profiles.map(prof => {
-            const pt_ll = new LngLat(prof['lon'], prof['lat']).toMercatorCoord();
-            const zoom = getMinZoom(prof['jlat'], prof['ilon'], this.thin_fac);
-            return [pt_ll.x, pt_ll.y, zoom,   pt_ll.x, pt_ll.y, zoom,   pt_ll.x, pt_ll.y, zoom,   
-                    pt_ll.x, pt_ll.y, zoom,   pt_ll.x, pt_ll.y, zoom,   pt_ll.x, pt_ll.y, zoom,];
-        }).flat());
-
-        const background_offset = new Float32Array(this.profiles.map(prof => {
-            const sm_ang = 90 - Math.atan2(-prof['smv'], -prof['smu']) * 180 / Math.PI;
-            return [0, sm_ang,   0, sm_ang,   1, sm_ang,   2, sm_ang,   3, sm_ang,   3, sm_ang];
-        }).flat());
-
-        const bg_tex_coords = new Float32Array(this.profiles.map(prof => {
-            return [0., 0.,  0., 0.,   0., 1.,   1., 0.,   1., 1.,   1., 1.];
-        }).flat());
-
-        return {'pts': background_pts, 'offset': background_offset, 'tex_coords': bg_tex_coords};
+        gl_elems.hodo_line.render(gl, matrix, [map_width, map_height], zoom, bearing, pitch);
+        gl_elems.sm_line.render(gl, matrix, [map_width, map_height], zoom, bearing, bearing);
+        gl_elems.bg_billboard.render(gl, matrix, [map_width, map_height], zoom, bearing, pitch);
     }
 }
 
 export default Hodographs;
+export type {HodographOptions};

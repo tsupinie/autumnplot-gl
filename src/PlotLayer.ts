@@ -1,4 +1,5 @@
 
+import { WebGLAnyRenderingContext } from './AutumnTypes';
 import { MapType } from './Map';
 
 import { PlotComponent } from './PlotComponent';
@@ -12,8 +13,8 @@ abstract class PlotLayerBase {
         this.id = id;
     }
 
-    abstract onAdd(map: MapType, gl: WebGLRenderingContext) : void;
-    abstract render(gl: WebGLRenderingContext, matrix: number[]) : void;
+    abstract onAdd(map: MapType, gl: WebGLAnyRenderingContext) : void;
+    abstract render(gl: WebGLAnyRenderingContext, matrix: number[]) : void;
 }
 
 /** 
@@ -42,7 +43,7 @@ class PlotLayer extends PlotLayerBase {
      * @internal
      * Add this layer to a map
      */
-    onAdd(map: MapType, gl: WebGLRenderingContext) {
+    onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
         this.field.onAdd(map, gl);
     }
 
@@ -50,7 +51,7 @@ class PlotLayer extends PlotLayerBase {
      * @internal
      * Render this layer
      */
-    render(gl: WebGLRenderingContext, matrix: number[]) {
+    render(gl: WebGLAnyRenderingContext, matrix: number[]) {
         this.field.render(gl, matrix);
     }
 }
@@ -78,7 +79,7 @@ class MultiPlotLayer extends PlotLayerBase {
     /** @private */
     map: MapType | null;
     /** @private */
-    gl: WebGLRenderingContext | null
+    gl: WebGLAnyRenderingContext | null
 
     /**
      * Create a time-varying map layer
@@ -97,7 +98,7 @@ class MultiPlotLayer extends PlotLayerBase {
      * @internal
      * Add this layer to a map
      */
-    onAdd(map: MapType, gl: WebGLRenderingContext) {
+    onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
         this.map = map;
         this.gl = gl;
 
@@ -114,7 +115,7 @@ class MultiPlotLayer extends PlotLayerBase {
      * @internal
      * Render this layer
      */
-    render(gl: WebGLRenderingContext, matrix: number[]) {
+    render(gl: WebGLAnyRenderingContext, matrix: number[]) {
         if (this.map !== null && this.gl !== null && this.field_key !== null 
             && this.fields.hasOwnProperty(this.field_key) && this.fields[this.field_key] !== null) {
             this.fields[this.field_key].render(gl, matrix);

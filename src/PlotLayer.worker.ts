@@ -1,48 +1,42 @@
 
 import { getMinZoom } from "./utils";
-import { BarbDimSpec, PolylineSpec, LineSpec } from "./AutumnTypes";
+import { PolylineSpec, LineSpec } from "./AutumnTypes";
 
 import * as Comlink from 'comlink';
-import { BillboardSpec } from "./BillboardCollection";
 import { LngLat } from "./Map";
 
-function makeBarbElements(field_lats: Float32Array, field_lons: Float32Array, field_u: Float32Array, field_v: Float32Array, thin_fac_base: number, 
-    BARB_DIMS: BarbDimSpec) : BillboardSpec {
+function makeBBElements(field_lats: Float32Array, field_lons: Float32Array, field_ni: number, field_nj: number,
+    thin_fac_base: number, max_zoom: number) {
         
-    const BARB_WIDTH = BARB_DIMS['BARB_WIDTH'];
-    const BARB_TEX_WIDTH = BARB_DIMS['BARB_TEX_WIDTH'];
-    const BARB_HEIGHT = BARB_DIMS['BARB_HEIGHT'];
-    const BARB_TEX_HEIGHT = BARB_DIMS['BARB_TEX_HEIGHT'];
-    const BARB_TEX_WRAP = BARB_DIMS['BARB_TEX_WRAP'];
-
-    const n_lats = field_lats.length;
-    const n_lons = field_lons.length;
     const n_pts_per_poly = 6;
     const n_coords_per_pt_pts = 3;
     const n_coords_per_pt_tc = 2;
 
-    const n_elems_pts = n_lats * n_lons * n_pts_per_poly * n_coords_per_pt_pts;
-    const n_elems_tc = n_lats * n_lons * n_pts_per_poly * n_coords_per_pt_tc;
+    const n_density_tiers = Math.log2(thin_fac_base);
+    const n_inaccessible_tiers = Math.max(n_density_tiers + 1 - max_zoom, 0);
+    const trim_inaccessible = Math.pow(2, n_inaccessible_tiers);
+
+    const field_ni_access = Math.floor((field_ni - 1) / trim_inaccessible) + 1;
+    const field_nj_access = Math.floor((field_nj - 1) / trim_inaccessible) + 1;
+
+    const n_elems_pts = field_ni_access * field_nj_access * n_pts_per_poly * n_coords_per_pt_pts;
+    const n_elems_tc = field_ni_access * field_nj_access * n_pts_per_poly * n_coords_per_pt_tc;
 
     let pts = new Float32Array(n_elems_pts);
-    let offset = new Float32Array(n_elems_tc);
     let tex_coords = new Float32Array(n_elems_tc);
 
     let istart_pts = 0;
     let istart_tc = 0;
 
-    const barb_width_frac = BARB_WIDTH / BARB_TEX_WIDTH;
-    const barb_height_frac = BARB_HEIGHT / BARB_TEX_HEIGHT;
+    for (let ilat = 0; ilat < field_nj; ilat++) {
+        for (let ilon = 0; ilon < field_ni; ilon++) {
+            const idx = ilat * field_ni + ilon;
+            const lat = field_lats[idx];
+            const lon = field_lons[idx];
 
-    field_lats.forEach((lat, ilat) => {
-        const flip_barb = lat < 0;
-        field_lons.forEach((lon, ilon) => {
             const zoom = getMinZoom(ilat, ilon, thin_fac_base);
 
-            const u = field_u[ilat * n_lons + ilon];
-            const v = field_v[ilat * n_lons + ilon];
-            const barb_mag = Math.round(Math.hypot(u, v) / 5) * 5;
-            const barb_ang = 90 - Math.atan2(-v, -u) * 180 / Math.PI;
+            if (zoom > max_zoom) continue;
 
             const pt_ll = new LngLat(lon, lat).toMercatorCoord();
 
@@ -53,55 +47,94 @@ function makeBarbElements(field_lats: Float32Array, field_lons: Float32Array, fi
 
                 pts[istart_pts + icrnr * n_coords_per_pt_pts + 0] = pt_ll.x; 
                 pts[istart_pts + icrnr * n_coords_per_pt_pts + 1] = pt_ll.y; 
-                pts[istart_pts + icrnr * n_coords_per_pt_pts + 2] = zoom;
-                offset[istart_tc + icrnr * n_coords_per_pt_tc + 0] = actual_icrnr; 
-                offset[istart_tc + icrnr * n_coords_per_pt_tc + 1] = barb_ang;
-            }
+                pts[istart_pts + icrnr * n_coords_per_pt_pts + 2] = zoom * 4 + actual_icrnr;
 
-            const i_barb = (barb_mag % BARB_TEX_WRAP) / 5;
-            const j_barb = Math.floor(barb_mag / BARB_TEX_WRAP);
-
-            if (flip_barb) {
-                tex_coords[istart_tc + 0 ] = (i_barb + 1) * barb_width_frac; tex_coords[istart_tc + 1 ] =  j_barb      * barb_height_frac;
-                tex_coords[istart_tc + 2 ] = (i_barb + 1) * barb_width_frac; tex_coords[istart_tc + 3 ] =  j_barb      * barb_height_frac;
-                tex_coords[istart_tc + 4 ] =  i_barb      * barb_width_frac; tex_coords[istart_tc + 5 ] =  j_barb      * barb_height_frac;
-                tex_coords[istart_tc + 6 ] = (i_barb + 1) * barb_width_frac; tex_coords[istart_tc + 7 ] = (j_barb + 1) * barb_height_frac;
-                tex_coords[istart_tc + 8 ] =  i_barb      * barb_width_frac; tex_coords[istart_tc + 9 ] = (j_barb + 1) * barb_height_frac;
-                tex_coords[istart_tc + 10] =  i_barb      * barb_width_frac; tex_coords[istart_tc + 11] = (j_barb + 1) * barb_height_frac;
-            }
-            else {
-                tex_coords[istart_tc + 0 ] =  i_barb      * barb_width_frac; tex_coords[istart_tc + 1 ] =  j_barb      * barb_height_frac;
-                tex_coords[istart_tc + 2 ] =  i_barb      * barb_width_frac; tex_coords[istart_tc + 3 ] =  j_barb      * barb_height_frac;
-                tex_coords[istart_tc + 4 ] = (i_barb + 1) * barb_width_frac; tex_coords[istart_tc + 5 ] =  j_barb      * barb_height_frac;
-                tex_coords[istart_tc + 6 ] =  i_barb      * barb_width_frac; tex_coords[istart_tc + 7 ] = (j_barb + 1) * barb_height_frac;
-                tex_coords[istart_tc + 8 ] = (i_barb + 1) * barb_width_frac; tex_coords[istart_tc + 9 ] = (j_barb + 1) * barb_height_frac;
-                tex_coords[istart_tc + 10] = (i_barb + 1) * barb_width_frac; tex_coords[istart_tc + 11] = (j_barb + 1) * barb_height_frac;
+                tex_coords[istart_tc + icrnr * n_coords_per_pt_tc + 0] = ilon / (field_ni - 1);
+                tex_coords[istart_tc + icrnr * n_coords_per_pt_tc + 1] = ilat / (field_nj - 1);
             }
 
             istart_pts += (n_pts_per_poly * n_coords_per_pt_pts);
             istart_tc += (n_pts_per_poly * n_coords_per_pt_tc);
-        });
-    });
+        }
+    }
 
-    return {'pts': pts, 'offset': offset, 'tex_coords': tex_coords};
+    return {'pts': pts, 'tex_coords': tex_coords};
 }
 
-function makeDomainVerticesAndTexCoords(field_lats: Float32Array, field_lons: Float32Array, tex_width: number, tex_height: number) {
-    const ni = field_lons.length;
-    const lbi = 0, ubi = ni - 1;
+function makeDomainVerticesAndTexCoords(field_lats: Float32Array, field_lons: Float32Array, field_ni: number, field_nj: number, texcoord_margin_r: number, texcoord_margin_s: number) {
+    const verts = new Float32Array(2 * 2 * (field_ni - 1) * (field_nj + 1)).fill(0);
+    const tex_coords = new Float32Array(2 * 2 * (field_ni - 1) * (field_nj + 1)).fill(0);
+    const grid_cell_size = new Float32Array(1 * 2 * (field_ni - 1) * (field_nj + 1)).fill(0);
 
-    const corners = [...field_lats].map(lat => {
-        return [{'lng': field_lons[lbi], 'lat': lat},
-                {'lng': field_lons[ubi], 'lat': lat}]
-    }).flat().map(pt => new LngLat(pt.lng, pt.lat).toMercatorCoord());
-    const verts = corners.map(cd => [cd.x, cd.y]).flat();
+    let ivert = 0
+    let itexcoord = 0;
 
-    const tex_coords = [...field_lats].map((lat, ilat) => {
-        return [{'s': (ilat + 0.5) / tex_height, 'r': 0.505 / (tex_width + 1.07)}, 
-                {'s': (ilat + 0.5) / tex_height, 'r': (ni + 0.505) / (tex_width + 1.07)}];
-    }).flat().map(tc => [tc['r'], tc['s']]).flat();
+    for (let i = 0; i < field_ni - 1; i++) {
+        for (let j = 0; j < field_nj; j++) {
+            const idx = i + j * field_ni;
 
-    return {'vertices': new Float32Array(verts), 'tex_coords': new Float32Array(tex_coords)}
+            const pt = new LngLat(field_lons[idx], field_lats[idx]).toMercatorCoord();
+            const pt_ip1 = new LngLat(field_lons[idx + 1], field_lats[idx + 1]).toMercatorCoord();
+
+            const r = i / (field_ni - 1) * (1 - 2 * texcoord_margin_r) + texcoord_margin_r;
+            const rp1 = (i + 1) / (field_ni - 1) * (1 - 2 * texcoord_margin_r) + texcoord_margin_r;
+            const s = j / (field_nj - 1) * (1 - 2 * texcoord_margin_s) + texcoord_margin_s;
+
+            if (j == 0) {
+                verts[ivert] = pt.x; verts[ivert + 1] = pt.y;
+                ivert += 2
+
+                tex_coords[itexcoord] = r; tex_coords[itexcoord + 1] = s;
+                itexcoord += 2;
+            }
+
+            verts[ivert    ] = pt.x;     verts[ivert + 1] = pt.y;
+            verts[ivert + 2] = pt_ip1.x; verts[ivert + 3] = pt_ip1.y;
+            ivert += 4;
+
+            tex_coords[itexcoord    ] = r; tex_coords[itexcoord + 1] = s;
+            tex_coords[itexcoord + 2] = rp1; tex_coords[itexcoord + 3] = s;
+            itexcoord += 4;
+
+            if (j == field_nj - 1) {
+                verts[ivert] = pt_ip1.x; verts[ivert + 1] = pt_ip1.y;
+                ivert += 2;
+
+                tex_coords[itexcoord] = rp1; tex_coords[itexcoord + 1] = s;
+                itexcoord += 2;
+            }
+        }
+    }
+
+    let igcs = 0;
+    for (let i = 0; i < field_ni - 1; i++) {
+        for (let j = 0; j < field_nj - 1; j++) {
+            const ivert = j == 0 ? 2 * (igcs + 1) : 2 * igcs;
+            const x_ll = verts[ivert],     y_ll = verts[ivert + 1],
+                  x_lr = verts[ivert + 2], y_lr = verts[ivert + 3],
+                  x_ul = verts[ivert + 4], y_ul = verts[ivert + 5],
+                  x_ur = verts[ivert + 6], y_ur = verts[ivert + 7];
+
+            const area = 0.5 * Math.abs(x_ll * (y_lr - y_ul) + x_lr * (y_ul - y_ll) + x_ul * (y_ll - y_lr) + 
+                                        x_ur * (y_ul - y_lr) + x_ul * (y_lr - y_ur) + x_lr * (y_ur - y_ul));
+
+            if (j == 0) {
+                grid_cell_size[igcs] = area;
+                igcs += 1;
+            }
+
+            grid_cell_size[igcs] = area; grid_cell_size[igcs + 1] = area;
+            igcs += 2;
+
+            if (j == field_nj - 2) {
+                grid_cell_size[igcs] = area; grid_cell_size[igcs + 1] = area; 
+                grid_cell_size[igcs + 2] = area;
+                igcs += 3;
+            }
+        }
+    }
+
+    return {'vertices': verts, 'tex_coords': tex_coords, 'grid_cell_size': grid_cell_size};
 }
 
 /*
@@ -336,7 +369,7 @@ function makePolylines(lines: LineSpec[]) : PolylineSpec {
 }
 
 const ep_interface = {
-    'makeBarbElements': makeBarbElements, 
+    'makeBBElements': makeBBElements, 
     'makeDomainVerticesAndTexCoords': makeDomainVerticesAndTexCoords,
     'makePolyLines': makePolylines
 }

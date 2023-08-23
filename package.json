@@ -1,17 +1,22 @@
 {
     "name": "autumnplot-gl",
-    "version": "1.0",
+    "version": "2.0.0",
     "description": "",
-    "main": "index.ts",
+    "main": "lib/index.js",
+    "types": "lib/index.d.ts",
+    "files": [
+        "lib/**/*"
+    ],
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
         "docs": "npx typedoc --options typedoc.json",
         "start": "webpack serve --open --mode=development",
-        "build": "webpack --mode=production"
+        "build-dist": "webpack --mode=production",
+        "build-npm": "./scripts/build_npm.sh"
     },
     "keywords": [],
     "author": "Tim Supinie",
-    "license": "GPL-3.0-only",
+    "license": "MIT",
     "devDependencies": {
         "@types/luxon": "^3.2.0",
         "@types/mapbox-gl": "^2.7.10",
@@ -26,6 +31,7 @@
         "webpack-glsl-loader": "^1.0.1"
     },
     "dependencies": {
+        "autumn-wgl": "^1.1.0",
         "comlink": "^4.3.1"
     }
 }

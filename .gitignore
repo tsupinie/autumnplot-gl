@@ -1,5 +1,9 @@
 node_modules/
 docs/
 dist/
+lib/
 
 public/maptiler.js
+public/tiles
+public/style.json
+public/tiles.json
