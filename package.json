@@ -4,7 +4,9 @@
     "description": "",
     "main": "lib/index.js",
     "types": "lib/index.d.ts",
-    "files": ["lib/**/*"],
+    "files": [
+        "lib/**/*"
+    ],
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
         "docs": "npx typedoc --options typedoc.json",
@@ -29,7 +31,7 @@
         "webpack-glsl-loader": "^1.0.1"
     },
     "dependencies": {
-        "autumn-wgl": "^1.0.0",
+        "autumn-wgl": "^1.1.0",
         "comlink": "^4.3.1"
     }
 }
