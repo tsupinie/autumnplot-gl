@@ -1,5 +1,5 @@
 
-import { WindProfile } from "./AutumnTypes";
+import { WebGLAnyRenderingContext, WindProfile } from "./AutumnTypes";
 import { lambertConformalConic } from "./Map";
 import { layer_worker } from "./PlotComponent";
 import { zip } from "./utils";
@@ -28,7 +28,7 @@ interface Coords {
     lats: Float32Array;
 }
 
-async function makeWGLDomainBuffers(gl: WebGLRenderingContext, grid: Grid, native_grid?: Grid) {
+async function makeWGLDomainBuffers(gl: WebGLAnyRenderingContext, grid: Grid, native_grid?: Grid) {
     native_grid = native_grid !== undefined ? native_grid: grid;
 
     const texcoord_margin_r = 1 / (2 * native_grid.ni);
@@ -50,7 +50,7 @@ async function makeWGLDomainBuffers(gl: WebGLRenderingContext, grid: Grid, nativ
     return {'vertices': vertices, 'texcoords': texcoords, 'cellsize': grid_cell_size};
 }
 
-async function makeWGLBillboardBuffers(gl: WebGLRenderingContext, grid: Grid, thin_fac: number, max_zoom: number) {
+async function makeWGLBillboardBuffers(gl: WebGLAnyRenderingContext, grid: Grid, thin_fac: number, max_zoom: number) {
     const {lats: field_lats, lons: field_lons} = grid.getCoords();
     const bb_elements = await layer_worker.makeBBElements(field_lats, field_lons, grid.ni, grid.nj, thin_fac, max_zoom);
 
@@ -68,8 +68,8 @@ abstract class Grid {
     readonly nj: number;
     readonly is_conformal: boolean;
 
-    readonly _buffer_cache: Cache<[WebGLRenderingContext], Promise<{'vertices': WGLBuffer, 'texcoords': WGLBuffer, 'cellsize': WGLBuffer}>>;
-    readonly _billboard_buffer_cache: Cache<[WebGLRenderingContext, number, number], Promise<{'vertices': WGLBuffer, 'texcoords': WGLBuffer}>>;
+    readonly _buffer_cache: Cache<[WebGLAnyRenderingContext], Promise<{'vertices': WGLBuffer, 'texcoords': WGLBuffer, 'cellsize': WGLBuffer}>>;
+    readonly _billboard_buffer_cache: Cache<[WebGLAnyRenderingContext, number, number], Promise<{'vertices': WGLBuffer, 'texcoords': WGLBuffer}>>;
 
     constructor(type: GridType, is_conformal: boolean, ni: number, nj: number) {
         this.type = type;
@@ -77,13 +77,13 @@ abstract class Grid {
         this.ni = ni;
         this.nj = nj;
 
-        this._buffer_cache = new Cache((gl: WebGLRenderingContext) => {
+        this._buffer_cache = new Cache((gl: WebGLAnyRenderingContext) => {
             const new_ni = Math.max(Math.floor(this.ni / 50), 20);
             const new_nj = Math.max(Math.floor(this.nj / 50), 20);
             return makeWGLDomainBuffers(gl, this.copy({ni: new_ni, nj: new_nj}), this);
         });
 
-        this._billboard_buffer_cache = new Cache((gl: WebGLRenderingContext, thin_fac: number, max_zoom: number) => {
+        this._billboard_buffer_cache = new Cache((gl: WebGLAnyRenderingContext, thin_fac: number, max_zoom: number) => {
             return makeWGLBillboardBuffers(gl, this, thin_fac, max_zoom);
         });
     }
@@ -94,11 +94,11 @@ abstract class Grid {
     abstract transform(x: number, y: number, opts?: {inverse?: boolean}): [number, number];
     abstract getThinnedGrid(thin_x: number, thin_y: number): Grid;
     
-    async getWGLBuffers(gl: WebGLRenderingContext) {
+    async getWGLBuffers(gl: WebGLAnyRenderingContext) {
         return await this._buffer_cache.getValue(gl);
     }
 
-    async getWGLBillboardBuffers(gl: WebGLRenderingContext, thin_fac: number, max_zoom: number) {
+    async getWGLBillboardBuffers(gl: WebGLAnyRenderingContext, thin_fac: number, max_zoom: number) {
         return await this._billboard_buffer_cache.getValue(gl, thin_fac, max_zoom);
     }
 }

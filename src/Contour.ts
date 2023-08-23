@@ -1,4 +1,5 @@
 
+import { WebGLAnyRenderingContext, isWebGL2Ctx } from './AutumnTypes';
 import { MapType } from './Map';
 import { PlotComponent, layer_worker } from './PlotComponent';
 import { RawScalarField } from './RawField';
@@ -87,7 +88,7 @@ class Contour extends PlotComponent {
      * @internal
      * Add the contours to a map
      */
-    async onAdd(map: MapType, gl: WebGLRenderingContext) {
+    async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
         // Basic procedure for these contours from https://www.shadertoy.com/view/lltBWM
         gl.getExtension('OES_texture_float');
         gl.getExtension('OES_texture_float_linear');
@@ -100,7 +101,9 @@ class Contour extends PlotComponent {
         const texcoords = tex_coords_buf;
         const grid_cell_size = cellsize_buf;
 
-        const fill_image = {'format': gl.LUMINANCE, 'type': gl.FLOAT, 
+        const format = isWebGL2Ctx(gl) ? gl.R32F : gl.LUMINANCE;
+
+        const fill_image = {'format': format, 'type': gl.FLOAT, 
             'width': this.field.grid.ni, 'height': this.field.grid.nj, 'image': this.field.data,
             'mag_filter': gl.LINEAR,
         };
@@ -115,7 +118,7 @@ class Contour extends PlotComponent {
      * @internal
      * Render the contours
      */
-    render(gl: WebGLRenderingContext, matrix: number[]) {
+    render(gl: WebGLAnyRenderingContext, matrix: number[]) {
         if (this.gl_elems === null) return;
         const gl_elems = this.gl_elems;
 

@@ -5,6 +5,7 @@ import { BillboardCollection } from "./BillboardCollection";
 import { getMinZoom, hex2rgba } from './utils';
 import { LngLat, MapType } from "./Map";
 import { RawProfileField } from "./RawField";
+import { WebGLAnyRenderingContext } from "./AutumnTypes";
 
 const LINE_WIDTH = 4;
 const BG_MAX_RING_MAG = 40;
@@ -136,7 +137,7 @@ class Hodographs extends PlotComponent {
      * @internal
      * Add the hodographs to a map
      */
-    async onAdd(map: mapboxgl.Map, gl: WebGLRenderingContext) {
+    async onAdd(map: mapboxgl.Map, gl: WebGLAnyRenderingContext) {
         const hodo_scale = (HODO_BG_DIMS.BB_TEX_WIDTH - LINE_WIDTH / 2) / (HODO_BG_DIMS.BB_TEX_WIDTH * BG_MAX_RING_MAG);
         const bg_size = 140;
 
@@ -206,7 +207,7 @@ class Hodographs extends PlotComponent {
      * @internal
      * Render the hodographs
      */
-    render(gl: WebGLRenderingContext, matrix: number[]) {
+    render(gl: WebGLAnyRenderingContext, matrix: number[]) {
         if (this.gl_elems === null) return;
         const gl_elems = this.gl_elems;
 

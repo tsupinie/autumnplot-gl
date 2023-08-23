@@ -1,4 +1,5 @@
 
+import { WebGLAnyRenderingContext, isWebGL2Ctx } from "./AutumnTypes";
 import { MapType } from "./Map";
 import { PlotComponent } from "./PlotComponent";
 import { RawScalarField } from "./RawField";
@@ -67,7 +68,7 @@ class Paintball extends PlotComponent {
      * @internal
      * Add the paintball plot to a map.
      */
-    async onAdd(map: MapType, gl: WebGLRenderingContext) {
+    async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
         gl.getExtension('OES_texture_float');
 
         const program = new WGLProgram(gl, paintball_vertex_shader_src, paintball_fragment_shader_src);
@@ -76,7 +77,9 @@ class Paintball extends PlotComponent {
         const vertices = verts_buf;
         const texcoords = tex_coords_buf;
 
-        const fill_image = {'format': gl.LUMINANCE, 'type': gl.FLOAT,
+        const format = isWebGL2Ctx(gl) ? gl.R32F : gl.LUMINANCE;
+
+        const fill_image = {'format': format, 'type': gl.FLOAT,
             'width': this.field.grid.ni, 'height': this.field.grid.nj, 'image': this.field.data,
             'mag_filter': gl.NEAREST,
         };
@@ -92,7 +95,7 @@ class Paintball extends PlotComponent {
      * @internal
      * Render the paintball plot
      */
-    render(gl: WebGLRenderingContext, matrix: number[]) {
+    render(gl: WebGLAnyRenderingContext, matrix: number[]) {
         if (this.gl_elems === null) return;
         const gl_elems = this.gl_elems;
 

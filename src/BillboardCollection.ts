@@ -1,5 +1,5 @@
 
-import { BillboardSpec } from "./AutumnTypes";
+import { BillboardSpec, WebGLAnyRenderingContext, isWebGL2Ctx } from "./AutumnTypes";
 import { RawVectorField } from "./RawField";
 import { WGLBuffer, WGLProgram, WGLTexture, WGLTextureSpec } from "autumn-wgl";
 
@@ -18,7 +18,7 @@ class BillboardCollection {
     readonly u_texture: WGLTexture;
     readonly v_texture: WGLTexture;
 
-    constructor(gl: WebGLRenderingContext, field: RawVectorField, thin_fac: number, max_zoom: number, 
+    constructor(gl: WebGLAnyRenderingContext, field: RawVectorField, thin_fac: number, max_zoom: number, 
                 billboard_image: WGLTextureSpec, billboard_spec: BillboardSpec, billboard_color: [number, number, number], billboard_size_mult: number) {
 
         this.spec = billboard_spec;
@@ -44,12 +44,14 @@ class BillboardCollection {
             this.texcoords = texcoords;
         })();
 
-        const u_image = {'format': gl.LUMINANCE, 'type': gl.FLOAT,
+        const format = isWebGL2Ctx(gl) ? gl.R32F : gl.LUMINANCE;
+
+        const u_image = {'format': format, 'type': gl.FLOAT,
             'width': u_thin.grid.ni, 'height': u_thin.grid.nj, 'image': u_thin.data,
             'mag_filter': gl.NEAREST,
         };
 
-        const v_image = {'format': gl.LUMINANCE, 'type': gl.FLOAT,
+        const v_image = {'format': format, 'type': gl.FLOAT,
             'width': v_thin.grid.ni, 'height': v_thin.grid.nj, 'image': v_thin.data,
             'mag_filter': gl.NEAREST,
         };
@@ -59,7 +61,7 @@ class BillboardCollection {
         this.v_texture = new WGLTexture(gl, v_image);
     }
 
-    render(gl: WebGLRenderingContext, matrix: number[], [map_width, map_height]: [number, number], map_zoom: number, map_bearing: number, map_pitch: number) {
+    render(gl: WebGLAnyRenderingContext, matrix: number[], [map_width, map_height]: [number, number], map_zoom: number, map_bearing: number, map_pitch: number) {
         if (this.vertices === null || this.texcoords === null) return;
 
         const bb_size = this.spec.BB_HEIGHT * (map_height / map_width) * this.size_multiplier;

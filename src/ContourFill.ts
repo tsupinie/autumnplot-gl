@@ -4,6 +4,7 @@ import { ColorMap, makeTextureImage } from './Colormap';
 import { WGLBuffer, WGLProgram, WGLTexture } from 'autumn-wgl';
 import { RawScalarField } from './RawField';
 import { MapType } from './Map';
+import { WebGLAnyRenderingContext, isWebGL2Ctx } from './AutumnTypes';
 
 const contourfill_vertex_shader_src = require('./glsl/contourfill_vertex.glsl');
 const contourfill_fragment_shader_src = require('./glsl/contourfill_fragment.glsl');
@@ -92,7 +93,7 @@ class ContourFill extends PlotComponent {
      * @internal
      * Add the filled contours to a map
      */
-    async onAdd(map: MapType, gl: WebGLRenderingContext) {
+    async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
         // Basic procedure for the filled contours inspired by https://blog.mbq.me/webgl-weather-globe/
         gl.getExtension('OES_texture_float');
         gl.getExtension('OES_texture_float_linear');
@@ -103,7 +104,9 @@ class ContourFill extends PlotComponent {
         const vertices = verts_buf;
         const texcoords = tex_coords_buf;
 
-        const fill_image = {'format': gl.LUMINANCE, 'type': gl.FLOAT,
+        const format = isWebGL2Ctx(gl) ? gl.R32F : gl.LUMINANCE;
+
+        const fill_image = {'format': format, 'type': gl.FLOAT,
             'width': this.field.grid.ni, 'height': this.field.grid.nj, 'image': this.field.data,
             'mag_filter': gl.LINEAR,
         };
@@ -113,7 +116,7 @@ class ContourFill extends PlotComponent {
         const cmap_image = {'format': gl.RGBA, 'type': gl.UNSIGNED_BYTE, 'image': this.cmap_image, 'mag_filter': gl.NEAREST};
         const cmap_texture = new WGLTexture(gl, cmap_image);
 
-        const cmap_nonlin_image = {'format': gl.LUMINANCE, 'type': gl.FLOAT, 
+        const cmap_nonlin_image = {'format': format, 'type': gl.FLOAT, 
             'width': this.index_map.length, 'height': 1,
             'image': this.index_map, 
             'mag_filter': gl.LINEAR
@@ -130,7 +133,7 @@ class ContourFill extends PlotComponent {
      * @internal
      * Render the filled contours
      */
-    render(gl: WebGLRenderingContext, matrix: number[]) {
+    render(gl: WebGLAnyRenderingContext, matrix: number[]) {
         if (this.gl_elems === null) return;
         const gl_elems = this.gl_elems;
 

@@ -4,6 +4,7 @@ import { BillboardCollection } from './BillboardCollection';
 import { hex2rgba } from './utils';
 import { RawVectorField } from "./RawField";
 import { MapType } from "./Map";
+import { WebGLAnyRenderingContext } from "./AutumnTypes";
 
 const BARB_DIMS = {
     BB_WIDTH: 85,
@@ -181,7 +182,7 @@ class Barbs extends PlotComponent {
      * @internal 
      * Add the barb field to a map
      */
-    async onAdd(map: MapType, gl: WebGLRenderingContext) {
+    async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
         gl.getExtension('OES_texture_float');
         gl.getExtension('OES_texture_float_linear');
         
@@ -205,7 +206,7 @@ class Barbs extends PlotComponent {
      * @internal 
      * Render the barb field
      */
-    render(gl: WebGLRenderingContext, matrix: number[]) {
+    render(gl: WebGLAnyRenderingContext, matrix: number[]) {
         if (this.gl_elems === null) return;
         const gl_elems = this.gl_elems
 
