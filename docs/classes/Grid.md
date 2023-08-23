@@ -51,27 +51,27 @@
 
 #### Defined in
 
-[RawField.ts:74](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/RawField.ts#L74)
+[RawField.ts:74](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/RawField.ts#L74)
 
 ## Properties
 
 ### \_billboard\_buffer\_cache
 
-• `Readonly` **\_billboard\_buffer\_cache**: `Cache`<[`WebGLAnyRenderingContext`, `number`, `number`], `Promise`<{ `texcoords`: `WGLBuffer` ; `vertices`: `WGLBuffer`  }\>\>
+• `Readonly` **\_billboard\_buffer\_cache**: `Cache`<[[`WebGLAnyRenderingContext`](../modules.md#webglanyrenderingcontext), `number`, `number`], `Promise`<{ `texcoords`: `WGLBuffer` ; `vertices`: `WGLBuffer`  }\>\>
 
 #### Defined in
 
-[RawField.ts:72](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/RawField.ts#L72)
+[RawField.ts:72](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/RawField.ts#L72)
 
 ___
 
 ### \_buffer\_cache
 
-• `Readonly` **\_buffer\_cache**: `Cache`<[`WebGLAnyRenderingContext`], `Promise`<{ `cellsize`: `WGLBuffer` ; `texcoords`: `WGLBuffer` ; `vertices`: `WGLBuffer`  }\>\>
+• `Readonly` **\_buffer\_cache**: `Cache`<[[`WebGLAnyRenderingContext`](../modules.md#webglanyrenderingcontext)], `Promise`<{ `cellsize`: `WGLBuffer` ; `texcoords`: `WGLBuffer` ; `vertices`: `WGLBuffer`  }\>\>
 
 #### Defined in
 
-[RawField.ts:71](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/RawField.ts#L71)
+[RawField.ts:71](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/RawField.ts#L71)
 
 ___
 
@@ -81,7 +81,7 @@ ___
 
 #### Defined in
 
-[RawField.ts:69](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/RawField.ts#L69)
+[RawField.ts:69](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/RawField.ts#L69)
 
 ___
 
@@ -91,7 +91,7 @@ ___
 
 #### Defined in
 
-[RawField.ts:67](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/RawField.ts#L67)
+[RawField.ts:67](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/RawField.ts#L67)
 
 ___
 
@@ -101,7 +101,7 @@ ___
 
 #### Defined in
 
-[RawField.ts:68](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/RawField.ts#L68)
+[RawField.ts:68](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/RawField.ts#L68)
 
 ___
 
@@ -111,7 +111,7 @@ ___
 
 #### Defined in
 
-[RawField.ts:66](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/RawField.ts#L66)
+[RawField.ts:66](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/RawField.ts#L66)
 
 ## Methods
 
@@ -133,7 +133,7 @@ ___
 
 #### Defined in
 
-[RawField.ts:91](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/RawField.ts#L91)
+[RawField.ts:91](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/RawField.ts#L91)
 
 ___
 
@@ -147,7 +147,7 @@ ___
 
 #### Defined in
 
-[RawField.ts:93](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/RawField.ts#L93)
+[RawField.ts:93](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/RawField.ts#L93)
 
 ___
 
@@ -168,7 +168,7 @@ ___
 
 #### Defined in
 
-[RawField.ts:95](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/RawField.ts#L95)
+[RawField.ts:95](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/RawField.ts#L95)
 
 ___
 
@@ -180,7 +180,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `gl` | `WebGLAnyRenderingContext` |
+| `gl` | [`WebGLAnyRenderingContext`](../modules.md#webglanyrenderingcontext) |
 | `thin_fac` | `number` |
 | `max_zoom` | `number` |
 
@@ -190,7 +190,7 @@ ___
 
 #### Defined in
 
-[RawField.ts:101](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/RawField.ts#L101)
+[RawField.ts:101](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/RawField.ts#L101)
 
 ___
 
@@ -202,7 +202,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `gl` | `WebGLAnyRenderingContext` |
+| `gl` | [`WebGLAnyRenderingContext`](../modules.md#webglanyrenderingcontext) |
 
 #### Returns
 
@@ -210,7 +210,7 @@ ___
 
 #### Defined in
 
-[RawField.ts:97](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/RawField.ts#L97)
+[RawField.ts:97](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/RawField.ts#L97)
 
 ___
 
@@ -233,4 +233,4 @@ ___
 
 #### Defined in
 
-[RawField.ts:94](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/RawField.ts#L94)
+[RawField.ts:94](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/RawField.ts#L94)

@@ -53,7 +53,7 @@ Create a paintball plot
 
 #### Defined in
 
-[Paintball.ts:54](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/Paintball.ts#L54)
+[Paintball.ts:54](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/Paintball.ts#L54)
 
 ## Properties
 
@@ -63,7 +63,7 @@ Create a paintball plot
 
 #### Defined in
 
-[Paintball.ts:41](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/Paintball.ts#L41)
+[Paintball.ts:41](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/Paintball.ts#L41)
 
 ___
 
@@ -73,7 +73,7 @@ ___
 
 #### Defined in
 
-[Paintball.ts:40](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/Paintball.ts#L40)
+[Paintball.ts:40](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/Paintball.ts#L40)
 
 ___
 
@@ -83,7 +83,7 @@ ___
 
 #### Defined in
 
-[Paintball.ts:45](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/Paintball.ts#L45)
+[Paintball.ts:45](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/Paintball.ts#L45)
 
 ___
 
@@ -93,7 +93,7 @@ ___
 
 #### Defined in
 
-[Paintball.ts:42](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/Paintball.ts#L42)
+[Paintball.ts:42](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/Paintball.ts#L42)
 
 ## Methods
 
@@ -108,7 +108,7 @@ Add the paintball plot to a map.
 | Name | Type |
 | :------ | :------ |
 | `map` | [`MapType`](../modules.md#maptype) |
-| `gl` | `WebGLAnyRenderingContext` |
+| `gl` | [`WebGLAnyRenderingContext`](../modules.md#webglanyrenderingcontext) |
 
 #### Returns
 
@@ -120,7 +120,7 @@ Add the paintball plot to a map.
 
 #### Defined in
 
-[Paintball.ts:71](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/Paintball.ts#L71)
+[Paintball.ts:71](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/Paintball.ts#L71)
 
 ___
 
@@ -134,7 +134,7 @@ Render the paintball plot
 
 | Name | Type |
 | :------ | :------ |
-| `gl` | `WebGLAnyRenderingContext` |
+| `gl` | [`WebGLAnyRenderingContext`](../modules.md#webglanyrenderingcontext) |
 | `matrix` | `number`[] |
 
 #### Returns
@@ -147,4 +147,4 @@ Render the paintball plot
 
 #### Defined in
 
-[Paintball.ts:98](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/Paintball.ts#L98)
+[Paintball.ts:98](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/Paintball.ts#L98)

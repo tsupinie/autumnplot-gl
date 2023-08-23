@@ -19,7 +19,7 @@ The color of the hodograph plot background as a hex string
 
 #### Defined in
 
-[Hodographs.ts:91](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/Hodographs.ts#L91)
+[Hodographs.ts:91](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/Hodographs.ts#L91)
 
 ___
 
@@ -36,4 +36,4 @@ How much to thin the hodographs at zoom level 1 on the map. This effectively mea
 
 #### Defined in
 
-[Hodographs.ts:98](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/Hodographs.ts#L98)
+[Hodographs.ts:98](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/Hodographs.ts#L98)

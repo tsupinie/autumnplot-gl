@@ -58,7 +58,7 @@ Create a field of wind barbs
 
 #### Defined in
 
-[Barbs.ts:169](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/Barbs.ts#L169)
+[Barbs.ts:169](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/Barbs.ts#L169)
 
 ## Properties
 
@@ -68,7 +68,7 @@ Create a field of wind barbs
 
 #### Defined in
 
-[Barbs.ts:158](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/Barbs.ts#L158)
+[Barbs.ts:158](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/Barbs.ts#L158)
 
 ___
 
@@ -80,7 +80,7 @@ The vector field
 
 #### Defined in
 
-[Barbs.ts:157](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/Barbs.ts#L157)
+[Barbs.ts:157](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/Barbs.ts#L157)
 
 ___
 
@@ -90,7 +90,7 @@ ___
 
 #### Defined in
 
-[Barbs.ts:162](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/Barbs.ts#L162)
+[Barbs.ts:162](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/Barbs.ts#L162)
 
 ___
 
@@ -100,7 +100,7 @@ ___
 
 #### Defined in
 
-[Barbs.ts:159](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/Barbs.ts#L159)
+[Barbs.ts:159](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/Barbs.ts#L159)
 
 ## Methods
 
@@ -115,7 +115,7 @@ Add the barb field to a map
 | Name | Type |
 | :------ | :------ |
 | `map` | [`MapType`](../modules.md#maptype) |
-| `gl` | `WebGLAnyRenderingContext` |
+| `gl` | [`WebGLAnyRenderingContext`](../modules.md#webglanyrenderingcontext) |
 
 #### Returns
 
@@ -127,7 +127,7 @@ Add the barb field to a map
 
 #### Defined in
 
-[Barbs.ts:185](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/Barbs.ts#L185)
+[Barbs.ts:185](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/Barbs.ts#L185)
 
 ___
 
@@ -141,7 +141,7 @@ Render the barb field
 
 | Name | Type |
 | :------ | :------ |
-| `gl` | `WebGLAnyRenderingContext` |
+| `gl` | [`WebGLAnyRenderingContext`](../modules.md#webglanyrenderingcontext) |
 | `matrix` | `number`[] |
 
 #### Returns
@@ -154,4 +154,4 @@ Render the barb field
 
 #### Defined in
 
-[Barbs.ts:209](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/Barbs.ts#L209)
+[Barbs.ts:209](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/Barbs.ts#L209)

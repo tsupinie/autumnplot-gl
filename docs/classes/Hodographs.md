@@ -49,7 +49,7 @@ Create a field of hodographs
 
 #### Defined in
 
-[Hodographs.ts:122](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/Hodographs.ts#L122)
+[Hodographs.ts:122](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/Hodographs.ts#L122)
 
 ## Properties
 
@@ -59,7 +59,7 @@ Create a field of hodographs
 
 #### Defined in
 
-[Hodographs.ts:111](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/Hodographs.ts#L111)
+[Hodographs.ts:111](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/Hodographs.ts#L111)
 
 ___
 
@@ -69,7 +69,7 @@ ___
 
 #### Defined in
 
-[Hodographs.ts:115](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/Hodographs.ts#L115)
+[Hodographs.ts:115](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/Hodographs.ts#L115)
 
 ___
 
@@ -79,7 +79,7 @@ ___
 
 #### Defined in
 
-[Hodographs.ts:110](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/Hodographs.ts#L110)
+[Hodographs.ts:110](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/Hodographs.ts#L110)
 
 ___
 
@@ -89,7 +89,7 @@ ___
 
 #### Defined in
 
-[Hodographs.ts:112](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/Hodographs.ts#L112)
+[Hodographs.ts:112](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/Hodographs.ts#L112)
 
 ## Methods
 
@@ -104,7 +104,7 @@ Add the hodographs to a map
 | Name | Type |
 | :------ | :------ |
 | `map` | `Map` |
-| `gl` | `WebGLAnyRenderingContext` |
+| `gl` | [`WebGLAnyRenderingContext`](../modules.md#webglanyrenderingcontext) |
 
 #### Returns
 
@@ -116,7 +116,7 @@ Add the hodographs to a map
 
 #### Defined in
 
-[Hodographs.ts:140](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/Hodographs.ts#L140)
+[Hodographs.ts:140](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/Hodographs.ts#L140)
 
 ___
 
@@ -130,7 +130,7 @@ Render the hodographs
 
 | Name | Type |
 | :------ | :------ |
-| `gl` | `WebGLAnyRenderingContext` |
+| `gl` | [`WebGLAnyRenderingContext`](../modules.md#webglanyrenderingcontext) |
 | `matrix` | `number`[] |
 
 #### Returns
@@ -143,4 +143,4 @@ Render the hodographs
 
 #### Defined in
 
-[Hodographs.ts:210](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/Hodographs.ts#L210)
+[Hodographs.ts:210](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/Hodographs.ts#L210)

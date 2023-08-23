@@ -58,7 +58,7 @@ PlotLayerBase.constructor
 
 #### Defined in
 
-[PlotLayer.ts:37](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/PlotLayer.ts#L37)
+[PlotLayer.ts:37](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/PlotLayer.ts#L37)
 
 ## Properties
 
@@ -68,7 +68,7 @@ PlotLayerBase.constructor
 
 #### Defined in
 
-[PlotLayer.ts:30](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/PlotLayer.ts#L30)
+[PlotLayer.ts:30](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/PlotLayer.ts#L30)
 
 ___
 
@@ -82,7 +82,7 @@ PlotLayerBase.id
 
 #### Defined in
 
-[PlotLayer.ts:9](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/PlotLayer.ts#L9)
+[PlotLayer.ts:9](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/PlotLayer.ts#L9)
 
 ___
 
@@ -96,7 +96,7 @@ PlotLayerBase.type
 
 #### Defined in
 
-[PlotLayer.ts:8](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/PlotLayer.ts#L8)
+[PlotLayer.ts:8](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/PlotLayer.ts#L8)
 
 ## Methods
 
@@ -111,7 +111,7 @@ Add this layer to a map
 | Name | Type |
 | :------ | :------ |
 | `map` | [`MapType`](../modules.md#maptype) |
-| `gl` | `WebGLAnyRenderingContext` |
+| `gl` | [`WebGLAnyRenderingContext`](../modules.md#webglanyrenderingcontext) |
 
 #### Returns
 
@@ -123,7 +123,7 @@ PlotLayerBase.onAdd
 
 #### Defined in
 
-[PlotLayer.ts:46](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/PlotLayer.ts#L46)
+[PlotLayer.ts:46](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/PlotLayer.ts#L46)
 
 ___
 
@@ -137,7 +137,7 @@ Render this layer
 
 | Name | Type |
 | :------ | :------ |
-| `gl` | `WebGLAnyRenderingContext` |
+| `gl` | [`WebGLAnyRenderingContext`](../modules.md#webglanyrenderingcontext) |
 | `matrix` | `number`[] |
 
 #### Returns
@@ -150,4 +150,4 @@ PlotLayerBase.render
 
 #### Defined in
 
-[PlotLayer.ts:54](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/PlotLayer.ts#L54)
+[PlotLayer.ts:54](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/PlotLayer.ts#L54)

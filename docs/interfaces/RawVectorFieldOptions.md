@@ -22,4 +22,4 @@ Whether the vectors are relative to the grid ('grid') or Earth ('earth')
 
 #### Defined in
 
-[RawField.ts:362](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/RawField.ts#L362)
+[RawField.ts:362](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/RawField.ts#L362)

@@ -44,7 +44,7 @@
 | Name | Type |
 | :------ | :------ |
 | `map` | [`MapType`](../modules.md#maptype) |
-| `gl` | `WebGLAnyRenderingContext` |
+| `gl` | [`WebGLAnyRenderingContext`](../modules.md#webglanyrenderingcontext) |
 
 #### Returns
 
@@ -52,7 +52,7 @@
 
 #### Defined in
 
-[PlotComponent.ts:12](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/PlotComponent.ts#L12)
+[PlotComponent.ts:12](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/PlotComponent.ts#L12)
 
 ___
 
@@ -64,7 +64,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `gl` | `WebGLAnyRenderingContext` |
+| `gl` | [`WebGLAnyRenderingContext`](../modules.md#webglanyrenderingcontext) |
 | `matrix` | `number`[] |
 
 #### Returns
@@ -73,4 +73,4 @@ ___
 
 #### Defined in
 
-[PlotComponent.ts:13](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/PlotComponent.ts#L13)
+[PlotComponent.ts:13](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/PlotComponent.ts#L13)

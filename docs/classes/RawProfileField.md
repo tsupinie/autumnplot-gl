@@ -36,7 +36,7 @@ Create a grid of wind profiles
 
 #### Defined in
 
-[RawField.ts:466](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/RawField.ts#L466)
+[RawField.ts:466](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/RawField.ts#L466)
 
 ## Properties
 
@@ -46,7 +46,7 @@ Create a grid of wind profiles
 
 #### Defined in
 
-[RawField.ts:459](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/RawField.ts#L459)
+[RawField.ts:459](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/RawField.ts#L459)
 
 ___
 
@@ -56,7 +56,7 @@ ___
 
 #### Defined in
 
-[RawField.ts:458](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/RawField.ts#L458)
+[RawField.ts:458](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/RawField.ts#L458)
 
 ## Methods
 
@@ -72,4 +72,4 @@ Get the gridded storm motion vector field (internal method)
 
 #### Defined in
 
-[RawField.ts:472](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/RawField.ts#L472)
+[RawField.ts:472](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/RawField.ts#L472)

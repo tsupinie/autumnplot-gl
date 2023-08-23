@@ -37,7 +37,7 @@ Create a data field.
 
 #### Defined in
 
-[RawField.ts:307](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/RawField.ts#L307)
+[RawField.ts:307](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/RawField.ts#L307)
 
 ## Properties
 
@@ -47,7 +47,7 @@ Create a data field.
 
 #### Defined in
 
-[RawField.ts:300](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/RawField.ts#L300)
+[RawField.ts:300](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/RawField.ts#L300)
 
 ___
 
@@ -57,7 +57,7 @@ ___
 
 #### Defined in
 
-[RawField.ts:299](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/RawField.ts#L299)
+[RawField.ts:299](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/RawField.ts#L299)
 
 ## Methods
 
@@ -78,7 +78,7 @@ ___
 
 #### Defined in
 
-[RawField.ts:316](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/RawField.ts#L316)
+[RawField.ts:316](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/RawField.ts#L316)
 
 ___
 
@@ -110,4 +110,4 @@ a new gridded field
 
 #### Defined in
 
-[RawField.ts:341](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/RawField.ts#L341)
+[RawField.ts:341](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/RawField.ts#L341)

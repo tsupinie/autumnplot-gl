@@ -42,6 +42,7 @@
 - [GridType](modules.md#gridtype)
 - [MapType](modules.md#maptype)
 - [VectorRelativeTo](modules.md#vectorrelativeto)
+- [WebGLAnyRenderingContext](modules.md#webglanyrenderingcontext)
 
 ### Variables
 
@@ -60,7 +61,7 @@
 
 #### Defined in
 
-[ColorBar.ts:4](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/ColorBar.ts#L4)
+[ColorBar.ts:4](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/ColorBar.ts#L4)
 
 ___
 
@@ -70,7 +71,7 @@ ___
 
 #### Defined in
 
-[ColorBar.ts:5](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/ColorBar.ts#L5)
+[ColorBar.ts:5](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/ColorBar.ts#L5)
 
 ___
 
@@ -80,7 +81,7 @@ ___
 
 #### Defined in
 
-[RawField.ts:63](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/RawField.ts#L63)
+[RawField.ts:63](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/RawField.ts#L63)
 
 ___
 
@@ -90,7 +91,7 @@ ___
 
 #### Defined in
 
-[Map.ts:5](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/Map.ts#L5)
+[Map.ts:5](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/Map.ts#L5)
 
 ___
 
@@ -100,7 +101,17 @@ ___
 
 #### Defined in
 
-[RawField.ts:355](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/RawField.ts#L355)
+[RawField.ts:355](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/RawField.ts#L355)
+
+___
+
+### WebGLAnyRenderingContext
+
+Ƭ **WebGLAnyRenderingContext**: `WebGLRenderingContext` \| `WebGL2RenderingContext`
+
+#### Defined in
+
+[AutumnTypes.ts:39](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/AutumnTypes.ts#L39)
 
 ## Variables
 
@@ -122,7 +133,7 @@ ___
 
 #### Defined in
 
-[index.ts:16](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/index.ts#L16)
+[index.ts:16](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/index.ts#L16)
 
 ## Functions
 
@@ -158,7 +169,7 @@ An SVGElement containing the color bar image.
 
 #### Defined in
 
-[ColorBar.ts:65](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/ColorBar.ts#L65)
+[ColorBar.ts:65](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/ColorBar.ts#L65)
 
 ___
 
@@ -194,4 +205,4 @@ An SVGElement containing the color bar image.
 
 #### Defined in
 
-[ColorBar.ts:221](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/ColorBar.ts#L221)
+[ColorBar.ts:221](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/ColorBar.ts#L221)

@@ -60,7 +60,7 @@ Create a contoured field
 
 #### Defined in
 
-[Contour.ts:71](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/Contour.ts#L71)
+[Contour.ts:71](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/Contour.ts#L71)
 
 ## Properties
 
@@ -70,7 +70,7 @@ Create a contoured field
 
 #### Defined in
 
-[Contour.ts:58](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/Contour.ts#L58)
+[Contour.ts:58](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/Contour.ts#L58)
 
 ___
 
@@ -80,7 +80,7 @@ ___
 
 #### Defined in
 
-[Contour.ts:57](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/Contour.ts#L57)
+[Contour.ts:57](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/Contour.ts#L57)
 
 ___
 
@@ -90,7 +90,7 @@ ___
 
 #### Defined in
 
-[Contour.ts:64](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/Contour.ts#L64)
+[Contour.ts:64](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/Contour.ts#L64)
 
 ___
 
@@ -100,7 +100,7 @@ ___
 
 #### Defined in
 
-[Contour.ts:59](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/Contour.ts#L59)
+[Contour.ts:59](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/Contour.ts#L59)
 
 ___
 
@@ -110,7 +110,7 @@ ___
 
 #### Defined in
 
-[Contour.ts:60](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/Contour.ts#L60)
+[Contour.ts:60](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/Contour.ts#L60)
 
 ___
 
@@ -134,7 +134,7 @@ ___
 
 #### Defined in
 
-[Contour.ts:61](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/Contour.ts#L61)
+[Contour.ts:61](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/Contour.ts#L61)
 
 ## Methods
 
@@ -149,7 +149,7 @@ Add the contours to a map
 | Name | Type |
 | :------ | :------ |
 | `map` | [`MapType`](../modules.md#maptype) |
-| `gl` | `WebGLAnyRenderingContext` |
+| `gl` | [`WebGLAnyRenderingContext`](../modules.md#webglanyrenderingcontext) |
 
 #### Returns
 
@@ -161,7 +161,7 @@ Add the contours to a map
 
 #### Defined in
 
-[Contour.ts:91](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/Contour.ts#L91)
+[Contour.ts:91](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/Contour.ts#L91)
 
 ___
 
@@ -175,7 +175,7 @@ Render the contours
 
 | Name | Type |
 | :------ | :------ |
-| `gl` | `WebGLAnyRenderingContext` |
+| `gl` | [`WebGLAnyRenderingContext`](../modules.md#webglanyrenderingcontext) |
 | `matrix` | `number`[] |
 
 #### Returns
@@ -188,4 +188,4 @@ Render the contours
 
 #### Defined in
 
-[Contour.ts:121](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/Contour.ts#L121)
+[Contour.ts:121](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/Contour.ts#L121)

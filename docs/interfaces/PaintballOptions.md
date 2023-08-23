@@ -19,7 +19,7 @@ The list of colors (as hex strings) to use for each member in the paintball plot
 
 #### Defined in
 
-[Paintball.ts:16](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/Paintball.ts#L16)
+[Paintball.ts:16](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/Paintball.ts#L16)
 
 ___
 
@@ -35,4 +35,4 @@ The opacity of the paintball plot
 
 #### Defined in
 
-[Paintball.ts:22](https://github.com/tsupinie/autumnplot-gl/blob/43ca048/src/Paintball.ts#L22)
+[Paintball.ts:22](https://github.com/tsupinie/autumnplot-gl/blob/9814269/src/Paintball.ts#L22)
