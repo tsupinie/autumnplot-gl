@@ -4,5 +4,6 @@
     "intentionallyNotExported": [
         "Cache", "Coords",
     ],
-    "theme": "markdown"
+    "theme": "markdown",
+    "githubPages": false
 }
