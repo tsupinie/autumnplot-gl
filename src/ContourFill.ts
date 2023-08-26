@@ -20,7 +20,18 @@ interface ContourFillOptions {
     opacity?: number;
 }
 
-interface ContourFillGLElems {
+interface RasterOptions {
+    /** The color map to use when creating the raster plot */
+    cmap: ColorMap;
+
+    /** 
+     * The opacity for the raster plot
+     * @default 1
+     */
+    opacity?: number;
+}
+
+interface PlotComponentFillGLElems {
     program: WGLProgram;
     vertices: WGLBuffer;
 
@@ -30,13 +41,7 @@ interface ContourFillGLElems {
     cmap_nonlin_texture: WGLTexture;
 }
 
-/** 
- * A filled contoured field 
- * @example
- * // Create a field of filled contours with the provided color map
- * const fill = new ContourFill(wind_speed_field, {cmap: color_map});
- */
-class ContourFill extends PlotComponent {
+class PlotComponentFill extends PlotComponent {
     readonly field: RawScalarField;
     readonly cmap: ColorMap;
     readonly opacity: number;
@@ -47,13 +52,10 @@ class ContourFill extends PlotComponent {
     readonly index_map: Float32Array;
 
     /** @private */
-    gl_elems: ContourFillGLElems | null;
+    gl_elems: PlotComponentFillGLElems | null;
+    image_mag_filter: number | null;
+    cmap_mag_filter: number | null;
 
-    /**
-     * Create a filled contoured field
-     * @param field - The field to create filled contours from
-     * @param opts  - Options for creating the filled contours
-     */
     constructor(field: RawScalarField, opts: ContourFillOptions) {
         super();
 
@@ -87,16 +89,18 @@ class ContourFill extends PlotComponent {
         this.index_map = new Float32Array(inv_cmap_norm);
 
         this.gl_elems = null;
+        this.image_mag_filter = null;
+        this.cmap_mag_filter = null;
     }
 
-    /**
-     * @internal
-     * Add the filled contours to a map
-     */
     async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
         // Basic procedure for the filled contours inspired by https://blog.mbq.me/webgl-weather-globe/
         gl.getExtension('OES_texture_float');
         gl.getExtension('OES_texture_float_linear');
+        
+        if (this.image_mag_filter === null || this.cmap_mag_filter === null) {
+            throw `Implement magnification filtes in a subclass`;
+        }
         
         const program = new WGLProgram(gl, contourfill_vertex_shader_src, contourfill_fragment_shader_src);
 
@@ -108,12 +112,12 @@ class ContourFill extends PlotComponent {
 
         const fill_image = {'format': format, 'type': gl.FLOAT,
             'width': this.field.grid.ni, 'height': this.field.grid.nj, 'image': this.field.data,
-            'mag_filter': gl.LINEAR,
+            'mag_filter': this.image_mag_filter,
         };
 
         const fill_texture = new WGLTexture(gl, fill_image);
 
-        const cmap_image = {'format': gl.RGBA, 'type': gl.UNSIGNED_BYTE, 'image': this.cmap_image, 'mag_filter': gl.NEAREST};
+        const cmap_image = {'format': gl.RGBA, 'type': gl.UNSIGNED_BYTE, 'image': this.cmap_image, 'mag_filter': this.cmap_mag_filter};
         const cmap_texture = new WGLTexture(gl, cmap_image);
 
         const cmap_nonlin_image = {'format': format, 'type': gl.FLOAT, 
@@ -129,10 +133,6 @@ class ContourFill extends PlotComponent {
         };
     }
 
-    /**
-     * @internal
-     * Render the filled contours
-     */
     render(gl: WebGLAnyRenderingContext, matrix: number[]) {
         if (this.gl_elems === null) return;
         const gl_elems = this.gl_elems;
@@ -151,5 +151,77 @@ class ContourFill extends PlotComponent {
     }
 }
 
-export default ContourFill;
-export type {ContourFillOptions};
+/** 
+ * A raster (i.e. pixel) plot 
+ * @example
+ * // Create a raster plot with the provided color map
+ * const raster = new Raster(wind_speed_field, {cmap: color_map});
+ */
+class Raster extends PlotComponentFill {
+
+    /**
+     * Create a raster plot
+     * @param field - The field to create the raster plot from
+     * @param opts  - Options for creating the raster plot
+     */
+    constructor(field: RawScalarField, opts: RasterOptions) {
+        super(field, opts);
+    }
+
+    /**
+     * @internal
+     * Add the raster plot to a map
+     */
+    async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
+        this.image_mag_filter = gl.NEAREST;
+        this.cmap_mag_filter = gl.LINEAR;
+        super.onAdd(map, gl);
+    }
+
+    /**
+     * @internal
+     * Render the raster plot
+     */
+    render(gl: WebGLAnyRenderingContext, matrix: number[]) {
+        super.render(gl, matrix);
+    }
+}
+
+/** 
+ * A filled contoured field 
+ * @example
+ * // Create a field of filled contours with the provided color map
+ * const fill = new ContourFill(wind_speed_field, {cmap: color_map});
+ */
+class ContourFill extends PlotComponentFill {
+
+    /**
+     * Create a filled contoured field
+     * @param field - The field to create filled contours from
+     * @param opts  - Options for creating the filled contours
+     */
+    constructor(field: RawScalarField, opts: ContourFillOptions) {
+        super(field, opts);
+    }
+
+    /**
+     * @internal
+     * Add the filled contours to a map
+     */
+    async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
+        this.image_mag_filter = gl.LINEAR;
+        this.cmap_mag_filter = gl.NEAREST;
+        super.onAdd(map, gl);
+    }
+
+    /**
+     * @internal
+     * Render the filled contours
+     */
+    render(gl: WebGLAnyRenderingContext, matrix: number[]) {
+        super.render(gl, matrix);
+    }
+}
+
+export {ContourFill, Raster};
+export type {ContourFillOptions, RasterOptions};
