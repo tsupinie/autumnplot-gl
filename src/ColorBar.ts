@@ -139,10 +139,13 @@ function makeColorBar(colormap: ColorMap, opts: ColorBarOptions) {
         createElement('rect', {...attrs, fill: color.color, opacity: color.opacity}, gbar);
     });
 
-    ticks.forEach(level => {
-        const ilevel = colormap.levels.indexOf(level);
-        const tickattrs = orientation == 'vertical' ? {transform: `translate(0, ${bar_height * (1 - ilevel / n_colors)})`} : 
-                                                      {transform: `translate(${bar_width * ilevel / n_colors}, 0)`};
+    const first_level = colormap.levels[0];
+    const last_level = colormap.levels[colormap.levels.length - 1];
+
+    ticks.filter(level => first_level <= level && level <= last_level).forEach(level => {
+        const ilevel = (level - first_level) / (last_level - first_level);
+        const tickattrs = orientation == 'vertical' ? {transform: `translate(0, ${bar_height * (1 - ilevel)})`} : 
+                                                      {transform: `translate(${bar_width * ilevel}, 0)`};
         const gtick = createElement('g', tickattrs, gticks);
 
         let lineattrs;
