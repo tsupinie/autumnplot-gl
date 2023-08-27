@@ -31,6 +31,12 @@ interface ColorBarOptions {
      * @default 'sans-serif'
      */
     fontface?: string;
+
+    /**
+     * The font size (in points) to use for the tick labels
+     * @default 12
+     */
+    ticklabelsize?: number;
 };
 
 const createElement = (tagname: string, attributes?: Record<string, string | number>, parent?: SVGElement) => {
@@ -67,6 +73,7 @@ function makeColorBar(colormap: ColorMap, opts: ColorBarOptions) {
     const ticks = opts.ticks || colormap.levels;
     const orientation = opts.orientation || 'vertical';
     const fontface = opts.fontface || 'sans-serif';
+    const tickfontsize = opts.ticklabelsize || 12;
 
     const tick_dir = opts.tick_direction || (orientation == 'vertical' ? 'left' : 'bottom');
 
@@ -166,7 +173,7 @@ function makeColorBar(colormap: ColorMap, opts: ColorBarOptions) {
             textattrs = tick_dir == 'bottom' ? {y: 9, dy: '0.8em'} : {y: -9, dy: '0em'};
         }
 
-        const text = createElement('text', {...textattrs, fill: '#000000', style: `font-family: ${fontface};`}, gtick);
+        const text = createElement('text', {...textattrs, fill: '#000000', style: `font-family: ${fontface}; font-size: ${tickfontsize}pt`}, gtick);
         text.textContent = level.toString();
     });
 
