@@ -9,7 +9,7 @@ import Hodographs, {HodographOptions} from './Hodographs';
 import { PlotLayer, MultiPlotLayer } from './PlotLayer';
 import { WindProfile, WebGLAnyRenderingContext } from "./AutumnTypes";
 import { MapType } from "./Map";
-import { ColorMap, bluered, redblue, pw_speed500mb, pw_speed850mb, pw_cape, pw_t2m, pw_td2m, Color } from './Colormap';
+import { ColorMap, bluered, redblue, pw_speed500mb, pw_speed850mb, pw_cape, pw_t2m, pw_td2m, Color, nws_storm_clear_refl } from './Colormap';
 import { makeColorBar, makePaintballKey, ColorbarOrientation, ColorbarTickDirection, ColorBarOptions, PaintballKeyOptions } from "./ColorBar";
 import { RawScalarField, RawVectorField, RawProfileField, Grid, GridType, VectorRelativeTo, RawVectorFieldOptions, PlateCarreeGrid, LambertGrid } from "./RawField";
 
@@ -20,7 +20,8 @@ const colormaps = {
     pw_speed850mb: pw_speed850mb,
     pw_cape: pw_cape,
     pw_t2m: pw_t2m,
-    pw_td2m: pw_td2m
+    pw_td2m: pw_td2m,
+    nws_storm_clear_refl: nws_storm_clear_refl,
 }
 
 export {PlotComponent,

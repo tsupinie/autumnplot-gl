@@ -5,6 +5,7 @@ import spd850_colormap_data from "./json/pw850speed_colormap.json";
 import cape_colormap_data from "./json/pwcape_colormap.json";
 import t2m_colormap_data from "./json/pwt2m_colormap.json";
 import td2m_colormap_data from "./json/pwtd2m_colormap.json";
+import nws_storm_clear_refl_colormap_data from "./json/nws_storm_clear_refl_colormap.json";
 
 interface Color {
     /** The color as a hex color string */
@@ -120,6 +121,7 @@ const pw_speed850mb = new ColorMap(spd850_colormap_data.levels, spd850_colormap_
 const pw_cape = new ColorMap(cape_colormap_data.levels, cape_colormap_data.colors).withOpacity((levl, levu) => Math.min(levu / 1000., 1.));
 const pw_t2m = new ColorMap(t2m_colormap_data.levels, t2m_colormap_data.colors);
 const pw_td2m = new ColorMap(td2m_colormap_data.levels, td2m_colormap_data.colors);
+const nws_storm_clear_refl = new ColorMap(nws_storm_clear_refl_colormap_data.levels, nws_storm_clear_refl_colormap_data.colors);
 
 /**
  * Create a diverging red/blue colormap, where red corresponds to the lowest value and blue corresponds to the highest value
@@ -167,5 +169,5 @@ function makeTextureImage(colormap: ColorMap) {
     return cmap_image;
 }
 
-export {ColorMap, bluered, redblue, pw_speed500mb, pw_speed850mb, pw_cape, pw_t2m, pw_td2m, makeTextureImage}
+export {ColorMap, bluered, redblue, pw_speed500mb, pw_speed850mb, pw_cape, pw_t2m, pw_td2m, nws_storm_clear_refl, makeTextureImage}
 export type {Color};
