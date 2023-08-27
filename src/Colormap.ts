@@ -58,8 +58,24 @@ class ColorMap {
      * @returns A new color map
      */
     withOpacity(func: (level_lower: number, level_upper: number) => number) {
-        const new_colors = this.colors.map((c, ic) => { return {'color': c['color'], 'opacity': func(this.levels[ic], this.levels[ic + 1])}; });
-        return new ColorMap(this.levels, new_colors);
+        const new_colors: Color[] = [];
+        const new_levels: number[] = [];
+
+        for (let ic = 0 ; ic < this.colors.length ; ic++) {
+            const color = this.colors[ic];
+            const level_lower = this.levels[ic];
+            const level_upper = this.levels[ic + 1];
+
+            const new_color = {'color': color['color'], 'opacity': func(level_lower, level_upper)};
+            if (new_color['opacity'] > 0) {
+                if (new_levels[new_levels.length - 1] != level_lower)
+                    new_levels.push(level_lower)
+                new_levels.push(level_upper);
+                new_colors.push(new_color);
+            }
+        }
+        
+        return new ColorMap(new_levels, new_colors);
     }
 
     /**
