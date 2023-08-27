@@ -38,8 +38,9 @@ function makeSynthetic500mbLayers() {
 async function fetchBinary(fname) {
     resp = await fetch(fname);
     const blob = await resp.blob();
-    const ary = await blob.arrayBuffer();
-    return new Float32Array(ary);
+    const ary = new Uint8Array(await blob.arrayBuffer());
+    const ary_inflated = pako.inflate(ary);
+    return new Float32Array(ary_inflated.buffer);
 }
 
 async function makeHREFLayers() {
@@ -50,13 +51,13 @@ async function makeHREFLayers() {
     const grid_href = new apgl.LambertGrid(nx_href, ny_href, -97.5, 38.5, [38.5, 38.5], 
                                            -nx_href * dx_href / 2, -ny_href * dy_href / 2, nx_href * dx_href / 2, ny_href * dy_href / 2);
 
-    const nh_prob_data = await fetchBinary('data/hrefv3.2023051100.f036.mxuphl5000_2000m.nh_max.086400_p99.85_0040km.bin');
+    const nh_prob_data = await fetchBinary('data/hrefv3.2023051100.f036.mxuphl5000_2000m.nh_max.086400_p99.85_0040km.bin.gz');
     const nh_prob_field = new apgl.RawScalarField(grid_href, nh_prob_data);
     const nh_prob_contour = new apgl.Contour(nh_prob_field, {'levels': [0.1, 0.3, 0.5, 0.7, 0.9], 'color': '#000000'});
     const nh_prob_layer = new apgl.PlotLayer('nh_probs', nh_prob_contour);
 
 
-    const pb_data = await fetchBinary('data/hrefv3.2023051100.f036.mxuphl5000_2000m.086400.pb75.bin');
+    const pb_data = await fetchBinary('data/hrefv3.2023051100.f036.mxuphl5000_2000m.086400.pb75.bin.gz');
     // If I don't draw the contours, this doesn't draw anything. Why is that?
     const href_pb_colors = ['#9d4c1c', '#f2b368', '#792394', '#d99cf9', '#1e3293', '#aabee3', '#bc373b', '#f0928f', '#397d21', '#b5f0ab'];
 
