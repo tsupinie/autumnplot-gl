@@ -84,7 +84,7 @@ function makeColorBar(colormap: ColorMap, opts: ColorBarOptions) {
 
     const bar_long_size = 600;
     const bar_cross_size = bar_long_size / 9;
-    const bar_long_pad = orientation == 'horizontal' ? Math.max(chars_left, chars_right) * 6 : 5;
+    const bar_long_pad = orientation == 'horizontal' ? Math.max(chars_left, chars_right) * 6 : 8;
     const bar_cross_pad = 3;
     const bar_thickness = 10;
 
