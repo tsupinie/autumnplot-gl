@@ -1,7 +1,7 @@
 
 import { PlotComponent } from "./PlotComponent";
 import Contour, {ContourOptions} from "./Contour";
-import {ContourFill, Raster, ContourFillOptions, RasterOptions} from "./ContourFill";
+import {ContourFill, Raster, ContourFillOptions, RasterOptions} from "./Fill";
 import Barbs, {BarbsOptions} from "./Barbs";
 import Paintball, {PaintballOptions} from "./Paintball";
 import Hodographs, {HodographOptions} from './Hodographs';
