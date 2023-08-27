@@ -98,6 +98,20 @@ function makeHodoLayers() {
     return {layers: [hodo_layer]};
 }
 
+async function makeMRMSLayer() {
+    const grid_mrms = new apgl.PlateCarreeGrid(7000, 3500, -129.995, 20.005, -60.005, 54.995);
+    const data = await fetchBinary('data/mrms.202112152259.cref.bin.gz');
+    const raw_cref_field = new apgl.RawScalarField(grid_mrms, data);
+    const raster_cref = new apgl.Raster(raw_cref_field, {cmap: apgl.colormaps.nws_storm_clear_refl});
+    const raster_layer = new apgl.PlotLayer('mrms_cref', raster_cref);
+
+    const svg = apgl.makeColorBar(apgl.colormaps.nws_storm_clear_refl, {label: "Reflectivity (dBZ)", fontface: 'Trebuchet MS', 
+                                                                        ticks: [-20, -10, 0, 10, 20, 30, 40, 50, 60, 70],
+                                                                        orientation: 'horizontal', tick_direction: 'bottom'})
+
+    return {layers: [raster_layer], colorbar: svg};
+}
+
 const views = {
     'default': {
         name: "Synthetic 500mb",
@@ -113,6 +127,11 @@ const views = {
         name: "Hodographs",
         makeLayers: makeHodoLayers,
         maxZoom: 7,
+    },
+    'mrms': {
+        name: "MRMS",
+        makeLayers: makeMRMSLayer,
+        maxZoom: 8.5,
     }
 };
 
