@@ -102,14 +102,17 @@ const views = {
     'default': {
         name: "Synthetic 500mb",
         makeLayers: makeSynthetic500mbLayers,
+        maxZoom: 7,
     },
     'href': {
         name: "HREF",
         makeLayers: makeHREFLayers,
+        maxZoom: 7,
     },
     'hodo': {
         name: "Hodographs",
         makeLayers: makeHodoLayers,
+        maxZoom: 7,
     }
 };
 
@@ -129,6 +132,8 @@ window.addEventListener('load', () => {
 
     async function updateMap() {
         const view = views[menu.value];
+        map.setMaxZoom(view.maxZoom);
+
         const {layers, colorbar} = await view.makeLayers();
 
         current_layers.forEach(lyr => {
