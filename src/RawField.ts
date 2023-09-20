@@ -1,6 +1,6 @@
 
 import { WebGLAnyRenderingContext, WindProfile } from "./AutumnTypes";
-import { lambertConformalConic } from "./Map";
+import { lambertConformalConic, rotateSphere } from "./Map";
 import { layer_worker } from "./PlotComponent";
 import { zip } from "./utils";
 import { WGLBuffer } from "autumn-wgl";
@@ -60,7 +60,7 @@ async function makeWGLBillboardBuffers(gl: WebGLAnyRenderingContext, grid: Grid,
     return {'vertices': vertices, 'texcoords': texcoords};
 }
 
-type GridType = 'latlon' | 'lcc';
+type GridType = 'latlon' | 'latlonrot' | 'lcc';
 
 abstract class Grid {
     readonly type: GridType;
@@ -187,6 +187,109 @@ class PlateCarreeGrid extends Grid {
         const ur_lat = this.ur_lat - nj_remove * dlat;
 
         return new PlateCarreeGrid(ni, nj, ll_lon, ll_lat, ur_lon, ur_lat);
+    }
+}
+
+/** A rotated lat-lon (plate carree) grid with uniform grid spacing */
+class PlateCarreeRotatedGrid extends Grid {
+    readonly np_lon: number;
+    readonly np_lat: number;
+    readonly lon_shift: number;
+    readonly ll_lon: number;
+    readonly ll_lat: number;
+    readonly ur_lon: number;
+    readonly ur_lat: number;
+
+    /** @private */
+    readonly llrot: (a: number, b: number, opts?: {inverse: boolean}) => [number, number];
+
+    /** @private */
+    readonly _ll_cache: Cache<[], Coords>;
+
+    /**
+     * Create a Lambert conformal conic grid
+     * @param ni        - The number of grid points in the i (longitude) direction
+     * @param nj        - The number of grid points in the j (latitude) direction
+     * @param np_lon    - The longitude of the north pole for the rotated grid
+     * @param np_lat    - The latitude of the north pole for the rotated grid
+     * @param lon_shift - The angle around the rotated north pole to shift the central meridian
+     * @param ll_lon    - The longitude of the lower left corner of the grid (on the rotated earth)
+     * @param ll_lat    - The latitude of the lower left corner of the grid (on the rotated earth)
+     * @param ur_lon    - The longitude of the upper right corner of the grid (on the rotated earth)
+     * @param ur_lat    - The latitude of the upper right corner of the grid (on the rotated earth)
+     */
+    constructor(ni: number, nj: number, np_lon: number, np_lat: number, lon_shift: number, ll_lon: number, ll_lat: number, ur_lon: number, ur_lat: number) {
+        super('latlonrot', true, ni, nj);
+
+        this.np_lon = np_lon;
+        this.np_lat = np_lat;
+        this.lon_shift = lon_shift;
+        this.ll_lon = ll_lon;
+        this.ll_lat = ll_lat;
+        this.ur_lon = ur_lon;
+        this.ur_lat = ur_lat;
+        this.llrot = rotateSphere({np_lon: np_lon, np_lat: np_lat, lon_shift: lon_shift});
+
+        this._ll_cache = new Cache(() => {
+            const lons = new Float32Array(this.ni * this.nj);
+            const lats = new Float32Array(this.ni * this.nj);
+
+            for (let i = 0; i < this.ni; i++) {
+                const lon_p = this.ll_lon + (this.ur_lon - this.ll_lon) * i / (this.ni - 1);
+                for (let j = 0; j < this.nj; j++) {
+                    const lat_p = this.ll_lat + (this.ur_lat - this.ll_lat) * j / (this.nj - 1);
+
+                    const [lon, lat] = this.llrot(lon_p, lat_p);
+                    const idx = i + j * this.ni;
+                    lons[idx] = lon;
+                    lats[idx] = lat;
+                }
+            }
+
+            return {lons: lons, lats: lats};
+        });
+    }
+
+    copy(opts?: {ni?: number, nj?: number, ll_lon?: number, ll_lat?: number, ur_lon?: number, ur_lat?: number}) {
+        opts = opts !== undefined ? opts : {};
+        const ni = opts.ni !== undefined ? opts.ni : this.ni;
+        const nj = opts.nj !== undefined ? opts.nj : this.nj;
+        const ll_lon = opts.ll_lon !== undefined ? opts.ll_lon : this.ll_lon;
+        const ll_lat = opts.ll_lat !== undefined ? opts.ll_lat : this.ll_lat;
+        const ur_lon = opts.ur_lon !== undefined ? opts.ur_lon : this.ur_lon;
+        const ur_lat = opts.ur_lat !== undefined ? opts.ur_lat : this.ur_lat;
+
+        return new PlateCarreeRotatedGrid(ni, nj, this.np_lon, this.np_lat, this.lon_shift, ll_lon, ll_lat, ur_lon, ur_lat);
+    }
+
+    /**
+     * Get a list of longitudes and latitudes on the grid (internal method)
+     */
+    getCoords() {
+        return this._ll_cache.getValue();
+    }
+
+    transform(x: number, y: number, opts?: {inverse?: boolean}) {
+        opts = opts === undefined ? {}: opts;
+        const inverse = 'inverse' in opts ? opts.inverse : false;
+
+        return this.llrot(x, y, {inverse: !inverse});
+    }
+
+    getThinnedGrid(thin_x: number, thin_y: number) {
+        const dlon = (this.ur_lon - this.ll_lon) / this.ni;
+        const dlat = (this.ur_lat - this.ll_lat) / this.nj;
+
+        const ni = Math.ceil(this.ni / thin_x);
+        const nj = Math.ceil(this.nj / thin_y);
+        const ni_remove = (this.ni - 1) % thin_x;
+        const nj_remove = (this.nj - 1) % thin_y;
+        const ll_lon = this.ll_lon;
+        const ll_lat = this.ll_lat;
+        const ur_lon = this.ur_lon - ni_remove * dlon;
+        const ur_lat = this.ur_lat - nj_remove * dlat;
+
+        return new PlateCarreeRotatedGrid(ni, nj, this.np_lon, this.np_lat, this.lon_shift, ll_lon, ll_lat, ur_lon, ur_lat);
     }
 }
 
@@ -483,5 +586,5 @@ class RawProfileField {
     }
 }
 
-export {RawScalarField, RawVectorField, RawProfileField, PlateCarreeGrid, LambertGrid, Grid};
+export {RawScalarField, RawVectorField, RawProfileField, PlateCarreeGrid, PlateCarreeRotatedGrid, LambertGrid, Grid};
 export type {GridType, RawVectorFieldOptions, VectorRelativeTo};
