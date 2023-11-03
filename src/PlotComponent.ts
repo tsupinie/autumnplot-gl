@@ -15,16 +15,29 @@ abstract class PlotComponent {
 
 function getGLFormatType(gl: WebGLAnyRenderingContext, is_float16: boolean) {
     let format, type;
-    if (isWebGL2Ctx(gl)) {
-        format = is_float16 ? gl.R16F : gl.R32F;
-        type = is_float16 ? gl.HALF_FLOAT : gl.FLOAT;
+    const is_webgl2 = isWebGL2Ctx(gl);
+
+    if (is_float16) {
+        const ext = gl.getExtension('OES_texture_half_float');
+        const ext_lin = gl.getExtension('OES_texture_float_linear');
+
+        if ((!is_webgl2 && ext === null) || ext_lin === null) {
+            throw "Float16 data are not supported on this hardware. Try Float32 data instead.";
+        }
+
+        format = is_webgl2 ? gl.R16F : gl.LUMINANCE;
+        type = is_webgl2 ? gl.HALF_FLOAT : ext.HALF_FLOAT_OES;
     }
     else {
-        const ext = gl.getExtension('OES_texture_half_float');
-        gl.getExtension('OES_texture_float_linear');
+        const ext = gl.getExtension('OES_texture_float');
+        const ext_lin = gl.getExtension('OES_texture_float_linear');
 
-        format = gl.LUMINANCE;
-        type = is_float16 ? ext.HALF_FLOAT_OES : gl.FLOAT;
+        if ((!is_webgl2 && ext === null) || ext_lin === null) {
+            throw "Float32 data are not supported on this hardware. Try Float16 data instead.";
+        }
+
+        format = is_webgl2 ? gl.R32F : gl.LUMINANCE;
+        type = gl.FLOAT;
     }
 
     return {format: format, type: type};
