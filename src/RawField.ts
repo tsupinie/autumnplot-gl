@@ -1,5 +1,6 @@
 
-import { WebGLAnyRenderingContext, WindProfile } from "./AutumnTypes";
+import { Float16Array } from "@petamoriken/float16";
+import { TypedArray, WebGLAnyRenderingContext, WindProfile } from "./AutumnTypes";
 import { lambertConformalConic, rotateSphere } from "./Map";
 import { layer_worker } from "./PlotComponent";
 import { zip } from "./utils";
@@ -397,17 +398,23 @@ class LambertGrid extends Grid {
     }
 }
 
+type TextureDataType<ArrayType> = ArrayType extends Float32Array ? Float32Array : Uint16Array;
+
+function getArrayConstructor<ArrayType extends TypedArray>(ary: ArrayType) : new(...args: any[]) => ArrayType {
+    return ary.constructor as new(...args: any[]) => ArrayType;
+}
+
 /** A class representing a raw 2D field of gridded data, such as height or u wind. */
-class RawScalarField {
+class RawScalarField<ArrayType extends TypedArray> {
     readonly grid: Grid;
-    readonly data: Float32Array;
+    readonly data: ArrayType;
 
     /**
      * Create a data field. 
      * @param grid - The grid on which the data are defined
      * @param data - The data, which should be given as a 1D array in row-major order, with the first element being at the lower-left corner of the grid.
      */
-    constructor(grid: Grid, data: Float32Array) {
+    constructor(grid: Grid, data: ArrayType) {
         this.grid = grid;
         this.data = data;
 
@@ -416,9 +423,28 @@ class RawScalarField {
         }
     }
 
+    getTextureData() : TextureDataType<ArrayType> {
+        // Need to give float16 data as uint16s to make WebGL happy: https://github.com/petamoriken/float16/issues/105
+        let data: any;
+        if (this.data instanceof Float32Array) {
+            data = this.data;
+        }
+        else {
+            data = new Uint16Array(this.data.buffer);
+        }
+
+        return data as TextureDataType<ArrayType>;
+    }
+    
+    isFloat16() {
+        return !(this.data instanceof Float32Array);
+    }
+
     getThinnedField(thin_x: number, thin_y: number) {
+        const arrayType = getArrayConstructor(this.data);
+
         const new_grid = this.grid.getThinnedGrid(thin_x, thin_y);
-        const new_data = new Float32Array(new_grid.ni * new_grid.nj);
+        const new_data = new arrayType(new_grid.ni * new_grid.nj);
 
         for (let i = 0; i < new_grid.ni; i++) {
             for (let j = 0 ; j < new_grid.nj; j++) {
@@ -441,15 +467,16 @@ class RawScalarField {
      * // Compute wind speed from u and v
      * wind_speed_field = RawScalarField.aggreateFields(Math.hypot, u_field, v_field);
      */
-    static aggregateFields(func: (...args: number[]) => number, ...args: RawScalarField[]) {
+    static aggregateFields<ArrayType extends TypedArray>(func: (...args: number[]) => number, ...args: RawScalarField<ArrayType>[]) {
         function* mapGenerator<T, U>(gen: Generator<T>, func: (arg: T) => U) {
             for (const elem of gen) {
                 yield func(elem);
             }
         }
 
+        const arrayType = getArrayConstructor(args[0].data);
         const zipped_args = zip(...args.map(a => a.data));
-        const agg_data = new Float32Array(mapGenerator(zipped_args, (a: number[]): number => func(...a)));
+        const agg_data = new arrayType(mapGenerator(zipped_args, (a: number[]): number => func(...a)));
 
         return new RawScalarField(args[0].grid, agg_data);
     }
@@ -466,13 +493,13 @@ interface RawVectorFieldOptions {
 }
 
 /** A class representing a 2D gridded field of vectors */
-class RawVectorField {
-    readonly u: RawScalarField;
-    readonly v: RawScalarField;
+class RawVectorField<ArrayType extends TypedArray> {
+    readonly u: RawScalarField<ArrayType>;
+    readonly v: RawScalarField<ArrayType>;
     readonly relative_to: VectorRelativeTo;
 
     /** @private */
-    readonly _rotate_cache: Cache<[], {u: RawScalarField, v: RawScalarField}>
+    readonly _rotate_cache: Cache<[], {u: RawScalarField<ArrayType>, v: RawScalarField<ArrayType>}>
 
     /**
      * Create a vector field.
@@ -481,8 +508,10 @@ class RawVectorField {
      * @param v    - The v (north/south) component of the vectors, which should be given as a 1D array in row-major order, with the first element being at the lower-left corner of the grid
      * @param opts - Options for creating the vector field.
      */
-    constructor(grid: Grid, u: Float32Array, v: Float32Array, opts?: RawVectorFieldOptions) {
+    constructor(grid: Grid, u: ArrayType, v: ArrayType, opts?: RawVectorFieldOptions) {
         opts = opts === undefined ? {}: opts;
+
+        const arrayType = getArrayConstructor(u);
 
         this.u = new RawScalarField(grid, u);
         this.v = new RawScalarField(grid, v);
@@ -491,8 +520,8 @@ class RawVectorField {
         this._rotate_cache = new Cache(() => {
             const grid = this.u.grid;
             const coords = grid.getCoords();
-            const u_rot = new Float32Array(coords.lats.length);
-            const v_rot = new Float32Array(coords.lats.length);
+            const u_rot = new arrayType(coords.lats.length);
+            const v_rot = new arrayType(coords.lats.length);
 
             for (let icd = 0; icd < coords.lats.length; icd++) {
                 const lon = coords.lons[icd];
@@ -573,8 +602,8 @@ class RawProfileField {
 
     /** Get the gridded storm motion vector field (internal method) */
     getStormMotionGrid() {
-        const u = new Float32Array(this.grid.ni * this.grid.nj);
-        const v = new Float32Array(this.grid.ni * this.grid.nj);
+        const u = new Float16Array(this.grid.ni * this.grid.nj);
+        const v = new Float16Array(this.grid.ni * this.grid.nj);
 
         this.profiles.forEach(prof => {
             const idx = prof.ilon + this.grid.ni * prof.jlat;

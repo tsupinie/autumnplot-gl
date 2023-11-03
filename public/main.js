@@ -13,12 +13,14 @@ function makeSynthetic500mbLayers() {
     }
     const colormap = apgl.colormaps.pw_speed500mb;
 
-    const raw_hght_field = new apgl.RawScalarField(grid, new Float32Array(hght));
-    const raw_u_field = new apgl.RawScalarField(grid, new Float32Array(u));
-    const raw_v_field = new apgl.RawScalarField(grid, new Float32Array(v));
+    const arrayType = float16.Float16Array;
+
+    const raw_hght_field = new apgl.RawScalarField(grid, new arrayType(hght));
+    const raw_u_field = new apgl.RawScalarField(grid, new arrayType(u));
+    const raw_v_field = new apgl.RawScalarField(grid, new arrayType(v));
 
     const raw_ws_field = apgl.RawScalarField.aggregateFields(Math.hypot, raw_u_field, raw_v_field);
-    const raw_vec_field = new apgl.RawVectorField(grid, new Float32Array(u), new Float32Array(v), {relative_to: 'grid'});
+    const raw_vec_field = new apgl.RawVectorField(grid, new arrayType(u), new arrayType(v), {relative_to: 'grid'});
 
     const cntr = new apgl.Contour(raw_hght_field, {interval: 1, color: '#000000', thinner: zoom => zoom < 5 ? 2 : 1});
     const filled = new apgl.ContourFill(raw_ws_field, {'cmap': colormap, 'opacity': 0.8});
@@ -40,7 +42,7 @@ async function fetchBinary(fname) {
     const blob = await resp.blob();
     const ary = new Uint8Array(await blob.arrayBuffer());
     const ary_inflated = pako.inflate(ary);
-    return new Float32Array(ary_inflated.buffer);
+    return new float16.Float16Array(new Float32Array(ary_inflated.buffer));
 }
 
 async function makeHREFLayers() {

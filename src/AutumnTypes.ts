@@ -1,4 +1,6 @@
 
+import { Float16Array } from "@petamoriken/float16";
+
 interface WindProfile {
     lat: number;
     lon: number;
@@ -42,5 +44,7 @@ function isWebGL2Ctx(gl: WebGLAnyRenderingContext) : gl is WebGL2RenderingContex
     return gl.getParameter(gl.VERSION).includes('WebGL 2.0');
 }
 
+type TypedArray = Float16Array | Float32Array;
+
 export {isWebGL2Ctx};
-export type {WindProfile, BillboardSpec, PolylineSpec, LineSpec, WebGLAnyRenderingContext};
+export type {WindProfile, BillboardSpec, PolylineSpec, LineSpec, WebGLAnyRenderingContext, TypedArray};

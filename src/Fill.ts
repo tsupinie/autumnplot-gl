@@ -1,10 +1,10 @@
 
-import { PlotComponent, layer_worker } from './PlotComponent';
+import { PlotComponent, getGLFormatType } from './PlotComponent';
 import { ColorMap, makeTextureImage } from './Colormap';
 import { WGLBuffer, WGLProgram, WGLTexture } from 'autumn-wgl';
 import { RawScalarField } from './RawField';
 import { MapType } from './Map';
-import { WebGLAnyRenderingContext, isWebGL2Ctx } from './AutumnTypes';
+import { TypedArray, WebGLAnyRenderingContext } from './AutumnTypes';
 import { Float16Array } from '@petamoriken/float16';
 
 const contourfill_vertex_shader_src = require('./glsl/contourfill_vertex.glsl');
@@ -42,8 +42,8 @@ interface PlotComponentFillGLElems {
     cmap_nonlin_texture: WGLTexture;
 }
 
-class PlotComponentFill extends PlotComponent {
-    readonly field: RawScalarField;
+class PlotComponentFill<ArrayType extends TypedArray> extends PlotComponent {
+    readonly field: RawScalarField<ArrayType>;
     readonly cmap: ColorMap;
     readonly opacity: number;
 
@@ -57,7 +57,7 @@ class PlotComponentFill extends PlotComponent {
     image_mag_filter: number | null;
     cmap_mag_filter: number | null;
 
-    constructor(field: RawScalarField, opts: ContourFillOptions) {
+    constructor(field: RawScalarField<ArrayType>, opts: ContourFillOptions) {
         super();
 
         this.field = field;
@@ -96,8 +96,6 @@ class PlotComponentFill extends PlotComponent {
 
     async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
         // Basic procedure for the filled contours inspired by https://blog.mbq.me/webgl-weather-globe/
-        gl.getExtension('OES_texture_float');
-        gl.getExtension('OES_texture_float_linear');
         
         if (this.image_mag_filter === null || this.cmap_mag_filter === null) {
             throw `Implement magnification filtes in a subclass`;
@@ -109,14 +107,12 @@ class PlotComponentFill extends PlotComponent {
         const vertices = verts_buf;
         const texcoords = tex_coords_buf;
 
-        const data_halfp = new Float16Array(this.field.data);
+        gl.pixelStorei(gl.UNPACK_ALIGNMENT, 2);
 
-        const format = isWebGL2Ctx(gl) ? gl.R16F : gl.LUMINANCE;
-        const type = isWebGL2Ctx(gl) ? gl.HALF_FLOAT : gl.FLOAT;
-
-        gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+        const {format, type} = getGLFormatType(gl, this.field.isFloat16());
+        
         const fill_image = {'format': format, 'type': type,
-            'width': this.field.grid.ni, 'height': this.field.grid.nj, 'image': new Uint16Array(data_halfp.buffer),
+            'width': this.field.grid.ni, 'height': this.field.grid.nj, 'image': this.field.getTextureData(),
             'mag_filter': this.image_mag_filter,
         };
 
@@ -125,7 +121,9 @@ class PlotComponentFill extends PlotComponent {
         const cmap_image = {'format': gl.RGBA, 'type': gl.UNSIGNED_BYTE, 'image': this.cmap_image, 'mag_filter': this.cmap_mag_filter};
         const cmap_texture = new WGLTexture(gl, cmap_image);
 
-        const cmap_nonlin_image = {'format': format, 'type': type, 
+        const {format: format_nonlin , type: type_nonlin} = getGLFormatType(gl, true);
+
+        const cmap_nonlin_image = {'format': format_nonlin, 'type': type_nonlin, 
             'width': this.index_map.length, 'height': 1,
             'image': new Uint16Array(this.index_map.buffer), 
             'mag_filter': gl.LINEAR
@@ -162,14 +160,14 @@ class PlotComponentFill extends PlotComponent {
  * // Create a raster plot with the provided color map
  * const raster = new Raster(wind_speed_field, {cmap: color_map});
  */
-class Raster extends PlotComponentFill {
+class Raster<ArrayType extends TypedArray> extends PlotComponentFill<ArrayType> {
 
     /**
      * Create a raster plot
      * @param field - The field to create the raster plot from
      * @param opts  - Options for creating the raster plot
      */
-    constructor(field: RawScalarField, opts: RasterOptions) {
+    constructor(field: RawScalarField<ArrayType>, opts: RasterOptions) {
         super(field, opts);
     }
 
@@ -198,14 +196,14 @@ class Raster extends PlotComponentFill {
  * // Create a field of filled contours with the provided color map
  * const fill = new ContourFill(wind_speed_field, {cmap: color_map});
  */
-class ContourFill extends PlotComponentFill {
+class ContourFill<ArrayType extends TypedArray> extends PlotComponentFill<ArrayType> {
 
     /**
      * Create a filled contoured field
      * @param field - The field to create filled contours from
      * @param opts  - Options for creating the filled contours
      */
-    constructor(field: RawScalarField, opts: ContourFillOptions) {
+    constructor(field: RawScalarField<ArrayType>, opts: ContourFillOptions) {
         super(field, opts);
     }
 

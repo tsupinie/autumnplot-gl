@@ -1,12 +1,13 @@
 
-import { BillboardSpec, WebGLAnyRenderingContext, isWebGL2Ctx } from "./AutumnTypes";
+import { BillboardSpec, TypedArray, WebGLAnyRenderingContext } from "./AutumnTypes";
+import { getGLFormatType } from "./PlotComponent";
 import { RawVectorField } from "./RawField";
 import { WGLBuffer, WGLProgram, WGLTexture, WGLTextureSpec } from "autumn-wgl";
 
 const billboard_vertex_shader_src = require('./glsl/billboard_vertex.glsl');
 const billboard_fragment_shader_src = require('./glsl/billboard_fragment.glsl');
 
-class BillboardCollection {
+class BillboardCollection<ArrayType extends TypedArray> {
     readonly spec: BillboardSpec;
     readonly color: [number, number, number];
     readonly size_multiplier: number;
@@ -18,7 +19,7 @@ class BillboardCollection {
     readonly u_texture: WGLTexture;
     readonly v_texture: WGLTexture;
 
-    constructor(gl: WebGLAnyRenderingContext, field: RawVectorField, thin_fac: number, max_zoom: number, 
+    constructor(gl: WebGLAnyRenderingContext, field: RawVectorField<ArrayType>, thin_fac: number, max_zoom: number, 
                 billboard_image: WGLTextureSpec, billboard_spec: BillboardSpec, billboard_color: [number, number, number], billboard_size_mult: number) {
 
         this.spec = billboard_spec;
@@ -44,15 +45,17 @@ class BillboardCollection {
             this.texcoords = texcoords;
         })();
 
-        const format = isWebGL2Ctx(gl) ? gl.R32F : gl.LUMINANCE;
+        gl.pixelStorei(gl.UNPACK_ALIGNMENT, 2);
 
-        const u_image = {'format': format, 'type': gl.FLOAT,
-            'width': u_thin.grid.ni, 'height': u_thin.grid.nj, 'image': u_thin.data,
+        const {format, type} = getGLFormatType(gl, u_thin.isFloat16());
+
+        const u_image = {'format': format, 'type': type,
+            'width': u_thin.grid.ni, 'height': u_thin.grid.nj, 'image': u_thin.getTextureData(),
             'mag_filter': gl.NEAREST,
         };
 
-        const v_image = {'format': format, 'type': gl.FLOAT,
-            'width': v_thin.grid.ni, 'height': v_thin.grid.nj, 'image': v_thin.data,
+        const v_image = {'format': format, 'type': type,
+            'width': v_thin.grid.ni, 'height': v_thin.grid.nj, 'image': v_thin.getTextureData(),
             'mag_filter': gl.NEAREST,
         };
 

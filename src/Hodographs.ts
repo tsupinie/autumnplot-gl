@@ -5,7 +5,8 @@ import { BillboardCollection } from "./BillboardCollection";
 import { getMinZoom, hex2rgba } from './utils';
 import { LngLat, MapType } from "./Map";
 import { RawProfileField } from "./RawField";
-import { WebGLAnyRenderingContext } from "./AutumnTypes";
+import { TypedArray, WebGLAnyRenderingContext } from "./AutumnTypes";
+import { Float16Array } from "@petamoriken/float16";
 
 const LINE_WIDTH = 4;
 const BG_MAX_RING_MAG = 40;
@@ -98,9 +99,9 @@ interface HodographOptions {
     thin_fac?: number;
 }
 
-interface HodographGLElems {
+interface HodographGLElems<ArrayType extends TypedArray> {
     map: MapType;
-    bg_billboard: BillboardCollection | null;
+    bg_billboard: BillboardCollection<ArrayType> | null;
     hodo_line: PolylineCollection | null;
     sm_line: PolylineCollection | null;
 }
@@ -112,7 +113,7 @@ class Hodographs extends PlotComponent {
     readonly thin_fac: number;
 
     /** @private */
-    gl_elems: HodographGLElems;
+    gl_elems: HodographGLElems<Float16Array>;
 
     /**
      * Create a field of hodographs

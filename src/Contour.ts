@@ -1,7 +1,7 @@
 
-import { WebGLAnyRenderingContext, isWebGL2Ctx } from './AutumnTypes';
+import { TypedArray, WebGLAnyRenderingContext} from './AutumnTypes';
 import { MapType } from './Map';
-import { PlotComponent, layer_worker } from './PlotComponent';
+import { PlotComponent, getGLFormatType } from './PlotComponent';
 import { RawScalarField } from './RawField';
 import { hex2rgba } from './utils';
 import { WGLBuffer, WGLProgram, WGLTexture } from 'autumn-wgl';
@@ -53,8 +53,8 @@ interface ContourGLElems {
  * const contours = new Contour(height_field, {color: '#000000', interval: 30, 
  *                                                  thinner: zoom => zoom < 5 ? 2 : 1});
  */
-class Contour extends PlotComponent {
-    readonly field: RawScalarField;
+class Contour<ArrayType extends TypedArray> extends PlotComponent {
+    readonly field: RawScalarField<ArrayType>;
     readonly color: [number, number, number];
     readonly interval: number;
     readonly levels: number[];
@@ -68,7 +68,7 @@ class Contour extends PlotComponent {
      * @param field - The field to contour
      * @param opts  - Options for creating the contours
      */
-    constructor(field: RawScalarField, opts: ContourOptions) {
+    constructor(field: RawScalarField<ArrayType>, opts: ContourOptions) {
         super();
 
         this.field = field;
@@ -90,9 +90,6 @@ class Contour extends PlotComponent {
      */
     async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
         // Basic procedure for these contours from https://www.shadertoy.com/view/lltBWM
-        gl.getExtension('OES_texture_float');
-        gl.getExtension('OES_texture_float_linear');
-        gl.getExtension('OES_standard_derivatives');
         
         const program = new WGLProgram(gl, contour_vertex_shader_src, contour_fragment_shader_src);
 
@@ -101,10 +98,12 @@ class Contour extends PlotComponent {
         const texcoords = tex_coords_buf;
         const grid_cell_size = cellsize_buf;
 
-        const format = isWebGL2Ctx(gl) ? gl.R32F : gl.LUMINANCE;
+        gl.pixelStorei(gl.UNPACK_ALIGNMENT, 2);
 
-        const fill_image = {'format': format, 'type': gl.FLOAT, 
-            'width': this.field.grid.ni, 'height': this.field.grid.nj, 'image': this.field.data,
+        const {format, type} = getGLFormatType(gl, this.field.isFloat16());
+
+        const fill_image = {'format': format, 'type': type, 
+            'width': this.field.grid.ni, 'height': this.field.grid.nj, 'image': this.field.getTextureData(),
             'mag_filter': gl.LINEAR,
         };
 

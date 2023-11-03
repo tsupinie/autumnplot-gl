@@ -1,7 +1,7 @@
 
-import { WebGLAnyRenderingContext, isWebGL2Ctx } from "./AutumnTypes";
+import { TypedArray, WebGLAnyRenderingContext } from "./AutumnTypes";
 import { MapType } from "./Map";
-import { PlotComponent } from "./PlotComponent";
+import { PlotComponent, getGLFormatType } from "./PlotComponent";
 import { RawScalarField } from "./RawField";
 import { hex2rgba } from "./utils";
 import { WGLBuffer, WGLProgram, WGLTexture } from "autumn-wgl";
@@ -36,8 +36,8 @@ interface PaintballGLElems {
  * of single-precision floats, this works for up to 24 members. (Technically speaking, I don't need the quotes around "bits", as they're bits of the 
  * significand of an IEEE 754 float.)
  */
-class Paintball extends PlotComponent {
-    readonly field: RawScalarField;
+class Paintball<ArrayType extends TypedArray> extends PlotComponent {
+    readonly field: RawScalarField<ArrayType>;
     readonly colors: number[];
     readonly opacity: number;
 
@@ -51,7 +51,7 @@ class Paintball extends PlotComponent {
      *               `M2` is the same thing for member 2, and `M3` and `M4` and up to `Mn` are the same thing for the rest of the members.
      * @param opts  - Options for creating the paintball plot
      */
-    constructor(field: RawScalarField, opts?: PaintballOptions) {
+    constructor(field: RawScalarField<ArrayType>, opts?: PaintballOptions) {
         super();
 
         this.field = field;
@@ -77,10 +77,12 @@ class Paintball extends PlotComponent {
         const vertices = verts_buf;
         const texcoords = tex_coords_buf;
 
-        const format = isWebGL2Ctx(gl) ? gl.R32F : gl.LUMINANCE;
+        gl.pixelStorei(gl.UNPACK_ALIGNMENT, 2);
 
-        const fill_image = {'format': format, 'type': gl.FLOAT,
-            'width': this.field.grid.ni, 'height': this.field.grid.nj, 'image': this.field.data,
+        const {format, type} = getGLFormatType(gl, this.field.isFloat16());
+
+        const fill_image = {'format': format, 'type': type,
+            'width': this.field.grid.ni, 'height': this.field.grid.nj, 'image': this.field.getTextureData(),
             'mag_filter': gl.NEAREST,
         };
 
