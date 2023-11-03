@@ -5,6 +5,7 @@ import { WGLBuffer, WGLProgram, WGLTexture } from 'autumn-wgl';
 import { RawScalarField } from './RawField';
 import { MapType } from './Map';
 import { WebGLAnyRenderingContext, isWebGL2Ctx } from './AutumnTypes';
+import { Float16Array } from '@petamoriken/float16';
 
 const contourfill_vertex_shader_src = require('./glsl/contourfill_vertex.glsl');
 const contourfill_fragment_shader_src = require('./glsl/contourfill_fragment.glsl');
@@ -49,7 +50,7 @@ class PlotComponentFill extends PlotComponent {
     /** @private */
     readonly cmap_image: HTMLCanvasElement;
     /** @private */
-    readonly index_map: Float32Array;
+    readonly index_map: Float16Array;
 
     /** @private */
     gl_elems: PlotComponentFillGLElems | null;
@@ -86,7 +87,7 @@ class PlotComponentFill extends PlotComponent {
             return input_norm[jlev] * (1 - alpha) + input_norm[jlev + 1] * alpha;
         });
 
-        this.index_map = new Float32Array(inv_cmap_norm);
+        this.index_map = new Float16Array(inv_cmap_norm);
 
         this.gl_elems = null;
         this.image_mag_filter = null;
@@ -108,10 +109,14 @@ class PlotComponentFill extends PlotComponent {
         const vertices = verts_buf;
         const texcoords = tex_coords_buf;
 
-        const format = isWebGL2Ctx(gl) ? gl.R32F : gl.LUMINANCE;
+        const data_halfp = new Float16Array(this.field.data);
 
-        const fill_image = {'format': format, 'type': gl.FLOAT,
-            'width': this.field.grid.ni, 'height': this.field.grid.nj, 'image': this.field.data,
+        const format = isWebGL2Ctx(gl) ? gl.R16F : gl.LUMINANCE;
+        const type = isWebGL2Ctx(gl) ? gl.HALF_FLOAT : gl.FLOAT;
+
+        gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+        const fill_image = {'format': format, 'type': type,
+            'width': this.field.grid.ni, 'height': this.field.grid.nj, 'image': new Uint16Array(data_halfp.buffer),
             'mag_filter': this.image_mag_filter,
         };
 
@@ -120,9 +125,9 @@ class PlotComponentFill extends PlotComponent {
         const cmap_image = {'format': gl.RGBA, 'type': gl.UNSIGNED_BYTE, 'image': this.cmap_image, 'mag_filter': this.cmap_mag_filter};
         const cmap_texture = new WGLTexture(gl, cmap_image);
 
-        const cmap_nonlin_image = {'format': format, 'type': gl.FLOAT, 
+        const cmap_nonlin_image = {'format': format, 'type': type, 
             'width': this.index_map.length, 'height': 1,
-            'image': this.index_map, 
+            'image': new Uint16Array(this.index_map.buffer), 
             'mag_filter': gl.LINEAR
         };
 
