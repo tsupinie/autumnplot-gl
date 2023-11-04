@@ -142,4 +142,4 @@ function getOS() {
   return os;
 }
 
-export {hex2rgba, rgba2hex, hex2rgb, rgb2hex, rgb2hsv, hsv2rgb, zip, getMinZoom};
+export {hex2rgba, rgba2hex, hex2rgb, rgb2hex, rgb2hsv, hsv2rgb, zip, getMinZoom, getOS};
