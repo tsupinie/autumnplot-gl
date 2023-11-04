@@ -1,6 +1,7 @@
 
 import * as Comlink from 'comlink';
 
+import { getOS } from "./utils";
 import { PlotLayerWorker } from './PlotLayer.worker';
 import { MapType } from './Map';
 import { WebGLAnyRenderingContext, isWebGL2Ctx } from './AutumnTypes';
@@ -19,9 +20,9 @@ function getGLFormatType(gl: WebGLAnyRenderingContext, is_float16: boolean) {
 
     if (is_float16) {
         const ext = gl.getExtension('OES_texture_half_float');
-        const ext_lin = gl.getExtension('OES_texture_float_linear');
+        const ext_lin = gl.getExtension('OES_texture_half_float_linear');
 
-        if ((!is_webgl2 && ext === null) || ext_lin === null) {
+        if ((!is_webgl2 && ext === null) || (!is_webgl2 && ext_lin === null)) {
             throw "Float16 data are not supported on this hardware. Try Float32 data instead.";
         }
 
@@ -32,7 +33,13 @@ function getGLFormatType(gl: WebGLAnyRenderingContext, is_float16: boolean) {
         const ext = gl.getExtension('OES_texture_float');
         const ext_lin = gl.getExtension('OES_texture_float_linear');
 
-        if ((!is_webgl2 && ext === null) || ext_lin === null) {
+		// As of 11/3/2023, Safari/WebKit on iOS reports as supporting float textures,
+		// but really doesn't. It just silently fails. In WebGL 1, Safari/Webkit returns
+		// null for ext_lin here, but in WebGL2, both ext vars are null because they were 
+		// merged into the standard. This means that to properly fail for iOS devices using
+		// WebGL2, we have to hard code an OS check... this OS check also works when uers
+		// request desktop-mode websites.
+		if ((!is_webgl2 && ext === null) || (!is_webgl2 && ext_lin === null) || (getOS() === 'iOS')) {	
             throw "Float32 data are not supported on this hardware. Try Float16 data instead.";
         }
 
