@@ -90,6 +90,7 @@ class Contour<ArrayType extends TypedArray> extends PlotComponent {
      */
     async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
         // Basic procedure for these contours from https://www.shadertoy.com/view/lltBWM
+        gl.getExtension("OES_standard_derivatives");
         
         const program = new WGLProgram(gl, contour_vertex_shader_src, contour_fragment_shader_src);
 
@@ -123,8 +124,8 @@ class Contour<ArrayType extends TypedArray> extends PlotComponent {
 
         const zoom = gl_elems.map.getZoom();
         const intv = this.thinner(zoom) * this.interval;
-        const cutoff = 0.5 / intv;
-        const step_size = [0.25 / this.field.grid.ni, 0.25 / this.field.grid.nj];
+        const cutoff = 0.3 / intv;
+        const step_size = [1 / this.field.grid.ni, 1 / this.field.grid.nj];
         const zoom_fac = Math.pow(2, zoom);
 
         let uniforms = {'u_contour_interval': intv, 'u_line_cutoff': cutoff, 'u_color': this.color, 'u_step_size': step_size, 'u_zoom_fac': zoom_fac,
