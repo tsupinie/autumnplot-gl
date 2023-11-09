@@ -146,4 +146,22 @@ function getOS() {
     return os;
 }
 
-export {hex2rgba, rgba2hex, hex2rgb, rgb2hex, rgb2hsv, hsv2rgb, zip, getMinZoom, getOS};
+class Cache<A extends unknown[], R> {
+    cached_value: R | null;
+    compute_value: (...args: A) => R;
+
+    constructor(compute_value: (...args: A) => R) {
+        this.cached_value = null;
+        this.compute_value = compute_value;
+    }
+
+    getValue(...args: A) {
+        if (this.cached_value === null) {
+            this.cached_value = this.compute_value(...args);
+        }
+
+        return this.cached_value;
+    }
+}
+
+export {hex2rgba, rgba2hex, hex2rgb, rgb2hex, rgb2hsv, hsv2rgb, zip, getMinZoom, getOS, Cache};

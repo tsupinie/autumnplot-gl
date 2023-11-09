@@ -3,11 +3,12 @@ import { TypedArray, WebGLAnyRenderingContext } from "./AutumnTypes";
 import { MapType } from "./Map";
 import { PlotComponent, getGLFormatType } from "./PlotComponent";
 import { RawScalarField } from "./RawField";
-import { hex2rgba } from "./utils";
+import { Cache, hex2rgba } from "./utils";
 import { WGLBuffer, WGLProgram, WGLTexture } from "autumn-wgl";
 
 const paintball_vertex_shader_src = require('./glsl/paintball_vertex.glsl');
 const paintball_fragment_shader_src = require('./glsl/paintball_fragment.glsl');
+const program_cache = new Cache((gl: WebGLAnyRenderingContext) => new WGLProgram(gl, paintball_vertex_shader_src, paintball_fragment_shader_src));
 
 interface PaintballOptions {
     /**
@@ -71,7 +72,7 @@ class Paintball<ArrayType extends TypedArray> extends PlotComponent {
     async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
         gl.getExtension('OES_texture_float');
 
-        const program = new WGLProgram(gl, paintball_vertex_shader_src, paintball_fragment_shader_src);
+        const program = program_cache.getValue(gl);
 
         const {vertices: verts_buf, texcoords: tex_coords_buf} = await this.field.grid.getWGLBuffers(gl);
         const vertices = verts_buf;

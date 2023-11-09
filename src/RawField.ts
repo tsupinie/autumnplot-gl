@@ -3,26 +3,8 @@ import { Float16Array } from "@petamoriken/float16";
 import { TypedArray, WebGLAnyRenderingContext, WindProfile } from "./AutumnTypes";
 import { lambertConformalConic, rotateSphere } from "./Map";
 import { layer_worker } from "./PlotComponent";
-import { zip } from "./utils";
+import { Cache, zip } from "./utils";
 import { WGLBuffer } from "autumn-wgl";
-
-class Cache<A extends unknown[], R> {
-    cached_value: R | null;
-    compute_value: (...args: A) => R;
-
-    constructor(compute_value: (...args: A) => R) {
-        this.cached_value = null;
-        this.compute_value = compute_value;
-    }
-
-    getValue(...args: A) {
-        if (this.cached_value === null) {
-            this.cached_value = this.compute_value(...args);
-        }
-
-        return this.cached_value;
-    }
-}
 
 interface Coords {
     lons: Float32Array;

@@ -3,11 +3,12 @@ import { TypedArray, WebGLAnyRenderingContext} from './AutumnTypes';
 import { MapType } from './Map';
 import { PlotComponent, getGLFormatType } from './PlotComponent';
 import { RawScalarField } from './RawField';
-import { hex2rgba } from './utils';
+import { Cache, hex2rgba } from './utils';
 import { WGLBuffer, WGLProgram, WGLTexture } from 'autumn-wgl';
 
 const contour_vertex_shader_src = require('./glsl/contour_vertex.glsl');
 const contour_fragment_shader_src = require('./glsl/contour_fragment.glsl');
+const program_cache = new Cache((gl: WebGLAnyRenderingContext) => new WGLProgram(gl, contour_vertex_shader_src, contour_fragment_shader_src));
 
 interface ContourOptions {
     /** 
@@ -92,7 +93,7 @@ class Contour<ArrayType extends TypedArray> extends PlotComponent {
         // Basic procedure for these contours from https://www.shadertoy.com/view/lltBWM
         gl.getExtension("OES_standard_derivatives");
         
-        const program = new WGLProgram(gl, contour_vertex_shader_src, contour_fragment_shader_src);
+        const program = program_cache.getValue(gl);
 
         const {vertices: verts_buf, texcoords: tex_coords_buf, cellsize: cellsize_buf} = await this.field.grid.getWGLBuffers(gl);
         const vertices = verts_buf;

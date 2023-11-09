@@ -6,9 +6,11 @@ import { RawScalarField } from './RawField';
 import { MapType } from './Map';
 import { TypedArray, WebGLAnyRenderingContext } from './AutumnTypes';
 import { Float16Array } from '@petamoriken/float16';
+import { Cache } from './utils';
 
 const contourfill_vertex_shader_src = require('./glsl/contourfill_vertex.glsl');
 const contourfill_fragment_shader_src = require('./glsl/contourfill_fragment.glsl');
+const program_cache = new Cache((gl: WebGLAnyRenderingContext) => new WGLProgram(gl, contourfill_vertex_shader_src, contourfill_fragment_shader_src));
 
 interface ContourFillOptions {
     /** The color map to use when creating the fills */
@@ -101,7 +103,7 @@ class PlotComponentFill<ArrayType extends TypedArray> extends PlotComponent {
             throw `Implement magnification filtes in a subclass`;
         }
         
-        const program = new WGLProgram(gl, contourfill_vertex_shader_src, contourfill_fragment_shader_src);
+        const program = program_cache.getValue(gl);
 
         const {vertices: verts_buf, texcoords: tex_coords_buf} = await this.field.grid.getWGLBuffers(gl);
         const vertices = verts_buf;

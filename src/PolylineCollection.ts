@@ -1,9 +1,11 @@
 
 import { WGLBuffer, WGLProgram, WGLTexture, WGLTextureSpec } from "autumn-wgl";
 import { PolylineSpec, LineSpec, WebGLAnyRenderingContext } from "./AutumnTypes";
+import { Cache } from "./utils";
 
 const polyline_vertex_src = require('./glsl/polyline_vertex.glsl');
 const polyline_fragment_src = require('./glsl/polyline_fragment.glsl');
+const program_cache = new Cache((gl: WebGLAnyRenderingContext) => new WGLProgram(gl, polyline_vertex_src, polyline_fragment_src));
 
 class PolylineCollection {
     readonly width: number;
@@ -22,7 +24,7 @@ class PolylineCollection {
         this.width = line_width;
         this.scale = offset_scale;
 
-        this.program = new WGLProgram(gl, polyline_vertex_src, polyline_fragment_src);
+        this.program = program_cache.getValue(gl);
 
         this.origin = new WGLBuffer(gl, polyline['origin'], 2, gl.TRIANGLE_STRIP);
         this.offset = new WGLBuffer(gl, polyline['verts'], 2, gl.TRIANGLE_STRIP);
