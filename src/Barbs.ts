@@ -181,7 +181,7 @@ class Barbs<ArrayType extends TypedArray> extends PlotComponent {
      * @internal 
      * Add the barb field to a map
      */
-    async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
+    public async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
         gl.getExtension('OES_texture_float');
         gl.getExtension('OES_texture_float_linear');
         
@@ -205,7 +205,7 @@ class Barbs<ArrayType extends TypedArray> extends PlotComponent {
      * @internal 
      * Render the barb field
      */
-    render(gl: WebGLAnyRenderingContext, matrix: number[]) {
+    public render(gl: WebGLAnyRenderingContext, matrix: number[]) {
         if (this.gl_elems === null) return;
         const gl_elems = this.gl_elems
 

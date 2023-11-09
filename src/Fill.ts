@@ -93,7 +93,7 @@ class PlotComponentFill<ArrayType extends TypedArray> extends PlotComponent {
         this.cmap_mag_filter = null;
     }
 
-    async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
+    public async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
         // Basic procedure for the filled contours inspired by https://blog.mbq.me/webgl-weather-globe/
         
         if (this.image_mag_filter === null || this.cmap_mag_filter === null) {
@@ -135,7 +135,7 @@ class PlotComponentFill<ArrayType extends TypedArray> extends PlotComponent {
         };
     }
 
-    render(gl: WebGLAnyRenderingContext, matrix: number[]) {
+    public render(gl: WebGLAnyRenderingContext, matrix: number[]) {
         if (this.gl_elems === null) return;
         const gl_elems = this.gl_elems;
 
@@ -174,7 +174,7 @@ class Raster<ArrayType extends TypedArray> extends PlotComponentFill<ArrayType> 
      * @internal
      * Add the raster plot to a map
      */
-    async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
+    public async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
         this.image_mag_filter = gl.NEAREST;
         this.cmap_mag_filter = gl.LINEAR;
         super.onAdd(map, gl);
@@ -184,7 +184,7 @@ class Raster<ArrayType extends TypedArray> extends PlotComponentFill<ArrayType> 
      * @internal
      * Render the raster plot
      */
-    render(gl: WebGLAnyRenderingContext, matrix: number[]) {
+    public render(gl: WebGLAnyRenderingContext, matrix: number[]) {
         super.render(gl, matrix);
     }
 }
@@ -210,7 +210,7 @@ class ContourFill<ArrayType extends TypedArray> extends PlotComponentFill<ArrayT
      * @internal
      * Add the filled contours to a map
      */
-    async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
+    public async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
         this.image_mag_filter = gl.LINEAR;
         this.cmap_mag_filter = gl.NEAREST;
         super.onAdd(map, gl);
@@ -220,7 +220,7 @@ class ContourFill<ArrayType extends TypedArray> extends PlotComponentFill<ArrayT
      * @internal
      * Render the filled contours
      */
-    render(gl: WebGLAnyRenderingContext, matrix: number[]) {
+    public render(gl: WebGLAnyRenderingContext, matrix: number[]) {
         super.render(gl, matrix);
     }
 }

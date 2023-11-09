@@ -208,7 +208,7 @@ function mercatorYfromLat(lat: number) {
         }
     }
 
-    toMercatorCoord() {
+    public toMercatorCoord() {
         return {x: mercatorXfromLng(this.lng), y: mercatorYfromLat(this.lat)};
     }
 }

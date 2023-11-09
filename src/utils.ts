@@ -155,7 +155,7 @@ class Cache<A extends unknown[], R> {
         this.compute_value = compute_value;
     }
 
-    getValue(...args: A) {
+    public getValue(...args: A) {
         if (this.cached_value === null) {
             this.cached_value = this.compute_value(...args);
         }

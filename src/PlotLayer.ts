@@ -13,8 +13,8 @@ abstract class PlotLayerBase {
         this.id = id;
     }
 
-    abstract onAdd(map: MapType, gl: WebGLAnyRenderingContext) : void;
-    abstract render(gl: WebGLAnyRenderingContext, matrix: number[]) : void;
+    public abstract onAdd(map: MapType, gl: WebGLAnyRenderingContext) : void;
+    public abstract render(gl: WebGLAnyRenderingContext, matrix: number[]) : void;
 }
 
 /** 
@@ -43,7 +43,7 @@ class PlotLayer extends PlotLayerBase {
      * @internal
      * Add this layer to a map
      */
-    onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
+    public onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
         this.field.onAdd(map, gl);
     }
 
@@ -51,7 +51,7 @@ class PlotLayer extends PlotLayerBase {
      * @internal
      * Render this layer
      */
-    render(gl: WebGLAnyRenderingContext, matrix: number[]) {
+    public render(gl: WebGLAnyRenderingContext, matrix: number[]) {
         this.field.render(gl, matrix);
     }
 }
@@ -94,24 +94,24 @@ class MultiPlotLayer extends PlotLayerBase {
      * @internal
      * Add this layer to a map
      */
-    onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
+    public onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
         this.map = map;
         this.gl = gl;
 
         Object.values(this.fields).forEach(field => {
             field.onAdd(map, gl).then(res => {
-                this._repaintIfNecessary(null);
+                this.repaintIfNecessary(null);
             });
         });
 
-        this._repaintIfNecessary(null);
+        this.repaintIfNecessary(null);
     }
 
     /**
      * @internal
      * Render this layer
      */
-    render(gl: WebGLAnyRenderingContext, matrix: number[]) {
+    public render(gl: WebGLAnyRenderingContext, matrix: number[]) {
         if (this.map !== null && this.gl !== null && this.field_key !== null 
             && this.fields.hasOwnProperty(this.field_key) && this.fields[this.field_key] !== null) {
             this.fields[this.field_key].render(gl, matrix);
@@ -122,18 +122,18 @@ class MultiPlotLayer extends PlotLayerBase {
      * Set the active key
      * @param key - The new key
      */
-    setActiveKey(key: string) {
+    public setActiveKey(key: string) {
         const old_field_key = this.field_key;
         this.field_key = key;
 
-        this._repaintIfNecessary(old_field_key);
+        this.repaintIfNecessary(old_field_key);
     }
 
     /**
      * Get a list of all dates/times that have been added to the layer
      * @returns An array of dates/times
      */
-    getKeys() {
+    public getKeys() {
         return Object.keys(this.fields);
     }
 
@@ -142,12 +142,12 @@ class MultiPlotLayer extends PlotLayerBase {
      * @param field - The field to add
      * @param dt    - The date/time at which the field is valid
      */
-    addField(field: PlotComponent, key: string) {
+    public addField(field: PlotComponent, key: string) {
         const old_field_key = this.field_key;
 
         if (this.map !== null && this.gl !== null && field !== null) {
             field.onAdd(this.map, this.gl).then(res => {
-                this._repaintIfNecessary(null);
+                this.repaintIfNecessary(null);
             });
         }
 
@@ -158,8 +158,7 @@ class MultiPlotLayer extends PlotLayerBase {
         }
     }
 
-    /** @private */
-    _repaintIfNecessary(old_field_key: string | null) {
+    private repaintIfNecessary(old_field_key: string | null) {
         if (this.map !== null && old_field_key !== this.field_key) {
             this.map.triggerRepaint();
         }

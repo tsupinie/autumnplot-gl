@@ -71,17 +71,17 @@ abstract class Grid {
         });
     }
 
-    abstract copy(opts?: {ni?: number, nj?: number}): Grid;
+    public abstract copy(opts?: {ni?: number, nj?: number}): Grid;
 
-    abstract getCoords(): Coords;
-    abstract transform(x: number, y: number, opts?: {inverse?: boolean}): [number, number];
+    public abstract getCoords(): Coords;
+    public abstract transform(x: number, y: number, opts?: {inverse?: boolean}): [number, number];
     abstract getThinnedGrid(thin_x: number, thin_y: number): Grid;
     
-    async getWGLBuffers(gl: WebGLAnyRenderingContext) {
+    public async getWGLBuffers(gl: WebGLAnyRenderingContext) {
         return await this.buffer_cache.getValue(gl);
     }
 
-    async getWGLBillboardBuffers(gl: WebGLAnyRenderingContext, thin_fac: number, max_zoom: number) {
+    public async getWGLBillboardBuffers(gl: WebGLAnyRenderingContext, thin_fac: number, max_zoom: number) {
         return await this.billboard_buffer_cache.getValue(gl, thin_fac, max_zoom);
     }
 }
@@ -132,7 +132,7 @@ class PlateCarreeGrid extends Grid {
         });
     }
 
-    copy(opts?: {ni?: number, nj?: number, ll_lon?: number, ll_lat?: number, ur_lon?: number, ur_lat?: number}) {
+    public copy(opts?: {ni?: number, nj?: number, ll_lon?: number, ll_lat?: number, ur_lon?: number, ur_lat?: number}) {
         opts = opts !== undefined ? opts : {};
         const ni = opts.ni !== undefined ? opts.ni : this.ni;
         const nj = opts.nj !== undefined ? opts.nj : this.nj;
@@ -147,15 +147,15 @@ class PlateCarreeGrid extends Grid {
     /**
      * Get a list of longitudes and latitudes on the grid (internal method)
      */
-    getCoords() {
+    public getCoords() {
         return this.ll_cache.getValue();
     }
 
-    transform(x: number, y: number, opts?: {inverse?: boolean}) {
+    public transform(x: number, y: number, opts?: {inverse?: boolean}) {
         return [x, y] as [number, number];
     }
 
-    getThinnedGrid(thin_x: number, thin_y: number) {
+    public getThinnedGrid(thin_x: number, thin_y: number) {
         const dlon = (this.ur_lon - this.ll_lon) / this.ni;
         const dlat = (this.ur_lat - this.ll_lat) / this.nj;
 
@@ -229,7 +229,7 @@ class PlateCarreeRotatedGrid extends Grid {
         });
     }
 
-    copy(opts?: {ni?: number, nj?: number, ll_lon?: number, ll_lat?: number, ur_lon?: number, ur_lat?: number}) {
+    public copy(opts?: {ni?: number, nj?: number, ll_lon?: number, ll_lat?: number, ur_lon?: number, ur_lat?: number}) {
         opts = opts !== undefined ? opts : {};
         const ni = opts.ni !== undefined ? opts.ni : this.ni;
         const nj = opts.nj !== undefined ? opts.nj : this.nj;
@@ -244,18 +244,18 @@ class PlateCarreeRotatedGrid extends Grid {
     /**
      * Get a list of longitudes and latitudes on the grid (internal method)
      */
-    getCoords() {
+    public getCoords() {
         return this.ll_cache.getValue();
     }
 
-    transform(x: number, y: number, opts?: {inverse?: boolean}) {
+    public transform(x: number, y: number, opts?: {inverse?: boolean}) {
         opts = opts === undefined ? {}: opts;
         const inverse = 'inverse' in opts ? opts.inverse : false;
 
         return this.llrot(x, y, {inverse: !inverse});
     }
 
-    getThinnedGrid(thin_x: number, thin_y: number) {
+    public getThinnedGrid(thin_x: number, thin_y: number) {
         const dlon = (this.ur_lon - this.ll_lon) / this.ni;
         const dlat = (this.ur_lat - this.ll_lat) / this.nj;
 
@@ -330,7 +330,7 @@ class LambertGrid extends Grid {
         });
     }
 
-    copy(opts?: {ni?: number, nj?: number, ll_x?: number, ll_y?: number, ur_x?: number, ur_y?: number}) {
+    public copy(opts?: {ni?: number, nj?: number, ll_x?: number, ll_y?: number, ur_x?: number, ur_y?: number}) {
         opts = opts !== undefined ? opts : {};
         const ni = opts.ni !== undefined ? opts.ni : this.ni;
         const nj = opts.nj !== undefined ? opts.nj : this.nj;
@@ -345,18 +345,18 @@ class LambertGrid extends Grid {
     /**
      * Get a list of longitudes and latitudes on the grid (internal method)
      */
-    getCoords() {
+    public getCoords() {
         return this.ll_cache.getValue();
     }
 
-    transform(x: number, y: number, opts?: {inverse?: boolean}) {
+    public transform(x: number, y: number, opts?: {inverse?: boolean}) {
         opts = opts === undefined ? {}: opts;
         const inverse = 'inverse' in opts ? opts.inverse : false;
 
         return this.lcc(x, y, {inverse: inverse});
     }
 
-    getThinnedGrid(thin_x: number, thin_y: number) {
+    public getThinnedGrid(thin_x: number, thin_y: number) {
         const dx = (this.ur_x - this.ll_x) / this.ni;
         const dy = (this.ur_y - this.ll_y) / this.nj;
 
@@ -398,7 +398,7 @@ class RawScalarField<ArrayType extends TypedArray> {
         }
     }
 
-    getTextureData() : TextureDataType<ArrayType> {
+    public getTextureData() : TextureDataType<ArrayType> {
         // Need to give float16 data as uint16s to make WebGL happy: https://github.com/petamoriken/float16/issues/105
         let data: any;
         if (this.data instanceof Float32Array) {
@@ -411,11 +411,11 @@ class RawScalarField<ArrayType extends TypedArray> {
         return data as TextureDataType<ArrayType>;
     }
     
-    isFloat16() {
+    public isFloat16() {
         return !(this.data instanceof Float32Array);
     }
 
-    getThinnedField(thin_x: number, thin_y: number) {
+    public getThinnedField(thin_x: number, thin_y: number) {
         const arrayType = getArrayConstructor(this.data);
 
         const new_grid = this.grid.getThinnedGrid(thin_x, thin_y);
@@ -442,7 +442,7 @@ class RawScalarField<ArrayType extends TypedArray> {
      * // Compute wind speed from u and v
      * wind_speed_field = RawScalarField.aggreateFields(Math.hypot, u_field, v_field);
      */
-    static aggregateFields<ArrayType extends TypedArray>(func: (...args: number[]) => number, ...args: RawScalarField<ArrayType>[]) {
+    public static aggregateFields<ArrayType extends TypedArray>(func: (...args: number[]) => number, ...args: RawScalarField<ArrayType>[]) {
         function* mapGenerator<T, U>(gen: Generator<T>, func: (arg: T) => U) {
             for (const elem of gen) {
                 yield func(elem);
@@ -534,18 +534,18 @@ class RawVectorField<ArrayType extends TypedArray> {
         })
     }
 
-    getThinnedField(thin_x: number, thin_y: number) {
+    public getThinnedField(thin_x: number, thin_y: number) {
         const thin_u = this.u.getThinnedField(thin_x, thin_y);
         const thin_v = this.v.getThinnedField(thin_x, thin_y);
 
         return new RawVectorField(thin_u.grid, thin_u.data, thin_v.data, {relative_to: this.relative_to});
     }
 
-    get grid() {
+    public get grid() {
         return this.u.grid
     }
 
-    toEarthRelative() {
+    public toEarthRelative() {
         let u, v;
         if (this.relative_to == 'earth') {
             u = this.u; v = this.v;
@@ -575,7 +575,7 @@ class RawProfileField {
     }
 
     /** Get the gridded storm motion vector field (internal method) */
-    getStormMotionGrid() {
+    public getStormMotionGrid() {
         const u = new Float16Array(this.grid.ni * this.grid.nj);
         const v = new Float16Array(this.grid.ni * this.grid.nj);
 

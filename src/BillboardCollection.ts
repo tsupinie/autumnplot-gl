@@ -66,7 +66,7 @@ class BillboardCollection<ArrayType extends TypedArray> {
         this.v_texture = new WGLTexture(gl, v_image);
     }
 
-    render(gl: WebGLAnyRenderingContext, matrix: number[], [map_width, map_height]: [number, number], map_zoom: number, map_bearing: number, map_pitch: number) {
+    public render(gl: WebGLAnyRenderingContext, matrix: number[], [map_width, map_height]: [number, number], map_zoom: number, map_bearing: number, map_pitch: number) {
         if (this.vertices === null || this.texcoords === null) return;
 
         const bb_size = this.spec.BB_HEIGHT * (map_height / map_width) * this.size_multiplier;

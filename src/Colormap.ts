@@ -41,14 +41,14 @@ class ColorMap {
     /**
      * @returns an array of hex color strings
      */
-    getColors() : string[] {
+    public getColors() : string[] {
         return this.colors.map(s => s['color']);
     }
 
     /**
      * @returns an array of opacities, one for each color in the color map
      */
-    getOpacities() : number[] {
+    public getOpacities() : number[] {
         return this.colors.map(s => s['opacity']);
     }
 
@@ -57,7 +57,7 @@ class ColorMap {
      * @param func - A function which takes the two levels associated with a color (an upper and lower bound) and returns an opacity in the range from 0 to 1.
      * @returns A new color map
      */
-    withOpacity(func: (level_lower: number, level_upper: number) => number) {
+    public withOpacity(func: (level_lower: number, level_upper: number) => number) {
         const new_colors: Color[] = [];
         const new_levels: number[] = [];
 
@@ -87,7 +87,7 @@ class ColorMap {
      * @param n_colors  - The number of colors to use
      * @returns a Colormap object
      */
-    static diverging(color1: string, color2: string, level_min: number, level_max: number, n_colors: number) {
+    public static diverging(color1: string, color2: string, level_min: number, level_max: number, n_colors: number) {
         const stops: Color[] = [];
         const levels: number[] = [];
 

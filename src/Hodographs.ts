@@ -137,7 +137,7 @@ class Hodographs extends PlotComponent {
      * @internal
      * Add the hodographs to a map
      */
-    async onAdd(map: mapboxgl.Map, gl: WebGLAnyRenderingContext) {
+    public async onAdd(map: mapboxgl.Map, gl: WebGLAnyRenderingContext) {
         const hodo_scale = (HODO_BG_DIMS.BB_TEX_WIDTH - LINE_WIDTH / 2) / (HODO_BG_DIMS.BB_TEX_WIDTH * BG_MAX_RING_MAG);
         const bg_size = 140;
 
@@ -207,7 +207,7 @@ class Hodographs extends PlotComponent {
      * @internal
      * Render the hodographs
      */
-    render(gl: WebGLAnyRenderingContext, matrix: number[]) {
+    public render(gl: WebGLAnyRenderingContext, matrix: number[]) {
         if (this.gl_elems === null) return;
         const gl_elems = this.gl_elems;
 

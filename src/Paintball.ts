@@ -68,7 +68,7 @@ class Paintball<ArrayType extends TypedArray> extends PlotComponent {
      * @internal
      * Add the paintball plot to a map.
      */
-    async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
+    public async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
         gl.getExtension('OES_texture_float');
 
         const program = program_cache.getValue(gl);
@@ -97,7 +97,7 @@ class Paintball<ArrayType extends TypedArray> extends PlotComponent {
      * @internal
      * Render the paintball plot
      */
-    render(gl: WebGLAnyRenderingContext, matrix: number[]) {
+    public render(gl: WebGLAnyRenderingContext, matrix: number[]) {
         if (this.gl_elems === null) return;
         const gl_elems = this.gl_elems;
 
