@@ -154,12 +154,11 @@ interface BarbsGLElems<ArrayType extends TypedArray> {
  */
 class Barbs<ArrayType extends TypedArray> extends PlotComponent {
     /** The vector field */
-    readonly fields: RawVectorField<ArrayType>;
-    readonly color: [number, number, number];
-    readonly thin_fac: number;
+    private readonly fields: RawVectorField<ArrayType>;
+    public readonly color: [number, number, number];
+    public readonly thin_fac: number;
 
-    /** @private */
-    gl_elems: BarbsGLElems<ArrayType> | null;
+    private gl_elems: BarbsGLElems<ArrayType> | null;
 
     /**
      * Create a field of wind barbs

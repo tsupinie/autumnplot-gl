@@ -147,8 +147,8 @@ function getOS() {
 }
 
 class Cache<A extends unknown[], R> {
-    cached_value: R | null;
-    compute_value: (...args: A) => R;
+    private cached_value: R | null;
+    private readonly compute_value: (...args: A) => R;
 
     constructor(compute_value: (...args: A) => R) {
         this.cached_value = null;

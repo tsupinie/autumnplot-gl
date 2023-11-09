@@ -21,8 +21,8 @@ function isColor(obj: any): obj is Color {
 
 /** A mapping from values to colors */
 class ColorMap {
-    readonly levels: number[];
-    readonly colors: Color[];
+    public readonly levels: number[];
+    public readonly colors: Color[];
 
     /**
      * Create a color map

@@ -8,17 +8,17 @@ const polyline_fragment_src = require('./glsl/polyline_fragment.glsl');
 const program_cache = new Cache((gl: WebGLAnyRenderingContext) => new WGLProgram(gl, polyline_vertex_src, polyline_fragment_src));
 
 class PolylineCollection {
-    readonly width: number;
-    readonly scale: number;
+    public readonly width: number;
+    public readonly scale: number;
 
-    readonly program: WGLProgram;
-    readonly origin: WGLBuffer;
-    readonly offset: WGLBuffer;
-    readonly extrusion: WGLBuffer;
-    readonly min_zoom: WGLBuffer;
+    private readonly program: WGLProgram;
+    private readonly origin: WGLBuffer;
+    private readonly offset: WGLBuffer;
+    private readonly extrusion: WGLBuffer;
+    private readonly min_zoom: WGLBuffer;
 
-    readonly texture: WGLTexture;
-    readonly texcoords: WGLBuffer;
+    private readonly texture: WGLTexture;
+    private readonly texcoords: WGLBuffer;
 
     constructor(gl: WebGLAnyRenderingContext, polyline: PolylineSpec, tex_image: WGLTextureSpec, line_width: number, offset_scale: number) {
         this.width = line_width;

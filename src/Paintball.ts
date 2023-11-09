@@ -38,12 +38,11 @@ interface PaintballGLElems {
  * significand of an IEEE 754 float.)
  */
 class Paintball<ArrayType extends TypedArray> extends PlotComponent {
-    readonly field: RawScalarField<ArrayType>;
-    readonly colors: number[];
-    readonly opacity: number;
+    private readonly field: RawScalarField<ArrayType>;
+    public readonly colors: number[];
+    public readonly opacity: number;
 
-    /** @private */
-    gl_elems: PaintballGLElems | null;
+    private gl_elems: PaintballGLElems | null;
 
     /**
      * Create a paintball plot

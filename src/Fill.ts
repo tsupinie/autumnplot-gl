@@ -45,19 +45,16 @@ interface PlotComponentFillGLElems {
 }
 
 class PlotComponentFill<ArrayType extends TypedArray> extends PlotComponent {
-    readonly field: RawScalarField<ArrayType>;
-    readonly cmap: ColorMap;
-    readonly opacity: number;
+    private readonly field: RawScalarField<ArrayType>;
+    public readonly cmap: ColorMap;
+    public readonly opacity: number;
 
-    /** @private */
-    readonly cmap_image: HTMLCanvasElement;
-    /** @private */
-    readonly index_map: Float16Array;
+    private readonly cmap_image: HTMLCanvasElement;
+    private readonly index_map: Float16Array;
 
-    /** @private */
-    gl_elems: PlotComponentFillGLElems | null;
-    image_mag_filter: number | null;
-    cmap_mag_filter: number | null;
+    private gl_elems: PlotComponentFillGLElems | null;
+    protected image_mag_filter: number | null;
+    protected cmap_mag_filter: number | null;
 
     constructor(field: RawScalarField<ArrayType>, opts: ContourFillOptions) {
         super();

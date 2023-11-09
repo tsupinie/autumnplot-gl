@@ -108,12 +108,11 @@ interface HodographGLElems<ArrayType extends TypedArray> {
 
 /** A class representing a a field of hodograph plots */
 class Hodographs extends PlotComponent {
-    readonly profile_field: RawProfileField;
-    readonly bgcolor: [number, number, number];
-    readonly thin_fac: number;
+    private readonly profile_field: RawProfileField;
+    public readonly bgcolor: [number, number, number];
+    public readonly thin_fac: number;
 
-    /** @private */
-    gl_elems: HodographGLElems<Float16Array>;
+    private gl_elems: HodographGLElems<Float16Array>;
 
     /**
      * Create a field of hodographs

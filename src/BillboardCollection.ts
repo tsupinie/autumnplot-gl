@@ -10,16 +10,16 @@ const billboard_fragment_shader_src = require('./glsl/billboard_fragment.glsl');
 const program_cache = new Cache((gl: WebGLAnyRenderingContext) => new WGLProgram(gl, billboard_vertex_shader_src, billboard_fragment_shader_src))
 
 class BillboardCollection<ArrayType extends TypedArray> {
-    readonly spec: BillboardSpec;
-    readonly color: [number, number, number];
-    readonly size_multiplier: number;
+    public readonly spec: BillboardSpec;
+    public readonly color: [number, number, number];
+    public readonly size_multiplier: number;
 
-    readonly program: WGLProgram;
-    vertices: WGLBuffer | null;
-    texcoords: WGLBuffer | null;
-    readonly texture: WGLTexture;
-    readonly u_texture: WGLTexture;
-    readonly v_texture: WGLTexture;
+    private readonly program: WGLProgram;
+    private vertices: WGLBuffer | null;
+    private texcoords: WGLBuffer | null;
+    private readonly texture: WGLTexture;
+    private readonly u_texture: WGLTexture;
+    private readonly v_texture: WGLTexture;
 
     constructor(gl: WebGLAnyRenderingContext, field: RawVectorField<ArrayType>, thin_fac: number, max_zoom: number, 
                 billboard_image: WGLTextureSpec, billboard_spec: BillboardSpec, billboard_color: [number, number, number], billboard_size_mult: number) {

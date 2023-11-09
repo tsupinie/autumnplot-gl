@@ -194,8 +194,8 @@ function mercatorYfromLat(lat: number) {
  * ll.lng; // = -123.9749
  */
  class LngLat {
-    lng: number;
-    lat: number;
+    public lng: number;
+    public lat: number;
 
     constructor(lng: number, lat: number) {
         if (isNaN(lng) || isNaN(lat)) {

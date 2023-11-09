@@ -46,13 +46,13 @@ async function makeWGLBillboardBuffers(gl: WebGLAnyRenderingContext, grid: Grid,
 type GridType = 'latlon' | 'latlonrot' | 'lcc';
 
 abstract class Grid {
-    readonly type: GridType;
-    readonly ni: number;
-    readonly nj: number;
-    readonly is_conformal: boolean;
+    public readonly type: GridType;
+    public readonly ni: number;
+    public readonly nj: number;
+    public readonly is_conformal: boolean;
 
-    readonly _buffer_cache: Cache<[WebGLAnyRenderingContext], Promise<{'vertices': WGLBuffer, 'texcoords': WGLBuffer, 'cellsize': WGLBuffer}>>;
-    readonly _billboard_buffer_cache: Cache<[WebGLAnyRenderingContext, number, number], Promise<{'vertices': WGLBuffer, 'texcoords': WGLBuffer}>>;
+    private readonly buffer_cache: Cache<[WebGLAnyRenderingContext], Promise<{'vertices': WGLBuffer, 'texcoords': WGLBuffer, 'cellsize': WGLBuffer}>>;
+    private readonly billboard_buffer_cache: Cache<[WebGLAnyRenderingContext, number, number], Promise<{'vertices': WGLBuffer, 'texcoords': WGLBuffer}>>;
 
     constructor(type: GridType, is_conformal: boolean, ni: number, nj: number) {
         this.type = type;
@@ -60,13 +60,13 @@ abstract class Grid {
         this.ni = ni;
         this.nj = nj;
 
-        this._buffer_cache = new Cache((gl: WebGLAnyRenderingContext) => {
+        this.buffer_cache = new Cache((gl: WebGLAnyRenderingContext) => {
             const new_ni = Math.max(Math.floor(this.ni / 50), 20);
             const new_nj = Math.max(Math.floor(this.nj / 50), 20);
             return makeWGLDomainBuffers(gl, this.copy({ni: new_ni, nj: new_nj}), this);
         });
 
-        this._billboard_buffer_cache = new Cache((gl: WebGLAnyRenderingContext, thin_fac: number, max_zoom: number) => {
+        this.billboard_buffer_cache = new Cache((gl: WebGLAnyRenderingContext, thin_fac: number, max_zoom: number) => {
             return makeWGLBillboardBuffers(gl, this, thin_fac, max_zoom);
         });
     }
@@ -78,23 +78,22 @@ abstract class Grid {
     abstract getThinnedGrid(thin_x: number, thin_y: number): Grid;
     
     async getWGLBuffers(gl: WebGLAnyRenderingContext) {
-        return await this._buffer_cache.getValue(gl);
+        return await this.buffer_cache.getValue(gl);
     }
 
     async getWGLBillboardBuffers(gl: WebGLAnyRenderingContext, thin_fac: number, max_zoom: number) {
-        return await this._billboard_buffer_cache.getValue(gl, thin_fac, max_zoom);
+        return await this.billboard_buffer_cache.getValue(gl, thin_fac, max_zoom);
     }
 }
 
 /** A plate carree (a.k.a. lat/lon) grid with uniform grid spacing */
 class PlateCarreeGrid extends Grid {
-    readonly ll_lon: number;
-    readonly ll_lat: number;
-    readonly ur_lon: number;
-    readonly ur_lat: number;
+    public readonly ll_lon: number;
+    public readonly ll_lat: number;
+    public readonly ur_lon: number;
+    public readonly ur_lat: number;
 
-    /** @private */
-    readonly _ll_cache: Cache<[], Coords>;
+    private readonly ll_cache: Cache<[], Coords>;
 
     /**
      * Create a plate carree grid
@@ -113,7 +112,7 @@ class PlateCarreeGrid extends Grid {
         this.ur_lon = ur_lon;
         this.ur_lat = ur_lat;
 
-        this._ll_cache = new Cache(() => {
+        this.ll_cache = new Cache(() => {
             const dlon = (this.ur_lon - this.ll_lon) / (this.ni - 1);
             const dlat = (this.ur_lat - this.ll_lat) / (this.nj - 1);
 
@@ -149,7 +148,7 @@ class PlateCarreeGrid extends Grid {
      * Get a list of longitudes and latitudes on the grid (internal method)
      */
     getCoords() {
-        return this._ll_cache.getValue();
+        return this.ll_cache.getValue();
     }
 
     transform(x: number, y: number, opts?: {inverse?: boolean}) {
@@ -175,19 +174,16 @@ class PlateCarreeGrid extends Grid {
 
 /** A rotated lat-lon (plate carree) grid with uniform grid spacing */
 class PlateCarreeRotatedGrid extends Grid {
-    readonly np_lon: number;
-    readonly np_lat: number;
-    readonly lon_shift: number;
-    readonly ll_lon: number;
-    readonly ll_lat: number;
-    readonly ur_lon: number;
-    readonly ur_lat: number;
+    public readonly np_lon: number;
+    public readonly np_lat: number;
+    public readonly lon_shift: number;
+    public readonly ll_lon: number;
+    public readonly ll_lat: number;
+    public readonly ur_lon: number;
+    public readonly ur_lat: number;
 
-    /** @private */
-    readonly llrot: (a: number, b: number, opts?: {inverse: boolean}) => [number, number];
-
-    /** @private */
-    readonly _ll_cache: Cache<[], Coords>;
+    private readonly llrot: (a: number, b: number, opts?: {inverse: boolean}) => [number, number];
+    private readonly ll_cache: Cache<[], Coords>;
 
     /**
      * Create a Lambert conformal conic grid
@@ -213,7 +209,7 @@ class PlateCarreeRotatedGrid extends Grid {
         this.ur_lat = ur_lat;
         this.llrot = rotateSphere({np_lon: np_lon, np_lat: np_lat, lon_shift: lon_shift});
 
-        this._ll_cache = new Cache(() => {
+        this.ll_cache = new Cache(() => {
             const lons = new Float32Array(this.ni * this.nj);
             const lats = new Float32Array(this.ni * this.nj);
 
@@ -249,7 +245,7 @@ class PlateCarreeRotatedGrid extends Grid {
      * Get a list of longitudes and latitudes on the grid (internal method)
      */
     getCoords() {
-        return this._ll_cache.getValue();
+        return this.ll_cache.getValue();
     }
 
     transform(x: number, y: number, opts?: {inverse?: boolean}) {
@@ -278,19 +274,16 @@ class PlateCarreeRotatedGrid extends Grid {
 
 /** A Lambert conformal conic grid with uniform grid spacing */
 class LambertGrid extends Grid {
-    readonly lon_0: number;
-    readonly lat_0: number;
-    readonly lat_std: [number, number];
-    readonly ll_x: number;
-    readonly ll_y: number;
-    readonly ur_x: number;
-    readonly ur_y: number;
+    public readonly lon_0: number;
+    public readonly lat_0: number;
+    public readonly lat_std: [number, number];
+    public readonly ll_x: number;
+    public readonly ll_y: number;
+    public readonly ur_x: number;
+    public readonly ur_y: number;
 
-    /** @private */
-    readonly lcc: (a: number, b: number, opts?: {inverse: boolean}) => [number, number];
-
-    /** @private */
-    readonly _ll_cache: Cache<[], Coords>;
+    private readonly lcc: (a: number, b: number, opts?: {inverse: boolean}) => [number, number];
+    private readonly ll_cache: Cache<[], Coords>;
 
     /**
      * Create a Lambert conformal conic grid
@@ -317,7 +310,7 @@ class LambertGrid extends Grid {
         this.ur_y = ur_y;
         this.lcc = lambertConformalConic({lon_0: lon_0, lat_0: lat_0, lat_std: lat_std});
 
-        this._ll_cache = new Cache(() => {
+        this.ll_cache = new Cache(() => {
             const lons = new Float32Array(this.ni * this.nj);
             const lats = new Float32Array(this.ni * this.nj);
 
@@ -353,7 +346,7 @@ class LambertGrid extends Grid {
      * Get a list of longitudes and latitudes on the grid (internal method)
      */
     getCoords() {
-        return this._ll_cache.getValue();
+        return this.ll_cache.getValue();
     }
 
     transform(x: number, y: number, opts?: {inverse?: boolean}) {
@@ -388,8 +381,8 @@ function getArrayConstructor<ArrayType extends TypedArray>(ary: ArrayType) : new
 
 /** A class representing a raw 2D field of gridded data, such as height or u wind. */
 class RawScalarField<ArrayType extends TypedArray> {
-    readonly grid: Grid;
-    readonly data: ArrayType;
+    public readonly grid: Grid;
+    public readonly data: ArrayType;
 
     /**
      * Create a data field. 
@@ -476,12 +469,11 @@ interface RawVectorFieldOptions {
 
 /** A class representing a 2D gridded field of vectors */
 class RawVectorField<ArrayType extends TypedArray> {
-    readonly u: RawScalarField<ArrayType>;
-    readonly v: RawScalarField<ArrayType>;
-    readonly relative_to: VectorRelativeTo;
+    public readonly u: RawScalarField<ArrayType>;
+    public readonly v: RawScalarField<ArrayType>;
+    public readonly relative_to: VectorRelativeTo;
 
-    /** @private */
-    readonly _rotate_cache: Cache<[], {u: RawScalarField<ArrayType>, v: RawScalarField<ArrayType>}>
+    private readonly rotate_cache: Cache<[], {u: RawScalarField<ArrayType>, v: RawScalarField<ArrayType>}>
 
     /**
      * Create a vector field.
@@ -499,7 +491,7 @@ class RawVectorField<ArrayType extends TypedArray> {
         this.v = new RawScalarField(grid, v);
         this.relative_to = opts.relative_to === undefined ? 'grid' : opts.relative_to;
 
-        this._rotate_cache = new Cache(() => {
+        this.rotate_cache = new Cache(() => {
             const grid = this.u.grid;
             const coords = grid.getCoords();
             const u_rot = new arrayType(coords.lats.length);
@@ -559,7 +551,7 @@ class RawVectorField<ArrayType extends TypedArray> {
             u = this.u; v = this.v;
         }
         else {
-            const {u: u_, v: v_} = this._rotate_cache.getValue();
+            const {u: u_, v: v_} = this.rotate_cache.getValue();
             u = u_; v = v_;
         }
 
@@ -569,8 +561,8 @@ class RawVectorField<ArrayType extends TypedArray> {
 
 /** A class grid of wind profiles */
 class RawProfileField {
-    readonly profiles: WindProfile[];
-    readonly grid: Grid;
+    public readonly profiles: WindProfile[];
+    public readonly grid: Grid;
 
     /**
      * Create a grid of wind profiles

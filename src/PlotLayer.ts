@@ -5,8 +5,8 @@ import { MapType } from './Map';
 import { PlotComponent } from './PlotComponent';
 
 abstract class PlotLayerBase {
-    readonly type: 'custom';
-    readonly id: string;
+    public readonly type: 'custom';
+    public readonly id: string;
 
     constructor(id: string) {
         this.type = 'custom';
@@ -27,7 +27,7 @@ abstract class PlotLayerBase {
  * const barb_layer = new PlotLayer('barbs', wind_barbs);
  */
 class PlotLayer extends PlotLayerBase {
-    readonly field: PlotComponent;
+    private readonly field: PlotComponent;
 
     /**
      * Create a map layer from a field
@@ -71,15 +71,11 @@ class PlotLayer extends PlotLayerBase {
  * height_layer.setActiveKey('20230112_1200');
  */
 class MultiPlotLayer extends PlotLayerBase {
-    /** @private */
-    fields: Record<string, PlotComponent>;
-    /** @private */
-    field_key: string | null;
+    private fields: Record<string, PlotComponent>;
+    private field_key: string | null;
 
-    /** @private */
-    map: MapType | null;
-    /** @private */
-    gl: WebGLAnyRenderingContext | null
+    private map: MapType | null;
+    private gl: WebGLAnyRenderingContext | null
 
     /**
      * Create a time-varying map layer

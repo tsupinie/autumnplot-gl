@@ -55,14 +55,13 @@ interface ContourGLElems {
  *                                                  thinner: zoom => zoom < 5 ? 2 : 1});
  */
 class Contour<ArrayType extends TypedArray> extends PlotComponent {
-    readonly field: RawScalarField<ArrayType>;
-    readonly color: [number, number, number];
-    readonly interval: number;
-    readonly levels: number[];
-    readonly thinner: (zoom: number) => number;
+    private readonly field: RawScalarField<ArrayType>;
+    public readonly color: [number, number, number];
+    public readonly interval: number;
+    public readonly levels: number[];
+    public readonly thinner: (zoom: number) => number;
 
-    /** @private */
-    gl_elems: ContourGLElems | null;
+    private gl_elems: ContourGLElems | null;
 
     /**
      * Create a contoured field
