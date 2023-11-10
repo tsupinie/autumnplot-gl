@@ -19,7 +19,7 @@ npm i autumnplot-gl
 Additionally, pre-built autumnplot-gl javascript files area available [here](https://tsupinie.github.io/autumnplot-gl/dist/). Adding them to your page exposes the API via the `apgl` global variable (e.g., instead of `new PlateCarreeGrid(...)` in the examples, you'd call `new apgl.PlateCarreeGrid(...)`). 
 
 ### A basic contour plot
-The first step in plotting data is to create a grid. Currently, the only supported grids are PlateCarree (a.k.a. Lat/Lon) and Lambert Conformal Conic.
+The first step in plotting data is to create a grid. Currently, the only supported grids are PlateCarreeGrid (a.k.a. Lat/Lon), RotatedPlateCarreeGrid, and LambertGrid (a.k.a. Lambert Conformal Conic).
 
 ```javascript
 // Create a grid object that covers the continental United States
@@ -27,7 +27,7 @@ const nx = 121, ny = 61;
 const grid = new PlateCarreeGrid(nx, ny, -130, 20, -65, 55);
 ```
 
-Next, create a RawScalarField with the data. autumnplot-gl doesn't care about how data get to the browser, but it should end up in a Float32Array in row-major order with the first element being at the southwest corner of the grid. A future version might include support for reading from, say, a Zarr file. Once you have your data in that format, to create the raw data field:
+Next, create a RawScalarField with the data. autumnplot-gl doesn't care about how data get to the browser, but it should end up in a Float32Array or Float16Array (which requires [this library](https://github.com/petamoriken/float16)) in row-major order with the first element being at the southwest corner of the grid. A future version might include support for reading from, say, a Zarr file. Once you have your data in that format, to create the raw data field:
 
 ```javascript
 // Create the raw data field
