@@ -1,31 +1,34 @@
 
-import { BillboardSpec, WebGLAnyRenderingContext, isWebGL2Ctx } from "./AutumnTypes";
+import { BillboardSpec, TypedArray, WebGLAnyRenderingContext } from "./AutumnTypes";
+import { getGLFormatTypeAlignment } from "./PlotComponent";
 import { RawVectorField } from "./RawField";
 import { WGLBuffer, WGLProgram, WGLTexture, WGLTextureSpec } from "autumn-wgl";
+import { Cache } from "./utils";
 
 const billboard_vertex_shader_src = require('./glsl/billboard_vertex.glsl');
 const billboard_fragment_shader_src = require('./glsl/billboard_fragment.glsl');
+const program_cache = new Cache((gl: WebGLAnyRenderingContext) => new WGLProgram(gl, billboard_vertex_shader_src, billboard_fragment_shader_src))
 
-class BillboardCollection {
-    readonly spec: BillboardSpec;
-    readonly color: [number, number, number];
-    readonly size_multiplier: number;
+class BillboardCollection<ArrayType extends TypedArray> {
+    public readonly spec: BillboardSpec;
+    public readonly color: [number, number, number];
+    public readonly size_multiplier: number;
 
-    readonly program: WGLProgram;
-    vertices: WGLBuffer | null;
-    texcoords: WGLBuffer | null;
-    readonly texture: WGLTexture;
-    readonly u_texture: WGLTexture;
-    readonly v_texture: WGLTexture;
+    private readonly program: WGLProgram;
+    private vertices: WGLBuffer | null;
+    private texcoords: WGLBuffer | null;
+    private readonly texture: WGLTexture;
+    private readonly u_texture: WGLTexture;
+    private readonly v_texture: WGLTexture;
 
-    constructor(gl: WebGLAnyRenderingContext, field: RawVectorField, thin_fac: number, max_zoom: number, 
+    constructor(gl: WebGLAnyRenderingContext, field: RawVectorField<ArrayType>, thin_fac: number, max_zoom: number, 
                 billboard_image: WGLTextureSpec, billboard_spec: BillboardSpec, billboard_color: [number, number, number], billboard_size_mult: number) {
 
         this.spec = billboard_spec;
         this.color = billboard_color;
         this.size_multiplier = billboard_size_mult;
 
-        this.program = new WGLProgram(gl, billboard_vertex_shader_src, billboard_fragment_shader_src);
+        this.program = program_cache.getValue(gl);
         this.vertices = null;
         this.texcoords = null;
 
@@ -44,16 +47,16 @@ class BillboardCollection {
             this.texcoords = texcoords;
         })();
 
-        const format = isWebGL2Ctx(gl) ? gl.R32F : gl.LUMINANCE;
+        const {format, type, row_alignment} = getGLFormatTypeAlignment(gl, u_thin.isFloat16());
 
-        const u_image = {'format': format, 'type': gl.FLOAT,
-            'width': u_thin.grid.ni, 'height': u_thin.grid.nj, 'image': u_thin.data,
-            'mag_filter': gl.NEAREST,
+        const u_image = {'format': format, 'type': type,
+            'width': u_thin.grid.ni, 'height': u_thin.grid.nj, 'image': u_thin.getTextureData(),
+            'mag_filter': gl.NEAREST, 'row_alignment': row_alignment,
         };
 
-        const v_image = {'format': format, 'type': gl.FLOAT,
-            'width': v_thin.grid.ni, 'height': v_thin.grid.nj, 'image': v_thin.data,
-            'mag_filter': gl.NEAREST,
+        const v_image = {'format': format, 'type': type,
+            'width': v_thin.grid.ni, 'height': v_thin.grid.nj, 'image': v_thin.getTextureData(),
+            'mag_filter': gl.NEAREST, 'row_alignment': row_alignment,
         };
 
         this.texture = new WGLTexture(gl, billboard_image);
@@ -61,7 +64,7 @@ class BillboardCollection {
         this.v_texture = new WGLTexture(gl, v_image);
     }
 
-    render(gl: WebGLAnyRenderingContext, matrix: number[], [map_width, map_height]: [number, number], map_zoom: number, map_bearing: number, map_pitch: number) {
+    public render(gl: WebGLAnyRenderingContext, matrix: number[], [map_width, map_height]: [number, number], map_zoom: number, map_bearing: number, map_pitch: number) {
         if (this.vertices === null || this.texcoords === null) return;
 
         const bb_size = this.spec.BB_HEIGHT * (map_height / map_width) * this.size_multiplier;

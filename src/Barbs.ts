@@ -1,10 +1,10 @@
 
-import { PlotComponent, layer_worker } from "./PlotComponent";
+import { PlotComponent } from "./PlotComponent";
 import { BillboardCollection } from './BillboardCollection';
 import { hex2rgba } from './utils';
 import { RawVectorField } from "./RawField";
 import { MapType } from "./Map";
-import { WebGLAnyRenderingContext } from "./AutumnTypes";
+import { TypedArray, WebGLAnyRenderingContext } from "./AutumnTypes";
 
 const BARB_DIMS = {
     BB_WIDTH: 85,
@@ -139,9 +139,9 @@ interface BarbsOptions {
     thin_fac?: number;
 }
 
-interface BarbsGLElems {
+interface BarbsGLElems<ArrayType extends TypedArray> {
     map: MapType | null;
-    barb_billboards: BillboardCollection | null;
+    barb_billboards: BillboardCollection<ArrayType> | null;
 }
 
 /** 
@@ -152,21 +152,20 @@ interface BarbsGLElems {
  * const vector_field = new RawVectorField(grid, u_data, v_data);
  * const barbs = new Barbs(vector_field, {color: '#000000', thin_fac: 16});
  */
-class Barbs extends PlotComponent {
+class Barbs<ArrayType extends TypedArray> extends PlotComponent {
     /** The vector field */
-    readonly fields: RawVectorField;
-    readonly color: [number, number, number];
-    readonly thin_fac: number;
+    private readonly fields: RawVectorField<ArrayType>;
+    public readonly color: [number, number, number];
+    public readonly thin_fac: number;
 
-    /** @private */
-    gl_elems: BarbsGLElems | null;
+    private gl_elems: BarbsGLElems<ArrayType> | null;
 
     /**
      * Create a field of wind barbs
      * @param fields - The vector field to plot as barbs
      * @param opts   - Options for creating the wind barbs
      */
-    constructor(fields: RawVectorField, opts: BarbsOptions) {
+    constructor(fields: RawVectorField<ArrayType>, opts: BarbsOptions) {
         super();
 
         this.fields = fields;
@@ -182,7 +181,7 @@ class Barbs extends PlotComponent {
      * @internal 
      * Add the barb field to a map
      */
-    async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
+    public async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
         gl.getExtension('OES_texture_float');
         gl.getExtension('OES_texture_float_linear');
         
@@ -206,7 +205,7 @@ class Barbs extends PlotComponent {
      * @internal 
      * Render the barb field
      */
-    render(gl: WebGLAnyRenderingContext, matrix: number[]) {
+    public render(gl: WebGLAnyRenderingContext, matrix: number[]) {
         if (this.gl_elems === null) return;
         const gl_elems = this.gl_elems
 

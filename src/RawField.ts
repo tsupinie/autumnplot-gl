@@ -1,27 +1,10 @@
 
-import { WebGLAnyRenderingContext, WindProfile } from "./AutumnTypes";
-import { lambertConformalConic } from "./Map";
+import { Float16Array } from "@petamoriken/float16";
+import { TypedArray, WebGLAnyRenderingContext, WindProfile } from "./AutumnTypes";
+import { lambertConformalConic, rotateSphere } from "./Map";
 import { layer_worker } from "./PlotComponent";
-import { zip } from "./utils";
+import { Cache, zip } from "./utils";
 import { WGLBuffer } from "autumn-wgl";
-
-class Cache<A extends unknown[], R> {
-    cached_value: R | null;
-    compute_value: (...args: A) => R;
-
-    constructor(compute_value: (...args: A) => R) {
-        this.cached_value = null;
-        this.compute_value = compute_value;
-    }
-
-    getValue(...args: A) {
-        if (this.cached_value === null) {
-            this.cached_value = this.compute_value(...args);
-        }
-
-        return this.cached_value;
-    }
-}
 
 interface Coords {
     lons: Float32Array;
@@ -60,16 +43,16 @@ async function makeWGLBillboardBuffers(gl: WebGLAnyRenderingContext, grid: Grid,
     return {'vertices': vertices, 'texcoords': texcoords};
 }
 
-type GridType = 'latlon' | 'lcc';
+type GridType = 'latlon' | 'latlonrot' | 'lcc';
 
 abstract class Grid {
-    readonly type: GridType;
-    readonly ni: number;
-    readonly nj: number;
-    readonly is_conformal: boolean;
+    public readonly type: GridType;
+    public readonly ni: number;
+    public readonly nj: number;
+    public readonly is_conformal: boolean;
 
-    readonly _buffer_cache: Cache<[WebGLAnyRenderingContext], Promise<{'vertices': WGLBuffer, 'texcoords': WGLBuffer, 'cellsize': WGLBuffer}>>;
-    readonly _billboard_buffer_cache: Cache<[WebGLAnyRenderingContext, number, number], Promise<{'vertices': WGLBuffer, 'texcoords': WGLBuffer}>>;
+    private readonly buffer_cache: Cache<[WebGLAnyRenderingContext], Promise<{'vertices': WGLBuffer, 'texcoords': WGLBuffer, 'cellsize': WGLBuffer}>>;
+    private readonly billboard_buffer_cache: Cache<[WebGLAnyRenderingContext, number, number], Promise<{'vertices': WGLBuffer, 'texcoords': WGLBuffer}>>;
 
     constructor(type: GridType, is_conformal: boolean, ni: number, nj: number) {
         this.type = type;
@@ -77,41 +60,40 @@ abstract class Grid {
         this.ni = ni;
         this.nj = nj;
 
-        this._buffer_cache = new Cache((gl: WebGLAnyRenderingContext) => {
+        this.buffer_cache = new Cache((gl: WebGLAnyRenderingContext) => {
             const new_ni = Math.max(Math.floor(this.ni / 50), 20);
             const new_nj = Math.max(Math.floor(this.nj / 50), 20);
             return makeWGLDomainBuffers(gl, this.copy({ni: new_ni, nj: new_nj}), this);
         });
 
-        this._billboard_buffer_cache = new Cache((gl: WebGLAnyRenderingContext, thin_fac: number, max_zoom: number) => {
+        this.billboard_buffer_cache = new Cache((gl: WebGLAnyRenderingContext, thin_fac: number, max_zoom: number) => {
             return makeWGLBillboardBuffers(gl, this, thin_fac, max_zoom);
         });
     }
 
-    abstract copy(opts?: {ni?: number, nj?: number}): Grid;
+    public abstract copy(opts?: {ni?: number, nj?: number}): Grid;
 
-    abstract getCoords(): Coords;
-    abstract transform(x: number, y: number, opts?: {inverse?: boolean}): [number, number];
+    public abstract getCoords(): Coords;
+    public abstract transform(x: number, y: number, opts?: {inverse?: boolean}): [number, number];
     abstract getThinnedGrid(thin_x: number, thin_y: number): Grid;
     
-    async getWGLBuffers(gl: WebGLAnyRenderingContext) {
-        return await this._buffer_cache.getValue(gl);
+    public async getWGLBuffers(gl: WebGLAnyRenderingContext) {
+        return await this.buffer_cache.getValue(gl);
     }
 
-    async getWGLBillboardBuffers(gl: WebGLAnyRenderingContext, thin_fac: number, max_zoom: number) {
-        return await this._billboard_buffer_cache.getValue(gl, thin_fac, max_zoom);
+    public async getWGLBillboardBuffers(gl: WebGLAnyRenderingContext, thin_fac: number, max_zoom: number) {
+        return await this.billboard_buffer_cache.getValue(gl, thin_fac, max_zoom);
     }
 }
 
 /** A plate carree (a.k.a. lat/lon) grid with uniform grid spacing */
 class PlateCarreeGrid extends Grid {
-    readonly ll_lon: number;
-    readonly ll_lat: number;
-    readonly ur_lon: number;
-    readonly ur_lat: number;
+    public readonly ll_lon: number;
+    public readonly ll_lat: number;
+    public readonly ur_lon: number;
+    public readonly ur_lat: number;
 
-    /** @private */
-    readonly _ll_cache: Cache<[], Coords>;
+    private readonly ll_cache: Cache<[], Coords>;
 
     /**
      * Create a plate carree grid
@@ -130,7 +112,7 @@ class PlateCarreeGrid extends Grid {
         this.ur_lon = ur_lon;
         this.ur_lat = ur_lat;
 
-        this._ll_cache = new Cache(() => {
+        this.ll_cache = new Cache(() => {
             const dlon = (this.ur_lon - this.ll_lon) / (this.ni - 1);
             const dlat = (this.ur_lat - this.ll_lat) / (this.nj - 1);
 
@@ -150,7 +132,7 @@ class PlateCarreeGrid extends Grid {
         });
     }
 
-    copy(opts?: {ni?: number, nj?: number, ll_lon?: number, ll_lat?: number, ur_lon?: number, ur_lat?: number}) {
+    public copy(opts?: {ni?: number, nj?: number, ll_lon?: number, ll_lat?: number, ur_lon?: number, ur_lat?: number}) {
         opts = opts !== undefined ? opts : {};
         const ni = opts.ni !== undefined ? opts.ni : this.ni;
         const nj = opts.nj !== undefined ? opts.nj : this.nj;
@@ -165,15 +147,15 @@ class PlateCarreeGrid extends Grid {
     /**
      * Get a list of longitudes and latitudes on the grid (internal method)
      */
-    getCoords() {
-        return this._ll_cache.getValue();
+    public getCoords() {
+        return this.ll_cache.getValue();
     }
 
-    transform(x: number, y: number, opts?: {inverse?: boolean}) {
+    public transform(x: number, y: number, opts?: {inverse?: boolean}) {
         return [x, y] as [number, number];
     }
 
-    getThinnedGrid(thin_x: number, thin_y: number) {
+    public getThinnedGrid(thin_x: number, thin_y: number) {
         const dlon = (this.ur_lon - this.ll_lon) / this.ni;
         const dlat = (this.ur_lat - this.ll_lat) / this.nj;
 
@@ -190,21 +172,118 @@ class PlateCarreeGrid extends Grid {
     }
 }
 
+/** A rotated lat-lon (plate carree) grid with uniform grid spacing */
+class PlateCarreeRotatedGrid extends Grid {
+    public readonly np_lon: number;
+    public readonly np_lat: number;
+    public readonly lon_shift: number;
+    public readonly ll_lon: number;
+    public readonly ll_lat: number;
+    public readonly ur_lon: number;
+    public readonly ur_lat: number;
+
+    private readonly llrot: (a: number, b: number, opts?: {inverse: boolean}) => [number, number];
+    private readonly ll_cache: Cache<[], Coords>;
+
+    /**
+     * Create a Lambert conformal conic grid
+     * @param ni        - The number of grid points in the i (longitude) direction
+     * @param nj        - The number of grid points in the j (latitude) direction
+     * @param np_lon    - The longitude of the north pole for the rotated grid
+     * @param np_lat    - The latitude of the north pole for the rotated grid
+     * @param lon_shift - The angle around the rotated north pole to shift the central meridian
+     * @param ll_lon    - The longitude of the lower left corner of the grid (on the rotated earth)
+     * @param ll_lat    - The latitude of the lower left corner of the grid (on the rotated earth)
+     * @param ur_lon    - The longitude of the upper right corner of the grid (on the rotated earth)
+     * @param ur_lat    - The latitude of the upper right corner of the grid (on the rotated earth)
+     */
+    constructor(ni: number, nj: number, np_lon: number, np_lat: number, lon_shift: number, ll_lon: number, ll_lat: number, ur_lon: number, ur_lat: number) {
+        super('latlonrot', true, ni, nj);
+
+        this.np_lon = np_lon;
+        this.np_lat = np_lat;
+        this.lon_shift = lon_shift;
+        this.ll_lon = ll_lon;
+        this.ll_lat = ll_lat;
+        this.ur_lon = ur_lon;
+        this.ur_lat = ur_lat;
+        this.llrot = rotateSphere({np_lon: np_lon, np_lat: np_lat, lon_shift: lon_shift});
+
+        this.ll_cache = new Cache(() => {
+            const lons = new Float32Array(this.ni * this.nj);
+            const lats = new Float32Array(this.ni * this.nj);
+
+            for (let i = 0; i < this.ni; i++) {
+                const lon_p = this.ll_lon + (this.ur_lon - this.ll_lon) * i / (this.ni - 1);
+                for (let j = 0; j < this.nj; j++) {
+                    const lat_p = this.ll_lat + (this.ur_lat - this.ll_lat) * j / (this.nj - 1);
+
+                    const [lon, lat] = this.llrot(lon_p, lat_p);
+                    const idx = i + j * this.ni;
+                    lons[idx] = lon;
+                    lats[idx] = lat;
+                }
+            }
+
+            return {lons: lons, lats: lats};
+        });
+    }
+
+    public copy(opts?: {ni?: number, nj?: number, ll_lon?: number, ll_lat?: number, ur_lon?: number, ur_lat?: number}) {
+        opts = opts !== undefined ? opts : {};
+        const ni = opts.ni !== undefined ? opts.ni : this.ni;
+        const nj = opts.nj !== undefined ? opts.nj : this.nj;
+        const ll_lon = opts.ll_lon !== undefined ? opts.ll_lon : this.ll_lon;
+        const ll_lat = opts.ll_lat !== undefined ? opts.ll_lat : this.ll_lat;
+        const ur_lon = opts.ur_lon !== undefined ? opts.ur_lon : this.ur_lon;
+        const ur_lat = opts.ur_lat !== undefined ? opts.ur_lat : this.ur_lat;
+
+        return new PlateCarreeRotatedGrid(ni, nj, this.np_lon, this.np_lat, this.lon_shift, ll_lon, ll_lat, ur_lon, ur_lat);
+    }
+
+    /**
+     * Get a list of longitudes and latitudes on the grid (internal method)
+     */
+    public getCoords() {
+        return this.ll_cache.getValue();
+    }
+
+    public transform(x: number, y: number, opts?: {inverse?: boolean}) {
+        opts = opts === undefined ? {}: opts;
+        const inverse = 'inverse' in opts ? opts.inverse : false;
+
+        return this.llrot(x, y, {inverse: !inverse});
+    }
+
+    public getThinnedGrid(thin_x: number, thin_y: number) {
+        const dlon = (this.ur_lon - this.ll_lon) / this.ni;
+        const dlat = (this.ur_lat - this.ll_lat) / this.nj;
+
+        const ni = Math.ceil(this.ni / thin_x);
+        const nj = Math.ceil(this.nj / thin_y);
+        const ni_remove = (this.ni - 1) % thin_x;
+        const nj_remove = (this.nj - 1) % thin_y;
+        const ll_lon = this.ll_lon;
+        const ll_lat = this.ll_lat;
+        const ur_lon = this.ur_lon - ni_remove * dlon;
+        const ur_lat = this.ur_lat - nj_remove * dlat;
+
+        return new PlateCarreeRotatedGrid(ni, nj, this.np_lon, this.np_lat, this.lon_shift, ll_lon, ll_lat, ur_lon, ur_lat);
+    }
+}
+
 /** A Lambert conformal conic grid with uniform grid spacing */
 class LambertGrid extends Grid {
-    readonly lon_0: number;
-    readonly lat_0: number;
-    readonly lat_std: [number, number];
-    readonly ll_x: number;
-    readonly ll_y: number;
-    readonly ur_x: number;
-    readonly ur_y: number;
+    public readonly lon_0: number;
+    public readonly lat_0: number;
+    public readonly lat_std: [number, number];
+    public readonly ll_x: number;
+    public readonly ll_y: number;
+    public readonly ur_x: number;
+    public readonly ur_y: number;
 
-    /** @private */
-    readonly lcc: (a: number, b: number, opts?: {inverse: boolean}) => [number, number];
-
-    /** @private */
-    readonly _ll_cache: Cache<[], Coords>;
+    private readonly lcc: (a: number, b: number, opts?: {inverse: boolean}) => [number, number];
+    private readonly ll_cache: Cache<[], Coords>;
 
     /**
      * Create a Lambert conformal conic grid
@@ -231,7 +310,7 @@ class LambertGrid extends Grid {
         this.ur_y = ur_y;
         this.lcc = lambertConformalConic({lon_0: lon_0, lat_0: lat_0, lat_std: lat_std});
 
-        this._ll_cache = new Cache(() => {
+        this.ll_cache = new Cache(() => {
             const lons = new Float32Array(this.ni * this.nj);
             const lats = new Float32Array(this.ni * this.nj);
 
@@ -251,7 +330,7 @@ class LambertGrid extends Grid {
         });
     }
 
-    copy(opts?: {ni?: number, nj?: number, ll_x?: number, ll_y?: number, ur_x?: number, ur_y?: number}) {
+    public copy(opts?: {ni?: number, nj?: number, ll_x?: number, ll_y?: number, ur_x?: number, ur_y?: number}) {
         opts = opts !== undefined ? opts : {};
         const ni = opts.ni !== undefined ? opts.ni : this.ni;
         const nj = opts.nj !== undefined ? opts.nj : this.nj;
@@ -266,18 +345,18 @@ class LambertGrid extends Grid {
     /**
      * Get a list of longitudes and latitudes on the grid (internal method)
      */
-    getCoords() {
-        return this._ll_cache.getValue();
+    public getCoords() {
+        return this.ll_cache.getValue();
     }
 
-    transform(x: number, y: number, opts?: {inverse?: boolean}) {
+    public transform(x: number, y: number, opts?: {inverse?: boolean}) {
         opts = opts === undefined ? {}: opts;
         const inverse = 'inverse' in opts ? opts.inverse : false;
 
         return this.lcc(x, y, {inverse: inverse});
     }
 
-    getThinnedGrid(thin_x: number, thin_y: number) {
+    public getThinnedGrid(thin_x: number, thin_y: number) {
         const dx = (this.ur_x - this.ll_x) / this.ni;
         const dy = (this.ur_y - this.ll_y) / this.nj;
 
@@ -294,17 +373,23 @@ class LambertGrid extends Grid {
     }
 }
 
+type TextureDataType<ArrayType> = ArrayType extends Float32Array ? Float32Array : Uint16Array;
+
+function getArrayConstructor<ArrayType extends TypedArray>(ary: ArrayType) : new(...args: any[]) => ArrayType {
+    return ary.constructor as new(...args: any[]) => ArrayType;
+}
+
 /** A class representing a raw 2D field of gridded data, such as height or u wind. */
-class RawScalarField {
-    readonly grid: Grid;
-    readonly data: Float32Array;
+class RawScalarField<ArrayType extends TypedArray> {
+    public readonly grid: Grid;
+    public readonly data: ArrayType;
 
     /**
      * Create a data field. 
      * @param grid - The grid on which the data are defined
      * @param data - The data, which should be given as a 1D array in row-major order, with the first element being at the lower-left corner of the grid.
      */
-    constructor(grid: Grid, data: Float32Array) {
+    constructor(grid: Grid, data: ArrayType) {
         this.grid = grid;
         this.data = data;
 
@@ -313,9 +398,29 @@ class RawScalarField {
         }
     }
 
-    getThinnedField(thin_x: number, thin_y: number) {
+    /** @internal */
+    public getTextureData() : TextureDataType<ArrayType> {
+        // Need to give float16 data as uint16s to make WebGL happy: https://github.com/petamoriken/float16/issues/105
+        let data: any;
+        if (this.data instanceof Float32Array) {
+            data = this.data;
+        }
+        else {
+            data = new Uint16Array(this.data.buffer);
+        }
+
+        return data as TextureDataType<ArrayType>;
+    }
+    
+    public isFloat16() {
+        return !(this.data instanceof Float32Array);
+    }
+
+    public getThinnedField(thin_x: number, thin_y: number) {
+        const arrayType = getArrayConstructor(this.data);
+
         const new_grid = this.grid.getThinnedGrid(thin_x, thin_y);
-        const new_data = new Float32Array(new_grid.ni * new_grid.nj);
+        const new_data = new arrayType(new_grid.ni * new_grid.nj);
 
         for (let i = 0; i < new_grid.ni; i++) {
             for (let j = 0 ; j < new_grid.nj; j++) {
@@ -338,15 +443,16 @@ class RawScalarField {
      * // Compute wind speed from u and v
      * wind_speed_field = RawScalarField.aggreateFields(Math.hypot, u_field, v_field);
      */
-    static aggregateFields(func: (...args: number[]) => number, ...args: RawScalarField[]) {
+    public static aggregateFields<ArrayType extends TypedArray>(func: (...args: number[]) => number, ...args: RawScalarField<ArrayType>[]) {
         function* mapGenerator<T, U>(gen: Generator<T>, func: (arg: T) => U) {
             for (const elem of gen) {
                 yield func(elem);
             }
         }
 
+        const arrayType = getArrayConstructor(args[0].data);
         const zipped_args = zip(...args.map(a => a.data));
-        const agg_data = new Float32Array(mapGenerator(zipped_args, (a: number[]): number => func(...a)));
+        const agg_data = new arrayType(mapGenerator(zipped_args, (a: number[]): number => func(...a)));
 
         return new RawScalarField(args[0].grid, agg_data);
     }
@@ -363,13 +469,12 @@ interface RawVectorFieldOptions {
 }
 
 /** A class representing a 2D gridded field of vectors */
-class RawVectorField {
-    readonly u: RawScalarField;
-    readonly v: RawScalarField;
-    readonly relative_to: VectorRelativeTo;
+class RawVectorField<ArrayType extends TypedArray> {
+    public readonly u: RawScalarField<ArrayType>;
+    public readonly v: RawScalarField<ArrayType>;
+    public readonly relative_to: VectorRelativeTo;
 
-    /** @private */
-    readonly _rotate_cache: Cache<[], {u: RawScalarField, v: RawScalarField}>
+    private readonly rotate_cache: Cache<[], {u: RawScalarField<ArrayType>, v: RawScalarField<ArrayType>}>
 
     /**
      * Create a vector field.
@@ -378,18 +483,20 @@ class RawVectorField {
      * @param v    - The v (north/south) component of the vectors, which should be given as a 1D array in row-major order, with the first element being at the lower-left corner of the grid
      * @param opts - Options for creating the vector field.
      */
-    constructor(grid: Grid, u: Float32Array, v: Float32Array, opts?: RawVectorFieldOptions) {
+    constructor(grid: Grid, u: ArrayType, v: ArrayType, opts?: RawVectorFieldOptions) {
         opts = opts === undefined ? {}: opts;
+
+        const arrayType = getArrayConstructor(u);
 
         this.u = new RawScalarField(grid, u);
         this.v = new RawScalarField(grid, v);
         this.relative_to = opts.relative_to === undefined ? 'grid' : opts.relative_to;
 
-        this._rotate_cache = new Cache(() => {
+        this.rotate_cache = new Cache(() => {
             const grid = this.u.grid;
             const coords = grid.getCoords();
-            const u_rot = new Float32Array(coords.lats.length);
-            const v_rot = new Float32Array(coords.lats.length);
+            const u_rot = new arrayType(coords.lats.length);
+            const v_rot = new arrayType(coords.lats.length);
 
             for (let icd = 0; icd < coords.lats.length; icd++) {
                 const lon = coords.lons[icd];
@@ -428,24 +535,24 @@ class RawVectorField {
         })
     }
 
-    getThinnedField(thin_x: number, thin_y: number) {
+    public getThinnedField(thin_x: number, thin_y: number) {
         const thin_u = this.u.getThinnedField(thin_x, thin_y);
         const thin_v = this.v.getThinnedField(thin_x, thin_y);
 
         return new RawVectorField(thin_u.grid, thin_u.data, thin_v.data, {relative_to: this.relative_to});
     }
 
-    get grid() {
+    public get grid() {
         return this.u.grid
     }
 
-    toEarthRelative() {
+    public toEarthRelative() {
         let u, v;
         if (this.relative_to == 'earth') {
             u = this.u; v = this.v;
         }
         else {
-            const {u: u_, v: v_} = this._rotate_cache.getValue();
+            const {u: u_, v: v_} = this.rotate_cache.getValue();
             u = u_; v = v_;
         }
 
@@ -455,8 +562,8 @@ class RawVectorField {
 
 /** A class grid of wind profiles */
 class RawProfileField {
-    readonly profiles: WindProfile[];
-    readonly grid: Grid;
+    public readonly profiles: WindProfile[];
+    public readonly grid: Grid;
 
     /**
      * Create a grid of wind profiles
@@ -469,9 +576,9 @@ class RawProfileField {
     }
 
     /** Get the gridded storm motion vector field (internal method) */
-    getStormMotionGrid() {
-        const u = new Float32Array(this.grid.ni * this.grid.nj);
-        const v = new Float32Array(this.grid.ni * this.grid.nj);
+    public getStormMotionGrid() {
+        const u = new Float16Array(this.grid.ni * this.grid.nj);
+        const v = new Float16Array(this.grid.ni * this.grid.nj);
 
         this.profiles.forEach(prof => {
             const idx = prof.ilon + this.grid.ni * prof.jlat;
@@ -483,5 +590,5 @@ class RawProfileField {
     }
 }
 
-export {RawScalarField, RawVectorField, RawProfileField, PlateCarreeGrid, LambertGrid, Grid};
-export type {GridType, RawVectorFieldOptions, VectorRelativeTo};
+export {RawScalarField, RawVectorField, RawProfileField, PlateCarreeGrid, PlateCarreeRotatedGrid, LambertGrid, Grid};
+export type {GridType, RawVectorFieldOptions, VectorRelativeTo, TextureDataType};

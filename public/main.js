@@ -13,12 +13,14 @@ function makeSynthetic500mbLayers() {
     }
     const colormap = apgl.colormaps.pw_speed500mb;
 
-    const raw_hght_field = new apgl.RawScalarField(grid, new Float32Array(hght));
-    const raw_u_field = new apgl.RawScalarField(grid, new Float32Array(u));
-    const raw_v_field = new apgl.RawScalarField(grid, new Float32Array(v));
+    const arrayType = float16.Float16Array;
+
+    const raw_hght_field = new apgl.RawScalarField(grid, new arrayType(hght));
+    const raw_u_field = new apgl.RawScalarField(grid, new arrayType(u));
+    const raw_v_field = new apgl.RawScalarField(grid, new arrayType(v));
 
     const raw_ws_field = apgl.RawScalarField.aggregateFields(Math.hypot, raw_u_field, raw_v_field);
-    const raw_vec_field = new apgl.RawVectorField(grid, new Float32Array(u), new Float32Array(v), {relative_to: 'grid'});
+    const raw_vec_field = new apgl.RawVectorField(grid, new arrayType(u), new arrayType(v), {relative_to: 'grid'});
 
     const cntr = new apgl.Contour(raw_hght_field, {interval: 1, color: '#000000', thinner: zoom => zoom < 5 ? 2 : 1});
     const filled = new apgl.ContourFill(raw_ws_field, {'cmap': colormap, 'opacity': 0.8});
@@ -38,8 +40,9 @@ function makeSynthetic500mbLayers() {
 async function fetchBinary(fname) {
     resp = await fetch(fname);
     const blob = await resp.blob();
-    const ary = await blob.arrayBuffer();
-    return new Float32Array(ary);
+    const ary = new Uint8Array(await blob.arrayBuffer());
+    const ary_inflated = pako.inflate(ary);
+    return new float16.Float16Array(new Float32Array(ary_inflated.buffer));
 }
 
 async function makeHREFLayers() {
@@ -50,13 +53,13 @@ async function makeHREFLayers() {
     const grid_href = new apgl.LambertGrid(nx_href, ny_href, -97.5, 38.5, [38.5, 38.5], 
                                            -nx_href * dx_href / 2, -ny_href * dy_href / 2, nx_href * dx_href / 2, ny_href * dy_href / 2);
 
-    const nh_prob_data = await fetchBinary('data/hrefv3.2023051100.f036.mxuphl5000_2000m.nh_max.086400_p99.85_0040km.bin');
+    const nh_prob_data = await fetchBinary('data/hrefv3.2023051100.f036.mxuphl5000_2000m.nh_max.086400_p99.85_0040km.bin.gz');
     const nh_prob_field = new apgl.RawScalarField(grid_href, nh_prob_data);
     const nh_prob_contour = new apgl.Contour(nh_prob_field, {'levels': [0.1, 0.3, 0.5, 0.7, 0.9], 'color': '#000000'});
     const nh_prob_layer = new apgl.PlotLayer('nh_probs', nh_prob_contour);
 
 
-    const pb_data = await fetchBinary('data/hrefv3.2023051100.f036.mxuphl5000_2000m.086400.pb75.bin');
+    const pb_data = await fetchBinary('data/hrefv3.2023051100.f036.mxuphl5000_2000m.086400.pb75.bin.gz');
     // If I don't draw the contours, this doesn't draw anything. Why is that?
     const href_pb_colors = ['#9d4c1c', '#f2b368', '#792394', '#d99cf9', '#1e3293', '#aabee3', '#bc373b', '#f0928f', '#397d21', '#b5f0ab'];
 
@@ -97,18 +100,40 @@ function makeHodoLayers() {
     return {layers: [hodo_layer]};
 }
 
+async function makeMRMSLayer() {
+    const grid_mrms = new apgl.PlateCarreeGrid(7000, 3500, -129.995, 20.005, -60.005, 54.995);
+    const data = await fetchBinary('data/mrms.202112152259.cref.bin.gz');
+    const raw_cref_field = new apgl.RawScalarField(grid_mrms, data);
+    const raster_cref = new apgl.Raster(raw_cref_field, {cmap: apgl.colormaps.nws_storm_clear_refl});
+    const raster_layer = new apgl.PlotLayer('mrms_cref', raster_cref);
+
+    const svg = apgl.makeColorBar(apgl.colormaps.nws_storm_clear_refl, {label: "Reflectivity (dBZ)", fontface: 'Trebuchet MS', 
+                                                                        ticks: [-20, -10, 0, 10, 20, 30, 40, 50, 60, 70],
+                                                                        orientation: 'horizontal', tick_direction: 'bottom'})
+
+    return {layers: [raster_layer], colorbar: svg};
+}
+
 const views = {
     'default': {
         name: "Synthetic 500mb",
         makeLayers: makeSynthetic500mbLayers,
+        maxZoom: 7,
     },
     'href': {
         name: "HREF",
         makeLayers: makeHREFLayers,
+        maxZoom: 7,
     },
     'hodo': {
         name: "Hodographs",
         makeLayers: makeHodoLayers,
+        maxZoom: 7,
+    },
+    'mrms': {
+        name: "MRMS",
+        makeLayers: makeMRMSLayer,
+        maxZoom: 8.5,
     }
 };
 
@@ -128,6 +153,8 @@ window.addEventListener('load', () => {
 
     async function updateMap() {
         const view = views[menu.value];
+        map.setMaxZoom(view.maxZoom);
+
         const {layers, colorbar} = await view.makeLayers();
 
         current_layers.forEach(lyr => {

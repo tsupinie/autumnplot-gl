@@ -5,7 +5,8 @@ import { BillboardCollection } from "./BillboardCollection";
 import { getMinZoom, hex2rgba } from './utils';
 import { LngLat, MapType } from "./Map";
 import { RawProfileField } from "./RawField";
-import { WebGLAnyRenderingContext } from "./AutumnTypes";
+import { TypedArray, WebGLAnyRenderingContext } from "./AutumnTypes";
+import { Float16Array } from "@petamoriken/float16";
 
 const LINE_WIDTH = 4;
 const BG_MAX_RING_MAG = 40;
@@ -98,21 +99,20 @@ interface HodographOptions {
     thin_fac?: number;
 }
 
-interface HodographGLElems {
+interface HodographGLElems<ArrayType extends TypedArray> {
     map: MapType;
-    bg_billboard: BillboardCollection | null;
+    bg_billboard: BillboardCollection<ArrayType> | null;
     hodo_line: PolylineCollection | null;
     sm_line: PolylineCollection | null;
 }
 
 /** A class representing a a field of hodograph plots */
 class Hodographs extends PlotComponent {
-    readonly profile_field: RawProfileField;
-    readonly bgcolor: [number, number, number];
-    readonly thin_fac: number;
+    private readonly profile_field: RawProfileField;
+    public readonly bgcolor: [number, number, number];
+    public readonly thin_fac: number;
 
-    /** @private */
-    gl_elems: HodographGLElems;
+    private gl_elems: HodographGLElems<Float16Array>;
 
     /**
      * Create a field of hodographs
@@ -137,7 +137,7 @@ class Hodographs extends PlotComponent {
      * @internal
      * Add the hodographs to a map
      */
-    async onAdd(map: mapboxgl.Map, gl: WebGLAnyRenderingContext) {
+    public async onAdd(map: mapboxgl.Map, gl: WebGLAnyRenderingContext) {
         const hodo_scale = (HODO_BG_DIMS.BB_TEX_WIDTH - LINE_WIDTH / 2) / (HODO_BG_DIMS.BB_TEX_WIDTH * BG_MAX_RING_MAG);
         const bg_size = 140;
 
@@ -207,7 +207,7 @@ class Hodographs extends PlotComponent {
      * @internal
      * Render the hodographs
      */
-    render(gl: WebGLAnyRenderingContext, matrix: number[]) {
+    public render(gl: WebGLAnyRenderingContext, matrix: number[]) {
         if (this.gl_elems === null) return;
         const gl_elems = this.gl_elems;
 

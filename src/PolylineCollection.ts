@@ -1,28 +1,30 @@
 
 import { WGLBuffer, WGLProgram, WGLTexture, WGLTextureSpec } from "autumn-wgl";
 import { PolylineSpec, LineSpec, WebGLAnyRenderingContext } from "./AutumnTypes";
+import { Cache } from "./utils";
 
 const polyline_vertex_src = require('./glsl/polyline_vertex.glsl');
 const polyline_fragment_src = require('./glsl/polyline_fragment.glsl');
+const program_cache = new Cache((gl: WebGLAnyRenderingContext) => new WGLProgram(gl, polyline_vertex_src, polyline_fragment_src));
 
 class PolylineCollection {
-    readonly width: number;
-    readonly scale: number;
+    public readonly width: number;
+    public readonly scale: number;
 
-    readonly program: WGLProgram;
-    readonly origin: WGLBuffer;
-    readonly offset: WGLBuffer;
-    readonly extrusion: WGLBuffer;
-    readonly min_zoom: WGLBuffer;
+    private readonly program: WGLProgram;
+    private readonly origin: WGLBuffer;
+    private readonly offset: WGLBuffer;
+    private readonly extrusion: WGLBuffer;
+    private readonly min_zoom: WGLBuffer;
 
-    readonly texture: WGLTexture;
-    readonly texcoords: WGLBuffer;
+    private readonly texture: WGLTexture;
+    private readonly texcoords: WGLBuffer;
 
     constructor(gl: WebGLAnyRenderingContext, polyline: PolylineSpec, tex_image: WGLTextureSpec, line_width: number, offset_scale: number) {
         this.width = line_width;
         this.scale = offset_scale;
 
-        this.program = new WGLProgram(gl, polyline_vertex_src, polyline_fragment_src);
+        this.program = program_cache.getValue(gl);
 
         this.origin = new WGLBuffer(gl, polyline['origin'], 2, gl.TRIANGLE_STRIP);
         this.offset = new WGLBuffer(gl, polyline['verts'], 2, gl.TRIANGLE_STRIP);
@@ -33,7 +35,7 @@ class PolylineCollection {
         this.texcoords = new WGLBuffer(gl, polyline['texcoords'], 2, gl.TRIANGLE_STRIP);
     }
 
-    render(gl: WebGLAnyRenderingContext, matrix: number[], [map_width, map_height]: [number, number], map_zoom: number, map_bearing: number, map_pitch: number) {
+    public render(gl: WebGLAnyRenderingContext, matrix: number[], [map_width, map_height]: [number, number], map_zoom: number, map_bearing: number, map_pitch: number) {
         this.program.use(
             {'a_pos': this.origin, 'a_offset': this.offset, 'a_extrusion': this.extrusion, 'a_min_zoom': this.min_zoom, 'a_tex_coord': this.texcoords},
             {'u_offset_scale': this.scale * (map_height / map_width), 'u_line_width': this.width, 'u_matrix': matrix,

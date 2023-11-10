@@ -1,13 +1,14 @@
 
-import { WebGLAnyRenderingContext, isWebGL2Ctx } from "./AutumnTypes";
+import { TypedArray, WebGLAnyRenderingContext } from "./AutumnTypes";
 import { MapType } from "./Map";
-import { PlotComponent } from "./PlotComponent";
+import { PlotComponent, getGLFormatTypeAlignment } from "./PlotComponent";
 import { RawScalarField } from "./RawField";
-import { hex2rgba } from "./utils";
+import { Cache, hex2rgba } from "./utils";
 import { WGLBuffer, WGLProgram, WGLTexture } from "autumn-wgl";
 
 const paintball_vertex_shader_src = require('./glsl/paintball_vertex.glsl');
 const paintball_fragment_shader_src = require('./glsl/paintball_fragment.glsl');
+const program_cache = new Cache((gl: WebGLAnyRenderingContext) => new WGLProgram(gl, paintball_vertex_shader_src, paintball_fragment_shader_src));
 
 interface PaintballOptions {
     /**
@@ -36,13 +37,12 @@ interface PaintballGLElems {
  * of single-precision floats, this works for up to 24 members. (Technically speaking, I don't need the quotes around "bits", as they're bits of the 
  * significand of an IEEE 754 float.)
  */
-class Paintball extends PlotComponent {
-    readonly field: RawScalarField;
-    readonly colors: number[];
-    readonly opacity: number;
+class Paintball<ArrayType extends TypedArray> extends PlotComponent {
+    private readonly field: RawScalarField<ArrayType>;
+    public readonly colors: number[];
+    public readonly opacity: number;
 
-    /** @private */
-    gl_elems: PaintballGLElems | null;
+    private gl_elems: PaintballGLElems | null;
 
     /**
      * Create a paintball plot
@@ -51,7 +51,7 @@ class Paintball extends PlotComponent {
      *               `M2` is the same thing for member 2, and `M3` and `M4` and up to `Mn` are the same thing for the rest of the members.
      * @param opts  - Options for creating the paintball plot
      */
-    constructor(field: RawScalarField, opts?: PaintballOptions) {
+    constructor(field: RawScalarField<ArrayType>, opts?: PaintballOptions) {
         super();
 
         this.field = field;
@@ -68,20 +68,22 @@ class Paintball extends PlotComponent {
      * @internal
      * Add the paintball plot to a map.
      */
-    async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
+    public async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
         gl.getExtension('OES_texture_float');
 
-        const program = new WGLProgram(gl, paintball_vertex_shader_src, paintball_fragment_shader_src);
+        const program = program_cache.getValue(gl);
 
         const {vertices: verts_buf, texcoords: tex_coords_buf} = await this.field.grid.getWGLBuffers(gl);
         const vertices = verts_buf;
         const texcoords = tex_coords_buf;
 
-        const format = isWebGL2Ctx(gl) ? gl.R32F : gl.LUMINANCE;
+        gl.pixelStorei(gl.UNPACK_ALIGNMENT, 2);
 
-        const fill_image = {'format': format, 'type': gl.FLOAT,
-            'width': this.field.grid.ni, 'height': this.field.grid.nj, 'image': this.field.data,
-            'mag_filter': gl.NEAREST,
+        const {format, type, row_alignment} = getGLFormatTypeAlignment(gl, this.field.isFloat16());
+
+        const fill_image = {'format': format, 'type': type,
+            'width': this.field.grid.ni, 'height': this.field.grid.nj, 'image': this.field.getTextureData(),
+            'mag_filter': gl.NEAREST, 'row_alignment': row_alignment,
         };
 
         const fill_texture = new WGLTexture(gl, fill_image);
@@ -95,7 +97,7 @@ class Paintball extends PlotComponent {
      * @internal
      * Render the paintball plot
      */
-    render(gl: WebGLAnyRenderingContext, matrix: number[]) {
+    public render(gl: WebGLAnyRenderingContext, matrix: number[]) {
         if (this.gl_elems === null) return;
         const gl_elems = this.gl_elems;
 

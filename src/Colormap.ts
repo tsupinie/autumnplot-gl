@@ -5,6 +5,7 @@ import spd850_colormap_data from "./json/pw850speed_colormap.json";
 import cape_colormap_data from "./json/pwcape_colormap.json";
 import t2m_colormap_data from "./json/pwt2m_colormap.json";
 import td2m_colormap_data from "./json/pwtd2m_colormap.json";
+import nws_storm_clear_refl_colormap_data from "./json/nws_storm_clear_refl_colormap.json";
 
 interface Color {
     /** The color as a hex color string */
@@ -20,8 +21,8 @@ function isColor(obj: any): obj is Color {
 
 /** A mapping from values to colors */
 class ColorMap {
-    readonly levels: number[];
-    readonly colors: Color[];
+    public readonly levels: number[];
+    public readonly colors: Color[];
 
     /**
      * Create a color map
@@ -40,14 +41,14 @@ class ColorMap {
     /**
      * @returns an array of hex color strings
      */
-    getColors() : string[] {
+    public getColors() : string[] {
         return this.colors.map(s => s['color']);
     }
 
     /**
      * @returns an array of opacities, one for each color in the color map
      */
-    getOpacities() : number[] {
+    public getOpacities() : number[] {
         return this.colors.map(s => s['opacity']);
     }
 
@@ -56,9 +57,25 @@ class ColorMap {
      * @param func - A function which takes the two levels associated with a color (an upper and lower bound) and returns an opacity in the range from 0 to 1.
      * @returns A new color map
      */
-    withOpacity(func: (level_lower: number, level_upper: number) => number) {
-        const new_colors = this.colors.map((c, ic) => { return {'color': c['color'], 'opacity': func(this.levels[ic], this.levels[ic + 1])}; });
-        return new ColorMap(this.levels, new_colors);
+    public withOpacity(func: (level_lower: number, level_upper: number) => number) {
+        const new_colors: Color[] = [];
+        const new_levels: number[] = [];
+
+        for (let ic = 0 ; ic < this.colors.length ; ic++) {
+            const color = this.colors[ic];
+            const level_lower = this.levels[ic];
+            const level_upper = this.levels[ic + 1];
+
+            const new_color = {'color': color['color'], 'opacity': func(level_lower, level_upper)};
+            if (new_color['opacity'] > 0) {
+                if (new_levels[new_levels.length - 1] != level_lower)
+                    new_levels.push(level_lower)
+                new_levels.push(level_upper);
+                new_colors.push(new_color);
+            }
+        }
+        
+        return new ColorMap(new_levels, new_colors);
     }
 
     /**
@@ -70,7 +87,7 @@ class ColorMap {
      * @param n_colors  - The number of colors to use
      * @returns a Colormap object
      */
-    static diverging(color1: string, color2: string, level_min: number, level_max: number, n_colors: number) {
+    public static diverging(color1: string, color2: string, level_min: number, level_max: number, n_colors: number) {
         const stops: Color[] = [];
         const levels: number[] = [];
 
@@ -120,6 +137,7 @@ const pw_speed850mb = new ColorMap(spd850_colormap_data.levels, spd850_colormap_
 const pw_cape = new ColorMap(cape_colormap_data.levels, cape_colormap_data.colors).withOpacity((levl, levu) => Math.min(levu / 1000., 1.));
 const pw_t2m = new ColorMap(t2m_colormap_data.levels, t2m_colormap_data.colors);
 const pw_td2m = new ColorMap(td2m_colormap_data.levels, td2m_colormap_data.colors);
+const nws_storm_clear_refl = new ColorMap(nws_storm_clear_refl_colormap_data.levels, nws_storm_clear_refl_colormap_data.colors);
 
 /**
  * Create a diverging red/blue colormap, where red corresponds to the lowest value and blue corresponds to the highest value
@@ -167,5 +185,5 @@ function makeTextureImage(colormap: ColorMap) {
     return cmap_image;
 }
 
-export {ColorMap, bluered, redblue, pw_speed500mb, pw_speed850mb, pw_cape, pw_t2m, pw_td2m, makeTextureImage}
+export {ColorMap, bluered, redblue, pw_speed500mb, pw_speed850mb, pw_cape, pw_t2m, pw_td2m, nws_storm_clear_refl, makeTextureImage}
 export type {Color};

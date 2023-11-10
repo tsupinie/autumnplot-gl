@@ -31,6 +31,12 @@ interface ColorBarOptions {
      * @default 'sans-serif'
      */
     fontface?: string;
+
+    /**
+     * The font size (in points) to use for the tick labels
+     * @default 12
+     */
+    ticklabelsize?: number;
 };
 
 const createElement = (tagname: string, attributes?: Record<string, string | number>, parent?: SVGElement) => {
@@ -67,6 +73,7 @@ function makeColorBar(colormap: ColorMap, opts: ColorBarOptions) {
     const ticks = opts.ticks || colormap.levels;
     const orientation = opts.orientation || 'vertical';
     const fontface = opts.fontface || 'sans-serif';
+    const tickfontsize = opts.ticklabelsize || 12;
 
     const tick_dir = opts.tick_direction || (orientation == 'vertical' ? 'left' : 'bottom');
 
@@ -84,7 +91,7 @@ function makeColorBar(colormap: ColorMap, opts: ColorBarOptions) {
 
     const bar_long_size = 600;
     const bar_cross_size = bar_long_size / 9;
-    const bar_long_pad = orientation == 'horizontal' ? Math.max(chars_left, chars_right) * 6 : 5;
+    const bar_long_pad = orientation == 'horizontal' ? Math.max(chars_left, chars_right) * 6 : 8;
     const bar_cross_pad = 3;
     const bar_thickness = 10;
 
@@ -139,8 +146,15 @@ function makeColorBar(colormap: ColorMap, opts: ColorBarOptions) {
         createElement('rect', {...attrs, fill: color.color, opacity: color.opacity}, gbar);
     });
 
-    ticks.forEach(level => {
-        const ilevel = colormap.levels.indexOf(level);
+    const first_level = colormap.levels[0];
+    const last_level = colormap.levels[colormap.levels.length - 1];
+
+    ticks.filter(level => first_level <= level && level <= last_level).forEach(level => {
+        const diffs = colormap.levels.map(l => Math.abs(l - level));
+        let ilevel = diffs.indexOf(diffs.reduce((a, b) => Math.min(a, b)));
+        if (level <= colormap.levels[ilevel] && ilevel > 0)
+            ilevel -= 1;
+        ilevel += (level - colormap.levels[ilevel]) / (colormap.levels[ilevel + 1] - colormap.levels[ilevel]);
         const tickattrs = orientation == 'vertical' ? {transform: `translate(0, ${bar_height * (1 - ilevel / n_colors)})`} : 
                                                       {transform: `translate(${bar_width * ilevel / n_colors}, 0)`};
         const gtick = createElement('g', tickattrs, gticks);
@@ -163,7 +177,7 @@ function makeColorBar(colormap: ColorMap, opts: ColorBarOptions) {
             textattrs = tick_dir == 'bottom' ? {y: 9, dy: '0.8em'} : {y: -9, dy: '0em'};
         }
 
-        const text = createElement('text', {...textattrs, fill: '#000000', style: `font-family: ${fontface};`}, gtick);
+        const text = createElement('text', {...textattrs, fill: '#000000', style: `font-family: ${fontface}; font-size: ${tickfontsize}pt`}, gtick);
         text.textContent = level.toString();
     });
 

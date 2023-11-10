@@ -17,16 +17,20 @@ uniform lowp float u_zoom_fac;
 void main() {
     highp float field_val = texture2D(u_fill_sampler, v_tex_coord).r;
 
-    // Find the gradient magnitude of the grid (the y component divides by 2 to cheat for high latitudes)
+    lowp vec2 grid_point = fract(v_tex_coord / u_step_size + vec2(0.5, 0.5));
+    highp vec2 grid_sw = v_tex_coord - grid_point * u_step_size;
+
     lowp vec2 ihat = vec2(u_step_size.x, 0.0);
     lowp vec2 jhat = vec2(0.0, u_step_size.y);
-    highp float fv_xp1 = texture2D(u_fill_sampler, v_tex_coord + ihat).r;
-    highp float fv_xm1 = texture2D(u_fill_sampler, v_tex_coord - ihat).r;
-    highp float fv_yp1 = texture2D(u_fill_sampler, v_tex_coord + jhat).r;
-    highp float fv_ym1 = texture2D(u_fill_sampler, v_tex_coord - jhat).r;
-    highp float fwidth_field = sqrt(((fv_xp1 - fv_xm1) * (fv_xp1 - fv_xm1) + (fv_yp1 - fv_ym1) * (fv_yp1 - fv_ym1)) / (5e5 * v_grid_cell_size));
+    highp float fv_sw = texture2D(u_fill_sampler, grid_sw).r;
+    highp float fv_se = texture2D(u_fill_sampler, grid_sw + ihat).r;
+    highp float fv_nw = texture2D(u_fill_sampler, grid_sw + jhat).r;
+    highp float fv_ne = texture2D(u_fill_sampler, grid_sw + ihat + jhat).r;
 
-    //gl_FragColor = vec4(fwidth_field, fwidth_field, fwidth_field, 1.0);
+    highp float dfdx = mix(fv_se, fv_ne, grid_point.y) - mix(fv_sw, fv_nw, grid_point.y);
+    highp float dfdy = mix(fv_nw, fv_ne, grid_point.x) - mix(fv_sw, fv_se, grid_point.x);
+    highp float fwidth_field = sqrt((dfdx * dfdx + dfdy * dfdy) / (5e5 * v_grid_cell_size));
+
     lowp float plot_val;
 
     if (u_num_contours > 0) {

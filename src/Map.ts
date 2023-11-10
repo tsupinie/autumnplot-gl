@@ -117,6 +117,61 @@ function lambertConformalConic(params: LambertConformalConicParameters) {
     }
 }
 
+interface RotateSphereParams {
+    np_lon: number,
+    np_lat: number,
+    lon_shift: number,
+}
+
+function rotateSphere(params: RotateSphereParams) {
+    const radians = Math.PI / 180;
+    const np_lat = params.np_lat * radians;
+    const np_lon = params.np_lon * radians;
+    const lon_shift = params.lon_shift * radians;
+
+    const sin_np_lat = Math.sin(np_lat);
+    const cos_np_lat = Math.cos(np_lat);
+
+    const compute_rotation = (lon: number, lat: number) : [number, number] => {
+        lon *= radians;
+        lat *= radians;
+
+        const sin_lat = Math.sin(lat);
+        const cos_lat = Math.cos(lat);
+        const sin_lon_diff = Math.sin(lon - lon_shift);
+        const cos_lon_diff = Math.cos(lon - lon_shift);
+
+        const lat_p = Math.asin(sin_np_lat * sin_lat - cos_np_lat * cos_lat * cos_lon_diff);
+        let lon_p = np_lon + Math.atan2((cos_lat * sin_lon_diff), (sin_np_lat * cos_lat * cos_lon_diff + cos_np_lat * sin_lat));
+
+        if (lon_p > Math.PI) lon_p -= 2 * Math.PI;
+
+        return [lon_p / radians, lat_p / radians];
+    }
+
+    const compute_rotation_inverse = (lon_p: number, lat_p: number) : [number, number] => {
+        lon_p *= radians;
+        lat_p *= radians;
+
+        const sin_lat_p = Math.sin(lat_p);
+        const cos_lat_p = Math.cos(lat_p);
+        const sin_lon_p_diff = Math.sin(lon_p - np_lon);
+        const cos_lon_p_diff = Math.cos(lon_p - np_lon);
+
+        const lat = Math.asin(sin_np_lat * sin_lat_p + cos_np_lat * cos_lat_p * cos_lon_p_diff);
+        let lon = lon_shift + Math.atan2((cos_lat_p * sin_lon_p_diff), (sin_np_lat * cos_lat_p * cos_lon_p_diff - cos_np_lat * sin_lat_p));
+
+        if (lon_p > Math.PI) lon_p -= 2 * Math.PI;
+
+        return [lon / radians, lat / radians];
+    }
+
+    return (a: number, b: number, opts?: {inverse: boolean}) => {
+        opts = opts === undefined ? {inverse: false} : opts;
+        return opts.inverse ? compute_rotation_inverse(a, b) : compute_rotation(a, b);
+    }
+}
+
 function mercatorXfromLng(lng: number) {
     return (180 + lng) / 360;
 }
@@ -139,8 +194,8 @@ function mercatorYfromLat(lat: number) {
  * ll.lng; // = -123.9749
  */
  class LngLat {
-    lng: number;
-    lat: number;
+    public lng: number;
+    public lat: number;
 
     constructor(lng: number, lat: number) {
         if (isNaN(lng) || isNaN(lat)) {
@@ -153,10 +208,10 @@ function mercatorYfromLat(lat: number) {
         }
     }
 
-    toMercatorCoord() {
+    public toMercatorCoord() {
         return {x: mercatorXfromLng(this.lng), y: mercatorYfromLat(this.lat)};
     }
 }
 
-export {LngLat, lambertConformalConic};
+export {LngLat, lambertConformalConic, rotateSphere};
 export type {MapType};

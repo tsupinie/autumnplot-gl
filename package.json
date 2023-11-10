@@ -1,6 +1,6 @@
 {
     "name": "autumnplot-gl",
-    "version": "2.0.0",
+    "version": "2.2.0",
     "description": "",
     "main": "lib/index.js",
     "types": "lib/index.d.ts",
@@ -31,7 +31,8 @@
         "webpack-glsl-loader": "^1.0.1"
     },
     "dependencies": {
-        "autumn-wgl": "^1.1.0",
+        "@petamoriken/float16": "^3.8.4",
+        "autumn-wgl": "^1.2.0",
         "comlink": "^4.3.1"
     }
 }

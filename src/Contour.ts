@@ -1,13 +1,14 @@
 
-import { WebGLAnyRenderingContext, isWebGL2Ctx } from './AutumnTypes';
+import { TypedArray, WebGLAnyRenderingContext} from './AutumnTypes';
 import { MapType } from './Map';
-import { PlotComponent, layer_worker } from './PlotComponent';
+import { PlotComponent, getGLFormatTypeAlignment } from './PlotComponent';
 import { RawScalarField } from './RawField';
-import { hex2rgba } from './utils';
+import { Cache, hex2rgba } from './utils';
 import { WGLBuffer, WGLProgram, WGLTexture } from 'autumn-wgl';
 
 const contour_vertex_shader_src = require('./glsl/contour_vertex.glsl');
 const contour_fragment_shader_src = require('./glsl/contour_fragment.glsl');
+const program_cache = new Cache((gl: WebGLAnyRenderingContext) => new WGLProgram(gl, contour_vertex_shader_src, contour_fragment_shader_src));
 
 interface ContourOptions {
     /** 
@@ -53,22 +54,21 @@ interface ContourGLElems {
  * const contours = new Contour(height_field, {color: '#000000', interval: 30, 
  *                                                  thinner: zoom => zoom < 5 ? 2 : 1});
  */
-class Contour extends PlotComponent {
-    readonly field: RawScalarField;
-    readonly color: [number, number, number];
-    readonly interval: number;
-    readonly levels: number[];
-    readonly thinner: (zoom: number) => number;
+class Contour<ArrayType extends TypedArray> extends PlotComponent {
+    private readonly field: RawScalarField<ArrayType>;
+    public readonly color: [number, number, number];
+    public readonly interval: number;
+    public readonly levels: number[];
+    public readonly thinner: (zoom: number) => number;
 
-    /** @private */
-    gl_elems: ContourGLElems | null;
+    private gl_elems: ContourGLElems | null;
 
     /**
      * Create a contoured field
      * @param field - The field to contour
      * @param opts  - Options for creating the contours
      */
-    constructor(field: RawScalarField, opts: ContourOptions) {
+    constructor(field: RawScalarField<ArrayType>, opts: ContourOptions) {
         super();
 
         this.field = field;
@@ -88,24 +88,22 @@ class Contour extends PlotComponent {
      * @internal
      * Add the contours to a map
      */
-    async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
+    public async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
         // Basic procedure for these contours from https://www.shadertoy.com/view/lltBWM
-        gl.getExtension('OES_texture_float');
-        gl.getExtension('OES_texture_float_linear');
-        gl.getExtension('OES_standard_derivatives');
+        gl.getExtension("OES_standard_derivatives");
         
-        const program = new WGLProgram(gl, contour_vertex_shader_src, contour_fragment_shader_src);
+        const program = program_cache.getValue(gl);
 
         const {vertices: verts_buf, texcoords: tex_coords_buf, cellsize: cellsize_buf} = await this.field.grid.getWGLBuffers(gl);
         const vertices = verts_buf;
         const texcoords = tex_coords_buf;
         const grid_cell_size = cellsize_buf;
 
-        const format = isWebGL2Ctx(gl) ? gl.R32F : gl.LUMINANCE;
+        const {format, type, row_alignment} = getGLFormatTypeAlignment(gl, this.field.isFloat16());
 
-        const fill_image = {'format': format, 'type': gl.FLOAT, 
-            'width': this.field.grid.ni, 'height': this.field.grid.nj, 'image': this.field.data,
-            'mag_filter': gl.LINEAR,
+        const fill_image = {'format': format, 'type': type, 
+            'width': this.field.grid.ni, 'height': this.field.grid.nj, 'image': this.field.getTextureData(),
+            'mag_filter': gl.LINEAR, 'row_alignment': row_alignment,
         };
 
         const fill_texture = new WGLTexture(gl, fill_image);
@@ -118,14 +116,14 @@ class Contour extends PlotComponent {
      * @internal
      * Render the contours
      */
-    render(gl: WebGLAnyRenderingContext, matrix: number[]) {
+    public render(gl: WebGLAnyRenderingContext, matrix: number[]) {
         if (this.gl_elems === null) return;
         const gl_elems = this.gl_elems;
 
         const zoom = gl_elems.map.getZoom();
         const intv = this.thinner(zoom) * this.interval;
-        const cutoff = 0.5 / intv;
-        const step_size = [0.25 / this.field.grid.ni, 0.25 / this.field.grid.nj];
+        const cutoff = 0.3 / intv;
+        const step_size = [1 / this.field.grid.ni, 1 / this.field.grid.nj];
         const zoom_fac = Math.pow(2, zoom);
 
         let uniforms = {'u_contour_interval': intv, 'u_line_cutoff': cutoff, 'u_color': this.color, 'u_step_size': step_size, 'u_zoom_fac': zoom_fac,
