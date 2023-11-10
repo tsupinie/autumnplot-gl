@@ -27,7 +27,7 @@ const nx = 121, ny = 61;
 const grid = new PlateCarreeGrid(nx, ny, -130, 20, -65, 55);
 ```
 
-Next, create a RawScalarField with the data. autumnplot-gl doesn't care about how data get to the browser, but it should end up in a Float32Array or Float16Array (which requires [this library](https://github.com/petamoriken/float16)) in row-major order with the first element being at the southwest corner of the grid. A future version might include support for reading from, say, a Zarr file. Once you have your data in that format, to create the raw data field:
+Next, create a RawScalarField with the data. autumnplot-gl doesn't care about how data get to the browser, but it should end up in a `Float32Array` or `Float16Array` in row-major order with the first element being at the southwest corner of the grid. If you're using [zarr.js](https://github.com/gzuidhof/zarr.js/), you can use the `getRaw()` function on a `ZarrArray` to get data in the correct format. Also, `Float16Array`s are not in the Javascript standard library (for now), so for the time being, you'll need to use [this library](https://github.com/petamoriken/float16). However, the nice part about using a `Float16Array` is that your data will be stored as float16s in VRAM, so they'll take up half the space as the same data as float32s. Once you have your data in that format, to create the raw data field:
 
 ```javascript
 // Create the raw data field
