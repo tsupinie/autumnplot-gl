@@ -1,2 +1,5 @@
-node_modules/
-public/
+_site/
+index.markdown
+
+Gemfile
+Gemfile.lock
