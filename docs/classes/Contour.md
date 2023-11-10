@@ -1,6 +1,6 @@
 [autumnplot-gl](../README.md) / [Exports](../modules.md) / Contour
 
-# Class: Contour
+# Class: Contour<ArrayType\>
 
 A field of contoured data. The contours can optionally be thinned based on map zoom level.
 
@@ -12,6 +12,12 @@ A field of contoured data. The contours can optionally be thinned based on map z
 const contours = new Contour(height_field, {color: '#000000', interval: 30, 
                                                  thinner: zoom => zoom < 5 ? 2 : 1});
 ```
+
+## Type parameters
+
+| Name | Type |
+| :------ | :------ |
+| `ArrayType` | extends [`TypedArray`](../modules.md#typedarray) |
 
 ## Hierarchy
 
@@ -28,35 +34,29 @@ const contours = new Contour(height_field, {color: '#000000', interval: 30,
 ### Properties
 
 - [color](Contour.md#color)
-- [field](Contour.md#field)
-- [fill\_texture](Contour.md#fill_texture)
-- [grid\_cell\_size](Contour.md#grid_cell_size)
 - [interval](Contour.md#interval)
 - [levels](Contour.md#levels)
-- [map](Contour.md#map)
-- [program](Contour.md#program)
-- [texcoords](Contour.md#texcoords)
 - [thinner](Contour.md#thinner)
-- [vertices](Contour.md#vertices)
-
-### Methods
-
-- [onAdd](Contour.md#onadd)
-- [render](Contour.md#render)
 
 ## Constructors
 
 ### constructor
 
-• **new Contour**(`field`, `opts`)
+• **new Contour**<`ArrayType`\>(`field`, `opts`)
 
 Create a contoured field
+
+#### Type parameters
+
+| Name | Type |
+| :------ | :------ |
+| `ArrayType` | extends [`TypedArray`](../modules.md#typedarray) |
 
 #### Parameters
 
 | Name | Type | Description |
 | :------ | :------ | :------ |
-| `field` | [`RawScalarField`](RawScalarField.md) | The field to contour |
+| `field` | [`RawScalarField`](RawScalarField.md)<`ArrayType`\> | The field to contour |
 | `opts` | [`ContourOptions`](../interfaces/ContourOptions.md) | Options for creating the contours |
 
 #### Overrides
@@ -65,7 +65,7 @@ Create a contoured field
 
 #### Defined in
 
-[Contour.ts:73](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Contour.ts#L73)
+[Contour.ts:71](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/Contour.ts#L71)
 
 ## Properties
 
@@ -75,37 +75,7 @@ Create a contoured field
 
 #### Defined in
 
-[Contour.ts:48](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Contour.ts#L48)
-
-___
-
-### field
-
-• `Readonly` **field**: [`RawScalarField`](RawScalarField.md)
-
-#### Defined in
-
-[Contour.ts:47](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Contour.ts#L47)
-
-___
-
-### fill\_texture
-
-• `Private` **fill\_texture**: `WGLTexture`
-
-#### Defined in
-
-[Contour.ts:62](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Contour.ts#L62)
-
-___
-
-### grid\_cell\_size
-
-• `Private` **grid\_cell\_size**: `WGLBuffer`
-
-#### Defined in
-
-[Contour.ts:60](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Contour.ts#L60)
+[Contour.ts:59](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/Contour.ts#L59)
 
 ___
 
@@ -115,7 +85,7 @@ ___
 
 #### Defined in
 
-[Contour.ts:49](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Contour.ts#L49)
+[Contour.ts:60](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/Contour.ts#L60)
 
 ___
 
@@ -125,37 +95,7 @@ ___
 
 #### Defined in
 
-[Contour.ts:50](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Contour.ts#L50)
-
-___
-
-### map
-
-• `Private` **map**: [`MapType`](../modules.md#maptype)
-
-#### Defined in
-
-[Contour.ts:54](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Contour.ts#L54)
-
-___
-
-### program
-
-• `Private` **program**: `WGLProgram`
-
-#### Defined in
-
-[Contour.ts:56](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Contour.ts#L56)
-
-___
-
-### texcoords
-
-• `Private` **texcoords**: `WGLBuffer`
-
-#### Defined in
-
-[Contour.ts:64](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Contour.ts#L64)
+[Contour.ts:61](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/Contour.ts#L61)
 
 ___
 
@@ -179,68 +119,4 @@ ___
 
 #### Defined in
 
-[Contour.ts:51](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Contour.ts#L51)
-
-___
-
-### vertices
-
-• `Private` **vertices**: `WGLBuffer`
-
-#### Defined in
-
-[Contour.ts:58](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Contour.ts#L58)
-
-## Methods
-
-### onAdd
-
-▸ **onAdd**(`map`, `gl`): `Promise`<`void`\>
-
-Add the contours to a map
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `map` | [`MapType`](../modules.md#maptype) |
-| `gl` | `WebGLRenderingContext` |
-
-#### Returns
-
-`Promise`<`void`\>
-
-#### Overrides
-
-[PlotComponent](PlotComponent.md).[onAdd](PlotComponent.md#onadd)
-
-#### Defined in
-
-[Contour.ts:98](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Contour.ts#L98)
-
-___
-
-### render
-
-▸ **render**(`gl`, `matrix`): `void`
-
-Render the contours
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `gl` | `WebGLRenderingContext` |
-| `matrix` | `number`[] |
-
-#### Returns
-
-`void`
-
-#### Overrides
-
-[PlotComponent](PlotComponent.md).[render](PlotComponent.md#render)
-
-#### Defined in
-
-[Contour.ts:125](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Contour.ts#L125)
+[Contour.ts:62](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/Contour.ts#L62)

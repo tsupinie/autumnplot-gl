@@ -1,48 +1,51 @@
-[autumnplot-gl](../README.md) / [Exports](../modules.md) / PlateCarreeGrid
+[autumnplot-gl](../README.md) / [Exports](../modules.md) / PlateCarreeRotatedGrid
 
-# Class: PlateCarreeGrid
+# Class: PlateCarreeRotatedGrid
 
-A plate carree (a.k.a. lat/lon) grid with uniform grid spacing
+A rotated lat-lon (plate carree) grid with uniform grid spacing
 
 ## Hierarchy
 
 - [`Grid`](Grid.md)
 
-  ↳ **`PlateCarreeGrid`**
+  ↳ **`PlateCarreeRotatedGrid`**
 
 ## Table of contents
 
 ### Constructors
 
-- [constructor](PlateCarreeGrid.md#constructor)
+- [constructor](PlateCarreeRotatedGrid.md#constructor)
 
 ### Properties
 
-- [is\_conformal](PlateCarreeGrid.md#is_conformal)
-- [ll\_lat](PlateCarreeGrid.md#ll_lat)
-- [ll\_lon](PlateCarreeGrid.md#ll_lon)
-- [ni](PlateCarreeGrid.md#ni)
-- [nj](PlateCarreeGrid.md#nj)
-- [type](PlateCarreeGrid.md#type)
-- [ur\_lat](PlateCarreeGrid.md#ur_lat)
-- [ur\_lon](PlateCarreeGrid.md#ur_lon)
+- [is\_conformal](PlateCarreeRotatedGrid.md#is_conformal)
+- [ll\_lat](PlateCarreeRotatedGrid.md#ll_lat)
+- [ll\_lon](PlateCarreeRotatedGrid.md#ll_lon)
+- [lon\_shift](PlateCarreeRotatedGrid.md#lon_shift)
+- [ni](PlateCarreeRotatedGrid.md#ni)
+- [nj](PlateCarreeRotatedGrid.md#nj)
+- [np\_lat](PlateCarreeRotatedGrid.md#np_lat)
+- [np\_lon](PlateCarreeRotatedGrid.md#np_lon)
+- [type](PlateCarreeRotatedGrid.md#type)
+- [ur\_lat](PlateCarreeRotatedGrid.md#ur_lat)
+- [ur\_lon](PlateCarreeRotatedGrid.md#ur_lon)
 
 ### Methods
 
-- [copy](PlateCarreeGrid.md#copy)
-- [getCoords](PlateCarreeGrid.md#getcoords)
-- [getThinnedGrid](PlateCarreeGrid.md#getthinnedgrid)
-- [getWGLBillboardBuffers](PlateCarreeGrid.md#getwglbillboardbuffers)
-- [getWGLBuffers](PlateCarreeGrid.md#getwglbuffers)
-- [transform](PlateCarreeGrid.md#transform)
+- [copy](PlateCarreeRotatedGrid.md#copy)
+- [getCoords](PlateCarreeRotatedGrid.md#getcoords)
+- [getThinnedGrid](PlateCarreeRotatedGrid.md#getthinnedgrid)
+- [getWGLBillboardBuffers](PlateCarreeRotatedGrid.md#getwglbillboardbuffers)
+- [getWGLBuffers](PlateCarreeRotatedGrid.md#getwglbuffers)
+- [transform](PlateCarreeRotatedGrid.md#transform)
 
 ## Constructors
 
 ### constructor
 
-• **new PlateCarreeGrid**(`ni`, `nj`, `ll_lon`, `ll_lat`, `ur_lon`, `ur_lat`)
+• **new PlateCarreeRotatedGrid**(`ni`, `nj`, `np_lon`, `np_lat`, `lon_shift`, `ll_lon`, `ll_lat`, `ur_lon`, `ur_lat`)
 
-Create a plate carree grid
+Create a Lambert conformal conic grid
 
 #### Parameters
 
@@ -50,10 +53,13 @@ Create a plate carree grid
 | :------ | :------ | :------ |
 | `ni` | `number` | The number of grid points in the i (longitude) direction |
 | `nj` | `number` | The number of grid points in the j (latitude) direction |
-| `ll_lon` | `number` | The longitude of the lower left corner of the grid |
-| `ll_lat` | `number` | The latitude of the lower left corner of the grid |
-| `ur_lon` | `number` | The longitude of the upper right corner of the grid |
-| `ur_lat` | `number` | The latitude of the upper right corner of the grid |
+| `np_lon` | `number` | The longitude of the north pole for the rotated grid |
+| `np_lat` | `number` | The latitude of the north pole for the rotated grid |
+| `lon_shift` | `number` | The angle around the rotated north pole to shift the central meridian |
+| `ll_lon` | `number` | The longitude of the lower left corner of the grid (on the rotated earth) |
+| `ll_lat` | `number` | The latitude of the lower left corner of the grid (on the rotated earth) |
+| `ur_lon` | `number` | The longitude of the upper right corner of the grid (on the rotated earth) |
+| `ur_lat` | `number` | The latitude of the upper right corner of the grid (on the rotated earth) |
 
 #### Overrides
 
@@ -61,7 +67,7 @@ Create a plate carree grid
 
 #### Defined in
 
-[RawField.ts:107](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L107)
+[RawField.ts:200](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L200)
 
 ## Properties
 
@@ -85,7 +91,7 @@ ___
 
 #### Defined in
 
-[RawField.ts:92](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L92)
+[RawField.ts:181](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L181)
 
 ___
 
@@ -95,7 +101,17 @@ ___
 
 #### Defined in
 
-[RawField.ts:91](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L91)
+[RawField.ts:180](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L180)
+
+___
+
+### lon\_shift
+
+• `Readonly` **lon\_shift**: `number`
+
+#### Defined in
+
+[RawField.ts:179](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L179)
 
 ___
 
@@ -127,6 +143,26 @@ ___
 
 ___
 
+### np\_lat
+
+• `Readonly` **np\_lat**: `number`
+
+#### Defined in
+
+[RawField.ts:178](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L178)
+
+___
+
+### np\_lon
+
+• `Readonly` **np\_lon**: `number`
+
+#### Defined in
+
+[RawField.ts:177](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L177)
+
+___
+
 ### type
 
 • `Readonly` **type**: [`GridType`](../modules.md#gridtype)
@@ -147,7 +183,7 @@ ___
 
 #### Defined in
 
-[RawField.ts:94](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L94)
+[RawField.ts:183](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L183)
 
 ___
 
@@ -157,13 +193,13 @@ ___
 
 #### Defined in
 
-[RawField.ts:93](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L93)
+[RawField.ts:182](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L182)
 
 ## Methods
 
 ### copy
 
-▸ **copy**(`opts?`): [`PlateCarreeGrid`](PlateCarreeGrid.md)
+▸ **copy**(`opts?`): [`PlateCarreeRotatedGrid`](PlateCarreeRotatedGrid.md)
 
 #### Parameters
 
@@ -179,7 +215,7 @@ ___
 
 #### Returns
 
-[`PlateCarreeGrid`](PlateCarreeGrid.md)
+[`PlateCarreeRotatedGrid`](PlateCarreeRotatedGrid.md)
 
 #### Overrides
 
@@ -187,7 +223,7 @@ ___
 
 #### Defined in
 
-[RawField.ts:135](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L135)
+[RawField.ts:232](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L232)
 
 ___
 
@@ -207,13 +243,13 @@ Get a list of longitudes and latitudes on the grid (internal method)
 
 #### Defined in
 
-[RawField.ts:150](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L150)
+[RawField.ts:247](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L247)
 
 ___
 
 ### getThinnedGrid
 
-▸ **getThinnedGrid**(`thin_x`, `thin_y`): [`PlateCarreeGrid`](PlateCarreeGrid.md)
+▸ **getThinnedGrid**(`thin_x`, `thin_y`): [`PlateCarreeRotatedGrid`](PlateCarreeRotatedGrid.md)
 
 #### Parameters
 
@@ -224,7 +260,7 @@ ___
 
 #### Returns
 
-[`PlateCarreeGrid`](PlateCarreeGrid.md)
+[`PlateCarreeRotatedGrid`](PlateCarreeRotatedGrid.md)
 
 #### Overrides
 
@@ -232,7 +268,7 @@ ___
 
 #### Defined in
 
-[RawField.ts:158](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L158)
+[RawField.ts:258](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L258)
 
 ___
 
@@ -309,4 +345,4 @@ ___
 
 #### Defined in
 
-[RawField.ts:154](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L154)
+[RawField.ts:251](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L251)

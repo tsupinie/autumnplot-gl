@@ -28,14 +28,8 @@ const barb_layer = new PlotLayer('barbs', wind_barbs);
 
 ### Properties
 
-- [field](PlotLayer.md#field)
 - [id](PlotLayer.md#id)
 - [type](PlotLayer.md#type)
-
-### Methods
-
-- [onAdd](PlotLayer.md#onadd)
-- [render](PlotLayer.md#render)
 
 ## Constructors
 
@@ -58,19 +52,9 @@ PlotLayerBase.constructor
 
 #### Defined in
 
-[PlotLayer.ts:36](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/PlotLayer.ts#L36)
+[PlotLayer.ts:37](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/PlotLayer.ts#L37)
 
 ## Properties
-
-### field
-
-• `Readonly` **field**: [`PlotComponent`](PlotComponent.md)
-
-#### Defined in
-
-[PlotLayer.ts:29](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/PlotLayer.ts#L29)
-
-___
 
 ### id
 
@@ -82,7 +66,7 @@ PlotLayerBase.id
 
 #### Defined in
 
-[PlotLayer.ts:8](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/PlotLayer.ts#L8)
+[PlotLayer.ts:9](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/PlotLayer.ts#L9)
 
 ___
 
@@ -96,58 +80,4 @@ PlotLayerBase.type
 
 #### Defined in
 
-[PlotLayer.ts:7](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/PlotLayer.ts#L7)
-
-## Methods
-
-### onAdd
-
-▸ **onAdd**(`map`, `gl`): `void`
-
-Add this layer to a map
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `map` | [`MapType`](../modules.md#maptype) |
-| `gl` | `WebGLRenderingContext` |
-
-#### Returns
-
-`void`
-
-#### Overrides
-
-PlotLayerBase.onAdd
-
-#### Defined in
-
-[PlotLayer.ts:45](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/PlotLayer.ts#L45)
-
-___
-
-### render
-
-▸ **render**(`gl`, `matrix`): `void`
-
-Render this layer
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `gl` | `WebGLRenderingContext` |
-| `matrix` | `number`[] |
-
-#### Returns
-
-`void`
-
-#### Overrides
-
-PlotLayerBase.render
-
-#### Defined in
-
-[PlotLayer.ts:53](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/PlotLayer.ts#L53)
+[PlotLayer.ts:8](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/PlotLayer.ts#L8)

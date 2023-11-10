@@ -1,6 +1,6 @@
 [autumnplot-gl](../README.md) / [Exports](../modules.md) / Barbs
 
-# Class: Barbs
+# Class: Barbs<ArrayType\>
 
 A class representing a field of wind barbs. The barbs are automatically thinned based on the zoom level on the map; the user only has to provide a
 thinning factor at zoom level 1.
@@ -9,9 +9,15 @@ thinning factor at zoom level 1.
 
 ```ts
 // Create a barb field with black barbs and plotting every 16th wind barb in both i and j at zoom level 1
-const vector_field = {u: u_field, v: v_field};
+const vector_field = new RawVectorField(grid, u_data, v_data);
 const barbs = new Barbs(vector_field, {color: '#000000', thin_fac: 16});
 ```
+
+## Type parameters
+
+| Name | Type |
+| :------ | :------ |
+| `ArrayType` | extends [`TypedArray`](../modules.md#typedarray) |
 
 ## Hierarchy
 
@@ -27,30 +33,28 @@ const barbs = new Barbs(vector_field, {color: '#000000', thin_fac: 16});
 
 ### Properties
 
-- [barb\_billboards](Barbs.md#barb_billboards)
 - [color](Barbs.md#color)
-- [fields](Barbs.md#fields)
-- [map](Barbs.md#map)
 - [thin\_fac](Barbs.md#thin_fac)
-
-### Methods
-
-- [onAdd](Barbs.md#onadd)
-- [render](Barbs.md#render)
 
 ## Constructors
 
 ### constructor
 
-• **new Barbs**(`fields`, `opts`)
+• **new Barbs**<`ArrayType`\>(`fields`, `opts`)
 
 Create a field of wind barbs
+
+#### Type parameters
+
+| Name | Type |
+| :------ | :------ |
+| `ArrayType` | extends [`TypedArray`](../modules.md#typedarray) |
 
 #### Parameters
 
 | Name | Type | Description |
 | :------ | :------ | :------ |
-| `fields` | [`RawVectorField`](RawVectorField.md) | The u and v fields to use as an object |
+| `fields` | [`RawVectorField`](RawVectorField.md)<`ArrayType`\> | The vector field to plot as barbs |
 | `opts` | [`BarbsOptions`](../interfaces/BarbsOptions.md) | Options for creating the wind barbs |
 
 #### Overrides
@@ -59,19 +63,9 @@ Create a field of wind barbs
 
 #### Defined in
 
-[Barbs.ts:165](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Barbs.ts#L165)
+[Barbs.ts:168](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/Barbs.ts#L168)
 
 ## Properties
-
-### barb\_billboards
-
-• `Private` **barb\_billboards**: `BillboardCollection`
-
-#### Defined in
-
-[Barbs.ts:158](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Barbs.ts#L158)
-
-___
 
 ### color
 
@@ -79,29 +73,7 @@ ___
 
 #### Defined in
 
-[Barbs.ts:152](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Barbs.ts#L152)
-
-___
-
-### fields
-
-• `Readonly` **fields**: [`RawVectorField`](RawVectorField.md)
-
-The vector field
-
-#### Defined in
-
-[Barbs.ts:151](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Barbs.ts#L151)
-
-___
-
-### map
-
-• `Private` **map**: [`MapType`](../modules.md#maptype)
-
-#### Defined in
-
-[Barbs.ts:156](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Barbs.ts#L156)
+[Barbs.ts:158](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/Barbs.ts#L158)
 
 ___
 
@@ -111,58 +83,4 @@ ___
 
 #### Defined in
 
-[Barbs.ts:153](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Barbs.ts#L153)
-
-## Methods
-
-### onAdd
-
-▸ **onAdd**(`map`, `gl`): `Promise`<`void`\>
-
-Add the barb field to a map
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `map` | [`MapType`](../modules.md#maptype) |
-| `gl` | `WebGLRenderingContext` |
-
-#### Returns
-
-`Promise`<`void`\>
-
-#### Overrides
-
-[PlotComponent](PlotComponent.md).[onAdd](PlotComponent.md#onadd)
-
-#### Defined in
-
-[Barbs.ts:182](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Barbs.ts#L182)
-
-___
-
-### render
-
-▸ **render**(`gl`, `matrix`): `void`
-
-Render the barb field
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `gl` | `WebGLRenderingContext` |
-| `matrix` | `number`[] |
-
-#### Returns
-
-`void`
-
-#### Overrides
-
-[PlotComponent](PlotComponent.md).[render](PlotComponent.md#render)
-
-#### Defined in
-
-[Barbs.ts:200](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Barbs.ts#L200)
+[Barbs.ts:159](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/Barbs.ts#L159)

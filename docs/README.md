@@ -4,7 +4,7 @@ autumnplot-gl / [Exports](modules.md)
 Hardware-accelerated geospatial data plotting in the browser
 
 ## Links
-[Github](https://github.com/tsupinie/autumnplot-gl) | [API docs](https://tsupinie.github.io/autumnplot-gl/)
+[Github](https://github.com/tsupinie/autumnplot-gl) | [API docs](https://tsupinie.github.io/autumnplot-gl/) | [NPM](https://www.npmjs.com/package/autumnplot-gl)
 
 ## What is this?
 Lots of meteorological data web sites have a model where the data live on a central server, get plotted on the server, and then the server serves static images to the client. This creates a bottleneck where adding fields and view sectors takes exponentially more processing power for the server. One way around this is to offload the plotting to the client and to have the browser plot the data on a pan-and-zoomable map. Unfortunately, in the past, this has required developing low-level plotting code, and depending on the mapping library, the performance may be poor.
@@ -12,36 +12,42 @@ Lots of meteorological data web sites have a model where the data live on a cent
 autumnplot-gl provides a solution to this problem by making hardware-accelerated data plotting in the browser easy. This was designed with meteorological data in mind, but anyone wanting to contour geospatial data on a map can use autumnplot-gl.
 
 ## Usage
-autumnplot-gl is designed to be used with either [Mapbox GL JS](https://docs.mapbox.com/mapbox-gl-js/guides/) or [MapLibre GL JS](https://maplibre.org/maplibre-gl-js-docs/) mapping libraries. Pre-built autumnplot-gl javascript files area available [here](https://tsupinie.github.io/autumnplot-gl/dist/). Adding them to your page exposes the API via the `apgl` environment variable.
+autumnplot-gl is designed to be used with either [Mapbox GL JS](https://docs.mapbox.com/mapbox-gl-js/guides/) or [MapLibre GL JS](https://maplibre.org/maplibre-gl-js-docs/) mapping libraries. If you're using webpack or another node-based build tool, you can install by running
+
+```bash
+npm i autumnplot-gl
+```
+
+Additionally, pre-built autumnplot-gl javascript files area available [here](https://tsupinie.github.io/autumnplot-gl/dist/). Adding them to your page exposes the API via the `apgl` global variable (e.g., instead of `new PlateCarreeGrid(...)` in the examples, you'd call `new apgl.PlateCarreeGrid(...)`). 
 
 ### A basic contour plot
-The first step in plotting data is to create a grid. Currently, the only supported grid is PlateCarree (a.k.a. Lat/Lon), but support for a Lambert Conformal conic grid is planned.
+The first step in plotting data is to create a grid. Currently, the only supported grids are PlateCarree (a.k.a. Lat/Lon) and Lambert Conformal Conic.
 
 ```javascript
 // Create a grid object that covers the continental United States
 const nx = 121, ny = 61;
-const grid = new apgl.PlateCarreeGrid(nx, ny, -130, 20, -65, 55);
+const grid = new PlateCarreeGrid(nx, ny, -130, 20, -65, 55);
 ```
 
 Next, create a RawScalarField with the data. autumnplot-gl doesn't care about how data get to the browser, but it should end up in a Float32Array in row-major order with the first element being at the southwest corner of the grid. A future version might include support for reading from, say, a Zarr file. Once you have your data in that format, to create the raw data field:
 
 ```javascript
 // Create the raw data field
-const height_field = new apgl.RawScalarField(grid, height_data);
+const height_field = new RawScalarField(grid, height_data);
 ```
 
 Next, to contour the field, create a Contour object and pass it some options. At this time, a somewhat limited set of options is supported, but I do plan to expand this.
 
 ```javascript
 // Contour the data
-const height_contour = new apgl.Contour(height_field, {color: '#000000', interval: 30});
+const height_contour = new Contour(height_field, {color: '#000000', interval: 30});
 ```
 
 Next, create the actual layer that gets added to the map. The first argument (`'height-contour'` here) is an id. It doesn't mean much, but it does need to be unique between the different `PlotLayer`s you add to the map.
 
 ```javascript
 // Create the map layer
-const height_layer = new apgl.PlotLayer('height-contour', height_contour);
+const height_layer = new PlotLayer('height-contour', height_contour);
 ```
 
 Finally, add it to the map. The interface for Mapbox and MapLibre are the same, at least currently, though there's nothing that says they'll stay that way in the future. Assuming you're using MapLibre:
@@ -63,29 +69,29 @@ The `'railway_transit_tunnel'` argument is a layer in the map style, and this me
 
 ### Barbs
 
-Wind barb plotting is similar to the contours, but it requires u and v data.
+Wind barb plotting is similar to the contours, but it requires using a `RawVectorField` with u and v data.
 
 ```javascript
-const vector_field = {u: new apgl.RawScalarField(grid, u_data), 
-                      v: new apgl.RawScalarField(grid, v_data)}
-const barbs = new apgl.Barbs(vector_field, {color: '#000000', thin_fac: 16});
-const barb_layer = new apgl.PlotLayer('barbs', barbs);
+const vector_field = new RawVectorField(grid, u_data, v_data);
+const barbs = new Barbs(vector_field, {color: '#000000', thin_fac: 16});
+const barb_layer = new PlotLayer('barbs', barbs);
 
 map.on('load', () => {
     map.addLayer(barb_layer, 'railway_transit_tunnel');
 });
 ```
 
-The density of the wind barbs is automatically varied based on the map zoom level. The `'thin_fac': 16` option means to plot every 16th wind barb in the i and j directions, and this is defined at zoom level 1. So at zoom level 2, it will plot every 8th wind barb, and at zoom level 3 every 4th wind barb, and so on. Because it divides in 2 for every deeper zoom level, `'thin_fac'` should be a power of 2.
+The wind barbs are automatically rotated based on the grid projection. Also, the density of the wind barbs is automatically varied based on the map zoom level. The `'thin_fac': 16` option means to plot every 16th wind barb in the i and j directions, and this is defined at zoom level 1. So at zoom level 2, it will plot every 8th wind barb, and at zoom level 3 every 4th wind barb, and so on. Because it divides in 2 for every deeper zoom level, `'thin_fac'` should be a power of 2.
 
 ### Filled contours
 
 Plotting filled contours is also similar to plotting regular contours, but there's some additional steps for the color map. A couple color maps are available by default (see [here](#built-in-color-maps) for more details), but if you have the colors you want, creating your own is (relatively) painless (hopefully). First, set up the colormap. Here, we'll just use the bluered colormap included by default.
 
 ```javascript
-const colormap = apgl.colormaps.bluered(-10, 10, 20);
-const fills = new apgl.ContourFilled(height, {cmap: colormap});
-const height_fill_layer = new apgl.PlotLayer('height-fill', fills);
+// colormaps is imported via `import {colormaps} from 'autumnplot-gl'`
+const colormap = colormaps.bluered(-10, 10, 20);
+const fills = new ContourFilled(height, {cmap: colormap});
+const height_fill_layer = new PlotLayer('height-fill', fills);
 
 map.on('load', () => {
     map.addLayer(height_fill_layer, 'railway_transit_tunnel');
@@ -95,25 +101,25 @@ map.on('load', () => {
 Normally, when you have color-filled contours, you have a color bar on the plot. To create an SVG color bar:
 
 ```javascript
-const colorbar_svg = apgl.makeColorBar(colormap, {label: "Height Perturbation (m)", 
-                                                  ticks: [-10, -8, -6, -4, -2, 0, 2, 4, 6, 8, 10],
-                                                  orientation: 'horizontal', 
-                                                  tick_direction: 'bottom'});
+const colorbar_svg = makeColorBar(colormap, {label: "Height Perturbation (m)", 
+                                             ticks: [-10, -8, -6, -4, -2, 0, 2, 4, 6, 8, 10],
+                                             orientation: 'horizontal', 
+                                             tick_direction: 'bottom'});
 
 document.getElementById('colorbar-container').appendChild(colorbar_svg);
 ```
 
 ### Varying the data plots
-The previous steps have gone through plotting a static dataset on a map, but in many instances, you want to view a dataset that changes, say over time. Rather than continually remove and add new layers when the user changes the time, which would get tedious and probably wouldn't perform very well, autumnplot-gl provides `MultiPlotLayer`, which allows the plotted data to easily and quickly change over time (or height or any other axis that might be relevant).
+The previous steps have gone through plotting a static dataset on a map, but in many instances, you want to view a dataset that changes, say over time. Rather than continually remove and add new layers when the user changes the time, which would get tedious, waste video RAM, and probably wouldn't perform very well, autumnplot-gl provides `MultiPlotLayer`, which allows the plotted data to easily and quickly change over time (or height or any other axis that might be relevant).
 
 ```javascript
 // Contour some data
-const height_contour_f00 = new apgl.Contour(grid, height_f00);
-const height_contour_f01 = new apgl.Contour(grid, height_f01);
-const height_contour_f02 = new apgl.Contour(grid, height_f02);
+const height_contour_f00 = new Contour(grid, height_f00);
+const height_contour_f01 = new Contour(grid, height_f01);
+const height_contour_f02 = new Contour(grid, height_f02);
 
 // Create a varying map layer
-const height_layer_time = new apgl.MultiPlotLayer('height-contour-time');
+const height_layer_time = new MultiPlotLayer('height-contour-time');
 
 // Add the contoured data to it
 height_layer_time.addField(height_contour_f00, '20230112_1200');
@@ -134,10 +140,10 @@ height_layer.setActiveKey('20230112_1200');
 ```
 
 ## Built-in color maps
-autumnplot-gl comes with several built-in color maps, accessible from `apgl.colormaps`. These are basic blue/red and red/blue diverging color maps plus a selection from [PivotalWeather](https://www.pivotalweather.com). The blue/red and red/blue are functions that take a minimum contour level, a maximum contour level, and a number of colors. For example, this creates a blue/red colormap starting at -10, ending at 10, and with 20 colors:
+autumnplot-gl comes with several built-in color maps, accessible via `import {colormaps} from 'autumnplot-gl'`. These are basic blue/red and red/blue diverging color maps plus a selection from [PivotalWeather](https://www.pivotalweather.com). The blue/red and red/blue are functions that take a minimum contour level, a maximum contour level, and a number of colors. For example, this creates a blue/red colormap starting at -10, ending at 10, and with 20 colors:
 
 ```javascript
-const colormap = apgl.colormaps.bluered(-10, 10, 20);
+const colormap = colormaps.bluered(-10, 10, 20);
 ```
 
 Here are all the colormaps available:
@@ -150,8 +156,7 @@ The above exmple uses map tiles from [Maptiler](https://www.maptiler.com/). Map 
 So, I've created some [less-detailed map tiles](https://tsupinie.github.io/autumnplot-gl/tiles/) that are small enough that they can be hosted without dedicated hardware. However the tradeoff is that they're only useful down to zoom level 8 or 9 on the map, such that the viewport is somewhere between half a US state and a few counties in size. If that's good enough for you, then these tiles could be useful.
 
 ## Conspicuous absences
-A few capabilities are missing from this library as of v1.0.
-* Support for grids other than lat/lon grids. I plan to add this in the near future.
+A few capabilities are missing from this library as of v2.0.
 * Helper functions for reading from specific data formats. For instance, I'd like to add support for reading from a zarr file.
 * A whole bunch of little things that ought to be fairly straightforward like tweaking the size of the wind barbs and contour thicknesses.
 * Support for contour labeling. I'd like to add it, but I'm not really sure how I'd do it with the contours as I've implemented them. Any WebGL gurus, get in touch.

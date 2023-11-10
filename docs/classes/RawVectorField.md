@@ -1,6 +1,14 @@
 [autumnplot-gl](../README.md) / [Exports](../modules.md) / RawVectorField
 
-# Class: RawVectorField
+# Class: RawVectorField<ArrayType\>
+
+A class representing a 2D gridded field of vectors
+
+## Type parameters
+
+| Name | Type |
+| :------ | :------ |
+| `ArrayType` | extends [`TypedArray`](../modules.md#typedarray) |
 
 ## Table of contents
 
@@ -10,7 +18,6 @@
 
 ### Properties
 
-- [\_rotate\_cache](RawVectorField.md#_rotate_cache)
 - [relative\_to](RawVectorField.md#relative_to)
 - [u](RawVectorField.md#u)
 - [v](RawVectorField.md#v)
@@ -28,32 +35,30 @@
 
 ### constructor
 
-• **new RawVectorField**(`grid`, `u`, `v`, `relative_to?`)
+• **new RawVectorField**<`ArrayType`\>(`grid`, `u`, `v`, `opts?`)
 
-#### Parameters
+Create a vector field.
+
+#### Type parameters
 
 | Name | Type |
 | :------ | :------ |
-| `grid` | [`Grid`](Grid.md) |
-| `u` | `Float32Array` |
-| `v` | `Float32Array` |
-| `relative_to?` | [`VectorRelativeTo`](../modules.md#vectorrelativeto) |
+| `ArrayType` | extends [`TypedArray`](../modules.md#typedarray) |
+
+#### Parameters
+
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `grid` | [`Grid`](Grid.md) | The grid on which the vector components are defined |
+| `u` | `ArrayType` | The u (east/west) component of the vectors, which should be given as a 1D array in row-major order, with the first element being at the lower-left corner of the grid |
+| `v` | `ArrayType` | The v (north/south) component of the vectors, which should be given as a 1D array in row-major order, with the first element being at the lower-left corner of the grid |
+| `opts?` | [`RawVectorFieldOptions`](../interfaces/RawVectorFieldOptions.md) | Options for creating the vector field. |
 
 #### Defined in
 
-[RawField.ts:346](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/RawField.ts#L346)
+[RawField.ts:486](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L486)
 
 ## Properties
-
-### \_rotate\_cache
-
-• `Readonly` **\_rotate\_cache**: `Cache`<[], { `u`: [`RawScalarField`](RawScalarField.md) ; `v`: [`RawScalarField`](RawScalarField.md)  }\>
-
-#### Defined in
-
-[RawField.ts:344](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/RawField.ts#L344)
-
-___
 
 ### relative\_to
 
@@ -61,27 +66,27 @@ ___
 
 #### Defined in
 
-[RawField.ts:342](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/RawField.ts#L342)
+[RawField.ts:475](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L475)
 
 ___
 
 ### u
 
-• `Readonly` **u**: [`RawScalarField`](RawScalarField.md)
+• `Readonly` **u**: [`RawScalarField`](RawScalarField.md)<`ArrayType`\>
 
 #### Defined in
 
-[RawField.ts:340](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/RawField.ts#L340)
+[RawField.ts:473](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L473)
 
 ___
 
 ### v
 
-• `Readonly` **v**: [`RawScalarField`](RawScalarField.md)
+• `Readonly` **v**: [`RawScalarField`](RawScalarField.md)<`ArrayType`\>
 
 #### Defined in
 
-[RawField.ts:341](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/RawField.ts#L341)
+[RawField.ts:474](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L474)
 
 ## Accessors
 
@@ -95,13 +100,13 @@ ___
 
 #### Defined in
 
-[RawField.ts:401](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/RawField.ts#L401)
+[RawField.ts:545](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L545)
 
 ## Methods
 
 ### getThinnedField
 
-▸ **getThinnedField**(`thin_x`, `thin_y`): [`RawVectorField`](RawVectorField.md)
+▸ **getThinnedField**(`thin_x`, `thin_y`): [`RawVectorField`](RawVectorField.md)<`ArrayType`\>
 
 #### Parameters
 
@@ -112,22 +117,22 @@ ___
 
 #### Returns
 
-[`RawVectorField`](RawVectorField.md)
+[`RawVectorField`](RawVectorField.md)<`ArrayType`\>
 
 #### Defined in
 
-[RawField.ts:394](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/RawField.ts#L394)
+[RawField.ts:538](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L538)
 
 ___
 
 ### toEarthRelative
 
-▸ **toEarthRelative**(): [`RawVectorField`](RawVectorField.md)
+▸ **toEarthRelative**(): [`RawVectorField`](RawVectorField.md)<`ArrayType`\>
 
 #### Returns
 
-[`RawVectorField`](RawVectorField.md)
+[`RawVectorField`](RawVectorField.md)<`ArrayType`\>
 
 #### Defined in
 
-[RawField.ts:405](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/RawField.ts#L405)
+[RawField.ts:549](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L549)

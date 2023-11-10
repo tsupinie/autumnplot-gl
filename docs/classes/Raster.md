@@ -1,14 +1,14 @@
-[autumnplot-gl](../README.md) / [Exports](../modules.md) / ContourFill
+[autumnplot-gl](../README.md) / [Exports](../modules.md) / Raster
 
-# Class: ContourFill<ArrayType\>
+# Class: Raster<ArrayType\>
 
-A filled contoured field
+A raster (i.e. pixel) plot
 
 **`Example`**
 
 ```ts
-// Create a field of filled contours with the provided color map
-const fill = new ContourFill(wind_speed_field, {cmap: color_map});
+// Create a raster plot with the provided color map
+const raster = new Raster(wind_speed_field, {cmap: color_map});
 ```
 
 ## Type parameters
@@ -21,28 +21,28 @@ const fill = new ContourFill(wind_speed_field, {cmap: color_map});
 
 - `PlotComponentFill`<`ArrayType`\>
 
-  ↳ **`ContourFill`**
+  ↳ **`Raster`**
 
 ## Table of contents
 
 ### Constructors
 
-- [constructor](ContourFill.md#constructor)
+- [constructor](Raster.md#constructor)
 
 ### Properties
 
-- [cmap](ContourFill.md#cmap)
-- [cmap\_mag\_filter](ContourFill.md#cmap_mag_filter)
-- [image\_mag\_filter](ContourFill.md#image_mag_filter)
-- [opacity](ContourFill.md#opacity)
+- [cmap](Raster.md#cmap)
+- [cmap\_mag\_filter](Raster.md#cmap_mag_filter)
+- [image\_mag\_filter](Raster.md#image_mag_filter)
+- [opacity](Raster.md#opacity)
 
 ## Constructors
 
 ### constructor
 
-• **new ContourFill**<`ArrayType`\>(`field`, `opts`)
+• **new Raster**<`ArrayType`\>(`field`, `opts`)
 
-Create a filled contoured field
+Create a raster plot
 
 #### Type parameters
 
@@ -54,8 +54,8 @@ Create a filled contoured field
 
 | Name | Type | Description |
 | :------ | :------ | :------ |
-| `field` | [`RawScalarField`](RawScalarField.md)<`ArrayType`\> | The field to create filled contours from |
-| `opts` | [`ContourFillOptions`](../interfaces/ContourFillOptions.md) | Options for creating the filled contours |
+| `field` | [`RawScalarField`](RawScalarField.md)<`ArrayType`\> | The field to create the raster plot from |
+| `opts` | [`RasterOptions`](../interfaces/RasterOptions.md) | Options for creating the raster plot |
 
 #### Overrides
 
@@ -63,7 +63,7 @@ PlotComponentFill&lt;ArrayType\&gt;.constructor
 
 #### Defined in
 
-[Fill.ts:203](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/Fill.ts#L203)
+[Fill.ts:167](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/Fill.ts#L167)
 
 ## Properties
 

@@ -16,8 +16,10 @@
 - [MultiPlotLayer](classes/MultiPlotLayer.md)
 - [Paintball](classes/Paintball.md)
 - [PlateCarreeGrid](classes/PlateCarreeGrid.md)
+- [PlateCarreeRotatedGrid](classes/PlateCarreeRotatedGrid.md)
 - [PlotComponent](classes/PlotComponent.md)
 - [PlotLayer](classes/PlotLayer.md)
+- [Raster](classes/Raster.md)
 - [RawProfileField](classes/RawProfileField.md)
 - [RawScalarField](classes/RawScalarField.md)
 - [RawVectorField](classes/RawVectorField.md)
@@ -29,8 +31,11 @@
 - [ColorBarOptions](interfaces/ColorBarOptions.md)
 - [ContourFillOptions](interfaces/ContourFillOptions.md)
 - [ContourOptions](interfaces/ContourOptions.md)
+- [HodographOptions](interfaces/HodographOptions.md)
 - [PaintballKeyOptions](interfaces/PaintballKeyOptions.md)
 - [PaintballOptions](interfaces/PaintballOptions.md)
+- [RasterOptions](interfaces/RasterOptions.md)
+- [RawVectorFieldOptions](interfaces/RawVectorFieldOptions.md)
 - [WindProfile](interfaces/WindProfile.md)
 
 ### Type Aliases
@@ -39,7 +44,9 @@
 - [ColorbarTickDirection](modules.md#colorbartickdirection)
 - [GridType](modules.md#gridtype)
 - [MapType](modules.md#maptype)
+- [TypedArray](modules.md#typedarray)
 - [VectorRelativeTo](modules.md#vectorrelativeto)
+- [WebGLAnyRenderingContext](modules.md#webglanyrenderingcontext)
 
 ### Variables
 
@@ -58,7 +65,7 @@
 
 #### Defined in
 
-[ColorBar.ts:4](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/ColorBar.ts#L4)
+[ColorBar.ts:4](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/ColorBar.ts#L4)
 
 ___
 
@@ -68,17 +75,17 @@ ___
 
 #### Defined in
 
-[ColorBar.ts:5](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/ColorBar.ts#L5)
+[ColorBar.ts:5](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/ColorBar.ts#L5)
 
 ___
 
 ### GridType
 
-Ƭ **GridType**: ``"latlon"`` \| ``"lcc"``
+Ƭ **GridType**: ``"latlon"`` \| ``"latlonrot"`` \| ``"lcc"``
 
 #### Defined in
 
-[RawField.ts:63](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/RawField.ts#L63)
+[RawField.ts:46](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L46)
 
 ___
 
@@ -88,7 +95,17 @@ ___
 
 #### Defined in
 
-[Map.ts:5](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Map.ts#L5)
+[Map.ts:5](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/Map.ts#L5)
+
+___
+
+### TypedArray
+
+Ƭ **TypedArray**: `Float16Array` \| `Float32Array`
+
+#### Defined in
+
+[AutumnTypes.ts:47](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/AutumnTypes.ts#L47)
 
 ___
 
@@ -98,7 +115,17 @@ ___
 
 #### Defined in
 
-[RawField.ts:337](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/RawField.ts#L337)
+[RawField.ts:461](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L461)
+
+___
+
+### WebGLAnyRenderingContext
+
+Ƭ **WebGLAnyRenderingContext**: `WebGLRenderingContext` \| `WebGL2RenderingContext`
+
+#### Defined in
+
+[AutumnTypes.ts:41](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/AutumnTypes.ts#L41)
 
 ## Variables
 
@@ -111,6 +138,7 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `bluered` | (`level_min`: `number`, `level_max`: `number`, `n_colors`: `number`) => [`ColorMap`](classes/ColorMap.md) |
+| `nws_storm_clear_refl` | [`ColorMap`](classes/ColorMap.md) |
 | `pw_cape` | [`ColorMap`](classes/ColorMap.md) |
 | `pw_speed500mb` | [`ColorMap`](classes/ColorMap.md) |
 | `pw_speed850mb` | [`ColorMap`](classes/ColorMap.md) |
@@ -120,7 +148,7 @@ ___
 
 #### Defined in
 
-[index.ts:16](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/index.ts#L16)
+[index.ts:16](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/index.ts#L16)
 
 ## Functions
 
@@ -156,7 +184,7 @@ An SVGElement containing the color bar image.
 
 #### Defined in
 
-[ColorBar.ts:65](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/ColorBar.ts#L65)
+[ColorBar.ts:71](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/ColorBar.ts#L71)
 
 ___
 
@@ -164,7 +192,7 @@ ___
 
 ▸ **makePaintballKey**(`colors`, `labels`, `opts?`): `SVGElement`
 
-Make an SVG containing a color key for a paintball plot. The color bar can either be oriented horizontal or vertical, and a label can be provided.
+Make an SVG containing a color key for a paintball plot. The key can be split over any number of columns.
 
 **`Example`**
 
@@ -192,4 +220,4 @@ An SVGElement containing the color bar image.
 
 #### Defined in
 
-[ColorBar.ts:221](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/ColorBar.ts#L221)
+[ColorBar.ts:235](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/ColorBar.ts#L235)

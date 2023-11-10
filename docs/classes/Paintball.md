@@ -1,6 +1,18 @@
 [autumnplot-gl](../README.md) / [Exports](../modules.md) / Paintball
 
-# Class: Paintball
+# Class: Paintball<ArrayType\>
+
+A class representing a paintball plot, which is a plot of objects in every member of an ensemble. Objects are usually defined by a single threshold on
+a field (such as simulated reflectivity greater than 40 dBZ), but could in theory be defined by any arbitrarily complicated method. In autumnplot-gl,
+the data for the paintball plot is given as a single field with the objects from each member encoded as "bits" in the field. Because the field is made up
+of single-precision floats, this works for up to 24 members. (Technically speaking, I don't need the quotes around "bits", as they're bits of the 
+significand of an IEEE 754 float.)
+
+## Type parameters
+
+| Name | Type |
+| :------ | :------ |
+| `ArrayType` | extends [`TypedArray`](../modules.md#typedarray) |
 
 ## Hierarchy
 
@@ -17,30 +29,28 @@
 ### Properties
 
 - [colors](Paintball.md#colors)
-- [field](Paintball.md#field)
-- [fill\_texture](Paintball.md#fill_texture)
 - [opacity](Paintball.md#opacity)
-- [program](Paintball.md#program)
-- [texcoords](Paintball.md#texcoords)
-- [vertices](Paintball.md#vertices)
-
-### Methods
-
-- [onAdd](Paintball.md#onadd)
-- [render](Paintball.md#render)
 
 ## Constructors
 
 ### constructor
 
-• **new Paintball**(`field`, `opts?`)
+• **new Paintball**<`ArrayType`\>(`field`, `opts?`)
 
-#### Parameters
+Create a paintball plot
+
+#### Type parameters
 
 | Name | Type |
 | :------ | :------ |
-| `field` | [`RawScalarField`](RawScalarField.md) |
-| `opts?` | [`PaintballOptions`](../interfaces/PaintballOptions.md) |
+| `ArrayType` | extends [`TypedArray`](../modules.md#typedarray) |
+
+#### Parameters
+
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `field` | [`RawScalarField`](RawScalarField.md)<`ArrayType`\> | A scalar field containing the member objects encoded as "bits." The numerical value of each grid point can be constructed like `1.0 * M1 + 2.0 * M2 + 4.0 * M3 + 8.0 * M4 ...`, where `M1` is 1 if that grid point is in an object in member 1 and 0 otherwise, `M2` is the same thing for member 2, and `M3` and `M4` and up to `Mn` are the same thing for the rest of the members. |
+| `opts?` | [`PaintballOptions`](../interfaces/PaintballOptions.md) | Options for creating the paintball plot |
 
 #### Overrides
 
@@ -48,7 +58,7 @@
 
 #### Defined in
 
-[Paintball.ts:32](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Paintball.ts#L32)
+[Paintball.ts:54](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/Paintball.ts#L54)
 
 ## Properties
 
@@ -58,27 +68,7 @@
 
 #### Defined in
 
-[Paintball.ts:19](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Paintball.ts#L19)
-
-___
-
-### field
-
-• `Readonly` **field**: [`RawScalarField`](RawScalarField.md)
-
-#### Defined in
-
-[Paintball.ts:18](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Paintball.ts#L18)
-
-___
-
-### fill\_texture
-
-• `Private` **fill\_texture**: `WGLTexture`
-
-#### Defined in
-
-[Paintball.ts:28](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Paintball.ts#L28)
+[Paintball.ts:42](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/Paintball.ts#L42)
 
 ___
 
@@ -88,84 +78,4 @@ ___
 
 #### Defined in
 
-[Paintball.ts:20](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Paintball.ts#L20)
-
-___
-
-### program
-
-• `Private` **program**: `WGLProgram`
-
-#### Defined in
-
-[Paintball.ts:23](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Paintball.ts#L23)
-
-___
-
-### texcoords
-
-• `Private` **texcoords**: `WGLBuffer`
-
-#### Defined in
-
-[Paintball.ts:30](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Paintball.ts#L30)
-
-___
-
-### vertices
-
-• `Private` **vertices**: `WGLBuffer`
-
-#### Defined in
-
-[Paintball.ts:25](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Paintball.ts#L25)
-
-## Methods
-
-### onAdd
-
-▸ **onAdd**(`map`, `gl`): `Promise`<`void`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `map` | [`MapType`](../modules.md#maptype) |
-| `gl` | `WebGLRenderingContext` |
-
-#### Returns
-
-`Promise`<`void`\>
-
-#### Overrides
-
-[PlotComponent](PlotComponent.md).[onAdd](PlotComponent.md#onadd)
-
-#### Defined in
-
-[Paintball.ts:48](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Paintball.ts#L48)
-
-___
-
-### render
-
-▸ **render**(`gl`, `matrix`): `void`
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `gl` | `WebGLRenderingContext` |
-| `matrix` | `number`[] |
-
-#### Returns
-
-`void`
-
-#### Overrides
-
-[PlotComponent](PlotComponent.md).[render](PlotComponent.md#render)
-
-#### Defined in
-
-[Paintball.ts:63](https://github.com/tsupinie/autumnplot-gl/blob/eec924e/src/Paintball.ts#L63)
+[Paintball.ts:43](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/Paintball.ts#L43)
