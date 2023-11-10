@@ -154,7 +154,7 @@ The above exmple uses map tiles from [Maptiler](https://www.maptiler.com/). Map 
 So, I've created some [less-detailed map tiles](https://tsupinie.github.io/autumnplot-gl/tiles/) that are small enough that they can be hosted without dedicated hardware. However the tradeoff is that they're only useful down to zoom level 8 or 9 on the map, such that the viewport is somewhere between half a US state and a few counties in size. If that's good enough for you, then these tiles could be useful.
 
 ## Conspicuous absences
-A few capabilities are missing from this library as of v2.0.
+A few capabilities are missing from this library as of v2.2.
 * Helper functions for reading from specific data formats. For instance, I'd like to add support for reading from a zarr file.
 * A whole bunch of little things that ought to be fairly straightforward like tweaking the size of the wind barbs and contour thicknesses.
 * Support for contour labeling. I'd like to add it, but I'm not really sure how I'd do it with the contours as I've implemented them. Any WebGL gurus, get in touch.
