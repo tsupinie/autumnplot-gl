@@ -2,8 +2,10 @@
     "entryPoints": ["src/index.ts"],
     "out": "docs",
     "intentionallyNotExported": [
-        "Cache", "Coords",
+        "Coords",
     ],
     "theme": "markdown",
-    "githubPages": false
+    "githubPages": false,
+    "excludePrivate": true,
+    "excludeInternal": true
 }

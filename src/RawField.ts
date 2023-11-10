@@ -398,6 +398,7 @@ class RawScalarField<ArrayType extends TypedArray> {
         }
     }
 
+    /** @internal */
     public getTextureData() : TextureDataType<ArrayType> {
         // Need to give float16 data as uint16s to make WebGL happy: https://github.com/petamoriken/float16/issues/105
         let data: any;
@@ -590,4 +591,4 @@ class RawProfileField {
 }
 
 export {RawScalarField, RawVectorField, RawProfileField, PlateCarreeGrid, PlateCarreeRotatedGrid, LambertGrid, Grid};
-export type {GridType, RawVectorFieldOptions, VectorRelativeTo};
+export type {GridType, RawVectorFieldOptions, VectorRelativeTo, TextureDataType};
