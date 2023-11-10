@@ -32,7 +32,7 @@
     },
     "dependencies": {
         "@petamoriken/float16": "^3.8.4",
-        "autumn-wgl": "^1.1.0",
+        "autumn-wgl": "^1.2.0",
         "comlink": "^4.3.1"
     }
 }
