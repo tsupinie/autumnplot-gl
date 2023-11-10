@@ -14,8 +14,8 @@ abstract class PlotComponent {
     public abstract render(gl: WebGLAnyRenderingContext, matrix: number[]) : void;
 }
 
-function getGLFormatType(gl: WebGLAnyRenderingContext, is_float16: boolean) {
-    let format, type;
+function getGLFormatTypeAlignment(gl: WebGLAnyRenderingContext, is_float16: boolean) {
+    let format, type, row_alignment;
     const is_webgl2 = isWebGL2Ctx(gl);
 
     if (is_float16) {
@@ -28,6 +28,7 @@ function getGLFormatType(gl: WebGLAnyRenderingContext, is_float16: boolean) {
 
         format = is_webgl2 ? gl.R16F : gl.LUMINANCE;
         type = is_webgl2 ? gl.HALF_FLOAT : ext.HALF_FLOAT_OES;
+        row_alignment = 2;
     }
     else {
         const ext = gl.getExtension('OES_texture_float');
@@ -45,9 +46,10 @@ function getGLFormatType(gl: WebGLAnyRenderingContext, is_float16: boolean) {
 
         format = is_webgl2 ? gl.R32F : gl.LUMINANCE;
         type = gl.FLOAT;
+        row_alignment = 4;
     }
 
-    return {format: format, type: type};
+    return {format: format, type: type, row_alignment: row_alignment};
 }
 
-export { PlotComponent, layer_worker, getGLFormatType };
+export { PlotComponent, layer_worker, getGLFormatTypeAlignment };

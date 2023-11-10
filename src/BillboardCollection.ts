@@ -1,6 +1,6 @@
 
 import { BillboardSpec, TypedArray, WebGLAnyRenderingContext } from "./AutumnTypes";
-import { getGLFormatType } from "./PlotComponent";
+import { getGLFormatTypeAlignment } from "./PlotComponent";
 import { RawVectorField } from "./RawField";
 import { WGLBuffer, WGLProgram, WGLTexture, WGLTextureSpec } from "autumn-wgl";
 import { Cache } from "./utils";
@@ -47,18 +47,16 @@ class BillboardCollection<ArrayType extends TypedArray> {
             this.texcoords = texcoords;
         })();
 
-        gl.pixelStorei(gl.UNPACK_ALIGNMENT, 2);
-
-        const {format, type} = getGLFormatType(gl, u_thin.isFloat16());
+        const {format, type, row_alignment} = getGLFormatTypeAlignment(gl, u_thin.isFloat16());
 
         const u_image = {'format': format, 'type': type,
             'width': u_thin.grid.ni, 'height': u_thin.grid.nj, 'image': u_thin.getTextureData(),
-            'mag_filter': gl.NEAREST,
+            'mag_filter': gl.NEAREST, 'row_alignment': row_alignment,
         };
 
         const v_image = {'format': format, 'type': type,
             'width': v_thin.grid.ni, 'height': v_thin.grid.nj, 'image': v_thin.getTextureData(),
-            'mag_filter': gl.NEAREST,
+            'mag_filter': gl.NEAREST, 'row_alignment': row_alignment,
         };
 
         this.texture = new WGLTexture(gl, billboard_image);

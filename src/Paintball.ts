@@ -1,7 +1,7 @@
 
 import { TypedArray, WebGLAnyRenderingContext } from "./AutumnTypes";
 import { MapType } from "./Map";
-import { PlotComponent, getGLFormatType } from "./PlotComponent";
+import { PlotComponent, getGLFormatTypeAlignment } from "./PlotComponent";
 import { RawScalarField } from "./RawField";
 import { Cache, hex2rgba } from "./utils";
 import { WGLBuffer, WGLProgram, WGLTexture } from "autumn-wgl";
@@ -79,11 +79,11 @@ class Paintball<ArrayType extends TypedArray> extends PlotComponent {
 
         gl.pixelStorei(gl.UNPACK_ALIGNMENT, 2);
 
-        const {format, type} = getGLFormatType(gl, this.field.isFloat16());
+        const {format, type, row_alignment} = getGLFormatTypeAlignment(gl, this.field.isFloat16());
 
         const fill_image = {'format': format, 'type': type,
             'width': this.field.grid.ni, 'height': this.field.grid.nj, 'image': this.field.getTextureData(),
-            'mag_filter': gl.NEAREST,
+            'mag_filter': gl.NEAREST, 'row_alignment': row_alignment,
         };
 
         const fill_texture = new WGLTexture(gl, fill_image);

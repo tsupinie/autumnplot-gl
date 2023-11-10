@@ -1,5 +1,5 @@
 
-import { PlotComponent, getGLFormatType } from './PlotComponent';
+import { PlotComponent, getGLFormatTypeAlignment } from './PlotComponent';
 import { ColorMap, makeTextureImage } from './Colormap';
 import { WGLBuffer, WGLProgram, WGLTexture } from 'autumn-wgl';
 import { RawScalarField } from './RawField';
@@ -106,13 +106,11 @@ class PlotComponentFill<ArrayType extends TypedArray> extends PlotComponent {
         const vertices = verts_buf;
         const texcoords = tex_coords_buf;
 
-        gl.pixelStorei(gl.UNPACK_ALIGNMENT, 2);
-
-        const {format, type} = getGLFormatType(gl, this.field.isFloat16());
+        const {format, type, row_alignment} = getGLFormatTypeAlignment(gl, this.field.isFloat16());
         
         const fill_image = {'format': format, 'type': type,
             'width': this.field.grid.ni, 'height': this.field.grid.nj, 'image': this.field.getTextureData(),
-            'mag_filter': this.image_mag_filter,
+            'mag_filter': this.image_mag_filter, 'row_alignment': row_alignment,
         };
 
         const fill_texture = new WGLTexture(gl, fill_image);
@@ -120,12 +118,12 @@ class PlotComponentFill<ArrayType extends TypedArray> extends PlotComponent {
         const cmap_image = {'format': gl.RGBA, 'type': gl.UNSIGNED_BYTE, 'image': this.cmap_image, 'mag_filter': this.cmap_mag_filter};
         const cmap_texture = new WGLTexture(gl, cmap_image);
 
-        const {format: format_nonlin , type: type_nonlin} = getGLFormatType(gl, true);
+        const {format: format_nonlin , type: type_nonlin, row_alignment: row_alignment_nonlin} = getGLFormatTypeAlignment(gl, true);
 
         const cmap_nonlin_image = {'format': format_nonlin, 'type': type_nonlin, 
             'width': this.index_map.length, 'height': 1,
             'image': new Uint16Array(this.index_map.buffer), 
-            'mag_filter': gl.LINEAR
+            'mag_filter': gl.LINEAR, 'row_alignment': row_alignment_nonlin,
         };
 
         const cmap_nonlin_texture = new WGLTexture(gl, cmap_nonlin_image);
