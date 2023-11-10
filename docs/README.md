@@ -21,7 +21,7 @@ npm i autumnplot-gl
 Additionally, pre-built autumnplot-gl javascript files area available [here](https://tsupinie.github.io/autumnplot-gl/dist/). Adding them to your page exposes the API via the `apgl` global variable (e.g., instead of `new PlateCarreeGrid(...)` in the examples, you'd call `new apgl.PlateCarreeGrid(...)`). 
 
 ### A basic contour plot
-The first step in plotting data is to create a grid. Currently, the only supported grids are PlateCarree (a.k.a. Lat/Lon) and Lambert Conformal Conic.
+The first step in plotting data is to create a grid. Currently, the only supported grids are PlateCarreeGrid (a.k.a. Lat/Lon), RotatedPlateCarreeGrid, and LambertGrid (a.k.a. Lambert Conformal Conic).
 
 ```javascript
 // Create a grid object that covers the continental United States
@@ -29,7 +29,7 @@ const nx = 121, ny = 61;
 const grid = new PlateCarreeGrid(nx, ny, -130, 20, -65, 55);
 ```
 
-Next, create a RawScalarField with the data. autumnplot-gl doesn't care about how data get to the browser, but it should end up in a Float32Array in row-major order with the first element being at the southwest corner of the grid. A future version might include support for reading from, say, a Zarr file. Once you have your data in that format, to create the raw data field:
+Next, create a RawScalarField with the data. autumnplot-gl doesn't care about how data get to the browser, but it should end up in a `Float32Array` or `Float16Array` in row-major order with the first element being at the southwest corner of the grid. If you're using [zarr.js](https://github.com/gzuidhof/zarr.js/), you can use the `getRaw()` function on a `ZarrArray` to get data in the correct format. Also, `Float16Array`s are not in the Javascript standard library (for now), so for the time being, you'll need to use [this library](https://github.com/petamoriken/float16). However, the nice part about using a `Float16Array` is that your data will be stored as float16s in VRAM, so they'll take up half the space as the same data as float32s. Once you have your data in that format, to create the raw data field:
 
 ```javascript
 // Create the raw data field
@@ -156,7 +156,7 @@ The above exmple uses map tiles from [Maptiler](https://www.maptiler.com/). Map 
 So, I've created some [less-detailed map tiles](https://tsupinie.github.io/autumnplot-gl/tiles/) that are small enough that they can be hosted without dedicated hardware. However the tradeoff is that they're only useful down to zoom level 8 or 9 on the map, such that the viewport is somewhere between half a US state and a few counties in size. If that's good enough for you, then these tiles could be useful.
 
 ## Conspicuous absences
-A few capabilities are missing from this library as of v2.0.
+A few capabilities are missing from this library as of v2.2.
 * Helper functions for reading from specific data formats. For instance, I'd like to add support for reading from a zarr file.
 * A whole bunch of little things that ought to be fairly straightforward like tweaking the size of the wind barbs and contour thicknesses.
 * Support for contour labeling. I'd like to add it, but I'm not really sure how I'd do it with the contours as I've implemented them. Any WebGL gurus, get in touch.
