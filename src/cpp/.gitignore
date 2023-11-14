@@ -1,0 +1,5 @@
+*.o
+*.wasm
+
+marchingsquares
+marchingsquares.js
