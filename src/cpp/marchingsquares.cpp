@@ -6,6 +6,10 @@
 #include <iostream>
 #endif
 
+#ifdef WASM
+#include <emscripten/bind.h>
+#endif
+
 /*  8         4
  *   ┌───────┐
  *   │       │
@@ -23,7 +27,6 @@ class Point {
         float y;
 
         Point(float x, float y) : x(x), y(y) {}
-        Point(const Point& other) : x(other.x), y(other.y) {}
 
         bool operator==(const Point& other) const noexcept {
             return this->x == other.x && this->y == other.y;
@@ -48,20 +51,25 @@ struct std::hash<Point> {
 
 class LineString {
     public:
-        std::vector<Point*> point_list;
+        std::vector<Point> point_list;
 
         LineString() {};
+
+        LineString& operator=(const LineString& other) noexcept {
+            this->point_list = other.point_list;
+            return *this;
+        }
 
 #ifdef EXECUTABLE
         friend std::ostream& operator<<(std::ostream& stream, const LineString& frag) {
             stream << "Contour: ";
             auto it = frag.point_list.begin();
 
-            stream << **it;
+            stream << *it;
             ++it;
 
             for (; it != frag.point_list.end(); ++it) {
-                stream << ", " << **it;
+                stream << ", " << *it;
             }
             return stream;
         }
@@ -87,26 +95,20 @@ const float MARCHING_SQUARES_SEGS[16][NSEGS][2][NDIM] = {
     {{{-1., -1.}, {-1., -1.}}, {{-1., -1.}, {-1., -1.}}}, // 15
 };
 
-void deleteContours(std::vector<LineString*>& contours) {
+void deleteContours(std::vector<LineString>& contours) {
     for (auto it = contours.begin(); it != contours.end(); ++it) {
-        LineString* contour = *it;
+        LineString contour = *it;
 
-        for (auto plit = contour->point_list.begin(); plit != contour->point_list.end(); ++plit) {
-            Point* pt = *plit;
-            delete pt;
-        }
-
-        contour->point_list.clear();
-        delete contour;
+        contour.point_list.clear();
     }
     contours.clear();
 }
 
 template<typename T>
-std::vector<LineString*> makeContours(T* grid, int nx, int ny, float value) {
+std::vector<LineString> makeContours(T* grid, int nx, int ny, float value) {
     T esw, ese, enw, ene;
     char segs_idx;
-    std::vector<LineString*> contours;
+    std::vector<LineString> contours;
     std::unordered_map<Point, LineString*> contour_frags_by_start;
     std::unordered_map<Point, LineString*> contour_frags_by_end;
 
@@ -123,18 +125,18 @@ std::vector<LineString*> makeContours(T* grid, int nx, int ny, float value) {
                 if (MARCHING_SQUARES_SEGS[segs_idx][iseg][0][0] < 0) continue;
 
                 const float* start_seg_pt = MARCHING_SQUARES_SEGS[segs_idx][iseg][0];
-                Point* start_pt = new Point(start_seg_pt[0] + i, start_seg_pt[1] + j);
+                Point start_pt = Point(start_seg_pt[0] + i, start_seg_pt[1] + j);
 
                 const float* end_seg_pt = MARCHING_SQUARES_SEGS[segs_idx][iseg][1];
-                Point* end_pt = new Point(end_seg_pt[0] + i, end_seg_pt[1] + j);
+                Point end_pt = Point(end_seg_pt[0] + i, end_seg_pt[1] + j);
 
-                bool start_seen = contour_frags_by_end.find(*start_pt) != contour_frags_by_end.end();
-                bool end_seen = contour_frags_by_start.find(*end_pt) != contour_frags_by_start.end();
+                bool start_seen = contour_frags_by_end.find(start_pt) != contour_frags_by_end.end();
+                bool end_seen = contour_frags_by_start.find(end_pt) != contour_frags_by_start.end();
 
                 if (start_seen && end_seen) {
                     // This segment joins two other contour fragments we've seen
-                    LineString* frag1 = contour_frags_by_end[*start_pt];
-                    LineString* frag2 = contour_frags_by_start[*end_pt];
+                    LineString* frag1 = contour_frags_by_end[start_pt];
+                    LineString* frag2 = contour_frags_by_start[end_pt];
 
                     if (frag1 != frag2) {
                         // This is really two different contour fragments, so we need to splice them together
@@ -142,57 +144,50 @@ std::vector<LineString*> makeContours(T* grid, int nx, int ny, float value) {
                     }
                     else {
                         // This is actually the same contour fragment, so we're closing it.
-                        frag1->point_list.push_back(new Point(*(frag2->point_list.front())));
-                        contours.push_back(frag1);
+                        frag1->point_list.push_back(frag2->point_list.front());
+                        contours.push_back(*frag1);
                     }
 
-                    contour_frags_by_start.erase(*end_pt);
-                    contour_frags_by_end.erase(*start_pt);
+                    contour_frags_by_start.erase(end_pt);
+                    contour_frags_by_end.erase(start_pt);
 
                     if (frag1 != frag2) {
                         // This contour isn't closed yet, so put it back in the maps
-                        contour_frags_by_start[*(frag1->point_list.front())] = frag1;
-                        contour_frags_by_end[*(frag1->point_list.back())] = frag1;
+                        contour_frags_by_start[frag1->point_list.front()] = frag1;
+                        contour_frags_by_end[frag1->point_list.back()] = frag1;
 
                         delete frag2;
                         frag2 = NULL;
                     }
-
-                    delete start_pt;
-                    start_pt = NULL;
-                    delete end_pt;
-                    end_pt = NULL;
+                    else {
+                        delete frag1;
+                        frag1 = NULL;
+                    }
                 }
                 else if (start_seen) {
                     // The starting point for this segment is the ending point for some other contour
-                    LineString* frag = contour_frags_by_end[*start_pt];
+                    LineString* frag = contour_frags_by_end[start_pt];
                     frag->point_list.push_back(end_pt);
 
-                    contour_frags_by_end.erase(*start_pt);
-                    contour_frags_by_end[*end_pt] = frag;
-
-                    delete start_pt;
-                    start_pt = NULL;
+                    contour_frags_by_end.erase(start_pt);
+                    contour_frags_by_end[end_pt] = frag;
                 } 
                 else if (end_seen) {
                     // The ending point for this segment is the start point for some other contour
-                    LineString* frag = contour_frags_by_start[*end_pt];
+                    LineString* frag = contour_frags_by_start[end_pt];
                     frag->point_list.insert(frag->point_list.begin(), start_pt);
 
-                    contour_frags_by_start.erase(*end_pt);
-                    contour_frags_by_start[*start_pt] = frag;
-
-                    delete end_pt;
-                    end_pt = NULL;
+                    contour_frags_by_start.erase(end_pt);
+                    contour_frags_by_start[start_pt] = frag;
                 }
                 else {
                     // New contour segment
-                    LineString* frag = new LineString;
+                    LineString* frag = new LineString();
                     frag->point_list.push_back(start_pt);
                     frag->point_list.push_back(end_pt);
 
-                    contour_frags_by_start[*start_pt] = frag;
-                    contour_frags_by_end[*end_pt] = frag;
+                    contour_frags_by_start[start_pt] = frag;
+                    contour_frags_by_end[end_pt] = frag;
                 }
             }
         }
@@ -200,42 +195,44 @@ std::vector<LineString*> makeContours(T* grid, int nx, int ny, float value) {
 
     // The contours that intersect the edge of the grid will still be in the "fragments" maps, so add them to the contour list
     for (auto it = contour_frags_by_start.begin(); it != contour_frags_by_start.end(); ++it) {
-        contours.push_back(it->second);
+        LineString* contour = it->second;
+        contours.push_back(*contour);
+
+        delete contour;
+        contour = NULL;
     }
 
     // Do the actual interpolation
     for (auto it = contours.begin(); it != contours.end(); ++it) {
-        LineString* contour = *it;
+        LineString contour = *it;
 
-        for (auto plit = contour->point_list.begin(); plit != contour->point_list.end(); ++plit) {
-            Point* pt = *plit;
+        for (auto plit = contour.point_list.begin(); plit != contour.point_list.end(); ++plit) {
+            Point pt = *plit;
 
-            float x_floor = floorf(pt->x), y_floor = floorf(pt->y);
+            float x_floor = floorf(pt.x), y_floor = floorf(pt.y);
             int i = static_cast<int>(x_floor), j = static_cast<int>(y_floor);
             int il = i, iu = i, jl = j, ju = j;
 
-            if (x_floor != pt->x) iu++;
-            if (y_floor != pt->y) ju++;
+            if (x_floor != pt.x) iu++;
+            if (y_floor != pt.y) ju++;
 
             float lb = static_cast<float>(grid[il + nx * jl]);
             float ub = static_cast<float>(grid[iu + nx * ju]);
-            pt->x = x_floor; 
-            pt->y = y_floor;
+            pt.x = x_floor; 
+            pt.y = y_floor;
 
-            if (il != iu) pt->x += (value - lb) / (ub - lb);
-            if (jl != ju) pt->y += (value - lb) / (ub - lb);
+            if (il != iu) pt.x += (value - lb) / (ub - lb);
+            if (jl != ju) pt.y += (value - lb) / (ub - lb);
         }
     }
 
     return contours;
 };
 
-template std::vector<LineString*> makeContours(float* grid, int nx, int ny, float value);
+template std::vector<LineString> makeContours(float* grid, int nx, int ny, float value);
 
-extern "C" {
-    std::vector<LineString*> makeContoursFloat32(float* grid, int nx, int ny, float value) {
-        return makeContours(grid, nx, ny, value);
-    }
+std::vector<LineString> makeContoursFloat32(float* grid, int nx, int ny, float value) {
+    return makeContours(grid, nx, ny, value);
 }
 
 #ifdef EXECUTABLE
@@ -251,14 +248,41 @@ int main(int argc, char** argv) {
         0, 0, 0, 0, 1, 0, 0, 0
     };
 
-    std::vector<LineString*> contours = makeContoursFloat32(grid, nx, ny, 0.5);
+    std::vector<LineString> contours = makeContoursFloat32(grid, nx, ny, 0.5);
 
     for (auto it = contours.begin(); it != contours.end(); ++it) {
-        std::cout << **it << '\n';
+        std::cout << *it << '\n';
     }
 
     deleteContours(contours);
 
     return 0;
 }
+#endif
+
+#ifdef WASM
+
+std::vector<LineString> makeContoursFloat32WASM(std::vector<float> grid, int nx, int ny, float value) {
+    if (nx * ny != grid.size()) {
+        std::string error = "Mismatch between the length of the vector and nx and ny";
+        throw std::invalid_argument(error);
+    }
+
+    return makeContoursFloat32(grid.data(), nx, ny, value);
+}
+
+EMSCRIPTEN_BINDINGS(marching_squares) {
+    emscripten::class_<Point>("Point")
+        .constructor<float, float>()
+        .property("x", &Point::x)
+        .property("y", &Point::y);
+    emscripten::class_<LineString>("LineString")
+        .constructor()
+        .property("point_list", &LineString::point_list);
+    emscripten::register_vector<float>("FloatList");
+    emscripten::register_vector<LineString>("LineStringList");
+    emscripten::register_vector<Point>("PointList");
+    emscripten::function("makeContoursFloat32", &makeContoursFloat32WASM);
+}
+
 #endif

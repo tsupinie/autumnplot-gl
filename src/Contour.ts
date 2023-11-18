@@ -5,6 +5,12 @@ import { PlotComponent, getGLFormatTypeAlignment } from './PlotComponent';
 import { RawScalarField } from './RawField';
 import { Cache, hex2rgba } from './utils';
 import { WGLBuffer, WGLProgram, WGLTexture } from 'autumn-wgl';
+import * as d3 from 'd3-contour';
+
+import Module from './cpp/marchingsquares';
+import { MarchingSquaresModule } from './cpp/marchingsquares';
+
+let msm: MarchingSquaresModule | null = null;
 
 const contour_vertex_shader_src = require('./glsl/contour_vertex.glsl');
 const contour_fragment_shader_src = require('./glsl/contour_fragment.glsl');
@@ -46,6 +52,38 @@ interface ContourGLElems {
     texcoords: WGLBuffer;
 }
 
+function makeContours<ArrayType extends TypedArray>(field: RawScalarField<ArrayType>, opts: Pick<ContourOptions, 'interval' | 'levels'>) {
+    const contour = d3.contours()
+                      .size([field.grid.ni, field.grid.nj]);
+
+    const data: number[] = new Array(field.data.length);
+    let min_data = Infinity, max_data = -Infinity;
+    for (let idx = 0; idx < field.data.length; idx++) {
+        const elem = field.data[0];
+
+        min_data = Math.min(elem, min_data);
+        max_data = Math.max(elem, max_data);
+        data[idx] = field.data[idx];
+    }
+
+    let contour_levels: number[] = [];
+    if (opts.levels !== undefined) {
+        contour_levels = opts.levels;
+    }
+    else if (opts.interval !== undefined) {
+        const min_contour = Math.ceil(min_data / opts.interval) * opts.interval;
+        const max_contour = Math.floor(max_data / opts.interval) * opts.interval;
+        for (let cntr = min_contour; cntr <= max_contour; cntr += opts.interval) {
+            contour_levels.push(cntr);
+        }
+    }
+    else {
+        throw `Need either 'interval' or 'levels' in Contour()`;
+    }
+
+    console.log(contour.contour(data, contour_levels[0]));
+}
+
 /** 
  * A field of contoured data. The contours can optionally be thinned based on map zoom level.
  * @example
@@ -82,6 +120,29 @@ class Contour<ArrayType extends TypedArray> extends PlotComponent {
         this.thinner = opts.thinner || (() => 1);
 
         this.gl_elems = null;
+
+        console.time('make contours');
+        makeContours(field, opts);
+        console.timeEnd('make contours');
+
+        (async () => {
+            if (msm === null) {
+                msm = await Module();
+            }
+
+            console.time('make contours (wasm)');
+            const grid = new msm.FloatList();
+            grid.resize(field.grid.ni * field.grid.nj, 0);
+            field.data.forEach((v, i) => grid.set(i, v));
+
+            [0.1, 0.3, 0.5, 0.7, 0.9].forEach(v => {
+                const contours = msm.makeContoursFloat32(grid, field.grid.ni, field.grid.nj, v);
+                console.log(contours.size());
+            });
+
+            grid.delete();
+            console.timeEnd('make contours (wasm)');
+        })();
     }
 
     /**
