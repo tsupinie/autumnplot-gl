@@ -95,15 +95,6 @@ const float MARCHING_SQUARES_SEGS[16][NSEGS][2][NDIM] = {
     {{{-1., -1.}, {-1., -1.}}, {{-1., -1.}, {-1., -1.}}}, // 15
 };
 
-void deleteContours(std::vector<LineString>& contours) {
-    for (auto it = contours.begin(); it != contours.end(); ++it) {
-        LineString contour = *it;
-
-        contour.point_list.clear();
-    }
-    contours.clear();
-}
-
 template<typename T>
 std::vector<LineString> makeContours(T* grid, int nx, int ny, float value) {
     T esw, ese, enw, ene;
@@ -231,9 +222,28 @@ std::vector<LineString> makeContours(T* grid, int nx, int ny, float value) {
 
 template std::vector<LineString> makeContours(float* grid, int nx, int ny, float value);
 
-std::vector<LineString> makeContoursFloat32(float* grid, int nx, int ny, float value) {
-    return makeContours(grid, nx, ny, value);
-}
+template<typename T>
+std::vector<float> getContourLevels(T* grid, int nx, int ny, float interval) noexcept {
+    T minval = std::numeric_limits<T>::infinity(), maxval = -std::numeric_limits<T>::infinity();
+    for (int idx = 0; idx < nx * ny; idx++) {
+        minval = grid[idx] < minval ? grid[idx] : minval;
+        maxval = grid[idx] > minval ? grid[idx] : maxval;
+    }
+
+    float lowest_contour = ceilf(minval / interval) * interval, highest_contour = floorf(maxval / interval) * interval;
+    int n_contours = (int)floorf((highest_contour - lowest_contour) / interval) + 1;
+
+    std::vector<float> levels;
+    levels.resize(n_contours);
+
+    for (int icntr = 0; icntr < n_contours; icntr++) {
+        levels[icntr] = lowest_contour + icntr * interval;
+    }
+
+    return levels;
+};
+
+template std::vector<float> getContourLevels(float* grid, int nx, int ny, float interval);
 
 #ifdef EXECUTABLE
 int main(int argc, char** argv) {
@@ -248,7 +258,7 @@ int main(int argc, char** argv) {
         0, 0, 0, 0, 1, 0, 0, 0
     };
 
-    std::vector<LineString> contours = makeContoursFloat32(grid, nx, ny, 0.5);
+    std::vector<LineString> contours = makeContours(grid, nx, ny, 0.5);
 
     for (auto it = contours.begin(); it != contours.end(); ++it) {
         std::cout << *it << '\n';
@@ -262,13 +272,23 @@ int main(int argc, char** argv) {
 
 #ifdef WASM
 
-std::vector<LineString> makeContoursFloat32WASM(std::vector<float> grid, int nx, int ny, float value) {
-    if (nx * ny != grid.size()) {
+void checkGridSize(size_t grid_size, int nx, int ny) {
+    if (nx * ny != grid_size) {
         std::string error = "Mismatch between the length of the vector and nx and ny";
         throw std::invalid_argument(error);
     }
+}
 
-    return makeContoursFloat32(grid.data(), nx, ny, value);
+std::vector<LineString> makeContoursFloat32WASM(std::vector<float> grid, int nx, int ny, float value) {
+    checkGridSize(grid.size(), nx, ny);
+
+    return makeContours(grid.data(), nx, ny, value);
+}
+
+std::vector<float> getContourLevelsFloat32WASM(std::vector<float> grid, int nx, int ny, float interval) {
+    checkGridSize(grid.size(), nx, ny);
+
+    return getContourLevels(grid.data(), nx, ny, interval);
 }
 
 EMSCRIPTEN_BINDINGS(marching_squares) {
@@ -279,10 +299,13 @@ EMSCRIPTEN_BINDINGS(marching_squares) {
     emscripten::class_<LineString>("LineString")
         .constructor()
         .property("point_list", &LineString::point_list);
+
     emscripten::register_vector<float>("FloatList");
     emscripten::register_vector<LineString>("LineStringList");
     emscripten::register_vector<Point>("PointList");
+
     emscripten::function("makeContoursFloat32", &makeContoursFloat32WASM);
+    emscripten::function("getContourLevelsFloat32", &getContourLevelsFloat32WASM);
 }
 
 #endif

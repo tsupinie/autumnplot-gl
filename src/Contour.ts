@@ -135,9 +135,21 @@ class Contour<ArrayType extends TypedArray> extends PlotComponent {
             grid.resize(field.grid.ni * field.grid.nj, 0);
             field.data.forEach((v, i) => grid.set(i, v));
 
-            [0.1, 0.3, 0.5, 0.7, 0.9].forEach(v => {
+            const levels = [...this.levels];
+            if (levels.length == 0) {
+                const levels_cpp = msm.getContourLevelsFloat32(grid, field.grid.ni, field.grid.nj, this.interval);
+
+                for (let ilvl = 0; ilvl < levels_cpp.size(); ilvl++) {
+                    levels.push(levels_cpp.get(ilvl));
+                }
+                
+                levels_cpp.delete();
+            }
+
+            levels.forEach(v => {
                 const contours = msm.makeContoursFloat32(grid, field.grid.ni, field.grid.nj, v);
                 console.log(contours.size());
+                contours.delete();
             });
 
             grid.delete();
