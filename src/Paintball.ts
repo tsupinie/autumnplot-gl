@@ -104,13 +104,19 @@ class Paintball<ArrayType extends TypedArray> extends PlotComponent {
         // Render to framebuffer
         gl_elems.program.use(
             {'a_pos': gl_elems.vertices, 'a_tex_coord': gl_elems.texcoords},
-            {'u_matrix': matrix, 'u_opacity': this.opacity, 'u_colors': this.colors, 'u_num_colors': this.colors.length / 4},
+            {'u_matrix': matrix, 'u_opacity': this.opacity, 'u_colors': this.colors, 'u_num_colors': this.colors.length / 4, 'u_offset': 0},
             {'u_fill_sampler': gl_elems.fill_texture}
         );
 
         gl.enable(gl.BLEND);
         gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 
+        gl_elems.program.draw();
+
+        gl_elems.program.setUniforms({'u_offset': -1});
+        gl_elems.program.draw();
+
+        gl_elems.program.setUniforms({'u_offset': 1});
         gl_elems.program.draw();
     }
 }
