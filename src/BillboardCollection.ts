@@ -84,6 +84,9 @@ class BillboardCollection<ArrayType extends TypedArray> {
 
         this.program.draw();
 
+        this.program.setUniforms({'u_offset': -2});
+        this.program.draw();
+
         this.program.setUniforms({'u_offset': -1});
         this.program.draw();
 

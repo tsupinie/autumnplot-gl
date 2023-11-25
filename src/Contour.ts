@@ -144,6 +144,9 @@ class Contour<ArrayType extends TypedArray> extends PlotComponent {
 
         gl_elems.program.draw();
 
+        gl_elems.program.setUniforms({'u_offset': -2});
+        gl_elems.program.draw();
+
         gl_elems.program.setUniforms({'u_offset': -1});
         gl_elems.program.draw();
 
