@@ -127,7 +127,7 @@ class Contour<ArrayType extends TypedArray> extends PlotComponent {
         const zoom_fac = Math.pow(2, zoom);
 
         let uniforms = {'u_contour_interval': intv, 'u_line_cutoff': cutoff, 'u_color': this.color, 'u_step_size': step_size, 'u_zoom_fac': zoom_fac,
-                        'u_matrix': matrix, 'u_num_contours': 0, 'u_contour_levels': [0]};
+                        'u_matrix': matrix, 'u_num_contours': 0, 'u_contour_levels': [0], 'u_offset': 0};
 
         if (this.levels.length > 0) {
             uniforms = {...uniforms, 'u_num_contours': this.levels.length, 'u_contour_levels': this.levels}
@@ -142,6 +142,15 @@ class Contour<ArrayType extends TypedArray> extends PlotComponent {
         gl.enable(gl.BLEND);
         gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 
+        gl_elems.program.draw();
+
+        gl_elems.program.setUniforms({'u_offset': -2});
+        gl_elems.program.draw();
+
+        gl_elems.program.setUniforms({'u_offset': -1});
+        gl_elems.program.draw();
+
+        gl_elems.program.setUniforms({'u_offset': 1});
         gl_elems.program.draw();
     }
 }

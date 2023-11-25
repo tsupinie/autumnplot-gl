@@ -74,6 +74,23 @@ async function makeHREFLayers() {
     return {layers: [paintball_layer, nh_prob_layer], colorbar: svg};
 }
 
+async function makeGFSLayers() {
+    const grid_gfs = new apgl.PlateCarreeGrid(1440, 721, 0, -90, 360, 90);
+
+    const colormap = apgl.colormaps.pw_t2m
+    const t2m_data = await fetchBinary('data/gfs.bin.gz');
+    const t2m_field = new apgl.RawScalarField(grid_gfs, t2m_data);
+    const t2m_contour = new apgl.ContourFill(t2m_field, {'cmap': colormap});
+    const t2m_layer = new apgl.PlotLayer('nh_probs', t2m_contour);
+
+
+    const svg = apgl.makeColorBar(colormap, {label: "Temperature", fontface: 'Trebuchet MS', 
+                                             ticks: [-60, -50, -40, -30, -20, -10, 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120],
+                                             orientation: 'horizontal', tick_direction: 'bottom'});
+
+    return {layers: [t2m_layer], colorbar: svg};
+}
+
 function makeHodoLayers() {
     const hodo_u = [];
     const hodo_v = [];
@@ -123,6 +140,11 @@ const views = {
     'href': {
         name: "HREF",
         makeLayers: makeHREFLayers,
+        maxZoom: 7,
+    },
+    'gfs': {
+        name: "GFS",
+        makeLayers: makeGFSLayers,
         maxZoom: 7,
     },
     'hodo': {

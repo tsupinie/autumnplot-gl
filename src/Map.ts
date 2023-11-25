@@ -177,7 +177,9 @@ function mercatorXfromLng(lng: number) {
 }
 
 function mercatorYfromLat(lat: number) {
-    return (180 - (180 / Math.PI * Math.log(Math.tan(Math.PI / 4 + lat * Math.PI / 360)))) / 360;
+    const sin_lat = Math.sin(lat * Math.PI / 180);
+    const y = (180 - (90 / Math.PI * Math.log((1 + sin_lat) / (1 - sin_lat)))) / 360;
+    return Math.min(2, Math.max(-2, y));
 }
 
 /**

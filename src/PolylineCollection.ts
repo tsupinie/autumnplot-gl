@@ -39,13 +39,22 @@ class PolylineCollection {
         this.program.use(
             {'a_pos': this.origin, 'a_offset': this.offset, 'a_extrusion': this.extrusion, 'a_min_zoom': this.min_zoom, 'a_tex_coord': this.texcoords},
             {'u_offset_scale': this.scale * (map_height / map_width), 'u_line_width': this.width, 'u_matrix': matrix,
-             'u_map_aspect': map_height / map_width, 'u_zoom': map_zoom, 'u_map_bearing': map_bearing},
+             'u_map_aspect': map_height / map_width, 'u_zoom': map_zoom, 'u_map_bearing': map_bearing, 'u_offset': 0},
             {'u_sampler': this.texture}
         );
 
         gl.enable(gl.BLEND);
         gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 
+        this.program.draw();
+
+        this.program.setUniforms({'u_offset': -2});
+        this.program.draw();
+
+        this.program.setUniforms({'u_offset': -1});
+        this.program.draw();
+
+        this.program.setUniforms({'u_offset': 1});
         this.program.draw();
     }
 }
