@@ -6,7 +6,7 @@ import { layer_worker } from "./PlotComponent";
 import { Cache, zip } from "./utils";
 import { WGLBuffer } from "autumn-wgl";
 
-interface Coords {
+interface EarthCoords {
     lons: Float32Array;
     lats: Float32Array;
 }
@@ -19,7 +19,7 @@ async function makeWGLDomainBuffers(gl: WebGLAnyRenderingContext, grid: Grid, na
 
     const grid_cell_size_multiplier = (grid.ni * grid.nj) / (native_grid.ni * native_grid.nj);
 
-    const {lats: field_lats, lons: field_lons} = grid.getCoords();
+    const {lats: field_lats, lons: field_lons} = grid.getEarthCoords();
     const domain_coords = await layer_worker.makeDomainVerticesAndTexCoords(field_lats, field_lons, grid.ni, grid.nj, texcoord_margin_r, texcoord_margin_s);
 
     for (let icd = 0; icd < domain_coords['grid_cell_size'].length; icd++) {
@@ -34,7 +34,7 @@ async function makeWGLDomainBuffers(gl: WebGLAnyRenderingContext, grid: Grid, na
 }
 
 async function makeWGLBillboardBuffers(gl: WebGLAnyRenderingContext, grid: Grid, thin_fac: number, max_zoom: number) {
-    const {lats: field_lats, lons: field_lons} = grid.getCoords();
+    const {lats: field_lats, lons: field_lons} = grid.getEarthCoords();
     const bb_elements = await layer_worker.makeBBElements(field_lats, field_lons, grid.ni, grid.nj, thin_fac, max_zoom);
 
     const vertices = new WGLBuffer(gl, bb_elements['pts'], 3, gl.TRIANGLE_STRIP);
@@ -73,7 +73,7 @@ abstract class Grid {
 
     public abstract copy(opts?: {ni?: number, nj?: number}): Grid;
 
-    public abstract getCoords(): Coords;
+    public abstract getEarthCoords(): EarthCoords;
     public abstract transform(x: number, y: number, opts?: {inverse?: boolean}): [number, number];
     abstract getThinnedGrid(thin_x: number, thin_y: number): Grid;
     
@@ -93,7 +93,7 @@ class PlateCarreeGrid extends Grid {
     public readonly ur_lon: number;
     public readonly ur_lat: number;
 
-    private readonly ll_cache: Cache<[], Coords>;
+    private readonly ll_cache: Cache<[], EarthCoords>;
 
     /**
      * Create a plate carree grid
@@ -147,7 +147,7 @@ class PlateCarreeGrid extends Grid {
     /**
      * Get a list of longitudes and latitudes on the grid (internal method)
      */
-    public getCoords() {
+    public getEarthCoords() {
         return this.ll_cache.getValue();
     }
 
@@ -183,7 +183,7 @@ class PlateCarreeRotatedGrid extends Grid {
     public readonly ur_lat: number;
 
     private readonly llrot: (a: number, b: number, opts?: {inverse: boolean}) => [number, number];
-    private readonly ll_cache: Cache<[], Coords>;
+    private readonly ll_cache: Cache<[], EarthCoords>;
 
     /**
      * Create a Lambert conformal conic grid
@@ -244,7 +244,7 @@ class PlateCarreeRotatedGrid extends Grid {
     /**
      * Get a list of longitudes and latitudes on the grid (internal method)
      */
-    public getCoords() {
+    public getEarthCoords() {
         return this.ll_cache.getValue();
     }
 
@@ -283,7 +283,7 @@ class LambertGrid extends Grid {
     public readonly ur_y: number;
 
     private readonly lcc: (a: number, b: number, opts?: {inverse: boolean}) => [number, number];
-    private readonly ll_cache: Cache<[], Coords>;
+    private readonly ll_cache: Cache<[], EarthCoords>;
 
     /**
      * Create a Lambert conformal conic grid
@@ -345,7 +345,7 @@ class LambertGrid extends Grid {
     /**
      * Get a list of longitudes and latitudes on the grid (internal method)
      */
-    public getCoords() {
+    public getEarthCoords() {
         return this.ll_cache.getValue();
     }
 
@@ -494,7 +494,7 @@ class RawVectorField<ArrayType extends TypedArray> {
 
         this.rotate_cache = new Cache(() => {
             const grid = this.u.grid;
-            const coords = grid.getCoords();
+            const coords = grid.getEarthCoords();
             const u_rot = new arrayType(coords.lats.length);
             const v_rot = new arrayType(coords.lats.length);
 
