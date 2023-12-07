@@ -206,7 +206,9 @@ std::vector<LineString> makeContours(T* grid, float* xs, float* ys, int nx, int 
             int i = static_cast<int>(x_floor), j = static_cast<int>(y_floor);
             
             if (x_floor != pt.x) {
-                float alpha = pt.x - x_floor;
+                float grid1 = static_cast<float>(grid[i + j * nx]);
+                float grid2 = static_cast<float>(grid[(i + 1) + j * nx]);
+                float alpha = (value - grid1) / (grid2 - grid1);
                 pt.x = xs[i] * (1 - alpha) + xs[i + 1] * alpha;
             }
             else {
@@ -214,7 +216,9 @@ std::vector<LineString> makeContours(T* grid, float* xs, float* ys, int nx, int 
             }
 
             if (y_floor != pt.y) {
-                float alpha = pt.y - y_floor;
+                float grid1 = static_cast<float>(grid[i + j * nx]);
+                float grid2 = static_cast<float>(grid[i + (j + 1) * nx]);
+                float alpha = (value - grid1) / (grid2 - grid1);
                 pt.y = ys[j] * (1 - alpha) + ys[j + 1] * alpha;
             }
             else {
