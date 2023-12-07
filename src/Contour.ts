@@ -8,6 +8,7 @@ import { WGLBuffer, WGLProgram, WGLTexture } from 'autumn-wgl';
 
 import Module from './cpp/marchingsquares';
 import { MarchingSquaresModule } from './cpp/marchingsquares';
+import './cpp/marchingsquares.wasm';
 
 let msm: MarchingSquaresModule | null = null;
 

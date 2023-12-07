@@ -16,6 +16,14 @@ module.exports = {
                 loader: 'webpack-glsl-loader',
                 exclude: /node_modules/,
             },
+            // WASM
+            {
+                test: /\.wasm$/,
+                type: "asset/resource",
+                generator: {
+                    filename: "[name].wasm"
+                }
+            },
         ],
     },
 
