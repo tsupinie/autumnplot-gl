@@ -11,6 +11,11 @@ interface EarthCoords {
     lats: Float32Array;
 }
 
+interface GridCoords {
+    x: Float32Array;
+    y: Float32Array;
+}
+
 async function makeWGLDomainBuffers(gl: WebGLAnyRenderingContext, grid: Grid, native_grid?: Grid) {
     native_grid = native_grid !== undefined ? native_grid: grid;
 
@@ -74,6 +79,7 @@ abstract class Grid {
     public abstract copy(opts?: {ni?: number, nj?: number}): Grid;
 
     public abstract getEarthCoords(): EarthCoords;
+    public abstract getGridCoords(): GridCoords;
     public abstract transform(x: number, y: number, opts?: {inverse?: boolean}): [number, number];
     abstract getThinnedGrid(thin_x: number, thin_y: number): Grid;
     
@@ -94,6 +100,7 @@ class PlateCarreeGrid extends Grid {
     public readonly ur_lat: number;
 
     private readonly ll_cache: Cache<[], EarthCoords>;
+    private readonly gc_cache: Cache<[], GridCoords>;
 
     /**
      * Create a plate carree grid
@@ -112,10 +119,10 @@ class PlateCarreeGrid extends Grid {
         this.ur_lon = ur_lon;
         this.ur_lat = ur_lat;
 
-        this.ll_cache = new Cache(() => {
-            const dlon = (this.ur_lon - this.ll_lon) / (this.ni - 1);
-            const dlat = (this.ur_lat - this.ll_lat) / (this.nj - 1);
+        const dlon = (this.ur_lon - this.ll_lon) / (this.ni - 1);
+        const dlat = (this.ur_lat - this.ll_lat) / (this.nj - 1);
 
+        this.ll_cache = new Cache(() => {
             const lons = new Float32Array(this.ni * this.nj);
             const lats = new Float32Array(this.ni * this.nj);
 
@@ -130,6 +137,21 @@ class PlateCarreeGrid extends Grid {
 
             return {'lons': lons, 'lats': lats};
         });
+
+        this.gc_cache = new Cache(() => {
+            const x = new Float32Array(this.ni);
+            const y = new Float32Array(this.nj);
+
+            for (let i = 0; i < this.ni; i++) {
+                x[i] = this.ll_lon + i * dlon;
+            }
+
+            for (let j = 0; j < this.nj; j++) {
+                y[j] = this.ll_lat + j * dlat;
+            }
+
+            return {x: x, y: y};
+        })
     }
 
     public copy(opts?: {ni?: number, nj?: number, ll_lon?: number, ll_lat?: number, ur_lon?: number, ur_lat?: number}) {
@@ -149,6 +171,10 @@ class PlateCarreeGrid extends Grid {
      */
     public getEarthCoords() {
         return this.ll_cache.getValue();
+    }
+
+    public getGridCoords() {
+        return this.gc_cache.getValue();
     }
 
     public transform(x: number, y: number, opts?: {inverse?: boolean}) {
@@ -184,6 +210,7 @@ class PlateCarreeRotatedGrid extends Grid {
 
     private readonly llrot: (a: number, b: number, opts?: {inverse: boolean}) => [number, number];
     private readonly ll_cache: Cache<[], EarthCoords>;
+    private readonly gc_cache: Cache<[], GridCoords>;
 
     /**
      * Create a Lambert conformal conic grid
@@ -209,14 +236,17 @@ class PlateCarreeRotatedGrid extends Grid {
         this.ur_lat = ur_lat;
         this.llrot = rotateSphere({np_lon: np_lon, np_lat: np_lat, lon_shift: lon_shift});
 
+        const dlon = (this.ur_lon - this.ll_lon) / (this.ni - 1);
+        const dlat = (this.ur_lat - this.ll_lat) / (this.nj - 1);
+
         this.ll_cache = new Cache(() => {
             const lons = new Float32Array(this.ni * this.nj);
             const lats = new Float32Array(this.ni * this.nj);
 
             for (let i = 0; i < this.ni; i++) {
-                const lon_p = this.ll_lon + (this.ur_lon - this.ll_lon) * i / (this.ni - 1);
+                const lon_p = this.ll_lon + i * dlon;
                 for (let j = 0; j < this.nj; j++) {
-                    const lat_p = this.ll_lat + (this.ur_lat - this.ll_lat) * j / (this.nj - 1);
+                    const lat_p = this.ll_lat + i * dlat;
 
                     const [lon, lat] = this.llrot(lon_p, lat_p);
                     const idx = i + j * this.ni;
@@ -227,6 +257,21 @@ class PlateCarreeRotatedGrid extends Grid {
 
             return {lons: lons, lats: lats};
         });
+
+        this.gc_cache = new Cache(() => {
+            const x = new Float32Array(this.ni);
+            const y = new Float32Array(this.nj);
+
+            for (let i = 0; i < this.ni; i++) {
+                x[i] = this.ll_lon + i * dlon;
+            }
+
+            for (let j = 0; j < this.nj; j++) {
+                y[j] = this.ll_lat + j * dlat;
+            }
+
+            return {x: x, y: y};
+        })
     }
 
     public copy(opts?: {ni?: number, nj?: number, ll_lon?: number, ll_lat?: number, ur_lon?: number, ur_lat?: number}) {
@@ -246,6 +291,10 @@ class PlateCarreeRotatedGrid extends Grid {
      */
     public getEarthCoords() {
         return this.ll_cache.getValue();
+    }
+
+    public getGridCoords() {
+        return this.gc_cache.getValue();
     }
 
     public transform(x: number, y: number, opts?: {inverse?: boolean}) {
@@ -284,6 +333,7 @@ class LambertGrid extends Grid {
 
     private readonly lcc: (a: number, b: number, opts?: {inverse: boolean}) => [number, number];
     private readonly ll_cache: Cache<[], EarthCoords>;
+    private readonly gc_cache: Cache<[], GridCoords>;
 
     /**
      * Create a Lambert conformal conic grid
@@ -310,14 +360,17 @@ class LambertGrid extends Grid {
         this.ur_y = ur_y;
         this.lcc = lambertConformalConic({lon_0: lon_0, lat_0: lat_0, lat_std: lat_std});
 
+        const dx = (this.ur_x - this.ll_x) / (this.ni - 1);
+        const dy = (this.ur_y - this.ll_y) / (this.nj - 1);
+
         this.ll_cache = new Cache(() => {
             const lons = new Float32Array(this.ni * this.nj);
             const lats = new Float32Array(this.ni * this.nj);
 
             for (let i = 0; i < this.ni; i++) {
-                const x = this.ll_x + (this.ur_x - this.ll_x) * i / (this.ni - 1);
+                const x = this.ll_x + i * dx;
                 for (let j = 0; j < this.nj; j++) {
-                    const y = this.ll_y + (this.ur_y - this.ll_y) * j / (this.nj - 1);
+                    const y = this.ll_y + j * dy;
 
                     const [lon, lat] = this.lcc(x, y, {inverse: true});
                     const idx = i + j * this.ni;
@@ -327,6 +380,21 @@ class LambertGrid extends Grid {
             }
 
             return {lons: lons, lats: lats};
+        });
+
+        this.gc_cache = new Cache(() => {
+            const x = new Float32Array(this.ni);
+            const y = new Float32Array(this.nj);
+
+            for (let i = 0; i < this.ni; i++) {
+                x[i] = this.ll_x + i * dx;
+            }
+
+            for (let j = 0; j < this.nj; j++) {
+                y[j] = this.ll_y + j * dy;
+            }
+
+            return {x: x, y: y};
         });
     }
 
@@ -347,6 +415,10 @@ class LambertGrid extends Grid {
      */
     public getEarthCoords() {
         return this.ll_cache.getValue();
+    }
+
+    public getGridCoords() {
+        return this.gc_cache.getValue();
     }
 
     public transform(x: number, y: number, opts?: {inverse?: boolean}) {
