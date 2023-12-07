@@ -6,6 +6,8 @@
 #include <iostream>
 #endif
 
+#include <iostream>
+
 #ifdef WASM
 #include <emscripten/bind.h>
 #endif
@@ -96,7 +98,7 @@ const float MARCHING_SQUARES_SEGS[16][NSEGS][2][NDIM] = {
 };
 
 template<typename T>
-std::vector<LineString> makeContours(T* grid, int nx, int ny, float value) {
+std::vector<LineString> makeContours(T* grid, float* xs, float* ys, int nx, int ny, float value) {
     T esw, ese, enw, ene;
     char segs_idx;
     std::vector<LineString> contours;
@@ -202,25 +204,33 @@ std::vector<LineString> makeContours(T* grid, int nx, int ny, float value) {
 
             float x_floor = floorf(pt.x), y_floor = floorf(pt.y);
             int i = static_cast<int>(x_floor), j = static_cast<int>(y_floor);
-            int il = i, iu = i, jl = j, ju = j;
+            
+            if (x_floor != pt.x) {
+                float alpha = pt.x - x_floor;
+                pt.x = xs[i] * (1 - alpha) + xs[i + 1] * alpha;
+            }
+            else {
+                pt.x = xs[i];
+            }
 
-            if (x_floor != pt.x) iu++;
-            if (y_floor != pt.y) ju++;
+            if (y_floor != pt.y) {
+                float alpha = pt.y - y_floor;
+                pt.y = ys[j] * (1 - alpha) + ys[j + 1] * alpha;
+            }
+            else {
+                pt.y = ys[j];
+            }
 
-            float lb = static_cast<float>(grid[il + nx * jl]);
-            float ub = static_cast<float>(grid[iu + nx * ju]);
-            pt.x = x_floor; 
-            pt.y = y_floor;
-
-            if (il != iu) pt.x += (value - lb) / (ub - lb);
-            if (jl != ju) pt.y += (value - lb) / (ub - lb);
+            *plit = pt;
         }
+
+        *it = contour;
     }
 
     return contours;
 };
 
-template std::vector<LineString> makeContours(float* grid, int nx, int ny, float value);
+template std::vector<LineString> makeContours(float* grid, float* xs, float* ys, int nx, int ny, float value);
 
 template<typename T>
 std::vector<float> getContourLevels(T* grid, int nx, int ny, float interval) noexcept {
@@ -258,13 +268,14 @@ int main(int argc, char** argv) {
         0, 0, 0, 0, 1, 0, 0, 0
     };
 
-    std::vector<LineString> contours = makeContours(grid, nx, ny, 0.5);
+    float x_grid[nx] = {0, 10, 20, 30, 40, 50, 60, 70};
+    float y_grid[ny] = {0, 10, 20, 30, 40, 50};
+
+    std::vector<LineString> contours = makeContours(grid, x_grid, y_grid, nx, ny, 0.5);
 
     for (auto it = contours.begin(); it != contours.end(); ++it) {
         std::cout << *it << '\n';
     }
-
-    deleteContours(contours);
 
     return 0;
 }
@@ -279,10 +290,13 @@ void checkGridSize(size_t grid_size, int nx, int ny) {
     }
 }
 
-std::vector<LineString> makeContoursFloat32WASM(std::vector<float> grid, int nx, int ny, float value) {
+std::vector<LineString> makeContoursFloat32WASM(std::vector<float> grid, std::vector<float> xs, std::vector<float> ys, float value) {
+    int nx = xs.size();
+    int ny = ys.size();
+
     checkGridSize(grid.size(), nx, ny);
 
-    return makeContours(grid.data(), nx, ny, value);
+    return makeContours(grid.data(), xs.data(), ys.data(), nx, ny, value);
 }
 
 std::vector<float> getContourLevelsFloat32WASM(std::vector<float> grid, int nx, int ny, float interval) {

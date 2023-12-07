@@ -8,6 +8,7 @@ import { WGLBuffer, WGLProgram, WGLTexture } from 'autumn-wgl';
 
 import Module from './cpp/marchingsquares';
 import { MarchingSquaresModule } from './cpp/marchingsquares';
+import { LineString, Point } from './cpp/marchingsquares_embind';
 import './cpp/marchingsquares.wasm';
 
 let msm: MarchingSquaresModule | null = null;
@@ -88,37 +89,6 @@ class Contour<ArrayType extends TypedArray> extends PlotComponent {
         this.thinner = opts.thinner || (() => 1);
 
         this.gl_elems = null;
-
-        (async () => {
-            if (msm === null) {
-                msm = await Module();
-            }
-
-            console.time('make contours (wasm)');
-            const grid = new msm.FloatList();
-            grid.resize(field.grid.ni * field.grid.nj, 0);
-            field.data.forEach((v, i) => grid.set(i, v));
-
-            const levels = [...this.levels];
-            if (levels.length == 0) {
-                const levels_cpp = msm.getContourLevelsFloat32(grid, field.grid.ni, field.grid.nj, this.interval);
-
-                for (let ilvl = 0; ilvl < levels_cpp.size(); ilvl++) {
-                    levels.push(levels_cpp.get(ilvl));
-                }
-
-                levels_cpp.delete();
-            }
-
-            levels.forEach(v => {
-                const contours = msm.makeContoursFloat32(grid, field.grid.ni, field.grid.nj, v);
-                console.log(contours.size());
-                contours.delete();
-            });
-
-            grid.delete();
-            console.timeEnd('make contours (wasm)');
-        })();
     }
 
     /**
@@ -128,6 +98,61 @@ class Contour<ArrayType extends TypedArray> extends PlotComponent {
     public async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
         // Basic procedure for these contours from https://www.shadertoy.com/view/lltBWM
         gl.getExtension("OES_standard_derivatives");
+
+        if (msm === null) {
+            msm = await Module();
+        }
+
+        console.time('make contours (wasm)');
+        const grid_coords = this.field.grid.getGridCoords();
+
+        const grid = new msm.FloatList();
+        grid.resize(this.field.grid.ni * this.field.grid.nj, 0);
+        this.field.data.forEach((v, i) => grid.set(i, v));
+
+        const grid_x = new msm.FloatList();
+        grid_x.resize(this.field.grid.ni, 0);
+        grid_coords.x.forEach((v, i) => grid_x.set(i, v));
+
+        const grid_y = new msm.FloatList();
+        grid_y.resize(this.field.grid.nj, 0);
+        grid_coords.y.forEach((v, i) => grid_y.set(i, v));
+
+        const levels = [...this.levels];
+        if (levels.length == 0) {
+            const levels_cpp = msm.getContourLevelsFloat32(grid, this.field.grid.ni, this.field.grid.nj, this.interval);
+
+            for (let ilvl = 0; ilvl < levels_cpp.size(); ilvl++) {
+                levels.push(levels_cpp.get(ilvl));
+            }
+
+            levels_cpp.delete();
+        }
+
+        const contours: Record<number, [number, number][][]> = {};
+        levels.forEach(v => {
+            const contours_ = msm.makeContoursFloat32(grid, grid_x, grid_y, v);
+            contours[v] = [];
+
+            for (let icntr = 0; icntr < contours_.size(); icntr++) {
+                const contour: LineString = contours_.get(icntr);
+
+                contours[v].push([]);
+
+                for (let ipt = 0; ipt < contour.point_list.size(); ipt++) {
+                    const pt: Point = contour.point_list.get(ipt);
+                    const [lon, lat] = this.field.grid.transform(pt.x, pt.y, {inverse: true});
+                    contours[v][icntr].push([lon, lat]);
+                }
+            }
+
+            contours_.delete();
+        });
+
+        console.log(contours);
+
+        grid.delete();
+        console.timeEnd('make contours (wasm)');
         
         const program = program_cache.getValue(gl);
 
