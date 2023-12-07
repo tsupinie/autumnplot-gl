@@ -197,38 +197,30 @@ std::vector<LineString> makeContours(T* grid, float* xs, float* ys, int nx, int 
 
     // Do the actual interpolation
     for (auto it = contours.begin(); it != contours.end(); ++it) {
-        LineString contour = *it;
-
-        for (auto plit = contour.point_list.begin(); plit != contour.point_list.end(); ++plit) {
-            Point pt = *plit;
-
-            float x_floor = floorf(pt.x), y_floor = floorf(pt.y);
+        for (auto plit = it->point_list.begin(); plit != it->point_list.end(); ++plit) {
+            float x_floor = floorf(plit->x), y_floor = floorf(plit->y);
             int i = static_cast<int>(x_floor), j = static_cast<int>(y_floor);
             
-            if (x_floor != pt.x) {
+            if (x_floor != plit->x) {
                 float grid1 = static_cast<float>(grid[i + j * nx]);
                 float grid2 = static_cast<float>(grid[(i + 1) + j * nx]);
                 float alpha = (value - grid1) / (grid2 - grid1);
-                pt.x = xs[i] * (1 - alpha) + xs[i + 1] * alpha;
+                plit->x = xs[i] * (1 - alpha) + xs[i + 1] * alpha;
             }
             else {
-                pt.x = xs[i];
+                plit->x = xs[i];
             }
 
-            if (y_floor != pt.y) {
+            if (y_floor != plit->y) {
                 float grid1 = static_cast<float>(grid[i + j * nx]);
                 float grid2 = static_cast<float>(grid[i + (j + 1) * nx]);
                 float alpha = (value - grid1) / (grid2 - grid1);
-                pt.y = ys[j] * (1 - alpha) + ys[j + 1] * alpha;
+                plit->y = ys[j] * (1 - alpha) + ys[j + 1] * alpha;
             }
             else {
-                pt.y = ys[j];
+                plit->y = ys[j];
             }
-
-            *plit = pt;
         }
-
-        *it = contour;
     }
 
     return contours;
