@@ -286,7 +286,7 @@ void checkGridSize(size_t grid_size, int nx, int ny) {
     }
 }
 
-std::vector<LineString> makeContoursFloat32WASM(std::vector<float> grid, std::vector<float> xs, std::vector<float> ys, float value) {
+std::vector<LineString> makeContoursFloat32WASM(std::vector<float>& grid, std::vector<float>& xs, std::vector<float>& ys, float value) {
     int nx = xs.size();
     int ny = ys.size();
 
@@ -295,7 +295,7 @@ std::vector<LineString> makeContoursFloat32WASM(std::vector<float> grid, std::ve
     return makeContours(grid.data(), xs.data(), ys.data(), nx, ny, value);
 }
 
-std::vector<float> getContourLevelsFloat32WASM(std::vector<float> grid, int nx, int ny, float interval) {
+std::vector<float> getContourLevelsFloat32WASM(std::vector<float>& grid, int nx, int ny, float interval) {
     checkGridSize(grid.size(), nx, ny);
 
     return getContourLevels(grid.data(), nx, ny, interval);
@@ -303,11 +303,9 @@ std::vector<float> getContourLevelsFloat32WASM(std::vector<float> grid, int nx, 
 
 EMSCRIPTEN_BINDINGS(marching_squares) {
     emscripten::class_<Point>("Point")
-        .constructor<float, float>()
         .property("x", &Point::x)
         .property("y", &Point::y);
     emscripten::class_<LineString>("LineString")
-        .constructor()
         .property("point_list", &LineString::point_list);
 
     emscripten::register_vector<float>("FloatList");
