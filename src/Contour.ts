@@ -152,6 +152,8 @@ class Contour<ArrayType extends TypedArray> extends PlotComponent {
         console.log(contours);
 
         grid.delete();
+        grid_x.delete();
+        grid_y.delete();
         console.timeEnd('make contours (wasm)');
         
         const program = program_cache.getValue(gl);
