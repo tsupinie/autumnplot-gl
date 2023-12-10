@@ -170,7 +170,7 @@ class Hodographs extends PlotComponent {
         }
 
         const height_image = {'format': gl.RGBA, 'type': gl.UNSIGNED_BYTE, 'image': HODO_HEIGHT_TEXTURE, 'mag_filter': gl.NEAREST};
-        const hodo_line = new PolylineCollection(gl, hodo_polyline, height_image, 1.5, hodo_scale * bg_size);
+        const hodo_line = new PolylineCollection(gl, hodo_polyline, height_image, 2.5, hodo_scale * bg_size);
 
         const sm_polyline = await layer_worker.makePolyLines(this.profile_field.profiles.map(prof => {
             const pt_ll = new LngLat(prof['lon'], prof['lat']).toMercatorCoord();
@@ -196,7 +196,7 @@ class Hodographs extends PlotComponent {
         const sm_image = {'format': gl.RGBA, 'type': gl.UNSIGNED_BYTE, 'width': 1, 'height': 1, 'image': new Uint8Array(byte_color), 
                           'mag_filter': gl.NEAREST}
 
-        const sm_line = new PolylineCollection(gl, sm_polyline, sm_image, 1, hodo_scale * bg_size);
+        const sm_line = new PolylineCollection(gl, sm_polyline, sm_image, 1.5, hodo_scale * bg_size);
 
         this.gl_elems = {
             map: map, bg_billboard: bg_billboard, hodo_line: hodo_line, sm_line: sm_line
