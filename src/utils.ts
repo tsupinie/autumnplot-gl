@@ -147,20 +147,24 @@ function getOS() {
 }
 
 class Cache<A extends unknown[], R> {
-    private cached_value: R | null;
+    private cached_values: Record<string, R>;
     private readonly compute_value: (...args: A) => R;
+    private readonly make_key: (...args: A) => string;
 
-    constructor(compute_value: (...args: A) => R) {
-        this.cached_value = null;
+    constructor(compute_value: (...args: A) => R, make_key?: (...args: A) => string) {
+        this.cached_values = {};
         this.compute_value = compute_value;
+        this.make_key = make_key === undefined ? (...args: A) => JSON.stringify(args) : make_key;
     }
 
     public getValue(...args: A) {
-        if (this.cached_value === null) {
-            this.cached_value = this.compute_value(...args);
+        const key = this.make_key(...args);
+
+        if (!(key in this.cached_values)) {
+            this.cached_values[key] = this.compute_value(...args);
         }
 
-        return this.cached_value;
+        return this.cached_values[key];
     }
 }
 

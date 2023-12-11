@@ -55,9 +55,12 @@ function preprocessShader(shader_src: string, opts?: {define?: string[]}) {
     return processed_shader_src;
 }
 
-const polyline_vertex_src = preprocessShader(require('./glsl/polyline_vertex.glsl'), {define: ['OFFSET', 'ZOOM']});
-const polyline_fragment_src = preprocessShader(require('./glsl/polyline_fragment.glsl'));
-const program_cache = new Cache((gl: WebGLAnyRenderingContext) => new WGLProgram(gl, polyline_vertex_src, polyline_fragment_src));
+const polyline_vertex_src = require('./glsl/polyline_vertex.glsl');
+const polyline_fragment_src = require('./glsl/polyline_fragment.glsl');
+const program_cache = new Cache((gl: WebGLAnyRenderingContext, vertex_preprocessor_defines: string[]) => {
+    return new WGLProgram(gl, preprocessShader(polyline_vertex_src, {define: vertex_preprocessor_defines}), 
+                              preprocessShader(polyline_fragment_src));
+});
 
 class PolylineCollection {
     public readonly width: number;
@@ -76,7 +79,7 @@ class PolylineCollection {
         this.width = line_width;
         this.scale = offset_scale;
 
-        this.program = program_cache.getValue(gl);
+        this.program = program_cache.getValue(gl, ['OFFSET', 'ZOOM']);
 
         this.origin = new WGLBuffer(gl, polyline['origin'], 2, gl.TRIANGLE_STRIP);
         this.offset = new WGLBuffer(gl, polyline['verts'], 2, gl.TRIANGLE_STRIP);
