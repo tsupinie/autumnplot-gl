@@ -6,6 +6,7 @@ import cape_colormap_data from "./json/pwcape_colormap.json";
 import t2m_colormap_data from "./json/pwt2m_colormap.json";
 import td2m_colormap_data from "./json/pwtd2m_colormap.json";
 import nws_storm_clear_refl_colormap_data from "./json/nws_storm_clear_refl_colormap.json";
+import { Float16Array } from "@petamoriken/float16";
 
 interface Color {
     /** The color as a hex color string */
@@ -185,5 +186,30 @@ function makeTextureImage(colormap: ColorMap) {
     return cmap_image;
 }
 
-export {ColorMap, bluered, redblue, pw_speed500mb, pw_speed850mb, pw_cape, pw_t2m, pw_td2m, nws_storm_clear_refl, makeTextureImage}
+function makeIndexMap(colormap: ColorMap) {
+    // Build a texture to account for nonlinear colormaps (basically inverts the relationship between
+    //  the normalized index and the normalized level)
+    const n_nonlin = 101;
+    const map_norm = [];
+    for (let i = 0; i < n_nonlin; i++) {
+        map_norm.push(i / (n_nonlin - 1));
+    }
+
+    const levels = colormap.levels;
+    const n_lev = levels.length - 1;
+
+    const input_norm = levels.map((lev, ilev) => ilev / n_lev);
+    const cmap_norm = levels.map(lev => (lev - levels[0]) / (levels[n_lev] - levels[0]));
+    const inv_cmap_norm = map_norm.map(lev => {
+        let jlev;
+        for (jlev = 0; !(cmap_norm[jlev] <= lev && lev <= cmap_norm[jlev + 1]); jlev++) {}
+
+        const alpha = (lev - cmap_norm[jlev]) / (cmap_norm[jlev + 1] - cmap_norm[jlev]);
+        return input_norm[jlev] * (1 - alpha) + input_norm[jlev + 1] * alpha;
+    });
+
+    return new Float16Array(inv_cmap_norm);
+}
+
+export {ColorMap, bluered, redblue, pw_speed500mb, pw_speed850mb, pw_cape, pw_t2m, pw_td2m, nws_storm_clear_refl, makeTextureImage, makeIndexMap}
 export type {Color};
