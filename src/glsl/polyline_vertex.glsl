@@ -2,7 +2,7 @@ uniform mat4 u_matrix;
 
 attribute vec2 a_pos;
 attribute vec2 a_extrusion;
-attribute vec2 a_tex_coord;
+attribute float a_data;
 
 #ifdef ZOOM
 attribute float a_min_zoom;
@@ -24,7 +24,9 @@ uniform lowp float u_zoom;
 uniform lowp float u_offset_scale;
 #endif
 
-varying highp vec2 v_tex_coord;
+#ifdef DATA
+varying highp float v_data;
+#endif
 
 mat4 scalingMatrix(float x_scale, float y_scale, float z_scale) {
     return mat4(x_scale, 0.0,     0.0,     0.0,
@@ -39,8 +41,8 @@ mat4 rotationZMatrix(float angle) {
 
     return mat4( c,  s,  0., 0.,
                 -s,  c,  0., 0.,
-                    0., 0., 1., 0.,
-                    0., 0., 0., 1.);
+                 0., 0., 1., 0.,
+                 0., 0., 0., 1.);
 }
 
 mat4 rotationXMatrix(float angle) {
@@ -48,9 +50,9 @@ mat4 rotationXMatrix(float angle) {
     float c = cos(angle);
 
     return mat4( 1.,  0., 0., 0.,
-                    0.,  c,  s,  0.,
-                    0., -s,  c,  0.,
-                    0.,  0., 0., 1.);
+                 0.,  c,  s,  0.,
+                 0., -s,  c,  0.,
+                 0.,  0., 0., 1.);
 }
 
 void main() {
@@ -76,5 +78,8 @@ void main() {
 #endif
 
     gl_Position = center_pos + offset;
-    v_tex_coord = a_tex_coord;
+
+#ifdef DATA
+    v_data = a_data;
+#endif
 }

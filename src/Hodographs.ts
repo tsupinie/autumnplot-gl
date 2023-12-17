@@ -1,12 +1,13 @@
 
-import { PlotComponent, layer_worker } from "./PlotComponent";
-import { PolylineCollection, LineSpec} from "./PolylineCollection";
+import { PlotComponent } from "./PlotComponent";
+import { PolylineCollection, LineData} from "./PolylineCollection";
 import { BillboardCollection } from "./BillboardCollection";
-import { getMinZoom, hex2rgba } from './utils';
+import { getMinZoom, hex2rgb } from './utils';
 import { LngLat, MapType } from "./Map";
 import { RawProfileField } from "./RawField";
 import { TypedArray, WebGLAnyRenderingContext } from "./AutumnTypes";
 import { Float16Array } from "@petamoriken/float16";
+import { ColorMap } from "./Colormap";
 
 const LINE_WIDTH = 4;
 const BG_MAX_RING_MAG = 40;
@@ -55,35 +56,7 @@ function _createHodoBackgroundTexture() {
 
 let HODO_BG_TEXTURE: HTMLCanvasElement | null = null;
 
-const HODO_COLORS = [
-    {'bounds': [0, 1], 'color': '#ffffcc'}, 
-    {'bounds': [1, 3], 'color': '#a1dab4'},
-    {'bounds': [3, 6], 'color': '#41b6c4'},
-    {'bounds': [6, 9], 'color': '#225ea8'}
-];
-
-function _createHodoHeightTexture() {
-    let canvas = document.createElement('canvas');
-
-    canvas.width = Math.max(...HODO_COLORS.map(s => Math.max(...s['bounds'])));
-    canvas.height = 1;
-
-    let ctx = canvas.getContext('2d');
-
-    HODO_COLORS.forEach(stop => {
-        if (ctx === null) {
-            throw "Could not get rendering context for the hodograph height texture canvas";
-        }
-
-        const [clb, cub] = stop['bounds'];
-        ctx.fillStyle = stop['color'];
-        ctx.fillRect(clb, 0, cub - clb, 1);
-    });
-
-    return canvas;
-}
-
-let HODO_HEIGHT_TEXTURE: HTMLCanvasElement | null = null;
+const HODO_CMAP = new ColorMap([0, 1, 3, 6, 9], ['#ffffcc', '#a1dab4', '#41b6c4', '#225ea8']);
 
 interface HodographOptions {
     /** 
@@ -109,7 +82,7 @@ interface HodographGLElems<ArrayType extends TypedArray> {
 /** A class representing a a field of hodograph plots */
 class Hodographs extends PlotComponent {
     private readonly profile_field: RawProfileField;
-    public readonly bgcolor: [number, number, number];
+    public readonly bgcolor: string;
     public readonly thin_fac: number;
 
     private gl_elems: HodographGLElems<Float16Array>;
@@ -126,8 +99,7 @@ class Hodographs extends PlotComponent {
         
         this.profile_field = profile_field;
 
-        const color = hex2rgba(opts.bgcolor || '#000000');
-        this.bgcolor = [color[0], color[1], color[2]];
+        this.bgcolor = opts.bgcolor || '#000000'
         this.thin_fac = opts.thin_fac || 1;
 
         this.gl_elems = null;
@@ -148,33 +120,26 @@ class Hodographs extends PlotComponent {
         const bg_image = {'format': gl.RGBA, 'type': gl.UNSIGNED_BYTE, 'image': HODO_BG_TEXTURE, 'mag_filter': gl.NEAREST};
         const max_zoom = map.getMaxZoom();
 
-        const bg_billboard = new BillboardCollection(gl, this.profile_field.getStormMotionGrid(), this.thin_fac, max_zoom, bg_image, HODO_BG_DIMS, this.bgcolor, 
+        const bg_billboard = new BillboardCollection(gl, this.profile_field.getStormMotionGrid(), this.thin_fac, max_zoom, bg_image, HODO_BG_DIMS, hex2rgb(this.bgcolor), 
                                                     bg_size * 0.004);
 
-        const hodo_polyline = await layer_worker.makePolyLines(this.profile_field.profiles.map(prof => {
+        const hodo_polyline = this.profile_field.profiles.map(prof => {
             const pt_ll = new LngLat(prof['lon'], prof['lat']).toMercatorCoord();
 
             const zoom = getMinZoom(prof['jlat'], prof['ilon'], this.thin_fac);
-            const max_tex_z = Math.max(...HODO_COLORS.map(s => Math.max(...s['bounds'])))
 
             return {
-                'verts': [...prof['u']].map((u, ipt) => [u - prof['smu'], prof['v'][ipt] - prof['smv']]),
-                'origin': [pt_ll.x, pt_ll.y],
+                'offsets': [...prof['u']].map((u, ipt) => [u - prof['smu'], prof['v'][ipt] - prof['smv']]),
+                'vertices': [...prof['u']].map(u => [pt_ll.x, pt_ll.y]),
                 'zoom': zoom,
-                'texcoords': [...prof['z']].map(z => [z /  max_tex_z, 0.5])
-            } as LineSpec;
-        }));
+                'data': [...prof['z']],
+            } as LineData;
+        });
 
-        if (HODO_HEIGHT_TEXTURE === null) {
-            HODO_HEIGHT_TEXTURE = _createHodoHeightTexture();
-        }
+        const hodo_line = await PolylineCollection.make(gl, hodo_polyline, {line_width: 2.5, cmap: HODO_CMAP, offset_scale: hodo_scale * bg_size});
 
-        const height_image = {'format': gl.RGBA, 'type': gl.UNSIGNED_BYTE, 'image': HODO_HEIGHT_TEXTURE, 'mag_filter': gl.NEAREST};
-        const hodo_line = new PolylineCollection(gl, hodo_polyline, height_image, 2.5, hodo_scale * bg_size);
-
-        const sm_polyline = await layer_worker.makePolyLines(this.profile_field.profiles.map(prof => {
+        const sm_polyline = await this.profile_field.profiles.map(prof => {
             const pt_ll = new LngLat(prof['lon'], prof['lat']).toMercatorCoord();
-            let ret = {};
 
             const zoom = getMinZoom(prof['jlat'], prof['ilon'], this.thin_fac);
 
@@ -183,20 +148,14 @@ class Hodographs extends PlotComponent {
             const buffer = 2
 
             return {
-                'verts': [[buffer * Math.sin(sm_ang), buffer * Math.cos(sm_ang)], 
-                          [sm_mag * Math.sin(sm_ang), sm_mag * Math.cos(sm_ang)]],
-                'origin': [pt_ll.x, pt_ll.y],
-                'zoom': zoom,
-                'texcoords': [[0.5, 0.5], [0.5, 0.5]]
-            } as LineSpec;
-        }));
+                'offsets': [[buffer * Math.sin(sm_ang), buffer * Math.cos(sm_ang)], 
+                            [sm_mag * Math.sin(sm_ang), sm_mag * Math.cos(sm_ang)]],
+                'vertices': [[pt_ll.x, pt_ll.y], [pt_ll.x, pt_ll.y]],
+                'zoom': zoom
+            } as LineData;
+        });
 
-        let byte_color = this.bgcolor.map(c => c * 255);
-        byte_color.push(255)
-        const sm_image = {'format': gl.RGBA, 'type': gl.UNSIGNED_BYTE, 'width': 1, 'height': 1, 'image': new Uint8Array(byte_color), 
-                          'mag_filter': gl.NEAREST}
-
-        const sm_line = new PolylineCollection(gl, sm_polyline, sm_image, 1.5, hodo_scale * bg_size);
+        const sm_line = await PolylineCollection.make(gl, sm_polyline, {line_width: 1.5, color: this.bgcolor, offset_scale: hodo_scale * bg_size});
 
         this.gl_elems = {
             map: map, bg_billboard: bg_billboard, hodo_line: hodo_line, sm_line: sm_line
