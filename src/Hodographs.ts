@@ -138,7 +138,7 @@ class Hodographs extends PlotComponent {
 
         const hodo_line = await PolylineCollection.make(gl, hodo_polyline, {line_width: 2.5, cmap: HODO_CMAP, offset_scale: hodo_scale * bg_size});
 
-        const sm_polyline = await this.profile_field.profiles.map(prof => {
+        const sm_polyline = this.profile_field.profiles.map(prof => {
             const pt_ll = new LngLat(prof['lon'], prof['lat']).toMercatorCoord();
 
             const zoom = getMinZoom(prof['jlat'], prof['ilon'], this.thin_fac);
