@@ -1,7 +1,8 @@
 
 import { WGLBuffer, WGLProgram, WGLTexture, WGLTextureSpec } from "autumn-wgl";
-import { PolylineSpec, LineSpec, WebGLAnyRenderingContext } from "./AutumnTypes";
+import { Polyline, LineData, WebGLAnyRenderingContext } from "./AutumnTypes";
 import { ColorMap, makeTextureImage } from "./Colormap";
+import { layer_worker } from "./PlotComponent";
 import { Cache, hex2rgba } from "./utils";
 
 function preprocessShader(shader_src: string, opts?: {define?: string[]}) {
@@ -62,150 +63,6 @@ const program_cache = new Cache((gl: WebGLAnyRenderingContext, preprocessor_defi
     return new WGLProgram(gl, preprocessShader(polyline_vertex_src, {define: preprocessor_defines}), 
                               preprocessShader(polyline_fragment_src, {define: preprocessor_defines}));
 });
-
-type LineData = {
-    vertices: [number, number][];
-    offsets?: [number, number][];
-    data?: number[];
-    zoom?: number;
-}
-
-type Polyline = {
-    extrusion: Float32Array;
-    vertices: Float32Array;
-    offsets?: Float32Array;
-    data?: Float32Array;
-    zoom?: Float32Array;
-};
-
-function makePolylines(lines: LineData[]) : Polyline {
-    const n_points_per_vert = Object.fromEntries(Object.entries(lines[0]).map(([k, v]) => {
-        let n_verts: number;
-        if (typeof v === 'number') {
-            n_verts = 1;
-        }
-        else if (typeof v[0] === 'number') {
-            n_verts = 1;
-        }
-        else {
-            n_verts = v[0].length;
-        }
-        return [k, n_verts];
-    }));
-    n_points_per_vert['extrusion'] = 2;
-    n_points_per_vert['vertices'] += 1;
-
-    const n_verts = lines.map(l => l.vertices.length).reduce((a, b) => a + b);
-    const n_out_verts = (n_verts - lines.length) * 6;
-    const ary_lens = Object.fromEntries(Object.entries(n_points_per_vert).map(([k, nppv]) => [k, n_out_verts * nppv]));
-
-    let ret: Polyline = {
-        vertices: new Float32Array(ary_lens['vertices']),
-        extrusion: new Float32Array(ary_lens['extrusion']),
-    }
-
-    if ('offsets' in lines[0]) {
-        ret.offsets = new Float32Array(ary_lens['offsets']);
-    }
-
-    if ('data' in lines[0]) {
-        ret.data = new Float32Array(ary_lens['data']);
-    }
-
-    if ('zoom' in lines[0]) {
-        ret.zoom = new Float32Array(ary_lens['zoom']);
-    }
-
-    let ilns = Object.fromEntries(Object.keys(ary_lens).map(k => [k, 0]));
-
-    const compute_normal_vec = (pt1: [number, number], pt2: [number, number]) => {
-        const line_vec_x = pt2[0] - pt1[0];
-        const line_vec_y = pt2[1] - pt1[1];
-        const line_vec_mag = Math.hypot(line_vec_x, line_vec_y);
-
-        return [line_vec_y / line_vec_mag, -line_vec_x / line_vec_mag];
-    }
-
-    lines.forEach(line => {
-        const extrusion_verts = line.offsets === undefined ? line.vertices : line.offsets;
-        const verts = line.vertices;
-
-        let pt_prev: [number, number], pt_this = verts[0], pt_next = verts[1];
-        let ept_prev: [number, number], ept_this = extrusion_verts[0], ept_next = extrusion_verts[1];
-        let len_prev: number, len_this = 0;
-        let [ext_x, ext_y] = compute_normal_vec(ept_this, ept_next);
-
-        ret.vertices[ilns.vertices++] = pt_this[0]; ret.vertices[ilns.vertices++] = pt_this[1]; ret.vertices[ilns.vertices++] = len_this;
-        ret.extrusion[ilns.extrusion++] = ext_x; ret.extrusion[ilns.extrusion++] = ext_y;
-
-        for (let ivt = 1; ivt < verts.length; ivt++) {
-            pt_this = verts[ivt]; pt_prev = verts[ivt - 1];
-            ept_this = extrusion_verts[ivt]; ept_prev = extrusion_verts[ivt - 1];
-
-            [ext_x, ext_y] = compute_normal_vec(ept_prev, ept_this);
-            len_prev = len_this; len_this += Math.hypot(verts[ivt - 1][0] - verts[ivt][0], verts[ivt - 1][1] - verts[ivt][1]);
-
-            ret.vertices[ilns.vertices++] = pt_prev[0]; ret.vertices[ilns.vertices++] = pt_prev[1]; ret.vertices[ilns.vertices++] = len_prev;
-            ret.vertices[ilns.vertices++] = pt_prev[0]; ret.vertices[ilns.vertices++] = pt_prev[1]; ret.vertices[ilns.vertices++] = len_prev;
-
-            ret.vertices[ilns.vertices++] = pt_this[0]; ret.vertices[ilns.vertices++] = pt_this[1]; ret.vertices[ilns.vertices++] = len_this;
-            ret.vertices[ilns.vertices++] = pt_this[0]; ret.vertices[ilns.vertices++] = pt_this[1]; ret.vertices[ilns.vertices++] = len_this;
-
-            ret.extrusion[ilns.extrusion++] =  ext_x; ret.extrusion[ilns.extrusion++] =  ext_y;
-            ret.extrusion[ilns.extrusion++] = -ext_x; ret.extrusion[ilns.extrusion++] = -ext_y;
-
-            ret.extrusion[ilns.extrusion++] =  ext_x; ret.extrusion[ilns.extrusion++] =  ext_y;
-            ret.extrusion[ilns.extrusion++] = -ext_x; ret.extrusion[ilns.extrusion++] = -ext_y;
-        }
-
-        ret.vertices[ilns.vertices++] = pt_this[0]; ret.vertices[ilns.vertices++] = pt_this[1]; ret.vertices[ilns.vertices++] = len_this;
-        ret.extrusion[ilns.extrusion++] = -ext_x; ret.extrusion[ilns.extrusion++] = -ext_y;
-
-        if ('offsets' in ret) {
-            const offsets = line.offsets;
-            let off_prev: [number, number], off_this = offsets[0];
-
-            ret.offsets[ilns.offsets++] = off_this[0]; ret.offsets[ilns.offsets++] = off_this[1];
-
-            for (let ivt = 1; ivt < offsets.length; ivt++) {
-                off_this = offsets[ivt]; off_prev = offsets[ivt - 1];
-
-                ret.offsets[ilns.offsets++] = off_prev[0]; ret.offsets[ilns.offsets++] = off_prev[1];
-                ret.offsets[ilns.offsets++] = off_prev[0]; ret.offsets[ilns.offsets++] = off_prev[1];
-                ret.offsets[ilns.offsets++] = off_this[0]; ret.offsets[ilns.offsets++] = off_this[1];
-                ret.offsets[ilns.offsets++] = off_this[0]; ret.offsets[ilns.offsets++] = off_this[1];
-            }
-
-            ret.offsets[ilns.offsets++] = off_this[0]; ret.offsets[ilns.offsets++] = off_this[1];
-        }
-
-        if ('data' in ret) {
-            const data = line.data;
-            let data_prev: number, data_this = data[0];
-
-            ret.data[ilns.data++] = data_this;
-            
-            for (let ivt = 1; ivt < data.length; ivt++) {
-                data_this = data[ivt]; data_prev = data[ivt - 1];
-
-                ret.data[ilns.data++] = data_prev;
-                ret.data[ilns.data++] = data_prev;
-                ret.data[ilns.data++] = data_this;
-                ret.data[ilns.data++] = data_this;
-            }
-
-            ret.data[ilns.data++] = data_this;
-        }
-        
-        if ('zoom' in ret) {
-            for (let ivt = 0; ivt < verts.length * 4; ivt++) {
-                ret.zoom[ilns.zoom++] = line['zoom'];
-            }
-        }
-    })
-
-    return ret;
-}
 
 interface PolylineCollectionOpts {
     offset_scale?: number;
@@ -290,7 +147,7 @@ class PolylineCollection {
     }
 
     static async make(gl: WebGLAnyRenderingContext, lines: LineData[], opts?: PolylineCollectionOpts) {
-        const polylines = makePolylines(lines);
+        const polylines = await layer_worker.makePolyLines(lines);
         return new PolylineCollection(gl, polylines, opts);
     }
 
@@ -329,4 +186,3 @@ class PolylineCollection {
 }
 
 export {PolylineCollection};
-export type {PolylineSpec, LineSpec, LineData};

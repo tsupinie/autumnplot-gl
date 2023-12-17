@@ -23,20 +23,20 @@ interface BillboardSpec {
     BB_MAG_MAX: number;
 }
 
-interface PolylineSpec {
-    origin: Float32Array;
-    verts: Float32Array;
-    extrusion: Float32Array;
-    zoom: Float32Array;
-    texcoords: Float32Array
+type LineData = {
+    vertices: [number, number][];
+    offsets?: [number, number][];
+    data?: number[];
+    zoom?: number;
 }
 
-interface LineSpec {
-    verts: [number, number][];
-    origin: [number, number];
-    zoom: number,
-    texcoords: [number, number][];
-}
+type Polyline = {
+    extrusion: Float32Array;
+    vertices: Float32Array;
+    offsets?: Float32Array;
+    data?: Float32Array;
+    zoom?: Float32Array;
+};
 
 type WebGLAnyRenderingContext = WebGLRenderingContext | WebGL2RenderingContext;
 
@@ -47,4 +47,4 @@ function isWebGL2Ctx(gl: WebGLAnyRenderingContext) : gl is WebGL2RenderingContex
 type TypedArray = Float16Array | Float32Array;
 
 export {isWebGL2Ctx};
-export type {WindProfile, BillboardSpec, PolylineSpec, LineSpec, WebGLAnyRenderingContext, TypedArray};
+export type {WindProfile, BillboardSpec, Polyline, LineData, WebGLAnyRenderingContext, TypedArray};

@@ -1,11 +1,11 @@
 
 import { PlotComponent } from "./PlotComponent";
-import { PolylineCollection, LineData} from "./PolylineCollection";
+import { PolylineCollection } from "./PolylineCollection";
 import { BillboardCollection } from "./BillboardCollection";
 import { getMinZoom, hex2rgb } from './utils';
 import { LngLat, MapType } from "./Map";
 import { RawProfileField } from "./RawField";
-import { TypedArray, WebGLAnyRenderingContext } from "./AutumnTypes";
+import { LineData, TypedArray, WebGLAnyRenderingContext } from "./AutumnTypes";
 import { Float16Array } from "@petamoriken/float16";
 import { ColorMap } from "./Colormap";
 
