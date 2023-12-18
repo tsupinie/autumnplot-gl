@@ -318,8 +318,12 @@ function makePolylines(lines: LineData[]) : Polyline {
     }
 
     lines.forEach(line => {
-        const extrusion_verts = line.offsets === undefined ? line.vertices : line.offsets;
-        const verts = line.vertices;
+        const verts = line.vertices.map(v => {
+            const v_ll = new LngLat(...v).toMercatorCoord();
+            return [v_ll.x, v_ll.y] as [number, number];
+        });
+
+        const extrusion_verts = line.offsets === undefined ? verts: line.offsets;
 
         let pt_prev: [number, number], pt_this = verts[0], pt_next = verts[1];
         let ept_prev: [number, number], ept_this = extrusion_verts[0], ept_next = extrusion_verts[1];

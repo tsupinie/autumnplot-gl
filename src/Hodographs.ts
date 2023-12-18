@@ -124,13 +124,11 @@ class Hodographs extends PlotComponent {
                                                     bg_size * 0.004);
 
         const hodo_polyline = this.profile_field.profiles.map(prof => {
-            const pt_ll = new LngLat(prof['lon'], prof['lat']).toMercatorCoord();
-
             const zoom = getMinZoom(prof['jlat'], prof['ilon'], this.thin_fac);
 
             return {
                 'offsets': [...prof['u']].map((u, ipt) => [u - prof['smu'], prof['v'][ipt] - prof['smv']]),
-                'vertices': [...prof['u']].map(u => [pt_ll.x, pt_ll.y]),
+                'vertices': [...prof['u']].map(u => [prof['lon'], prof['lat']]),
                 'zoom': zoom,
                 'data': [...prof['z']],
             } as LineData;
@@ -139,8 +137,6 @@ class Hodographs extends PlotComponent {
         const hodo_line = await PolylineCollection.make(gl, hodo_polyline, {line_width: 2.5, cmap: HODO_CMAP, offset_scale: hodo_scale * bg_size});
 
         const sm_polyline = this.profile_field.profiles.map(prof => {
-            const pt_ll = new LngLat(prof['lon'], prof['lat']).toMercatorCoord();
-
             const zoom = getMinZoom(prof['jlat'], prof['ilon'], this.thin_fac);
 
             const sm_mag = Math.hypot(prof['smu'], prof['smv']);
@@ -150,7 +146,7 @@ class Hodographs extends PlotComponent {
             return {
                 'offsets': [[buffer * Math.sin(sm_ang), buffer * Math.cos(sm_ang)], 
                             [sm_mag * Math.sin(sm_ang), sm_mag * Math.cos(sm_ang)]],
-                'vertices': [[pt_ll.x, pt_ll.y], [pt_ll.x, pt_ll.y]],
+                'vertices': [[prof['lon'], prof['lat']], [prof['lon'], prof['lat']]],
                 'zoom': zoom
             } as LineData;
         });
