@@ -309,12 +309,15 @@ function makePolylines(lines: LineData[]) : Polyline {
 
     let ilns = Object.fromEntries(Object.keys(ary_lens).map(k => [k, 0]));
 
-    const compute_normal_vec = (pt1: [number, number], pt2: [number, number]) => {
+    const compute_normal_vec = (pt1: [number, number], pt2: [number, number], flip_y_coord: boolean) => {
         const line_vec_x = pt2[0] - pt1[0];
         const line_vec_y = pt2[1] - pt1[1];
         const line_vec_mag = Math.hypot(line_vec_x, line_vec_y);
 
-        return [line_vec_y / line_vec_mag, -line_vec_x / line_vec_mag];
+        const ext_x = line_vec_y / line_vec_mag;
+        const ext_y = -line_vec_x / line_vec_mag;
+
+        return [ext_x, flip_y_coord ? -ext_y : ext_y];
     }
 
     lines.forEach(line => {
@@ -323,12 +326,13 @@ function makePolylines(lines: LineData[]) : Polyline {
             return [v_ll.x, v_ll.y] as [number, number];
         });
 
-        const extrusion_verts = line.offsets === undefined ? verts: line.offsets;
+        const has_offsets = line.offsets !== undefined;
+        const extrusion_verts = has_offsets ? line.offsets : verts;
 
         let pt_prev: [number, number], pt_this = verts[0], pt_next = verts[1];
         let ept_prev: [number, number], ept_this = extrusion_verts[0], ept_next = extrusion_verts[1];
         let len_prev: number, len_this = 0;
-        let [ext_x, ext_y] = compute_normal_vec(ept_this, ept_next);
+        let [ext_x, ext_y] = compute_normal_vec(ept_this, ept_next, !has_offsets);
 
         ret.vertices[ilns.vertices++] = pt_this[0]; ret.vertices[ilns.vertices++] = pt_this[1]; ret.vertices[ilns.vertices++] = len_this;
         ret.extrusion[ilns.extrusion++] = ext_x; ret.extrusion[ilns.extrusion++] = ext_y;
@@ -337,7 +341,7 @@ function makePolylines(lines: LineData[]) : Polyline {
             pt_this = verts[ivt]; pt_prev = verts[ivt - 1];
             ept_this = extrusion_verts[ivt]; ept_prev = extrusion_verts[ivt - 1];
 
-            [ext_x, ext_y] = compute_normal_vec(ept_prev, ept_this);
+            [ext_x, ext_y] = compute_normal_vec(ept_prev, ept_this, !has_offsets);
             len_prev = len_this; len_this += Math.hypot(verts[ivt - 1][0] - verts[ivt][0], verts[ivt - 1][1] - verts[ivt][1]);
 
             ret.vertices[ilns.vertices++] = pt_prev[0]; ret.vertices[ilns.vertices++] = pt_prev[1]; ret.vertices[ilns.vertices++] = len_prev;
