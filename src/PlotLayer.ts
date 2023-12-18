@@ -126,7 +126,9 @@ class MultiPlotLayer extends PlotLayerBase {
         const old_field_key = this.field_key;
         this.field_key = key;
 
-        this.map.triggerRepaint();
+        if (this.map !== null) {
+            this.map.triggerRepaint();
+        }
     }
 
     /**
