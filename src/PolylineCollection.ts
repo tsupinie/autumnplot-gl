@@ -171,7 +171,7 @@ class PolylineCollection {
 
     public render(gl: WebGLAnyRenderingContext, matrix: number[], [map_width, map_height]: [number, number], map_zoom: number, map_bearing: number, map_pitch: number) {
         const attributes: Record<string, WGLBuffer> = {'a_pos': this.vertices, 'a_extrusion': this.extrusion};
-        const uniforms: Record<string, number | number[]> = {'u_matrix': matrix, 'u_line_width': this.width, 'u_map_aspect': map_height / map_width, 'u_map_bearing': map_bearing};
+        const uniforms: Record<string, number | number[]> = {'u_matrix': matrix, 'u_line_width': this.width, 'u_map_width': map_width, 'u_map_height': map_height, 'u_map_bearing': map_bearing};
         const textures: Record<string, WGLTexture> = {};
 
         if (this.offset !== null) {

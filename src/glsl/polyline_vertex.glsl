@@ -13,7 +13,8 @@ attribute vec2 a_offset;
 #endif
 
 uniform lowp float u_line_width;
-uniform lowp float u_map_aspect;
+uniform lowp float u_map_width;
+uniform lowp float u_map_height;
 uniform highp float u_map_bearing;
 
 #ifdef ZOOM
@@ -63,15 +64,17 @@ void main() {
     if (u_zoom >= a_min_zoom) {
 #endif
 
-        vec2 offset_2d = u_line_width * a_extrusion;
+        vec2 offset_ext = u_line_width * a_extrusion;
+
+        mat4 map_stretch_matrix = scalingMatrix(u_map_height / u_map_width, 1., 1.);
+        mat4 rotation_matrix = rotationZMatrix(radians(u_map_bearing));  
+        offset = map_stretch_matrix * rotation_matrix * vec4(offset_ext, 0., 0.);
 
 #ifdef OFFSET
-        offset_2d += u_offset_scale * a_offset;
+        map_stretch_matrix = scalingMatrix(1., u_map_width / u_map_height, 1.);
+        vec2 offset_offset = u_offset_scale * a_offset;
+        offset += map_stretch_matrix * rotation_matrix * vec4(offset_offset, 0., 0.);
 #endif
-
-        mat4 map_stretch_matrix = scalingMatrix(1., 1. / u_map_aspect, 1.);
-        mat4 rotation_matrix = rotationZMatrix(radians(u_map_bearing));  
-        offset = map_stretch_matrix * rotation_matrix * vec4(offset_2d, 0., 0.);
 
 #ifdef ZOOM
     }
