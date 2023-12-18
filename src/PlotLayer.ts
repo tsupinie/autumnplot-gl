@@ -44,7 +44,9 @@ class PlotLayer extends PlotLayerBase {
      * Add this layer to a map
      */
     public onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
-        this.field.onAdd(map, gl);
+        this.field.onAdd(map, gl).then(() => {
+            map.triggerRepaint();
+        });
     }
 
     /**
@@ -99,12 +101,10 @@ class MultiPlotLayer extends PlotLayerBase {
         this.gl = gl;
 
         Object.values(this.fields).forEach(field => {
-            field.onAdd(map, gl).then(res => {
-                this.repaintIfNecessary(null);
+            field.onAdd(map, gl).then(() => {
+                this.map.triggerRepaint();
             });
         });
-
-        this.repaintIfNecessary(null);
     }
 
     /**
@@ -126,7 +126,7 @@ class MultiPlotLayer extends PlotLayerBase {
         const old_field_key = this.field_key;
         this.field_key = key;
 
-        this.repaintIfNecessary(old_field_key);
+        this.map.triggerRepaint();
     }
 
     /**
@@ -146,8 +146,8 @@ class MultiPlotLayer extends PlotLayerBase {
         const old_field_key = this.field_key;
 
         if (this.map !== null && this.gl !== null && field !== null) {
-            field.onAdd(this.map, this.gl).then(res => {
-                this.repaintIfNecessary(null);
+            field.onAdd(this.map, this.gl).then(() => {
+                this.map.triggerRepaint();
             });
         }
 
@@ -155,12 +155,6 @@ class MultiPlotLayer extends PlotLayerBase {
         
         if (this.field_key === null) {
             this.field_key = key;
-        }
-    }
-
-    private repaintIfNecessary(old_field_key: string | null) {
-        if (this.map !== null && old_field_key !== this.field_key) {
-            this.map.triggerRepaint();
         }
     }
 }
