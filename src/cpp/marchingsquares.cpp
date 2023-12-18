@@ -233,7 +233,7 @@ std::vector<float> getContourLevels(T* grid, int nx, int ny, float interval) noe
     T minval = std::numeric_limits<T>::infinity(), maxval = -std::numeric_limits<T>::infinity();
     for (int idx = 0; idx < nx * ny; idx++) {
         minval = grid[idx] < minval ? grid[idx] : minval;
-        maxval = grid[idx] > minval ? grid[idx] : maxval;
+        maxval = grid[idx] > maxval ? grid[idx] : maxval;
     }
 
     float lowest_contour = ceilf(minval / interval) * interval, highest_contour = floorf(maxval / interval) * interval;
