@@ -1,10 +1,9 @@
 
-import { TypedArray, WebGLAnyRenderingContext} from './AutumnTypes';
+import { LineData, TypedArray, WebGLAnyRenderingContext} from './AutumnTypes';
 import { MapType } from './Map';
-import { PlotComponent, getGLFormatTypeAlignment } from './PlotComponent';
+import { PlotComponent } from './PlotComponent';
 import { RawScalarField } from './RawField';
-import { Cache, hex2rgba } from './utils';
-import { WGLBuffer, WGLProgram, WGLTexture } from 'autumn-wgl';
+import { PolylineCollection } from './PolylineCollection';
 
 import Module from './cpp/marchingsquares';
 import { MarchingSquaresModule } from './cpp/marchingsquares';
@@ -12,10 +11,6 @@ import { LineString, Point } from './cpp/marchingsquares_embind';
 import './cpp/marchingsquares.wasm';
 
 let msm: MarchingSquaresModule | null = null;
-
-const contour_vertex_shader_src = require('./glsl/contour_vertex.glsl');
-const contour_fragment_shader_src = require('./glsl/contour_fragment.glsl');
-const program_cache = new Cache((gl: WebGLAnyRenderingContext) => new WGLProgram(gl, contour_vertex_shader_src, contour_fragment_shader_src));
 
 interface ContourOptions {
     /** 
@@ -46,11 +41,7 @@ interface ContourOptions {
 
 interface ContourGLElems {
     map: MapType;
-    program: WGLProgram;
-    vertices: WGLBuffer;
-    grid_cell_size: WGLBuffer;
-    fill_texture: WGLTexture;
-    texcoords: WGLBuffer;
+    contours: PolylineCollection;
 }
 
 /** 
@@ -63,7 +54,7 @@ interface ContourGLElems {
  */
 class Contour<ArrayType extends TypedArray> extends PlotComponent {
     private readonly field: RawScalarField<ArrayType>;
-    public readonly color: [number, number, number];
+    public readonly color: string;
     public readonly interval: number;
     public readonly levels: number[];
     public readonly thinner: (zoom: number) => number;
@@ -83,27 +74,18 @@ class Contour<ArrayType extends TypedArray> extends PlotComponent {
         this.interval = opts.interval || 1;
         this.levels = opts.levels || [];
 
-        const color = hex2rgba(opts.color || '#000000');
-        this.color = [color[0], color[1], color[2]];
+        this.color = opts.color || '#000000';
 
         this.thinner = opts.thinner || (() => 1);
 
         this.gl_elems = null;
     }
 
-    /**
-     * @internal
-     * Add the contours to a map
-     */
-    public async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
-        // Basic procedure for these contours from https://www.shadertoy.com/view/lltBWM
-        gl.getExtension("OES_standard_derivatives");
-
+    public async getContours() {
         if (msm === null) {
             msm = await Module();
         }
 
-        console.time('make contours (wasm)');
         const grid_coords = this.field.grid.getGridCoords();
 
         const grid = new msm.FloatList();
@@ -149,30 +131,27 @@ class Contour<ArrayType extends TypedArray> extends PlotComponent {
             contours_.delete();
         });
 
-        console.log(contours);
-
         grid.delete();
         grid_x.delete();
         grid_y.delete();
-        console.timeEnd('make contours (wasm)');
-        
-        const program = program_cache.getValue(gl);
 
-        const {vertices: verts_buf, texcoords: tex_coords_buf, cellsize: cellsize_buf} = await this.field.grid.getWGLBuffers(gl);
-        const vertices = verts_buf;
-        const texcoords = tex_coords_buf;
-        const grid_cell_size = cellsize_buf;
+        return contours;
+    }
 
-        const {format, type, row_alignment} = getGLFormatTypeAlignment(gl, this.field.isFloat16());
+    /**
+     * @internal
+     * Add the contours to a map
+     */
+    public async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
+        const contour_data = await this.getContours();
+        const line_data = Object.values(contour_data).flat().map(c => {
+            return {vertices: c} as LineData;
+        });
 
-        const fill_image = {'format': format, 'type': type, 
-            'width': this.field.grid.ni, 'height': this.field.grid.nj, 'image': this.field.getTextureData(),
-            'mag_filter': gl.LINEAR, 'row_alignment': row_alignment,
-        };
+        const contours = await PolylineCollection.make(gl, line_data, {line_width: 2, color: this.color});
 
-        const fill_texture = new WGLTexture(gl, fill_image);
         this.gl_elems = {
-            map: map, program: program, vertices: vertices, texcoords: texcoords, grid_cell_size: grid_cell_size, fill_texture: fill_texture
+            map: map, contours: contours
         };
     }
 
@@ -185,28 +164,12 @@ class Contour<ArrayType extends TypedArray> extends PlotComponent {
         const gl_elems = this.gl_elems;
 
         const zoom = gl_elems.map.getZoom();
-        const intv = this.thinner(zoom) * this.interval;
-        const cutoff = 0.3 / intv;
-        const step_size = [1 / this.field.grid.ni, 1 / this.field.grid.nj];
-        const zoom_fac = Math.pow(2, zoom);
+        const map_width = gl_elems.map.getCanvas().width;
+        const map_height = gl_elems.map.getCanvas().height;
+        const bearing = gl_elems.map.getBearing();
+        const pitch = gl_elems.map.getPitch();
 
-        let uniforms = {'u_contour_interval': intv, 'u_line_cutoff': cutoff, 'u_color': this.color, 'u_step_size': step_size, 'u_zoom_fac': zoom_fac,
-                        'u_matrix': matrix, 'u_num_contours': 0, 'u_contour_levels': [0]};
-
-        if (this.levels.length > 0) {
-            uniforms = {...uniforms, 'u_num_contours': this.levels.length, 'u_contour_levels': this.levels}
-        }
-
-        gl_elems.program.use(
-            {'a_pos': gl_elems.vertices, 'a_grid_cell_size': gl_elems.grid_cell_size, 'a_tex_coord': gl_elems.texcoords},
-            uniforms,
-            {'u_fill_sampler': gl_elems.fill_texture}
-        );
-
-        gl.enable(gl.BLEND);
-        gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-
-        gl_elems.program.draw();
+        gl_elems.contours.render(gl, matrix, [map_width, map_height], zoom, bearing, pitch);
     }
 }
 
