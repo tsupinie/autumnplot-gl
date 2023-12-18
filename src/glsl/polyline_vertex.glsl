@@ -64,7 +64,7 @@ void main() {
     if (u_zoom >= a_min_zoom) {
 #endif
 
-        vec2 offset_ext = u_line_width * a_extrusion;
+        vec2 offset_ext = u_line_width * 1.5 * a_extrusion;
 
         mat4 map_stretch_matrix = scalingMatrix(u_map_height / u_map_width, 1., 1.);
         mat4 rotation_matrix = rotationZMatrix(radians(u_map_bearing));  
