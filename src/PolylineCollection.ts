@@ -6,63 +6,10 @@ import { ColorMap, makeIndexMap, makeTextureImage } from "./Colormap";
 import { getGLFormatTypeAlignment, layer_worker } from "./PlotComponent";
 import { Cache, hex2rgba } from "./utils";
 
-function preprocessShader(shader_src: string, opts?: {define?: string[]}) {
-    opts = opts === undefined ? {} : opts;
-    const defines = opts.define === undefined ? [] : [...opts.define];
-
-    const current_defines: string[] = [];
-    const define_truth: Record<string, boolean> = {};
-
-    const processed_shader_src = shader_src.split("\n").map(line => {
-        const match_define = line.match(/#define\s+([\w\d_]+)/i);
-        if (match_define !== null) {
-            defines.push(match_define[1]);
-        }
-
-        const match_ifdef = line.match(/#ifdef\s+([\w\d_]+)/i);
-        if (match_ifdef !== null) {
-            current_defines.push(match_ifdef[1]);
-            define_truth[match_ifdef[1]] = true;
-            return "";
-        }
-
-        const match_ifndef = line.match(/#ifndef\s+([\w\d_]+)/i);
-        if (match_ifndef !== null) {
-            current_defines.push(match_ifndef[1]);
-            define_truth[match_ifndef[1]] = false;
-            return "";
-        }
-
-        const match_else = line.match(/#else/i);
-        if (match_else !== null) {
-            const def = current_defines[current_defines.length - 1];
-            define_truth[def] = !define_truth[def];
-            return "";
-        }
-
-        const match_endif = line.match(/#endif/i);
-        if (match_endif !== null) {
-            const def = current_defines.pop();
-            define_truth[def] = undefined;
-            return "";
-        }
-
-        const keep_line = current_defines.map(def => defines.includes(def) == define_truth[def]).reduce((a, b) => a && b, true)
-        return keep_line ? line : "";
-    }).join("\n");
-
-    if (current_defines.length > 0) {
-        throw `Unterminated #ifdef/#ifndef block in shader`;
-    }
-
-    return processed_shader_src;
-}
-
 const polyline_vertex_src = require('./glsl/polyline_vertex.glsl');
 const polyline_fragment_src = require('./glsl/polyline_fragment.glsl');
 const program_cache = new Cache((gl: WebGLAnyRenderingContext, preprocessor_defines: string[]) => {
-    return new WGLProgram(gl, preprocessShader(polyline_vertex_src, {define: preprocessor_defines}), 
-                              preprocessShader(polyline_fragment_src, {define: preprocessor_defines}));
+    return new WGLProgram(gl, polyline_vertex_src, polyline_fragment_src, {define: preprocessor_defines});
 });
 
 interface PolylineCollectionOpts {
