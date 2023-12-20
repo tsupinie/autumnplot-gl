@@ -54,7 +54,7 @@ void main() {
     highp float v = texture2D(u_v_sampler, a_tex_coord).r;
 
     lowp float bb_aspect = u_bb_width / u_bb_height;
-    lowp float ang = atan(v, u) - 3.141592654 / 2.0;
+    lowp float ang = (abs(u) < 1e-6 && abs(v) < 1e-6) ? 0. : atan(v, u) - 3.141592654 / 2.0;
     highp float mag = length(vec2(u, v));
     mag = floor(mag / u_bb_mag_bin_size + 0.5) * u_bb_mag_bin_size;
 

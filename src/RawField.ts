@@ -504,6 +504,12 @@ class RawVectorField<ArrayType extends TypedArray> {
                 const u = this.u.data[icd];
                 const v = this.v.data[icd];
 
+                if (Math.abs(u) < 1e-6 && Math.abs(v) < 1e-6) {
+                    u_rot[icd] = 0;
+                    v_rot[icd] = 0;
+                    continue;
+                }
+
                 const [x, y] = grid.transform(lon, lat);
                 const [x_pertlon, y_pertlon] = grid.transform(lon + 0.01, lat);
                 const mag_pertlon = Math.hypot(x - x_pertlon, y - y_pertlon);
