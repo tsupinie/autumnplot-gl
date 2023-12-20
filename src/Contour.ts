@@ -10,7 +10,15 @@ import { MarchingSquaresModule } from './cpp/marchingsquares';
 import { LineString, Point } from './cpp/marchingsquares_embind';
 import './cpp/marchingsquares.wasm';
 
-let msm: MarchingSquaresModule | null = null;
+let msm_promise: Promise<MarchingSquaresModule> | null = null;
+
+function initMSModule() {
+    if (msm_promise === null) {
+        msm_promise = Module();
+    }
+
+    return msm_promise;
+}
 
 interface ContourOptions {
     /** 
@@ -82,9 +90,7 @@ class Contour<ArrayType extends TypedArray> extends PlotComponent {
     }
 
     public async getContours() {
-        if (msm === null) {
-            msm = await Module();
-        }
+        const msm = await initMSModule();
 
         const grid_coords = this.field.grid.getGridCoords();
 
@@ -174,4 +180,5 @@ class Contour<ArrayType extends TypedArray> extends PlotComponent {
 }
 
 export default Contour;
+export {initMSModule};
 export type {ContourOptions};
