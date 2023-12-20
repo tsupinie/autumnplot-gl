@@ -576,6 +576,12 @@ class RawVectorField<ArrayType extends TypedArray> {
                 const u = this.u.data[icd];
                 const v = this.v.data[icd];
 
+                if (Math.abs(u) < 1e-6 && Math.abs(v) < 1e-6) {
+                    u_rot[icd] = 0;
+                    v_rot[icd] = 0;
+                    continue;
+                }
+
                 const [x, y] = grid.transform(lon, lat);
                 const [x_pertlon, y_pertlon] = grid.transform(lon + 0.01, lat);
                 const mag_pertlon = Math.hypot(x - x_pertlon, y - y_pertlon);
@@ -599,8 +605,16 @@ class RawVectorField<ArrayType extends TypedArray> {
                     y_dotlat = (y_pertlat - y) / mag_pertlat;
                 }
 
-                u_rot[icd] = x_dotlon * u + y_dotlon * v;
-                v_rot[icd] = x_dotlat * u + y_dotlat * v;
+                const u_earth = x_dotlon * u + y_dotlon * v;
+                let v_earth = x_dotlat * u + y_dotlat * v;
+
+                const mag_pre = Math.hypot(u_earth, v_earth);
+                v_earth /= Math.cos(lat * Math.PI / 180);
+                const mag_post = Math.hypot(u_earth, v_earth);
+
+                // TAS: These are really map coordinates, not earth coordinates. So I should probably change the function names.
+                u_rot[icd] = u_earth * mag_pre / mag_post;
+                v_rot[icd] = v_earth * mag_pre / mag_post;
             }
 
             return {u: new RawScalarField(grid, u_rot), v: new RawScalarField(grid, v_rot)};

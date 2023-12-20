@@ -74,7 +74,7 @@ class BillboardCollection<ArrayType extends TypedArray> {
         this.program.use(
             {'a_pos': this.vertices, 'a_tex_coord': this.texcoords},
             {'u_bb_size': bb_size, 'u_bb_width': bb_width, 'u_bb_height': bb_height,
-             'u_bb_mag_bin_size': this.spec.BB_MAG_BIN_SIZE, 'u_bb_mag_wrap': this.spec.BB_MAG_WRAP, // 'u_bb_max_mag': this.spec.BB_MAG_MAX,
+             'u_bb_mag_bin_size': this.spec.BB_MAG_BIN_SIZE, 'u_bb_mag_wrap': this.spec.BB_MAG_WRAP, 'u_offset': 0,
              'u_bb_color': this.color, 'u_matrix': matrix, 'u_map_aspect': map_height / map_width, 'u_zoom': map_zoom, 'u_map_bearing': map_bearing},
             {'u_sampler': this.texture, 'u_u_sampler': this.u_texture, 'u_v_sampler': this.v_texture}
         );
@@ -82,6 +82,15 @@ class BillboardCollection<ArrayType extends TypedArray> {
         gl.enable(gl.BLEND);
         gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 
+        this.program.draw();
+
+        this.program.setUniforms({'u_offset': -2});
+        this.program.draw();
+
+        this.program.setUniforms({'u_offset': -1});
+        this.program.draw();
+
+        this.program.setUniforms({'u_offset': 1});
         this.program.draw();
     }
 }

@@ -1,4 +1,5 @@
 uniform mat4 u_matrix;
+uniform int u_offset;
 
 attribute vec2 a_pos;
 attribute vec2 a_extrusion;
@@ -57,7 +58,10 @@ mat4 rotationXMatrix(float angle) {
 }
 
 void main() {
-    vec4 center_pos = u_matrix * vec4(a_pos.xy, 0.0, 1.0);
+    float globe_width = 1.;
+    vec2 globe_offset = vec2(globe_width * float(u_offset), 0.);
+
+    vec4 center_pos = u_matrix * vec4(a_pos.xy + globe_offset, 0.0, 1.0);
     vec4 offset = vec4(0.0, 0.0, 0.0, 0.0);
 
 #ifdef ZOOM

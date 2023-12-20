@@ -118,7 +118,9 @@ class PolylineCollection {
 
     public render(gl: WebGLAnyRenderingContext, matrix: number[], [map_width, map_height]: [number, number], map_zoom: number, map_bearing: number, map_pitch: number) {
         const attributes: Record<string, WGLBuffer> = {'a_pos': this.vertices, 'a_extrusion': this.extrusion};
-        const uniforms: Record<string, number | number[]> = {'u_matrix': matrix, 'u_line_width': this.width, 'u_map_width': map_width, 'u_map_height': map_height, 'u_map_bearing': map_bearing};
+        const uniforms: Record<string, number | number[]> = {
+            'u_matrix': matrix, 'u_line_width': this.width, 'u_map_width': map_width, 'u_map_height': map_height, 'u_map_bearing': map_bearing, 'u_offset': 0
+        };
         const textures: Record<string, WGLTexture> = {};
 
         if (this.offset !== null) {
@@ -148,6 +150,15 @@ class PolylineCollection {
         gl.enable(gl.BLEND);
         gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 
+        this.program.draw();
+
+        this.program.setUniforms({'u_offset': -2});
+        this.program.draw();
+
+        this.program.setUniforms({'u_offset': -1});
+        this.program.draw();
+
+        this.program.setUniforms({'u_offset': 1});
         this.program.draw();
     }
 }
