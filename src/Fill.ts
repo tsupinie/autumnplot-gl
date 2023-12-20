@@ -140,13 +140,22 @@ class PlotComponentFill<ArrayType extends TypedArray> extends PlotComponent {
         gl_elems.program.use(
             {'a_pos': gl_elems.vertices, 'a_tex_coord': gl_elems.texcoords},
             {'u_cmap_min': this.cmap.levels[0], 'u_cmap_max': this.cmap.levels[this.cmap.levels.length - 1], 'u_matrix': matrix, 'u_opacity': this.opacity,
-             'u_n_index': this.index_map.length},
+             'u_n_index': this.index_map.length, 'u_offset': 0},
             {'u_fill_sampler': gl_elems.fill_texture, 'u_cmap_sampler': gl_elems.cmap_texture, 'u_cmap_nonlin_sampler': gl_elems.cmap_nonlin_texture}
         );
 
         gl.enable(gl.BLEND);
         gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 
+        gl_elems.program.draw();
+
+        gl_elems.program.setUniforms({'u_offset': -2});
+        gl_elems.program.draw();
+
+        gl_elems.program.setUniforms({'u_offset': -1});
+        gl_elems.program.draw();
+
+        gl_elems.program.setUniforms({'u_offset': 1});
         gl_elems.program.draw();
     }
 }

@@ -1,4 +1,5 @@
 uniform mat4 u_matrix;
+uniform int u_offset;
 
 attribute vec3 a_pos;    // Has position, zoom, and corner info
 attribute vec2 a_tex_coord;
@@ -45,7 +46,10 @@ mat4 rotationXMatrix(float angle) {
 }
 
 void main() {
-    vec4 pivot_pos = u_matrix * vec4(a_pos.xy, 0.0, 1.0);
+    float globe_width = 1.;
+    vec2 globe_offset = vec2(globe_width * float(u_offset), 0.);
+
+    vec4 pivot_pos = u_matrix * vec4(a_pos.xy + globe_offset, 0.0, 1.0);
     highp float zoom_corner = a_pos.z;
     lowp float min_zoom = floor(zoom_corner / 4.0);
     lowp float corner = mod(zoom_corner, 4.0);
