@@ -185,7 +185,7 @@ window.addEventListener('load', () => {
     const map = new maplibregl.Map({
         container: 'map',
         style: 'http://localhost:9000/style.json',
-        center: [-77.5, 0.],
+        center: [-97.5, 38.5],
         zoom: 4,
         maxZoom: 7,
     });
