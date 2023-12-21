@@ -2,13 +2,32 @@
 function makeSynthetic500mbLayers() {
     const nx = 121, ny = 61;
     const grid = new apgl.PlateCarreeGrid(nx, ny, -130, 20, -65, 55);
+    //const grid = new apgl.LambertGrid(nx, ny, -97.5, 38.5, [38.5, 38.5], -3600000, -1800000, 3600000, 1800000);
+    //const grid = new apgl.PlateCarreeRotatedGrid(nx, ny, 65.305142, 36.08852, 180, -14.82122, -12.302501, 42.306283, 16.7);
+    const coords = grid.getGridCoords();
+
+    const height_pert = 10;
+    const height_grad = 0.5
+    const vel_pert = 60;
+
     let hght = [], u = [], v = [];
     for (i = 0; i < nx; i++) {
         for (j = 0; j < ny; j++) {
+            let v_fac = 1;
+            if (grid.type == 'latlon' || grid.type == 'latlonrot') {
+                v_fac = Math.cos(coords.y[j] * Math.PI / 180);
+            }
+
             const idx = i + j * nx;
-            hght[idx] = 10 * (Math.cos(4 * Math.PI * i / (nx - 1)) * Math.cos(2 * Math.PI * j / (ny - 1)) - 0.05 * j);
-            u[idx] = 60 * (Math.cos(4 * Math.PI * i / (nx - 1)) * Math.sin(2 * Math.PI * j / (ny - 1)) + 0.5);
-            v[idx] = -60 * Math.sin(4 * Math.PI * i / (nx - 1)) * Math.cos(2 * Math.PI * j / (ny - 1));
+            hght[idx] = height_pert * (Math.cos(4 * Math.PI * i / (nx - 1)) * Math.cos(2 * Math.PI * j / (ny - 1))) - height_grad * j;
+            let u_earth = vel_pert * (Math.cos(4 * Math.PI * i / (nx - 1)) * Math.sin(2 * Math.PI * j / (ny - 1)) + height_grad);
+            let v_earth = -vel_pert * Math.sin(4 * Math.PI * i / (nx - 1)) * Math.cos(2 * Math.PI * j / (ny - 1));
+
+            const mag = Math.hypot(u_earth, v_earth);
+            v_earth /= v_fac;
+
+            u[idx] = u_earth * mag / Math.hypot(u_earth, v_earth);
+            v[idx] = v_earth * mag / Math.hypot(u_earth, v_earth);
         }
     }
     const colormap = apgl.colormaps.pw_speed500mb;
@@ -166,7 +185,7 @@ window.addEventListener('load', () => {
     const map = new maplibregl.Map({
         container: 'map',
         style: 'http://localhost:9000/style.json',
-        center: [-97.5, 38.5],
+        center: [-77.5, 0.],
         zoom: 4,
         maxZoom: 7,
     });
