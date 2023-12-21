@@ -246,7 +246,7 @@ class PlateCarreeRotatedGrid extends Grid {
             for (let i = 0; i < this.ni; i++) {
                 const lon_p = this.ll_lon + i * dlon;
                 for (let j = 0; j < this.nj; j++) {
-                    const lat_p = this.ll_lat + i * dlat;
+                    const lat_p = this.ll_lat + j * dlat;
 
                     const [lon, lat] = this.llrot(lon_p, lat_p);
                     const idx = i + j * this.ni;
@@ -605,16 +605,8 @@ class RawVectorField<ArrayType extends TypedArray> {
                     y_dotlat = (y_pertlat - y) / mag_pertlat;
                 }
 
-                const u_earth = x_dotlon * u + y_dotlon * v;
-                let v_earth = x_dotlat * u + y_dotlat * v;
-
-                const mag_pre = Math.hypot(u_earth, v_earth);
-                v_earth /= Math.cos(lat * Math.PI / 180);
-                const mag_post = Math.hypot(u_earth, v_earth);
-
-                // TAS: These are really map coordinates, not earth coordinates. So I should probably change the function names.
-                u_rot[icd] = u_earth * mag_pre / mag_post;
-                v_rot[icd] = v_earth * mag_pre / mag_post;
+                u_rot[icd] = x_dotlon * u + y_dotlon * v;
+                v_rot[icd] = x_dotlat * u + y_dotlat * v;
             }
 
             return {u: new RawScalarField(grid, u_rot), v: new RawScalarField(grid, v_rot)};
