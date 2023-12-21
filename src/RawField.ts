@@ -246,7 +246,7 @@ class PlateCarreeRotatedGrid extends Grid {
             for (let i = 0; i < this.ni; i++) {
                 const lon_p = this.ll_lon + i * dlon;
                 for (let j = 0; j < this.nj; j++) {
-                    const lat_p = this.ll_lat + i * dlat;
+                    const lat_p = this.ll_lat + j * dlat;
 
                     const [lon, lat] = this.llrot(lon_p, lat_p);
                     const idx = i + j * this.ni;
