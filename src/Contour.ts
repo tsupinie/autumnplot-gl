@@ -136,6 +136,7 @@ class Contour<ArrayType extends TypedArray> extends PlotComponent {
                     pt.delete();
                 }
 
+                contour_point_list.delete();
                 contour.delete();
             }
 
