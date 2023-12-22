@@ -124,14 +124,19 @@ class Contour<ArrayType extends TypedArray> extends PlotComponent {
 
             for (let icntr = 0; icntr < contours_.size(); icntr++) {
                 const contour: LineString = contours_.get(icntr);
+                const contour_point_list = contour.point_list;
 
                 contours[v].push([]);
 
-                for (let ipt = 0; ipt < contour.point_list.size(); ipt++) {
-                    const pt: Point = contour.point_list.get(ipt);
+                for (let ipt = 0; ipt < contour_point_list.size(); ipt++) {
+                    const pt: Point = contour_point_list.get(ipt);
                     const [lon, lat] = this.field.grid.transform(pt.x, pt.y, {inverse: true});
                     contours[v][icntr].push([lon, lat]);
+
+                    pt.delete();
                 }
+
+                contour.delete();
             }
 
             contours_.delete();
