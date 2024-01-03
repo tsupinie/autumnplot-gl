@@ -168,4 +168,17 @@ class Cache<A extends unknown[], R> {
     }
 }
 
-export {hex2rgba, rgba2hex, hex2rgb, rgb2hex, rgb2hsv, hsv2rgb, zip, getMinZoom, getOS, Cache};
+
+function normalizeOptions<Type extends Record<string, any>>(opts: Type | undefined, defaults: Required<Type>) {
+    const ret = {...defaults} as Required<Type>;
+
+    if (opts !== undefined) {
+        Object.entries(opts).forEach(([k, v]: [keyof Type, any]) => {
+            ret[k] = v;
+        });
+    }
+
+    return ret;
+}
+
+export {hex2rgba, rgba2hex, hex2rgb, rgb2hex, rgb2hsv, hsv2rgb, zip, getMinZoom, getOS, Cache, normalizeOptions};

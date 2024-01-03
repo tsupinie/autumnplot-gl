@@ -6,6 +6,7 @@ function makeSynthetic500mbLayers() {
     //const grid = new apgl.PlateCarreeRotatedGrid(nx, ny, 65.305142, 36.08852, 180, -14.82122, -12.302501, 42.306283, 16.7);
     const coords = grid.getGridCoords();
 
+    const height_base = 570;
     const height_pert = 10;
     const height_grad = 0.5
     const vel_pert = 60;
@@ -19,7 +20,7 @@ function makeSynthetic500mbLayers() {
             }
 
             const idx = i + j * nx;
-            hght[idx] = height_pert * (Math.cos(4 * Math.PI * i / (nx - 1)) * Math.cos(2 * Math.PI * j / (ny - 1))) - height_grad * j;
+            hght[idx] = height_base + height_pert * (Math.cos(4 * Math.PI * i / (nx - 1)) * Math.cos(2 * Math.PI * j / (ny - 1))) - height_grad * j;
             let u_earth = vel_pert * (Math.cos(4 * Math.PI * i / (nx - 1)) * Math.sin(2 * Math.PI * j / (ny - 1)) + height_grad);
             let v_earth = -vel_pert * Math.sin(4 * Math.PI * i / (nx - 1)) * Math.cos(2 * Math.PI * j / (ny - 1));
 
@@ -32,7 +33,7 @@ function makeSynthetic500mbLayers() {
     }
     const colormap = apgl.colormaps.pw_speed500mb;
 
-    const arrayType = float16.Float16Array;
+    const arrayType = Float32Array;
 
     const raw_hght_field = new apgl.RawScalarField(grid, new arrayType(hght));
     const raw_u_field = new apgl.RawScalarField(grid, new arrayType(u));
@@ -45,15 +46,18 @@ function makeSynthetic500mbLayers() {
     const filled = new apgl.ContourFill(raw_ws_field, {'cmap': colormap, 'opacity': 0.8});
     const barbs = new apgl.Barbs(raw_vec_field, {color: '#000000', thin_fac: 16});
 
+    const labels = new apgl.ContourLabels(cntr, {text_color: '#ffffff', halo: true});
+
     const hght_layer = new apgl.PlotLayer('height', cntr);
     const ws_layer = new apgl.PlotLayer('wind-speed', filled);
     const barb_layer = new apgl.PlotLayer('barbs', barbs);
+    const label_layer = new apgl.PlotLayer('label', labels);
 
     const svg = apgl.makeColorBar(colormap, {label: "Wind Speed (kts)", fontface: 'Trebuchet MS', 
                                              ticks: [20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140],
                                              orientation: 'horizontal', tick_direction: 'bottom'});
 
-    return {layers: [ws_layer, hght_layer, barb_layer], colorbar: svg};
+    return {layers: [ws_layer, hght_layer, barb_layer, label_layer], colorbar: svg};
 }
 
 async function fetchBinary(fname) {

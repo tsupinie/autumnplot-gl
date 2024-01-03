@@ -295,4 +295,4 @@ class TextCollection {
 }
 
 export {TextCollection};
-export type {TextSpec};
+export type {TextSpec, TextCollectionOptions};

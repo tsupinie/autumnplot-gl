@@ -1,6 +1,6 @@
 
 import { PlotComponent } from "./PlotComponent";
-import Contour, {ContourOptions, initMSModule} from "./Contour";
+import Contour, {ContourOptions, initMSModule, ContourLabels} from "./Contour";
 import {ContourFill, Raster, ContourFillOptions, RasterOptions} from "./Fill";
 import Barbs, {BarbsOptions} from "./Barbs";
 import Paintball, {PaintballOptions} from "./Paintball";
@@ -30,7 +30,7 @@ function initAutumnPlot() {
 
 export {PlotComponent,
         Barbs, BarbsOptions,
-        Contour, ContourOptions,
+        Contour, ContourOptions, ContourLabels,
         ContourFill, Raster, ContourFillOptions, RasterOptions,
         Paintball, PaintballOptions,
         Hodographs, HodographOptions, WindProfile,

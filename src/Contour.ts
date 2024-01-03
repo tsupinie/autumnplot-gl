@@ -4,11 +4,13 @@ import { MapType } from './Map';
 import { PlotComponent } from './PlotComponent';
 import { RawScalarField } from './RawField';
 import { PolylineCollection } from './PolylineCollection';
+import { TextCollection, TextCollectionOptions, TextSpec } from './TextCollection';
 
 import Module from './cpp/marchingsquares';
 import { MarchingSquaresModule } from './cpp/marchingsquares';
 import { LineString, Point } from './cpp/marchingsquares_embind';
 import './cpp/marchingsquares.wasm';
+import { hex2rgb, normalizeOptions } from './utils';
 
 let msm_promise: Promise<MarchingSquaresModule> | null = null;
 
@@ -185,6 +187,86 @@ class Contour<ArrayType extends TypedArray> extends PlotComponent {
     }
 }
 
+interface ContourLabelGLElems {
+    map: MapType;
+    text_collection: TextCollection;
+}
+
+interface ContourLabelOptions {
+    n_decimal_places?: number;
+    font_face?: string;
+    font_size?: number;
+    font_url_template?: string;
+    text_color?: string;
+    halo_color?: string;
+    halo?: boolean;
+}
+
+const contour_label_opt_defaults: Required<ContourLabelOptions> = {
+    n_decimal_places: 0,
+    font_face: 'Trebuchet MS',
+    font_size: 12,
+    font_url_template: '',
+    text_color: '#000000',
+    halo_color: '#000000',
+    halo: false
+}
+
+class ContourLabels<ArrayType extends TypedArray> extends PlotComponent {
+    private readonly contours: Contour<ArrayType>;
+    private gl_elems: ContourLabelGLElems | null;
+    private readonly opts: Required<ContourLabelOptions>;
+
+    constructor(contours: Contour<ArrayType>, opts?: ContourLabelOptions) {
+        super();
+
+        this.opts = normalizeOptions(opts, contour_label_opt_defaults);
+
+        this.contours = contours;
+        this.gl_elems = null;
+    }
+
+    public async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
+        const map_style = map.getStyle();
+        const font_url_template = this.opts.font_url_template == '' ? map_style.glyphs : this.opts.font_url_template;
+        const font_url = font_url_template.replace('{range}', '0-255').replace('{fontstack}', this.opts.font_face);
+
+        const label_pos: TextSpec[] = [];
+
+        Object.entries(await this.contours.getContours()).forEach(([level, contours]) => {
+            const level_str = level.toString();
+
+            contours.forEach(contour => {
+                const i = Math.floor(contour.length / 2);
+                const pt = contour[i];
+                label_pos.push({lat: pt[1], lon: pt[0], text: level_str});
+            });
+        });
+
+        const tc_opts: TextCollectionOptions = {
+            horizontal_align: 'center', vertical_align: 'middle', font_size: this.opts.font_size,
+            halo: this.opts.halo, 
+            text_color: hex2rgb(this.opts.text_color), halo_color: hex2rgb(this.opts.halo_color),
+        };
+
+        const text_collection = await TextCollection.make(gl, label_pos, font_url, tc_opts);
+
+        this.gl_elems = {
+            map: map, text_collection: text_collection,
+        }
+    }
+
+    public render(gl: WebGLAnyRenderingContext, matrix: number[]) {
+        if (this.gl_elems === null) return;
+        const gl_elems = this.gl_elems;
+
+        const map_width = gl_elems.map.getCanvas().width;
+        const map_height = gl_elems.map.getCanvas().height;
+
+        gl_elems.text_collection.render(gl, matrix, [map_width, map_height]);
+    }
+}
+
 export default Contour;
-export {initMSModule};
+export {initMSModule, ContourLabels};
 export type {ContourOptions};
