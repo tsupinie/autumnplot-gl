@@ -255,7 +255,7 @@ class TextCollection {
             }
             else if (opts.vertical_align == 'middle') {
                 for (let i = init_i_off + 1; i < init_i_off + text.length * 12; i += 2) {
-                    offset_data[i] -= (font_atlas.top + font_atlas.baseline) / 2;
+                    offset_data[i] -= (font_atlas.baseline - font_atlas.top) / 2;
                 }
             }
         });
