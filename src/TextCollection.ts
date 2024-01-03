@@ -1,6 +1,6 @@
 import { isWebGL2Ctx, WebGLAnyRenderingContext } from "./AutumnTypes";
 import { LngLat } from "./Map";
-import { Cache } from "./utils";
+import { Cache, normalizeOptions } from "./utils";
 
 import { WGLBuffer, WGLProgram, WGLTexture } from "autumn-wgl";
 
@@ -156,6 +156,15 @@ interface TextCollectionOptions {
     halo?: boolean;
 }
 
+const text_collection_opt_defaults: Required<TextCollectionOptions> = {
+    horizontal_align: 'left',
+    vertical_align: 'baseline',
+    font_size: 12,
+    text_color: [0, 0, 0],
+    halo_color: [0, 0, 0],
+    halo: false
+}
+
 class TextCollection {
     readonly program: WGLProgram;
     readonly anchors: WGLBuffer;
@@ -168,14 +177,7 @@ class TextCollection {
     private constructor(gl: WebGLAnyRenderingContext, text_locs: TextSpec[], font_atlas: FontAtlas, opts?: TextCollectionOptions) {
         this.program = program_cache.getValue(gl);
 
-        opts = opts === undefined ? {} : {...opts};
-        opts.horizontal_align = opts.horizontal_align === undefined ? 'left' : opts.horizontal_align;
-        opts.vertical_align = opts.vertical_align === undefined ? 'baseline' : opts.vertical_align;
-        opts.font_size = opts.font_size === undefined ? 12 : opts.font_size;
-        opts.text_color = opts.text_color === undefined ? [0., 0., 0.] : opts.text_color;
-        opts.halo_color = opts.halo_color === undefined ? [0., 0., 0.] : opts.halo_color;
-        opts.halo = opts.halo === undefined ? false : opts.halo;
-        this.opts = opts as Required<TextCollectionOptions>;
+        this.opts = normalizeOptions(opts, text_collection_opt_defaults);
         
         const is_webgl2 = isWebGL2Ctx(gl);
         const format = is_webgl2 ? gl.R8 : gl.LUMINANCE;
