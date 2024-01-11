@@ -14,7 +14,7 @@ abstract class PlotLayerBase {
     }
 
     public abstract onAdd(map: MapType, gl: WebGLAnyRenderingContext) : void;
-    public abstract render(gl: WebGLAnyRenderingContext, matrix: number[]) : void;
+    public abstract render(gl: WebGLAnyRenderingContext, matrix: number[] | Float32Array) : void;
 }
 
 /** 
@@ -51,7 +51,7 @@ class PlotLayer extends PlotLayerBase {
      * @internal
      * Render this layer
      */
-    public render(gl: WebGLAnyRenderingContext, matrix: number[]) {
+    public render(gl: WebGLAnyRenderingContext, matrix: number[] | Float32Array) {
         this.field.render(gl, matrix);
     }
 }
@@ -111,7 +111,7 @@ class MultiPlotLayer extends PlotLayerBase {
      * @internal
      * Render this layer
      */
-    public render(gl: WebGLAnyRenderingContext, matrix: number[]) {
+    public render(gl: WebGLAnyRenderingContext, matrix: number[] | Float32Array) {
         if (this.map !== null && this.gl !== null && this.field_key !== null 
             && this.fields.hasOwnProperty(this.field_key) && this.fields[this.field_key] !== null) {
             this.fields[this.field_key].render(gl, matrix);

@@ -116,9 +116,12 @@ class Contour<ArrayType extends TypedArray> extends PlotComponent {
      * @internal
      * Render the contours
      */
-    public render(gl: WebGLAnyRenderingContext, matrix: number[]) {
+    public render(gl: WebGLAnyRenderingContext, matrix: number[] | Float32Array) {
         if (this.gl_elems === null) return;
         const gl_elems = this.gl_elems;
+
+        if (matrix instanceof Float32Array)
+            matrix = [...matrix];
 
         const zoom = gl_elems.map.getZoom();
         const intv = this.thinner(zoom) * this.interval;

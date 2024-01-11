@@ -207,7 +207,7 @@ class Hodographs extends PlotComponent {
      * @internal
      * Render the hodographs
      */
-    public render(gl: WebGLAnyRenderingContext, matrix: number[]) {
+    public render(gl: WebGLAnyRenderingContext, matrix: number[] | Float32Array) {
         if (this.gl_elems === null) return;
         const gl_elems = this.gl_elems;
 
