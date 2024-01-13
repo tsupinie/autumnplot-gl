@@ -111,9 +111,12 @@ class PlotComponentFill<ArrayType extends TypedArray> extends PlotComponent {
         };
     }
 
-    public render(gl: WebGLAnyRenderingContext, matrix: number[]) {
+    public render(gl: WebGLAnyRenderingContext, matrix: number[] | Float32Array) {
         if (this.gl_elems === null) return;
         const gl_elems = this.gl_elems;
+
+        if (matrix instanceof Float32Array) 
+            matrix = [...matrix];
 
         gl_elems.program.use(
             {'a_pos': gl_elems.vertices, 'a_tex_coord': gl_elems.texcoords},
@@ -169,7 +172,7 @@ class Raster<ArrayType extends TypedArray> extends PlotComponentFill<ArrayType> 
      * @internal
      * Render the raster plot
      */
-    public render(gl: WebGLAnyRenderingContext, matrix: number[]) {
+    public render(gl: WebGLAnyRenderingContext, matrix: number[] | Float32Array) {
         super.render(gl, matrix);
     }
 }
@@ -205,7 +208,7 @@ class ContourFill<ArrayType extends TypedArray> extends PlotComponentFill<ArrayT
      * @internal
      * Render the filled contours
      */
-    public render(gl: WebGLAnyRenderingContext, matrix: number[]) {
+    public render(gl: WebGLAnyRenderingContext, matrix: number[] | Float32Array) {
         super.render(gl, matrix);
     }
 }

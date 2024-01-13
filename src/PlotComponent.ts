@@ -11,7 +11,7 @@ const layer_worker = Comlink.wrap<PlotLayerWorker>(worker);
 
 abstract class PlotComponent {
     public abstract onAdd(map: MapType, gl: WebGLAnyRenderingContext) : Promise<void>;
-    public abstract render(gl: WebGLAnyRenderingContext, matrix: number[]) : void;
+    public abstract render(gl: WebGLAnyRenderingContext, matrix: number[] | Float32Array) : void;
 }
 
 function getGLFormatTypeAlignment(gl: WebGLAnyRenderingContext, is_float16: boolean) {
