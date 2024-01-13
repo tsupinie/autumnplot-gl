@@ -24,6 +24,6 @@ void main() {
 
     mat4 map_stretch_matrix = scalingMatrix(u_map_height / u_map_width, 1., 1.);
 
-    gl_Position = u_matrix * vec4(a_pos + globe_offset, 0.0, 1.0) + u_font_size / 12. * 1.7 * map_stretch_matrix * vec4(a_offset, 0., 0.);
+    gl_Position = u_matrix * vec4(a_pos + globe_offset, 0.0, 1.0) + u_font_size / 12. * 1.5 * map_stretch_matrix * vec4(a_offset, 0., 0.);
     v_tex_coord = a_tex_coord;
 }
