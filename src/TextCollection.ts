@@ -215,6 +215,8 @@ class TextCollection {
                     continue;
                 }
 
+                x_offset += glyph_info.left;
+
                 anchor_data[i_anch++] = anchor_x; anchor_data[i_anch++] = anchor_y;
                 anchor_data[i_anch++] = anchor_x; anchor_data[i_anch++] = anchor_y;
                 anchor_data[i_anch++] = anchor_x; anchor_data[i_anch++] = anchor_y;
@@ -236,7 +238,7 @@ class TextCollection {
                 tc_data[i_tc++] = (glyph_info.atlas_i + glyph_info.width) / font_atlas.atlas_width; tc_data[i_tc++] = glyph_info.atlas_j / font_atlas.atlas_height;
                 tc_data[i_tc++] = (glyph_info.atlas_i + glyph_info.width) / font_atlas.atlas_width; tc_data[i_tc++] = glyph_info.atlas_j / font_atlas.atlas_height;
 
-                x_offset += glyph_info.advance;
+                x_offset += glyph_info.advance - glyph_info.left;
             }
 
             if (opts.horizontal_align == 'center') {
