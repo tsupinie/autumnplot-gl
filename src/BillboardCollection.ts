@@ -3,11 +3,9 @@ import { BillboardSpec, TypedArray, WebGLAnyRenderingContext } from "./AutumnTyp
 import { getGLFormatTypeAlignment } from "./PlotComponent";
 import { RawVectorField } from "./RawField";
 import { WGLBuffer, WGLProgram, WGLTexture, WGLTextureSpec } from "autumn-wgl";
-import { Cache } from "./utils";
 
 const billboard_vertex_shader_src = require('./glsl/billboard_vertex.glsl');
 const billboard_fragment_shader_src = require('./glsl/billboard_fragment.glsl');
-const program_cache = new Cache((gl: WebGLAnyRenderingContext) => new WGLProgram(gl, billboard_vertex_shader_src, billboard_fragment_shader_src))
 
 class BillboardCollection<ArrayType extends TypedArray> {
     public readonly spec: BillboardSpec;
@@ -28,7 +26,7 @@ class BillboardCollection<ArrayType extends TypedArray> {
         this.color = billboard_color;
         this.size_multiplier = billboard_size_mult;
 
-        this.program = program_cache.getValue(gl);
+        this.program = new WGLProgram(gl, billboard_vertex_shader_src, billboard_fragment_shader_src);
         this.vertices = null;
         this.texcoords = null;
 
