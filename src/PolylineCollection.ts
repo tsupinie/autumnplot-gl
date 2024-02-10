@@ -8,9 +8,6 @@ import { Cache, hex2rgba } from "./utils";
 
 const polyline_vertex_src = require('./glsl/polyline_vertex.glsl');
 const polyline_fragment_src = require('./glsl/polyline_fragment.glsl');
-const program_cache = new Cache((gl: WebGLAnyRenderingContext, preprocessor_defines: string[]) => {
-    return new WGLProgram(gl, polyline_vertex_src, polyline_fragment_src, {define: preprocessor_defines});
-});
 
 interface PolylineCollectionOpts {
     offset_scale?: number;
@@ -46,6 +43,7 @@ class PolylineCollection {
         this.width = line_width;
 
         const shader_defines = [];
+        this.program = new WGLProgram(gl, polyline_vertex_src, polyline_fragment_src);
 
         this.vertices = new WGLBuffer(gl, polyline['vertices'], 3, gl.TRIANGLE_STRIP);
         this.extrusion = new WGLBuffer(gl, polyline['extrusion'], 2, gl.TRIANGLE_STRIP);
@@ -107,8 +105,6 @@ class PolylineCollection {
             this.line_data = null;
             this.index_map = null;
         }
-
-        this.program = program_cache.getValue(gl, shader_defines);
     }
 
     static async make(gl: WebGLAnyRenderingContext, lines: LineData[], opts?: PolylineCollectionOpts) {
