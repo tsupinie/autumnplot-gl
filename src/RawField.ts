@@ -655,8 +655,8 @@ class RawProfileField {
 
     /** Get the gridded storm motion vector field (internal method) */
     public getStormMotionGrid() {
-        const u = new Float16Array(this.grid.ni * this.grid.nj);
-        const v = new Float16Array(this.grid.ni * this.grid.nj);
+        const u = new Float16Array(this.grid.ni * this.grid.nj).fill(parseFloat('nan'));
+        const v = new Float16Array(this.grid.ni * this.grid.nj).fill(parseFloat('nan'));
 
         this.profiles.forEach(prof => {
             const idx = prof.ilon + this.grid.ni * prof.jlat;
