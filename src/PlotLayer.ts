@@ -49,12 +49,12 @@ class PlotLayer extends PlotLayerBase {
         this.pre_add_key = null;
     }
 
-    public updateData(key: string) {
+    public async updateData(key: string) {
         if (this.map === null) {
             this.pre_add_key = key;
         }
         else {
-            this.field.updateData(key);
+            await this.field.updateData(key);
             this.repaint();
         }
     }
