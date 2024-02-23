@@ -7,14 +7,22 @@ import { PlotComponent } from './PlotComponent';
 abstract class PlotLayerBase {
     public readonly type: 'custom';
     public readonly id: string;
+    protected map: MapType;
 
     constructor(id: string) {
         this.type = 'custom';
         this.id = id;
+        this.map = null;
     }
 
     public abstract onAdd(map: MapType, gl: WebGLAnyRenderingContext) : void;
     public abstract render(gl: WebGLAnyRenderingContext, matrix: number[] | Float32Array) : void;
+
+    protected repaint() {
+        if (this.map !== null) {
+            this.map.triggerRepaint();
+        }
+    }
 }
 
 /** 
@@ -28,6 +36,7 @@ abstract class PlotLayerBase {
  */
 class PlotLayer extends PlotLayerBase {
     private readonly field: PlotComponent;
+    private pre_add_key: string | null;
 
     /**
      * Create a map layer from a field
@@ -37,14 +46,31 @@ class PlotLayer extends PlotLayerBase {
     constructor(id: string, field: PlotComponent) {
         super(id);
         this.field = field;
+        this.pre_add_key = null;
+    }
+
+    public updateData(key: string) {
+        if (this.map === null) {
+            this.pre_add_key = key;
+        }
+        else {
+            this.field.updateData(key);
+            this.repaint();
+        }
     }
 
     /**
      * @internal
      * Add this layer to a map
      */
-    public onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
-        this.field.onAdd(map, gl);
+    public async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
+        this.map = map;
+        await this.field.onAdd(map, gl);
+
+        if (this.pre_add_key !== null) {
+            this.updateData(this.pre_add_key);
+            this.pre_add_key = null;
+        }
     }
 
     /**
@@ -74,8 +100,7 @@ class MultiPlotLayer extends PlotLayerBase {
     private fields: Record<string, PlotComponent>;
     private field_key: string | null;
 
-    private map: MapType | null;
-    private gl: WebGLAnyRenderingContext | null
+    private gl: WebGLAnyRenderingContext | null;
 
     /**
      * Create a time-varying map layer
@@ -100,11 +125,11 @@ class MultiPlotLayer extends PlotLayerBase {
 
         Object.values(this.fields).forEach(field => {
             field.onAdd(map, gl).then(res => {
-                this.repaintIfNecessary(null);
+                this.repaint();
             });
         });
 
-        this.repaintIfNecessary(null);
+        this.repaint();
     }
 
     /**
@@ -126,7 +151,7 @@ class MultiPlotLayer extends PlotLayerBase {
         const old_field_key = this.field_key;
         this.field_key = key;
 
-        this.repaintIfNecessary(old_field_key);
+        this.repaint();
     }
 
     /**
@@ -147,7 +172,7 @@ class MultiPlotLayer extends PlotLayerBase {
 
         if (this.map !== null && this.gl !== null && field !== null) {
             field.onAdd(this.map, this.gl).then(res => {
-                this.repaintIfNecessary(null);
+                this.repaint();
             });
         }
 
@@ -155,12 +180,6 @@ class MultiPlotLayer extends PlotLayerBase {
         
         if (this.field_key === null) {
             this.field_key = key;
-        }
-    }
-
-    private repaintIfNecessary(old_field_key: string | null) {
-        if (this.map !== null && old_field_key !== this.field_key) {
-            this.map.triggerRepaint();
         }
     }
 }

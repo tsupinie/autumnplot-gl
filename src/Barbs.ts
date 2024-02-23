@@ -2,7 +2,7 @@
 import { PlotComponent } from "./PlotComponent";
 import { BillboardCollection } from './BillboardCollection';
 import { hex2rgba } from './utils';
-import { RawVectorField } from "./RawField";
+import { DelayedVectorField, RawVectorField } from "./RawField";
 import { MapType } from "./Map";
 import { TypedArray, WebGLAnyRenderingContext } from "./AutumnTypes";
 
@@ -154,27 +154,35 @@ interface BarbsGLElems<ArrayType extends TypedArray> {
  */
 class Barbs<ArrayType extends TypedArray> extends PlotComponent {
     /** The vector field */
-    private readonly fields: RawVectorField<ArrayType>;
+    private readonly fields: DelayedVectorField<ArrayType>;
     public readonly color: [number, number, number];
     public readonly thin_fac: number;
 
     private gl_elems: BarbsGLElems<ArrayType> | null;
+    private readonly is_delayed: boolean;
 
     /**
      * Create a field of wind barbs
      * @param fields - The vector field to plot as barbs
      * @param opts   - Options for creating the wind barbs
      */
-    constructor(fields: RawVectorField<ArrayType>, opts: BarbsOptions) {
+    constructor(fields: RawVectorField<ArrayType> | DelayedVectorField<ArrayType>, opts: BarbsOptions) {
         super();
 
-        this.fields = fields;
+        this.is_delayed = !RawVectorField.isa(fields);
+        this.fields = RawVectorField.isa(fields) ? DelayedVectorField.fromRawVectorField(fields) : fields;
 
         const color = hex2rgba(opts.color || '#000000');
         this.color = [color[0], color[1], color[2]];
         this.thin_fac = opts.thin_fac || 1;
 
         this.gl_elems = null;
+    }
+
+    public async updateData(key: string) {
+        if (this.gl_elems !== null) {
+            this.gl_elems.barb_billboards.updateData(key);
+        }
     }
 
     /**
@@ -193,12 +201,15 @@ class Barbs<ArrayType extends TypedArray> extends PlotComponent {
 
         const barb_image = {format: gl.RGBA, type: gl.UNSIGNED_BYTE, image: BARB_TEXTURE, mag_filter: gl.NEAREST};
 
-        const barb_billboards = new BillboardCollection(gl, this.fields, this.thin_fac, map_max_zoom, barb_image, 
+        const barb_billboards = new BillboardCollection(this.fields, this.thin_fac, map_max_zoom, barb_image, 
             BARB_DIMS, this.color, 0.1);
+        await barb_billboards.setup(gl);
 
         this.gl_elems = {
             map: map, barb_billboards: barb_billboards
         }
+
+        if (!this.is_delayed) this.updateData('');
     }
 
     /**

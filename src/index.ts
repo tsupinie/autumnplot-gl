@@ -11,7 +11,8 @@ import { WindProfile, WebGLAnyRenderingContext, TypedArray } from "./AutumnTypes
 import { MapType } from "./Map";
 import { ColorMap, bluered, redblue, pw_speed500mb, pw_speed850mb, pw_cape, pw_t2m, pw_td2m, Color, nws_storm_clear_refl } from './Colormap';
 import { makeColorBar, makePaintballKey, ColorbarOrientation, ColorbarTickDirection, ColorBarOptions, PaintballKeyOptions } from "./ColorBar";
-import { RawScalarField, RawVectorField, RawProfileField, Grid, GridType, VectorRelativeTo, RawVectorFieldOptions, PlateCarreeGrid, PlateCarreeRotatedGrid, LambertGrid } from "./RawField";
+import { RawScalarField, DelayedScalarField, RawVectorField, DelayedVectorField, RawProfileField, DelayedProfileField, 
+         Grid, GridType, VectorRelativeTo, RawVectorFieldOptions, PlateCarreeGrid, PlateCarreeRotatedGrid, LambertGrid } from "./RawField";
 
 const colormaps = {
     bluered: bluered,
@@ -33,5 +34,6 @@ export {PlotComponent,
         PlotLayer, MultiPlotLayer, 
         MapType,
         ColorMap, colormaps, makeColorBar, makePaintballKey, Color, ColorbarOrientation, ColorbarTickDirection, ColorBarOptions, PaintballKeyOptions,
-        RawScalarField, RawVectorField, RawProfileField, Grid, GridType, VectorRelativeTo, RawVectorFieldOptions, PlateCarreeGrid, PlateCarreeRotatedGrid, LambertGrid,
+        RawScalarField, DelayedScalarField, RawVectorField, DelayedVectorField, RawProfileField, DelayedProfileField,
+        Grid, GridType, VectorRelativeTo, RawVectorFieldOptions, PlateCarreeGrid, PlateCarreeRotatedGrid, LambertGrid,
         WebGLAnyRenderingContext, TypedArray};

@@ -2,7 +2,7 @@
 import { TypedArray, WebGLAnyRenderingContext} from './AutumnTypes';
 import { MapType } from './Map';
 import { PlotComponent, getGLFormatTypeAlignment } from './PlotComponent';
-import { RawScalarField } from './RawField';
+import { DelayedScalarField, RawScalarField } from './RawField';
 import { hex2rgba } from './utils';
 import { WGLBuffer, WGLProgram, WGLTexture } from 'autumn-wgl';
 
@@ -37,11 +37,11 @@ interface ContourOptions {
 }
 
 interface ContourGLElems {
+    gl: WebGLAnyRenderingContext;
     map: MapType;
     program: WGLProgram;
     vertices: WGLBuffer;
     grid_cell_size: WGLBuffer;
-    fill_texture: WGLTexture;
     texcoords: WGLBuffer;
 }
 
@@ -54,23 +54,26 @@ interface ContourGLElems {
  *                                                  thinner: zoom => zoom < 5 ? 2 : 1});
  */
 class Contour<ArrayType extends TypedArray> extends PlotComponent {
-    private readonly field: RawScalarField<ArrayType>;
+    private readonly field: DelayedScalarField<ArrayType>;
     public readonly color: [number, number, number];
     public readonly interval: number;
     public readonly levels: number[];
     public readonly thinner: (zoom: number) => number;
 
     private gl_elems: ContourGLElems | null;
+    private fill_texture: WGLTexture | null;
+    private readonly is_delayed : boolean;
 
     /**
      * Create a contoured field
      * @param field - The field to contour
      * @param opts  - Options for creating the contours
      */
-    constructor(field: RawScalarField<ArrayType>, opts: ContourOptions) {
+    constructor(field: RawScalarField<ArrayType> | DelayedScalarField<ArrayType>, opts: ContourOptions) {
         super();
 
-        this.field = field;
+        this.is_delayed = !RawScalarField.isa(field);
+        this.field = RawScalarField.isa(field) ? DelayedScalarField.fromRawScalarField(field) : field;
 
         this.interval = opts.interval || 1;
         this.levels = opts.levels || [];
@@ -81,6 +84,27 @@ class Contour<ArrayType extends TypedArray> extends PlotComponent {
         this.thinner = opts.thinner || (() => 1);
 
         this.gl_elems = null;
+        this.fill_texture = null;
+    }
+
+    public async updateData(key: string) {
+        if (this.gl_elems !== null) {
+            const gl = this.gl_elems.gl;
+            const tex_data = await this.field.getTextureData(key);
+            const {format, type, row_alignment} = getGLFormatTypeAlignment(gl, !(tex_data instanceof Float32Array));
+
+            const fill_image = {'format': format, 'type': type, 
+                'width': this.field.grid.ni, 'height': this.field.grid.nj, 'image': tex_data,
+                'mag_filter': gl.LINEAR, 'row_alignment': row_alignment,
+            };
+
+            if (this.fill_texture === null) {
+                this.fill_texture = new WGLTexture(gl, fill_image);
+            }
+            else {
+                this.fill_texture.setImageData(fill_image);
+            }
+        }
     }
 
     /**
@@ -98,17 +122,11 @@ class Contour<ArrayType extends TypedArray> extends PlotComponent {
         const texcoords = tex_coords_buf;
         const grid_cell_size = cellsize_buf;
 
-        const {format, type, row_alignment} = getGLFormatTypeAlignment(gl, this.field.isFloat16());
-
-        const fill_image = {'format': format, 'type': type, 
-            'width': this.field.grid.ni, 'height': this.field.grid.nj, 'image': this.field.getTextureData(),
-            'mag_filter': gl.LINEAR, 'row_alignment': row_alignment,
-        };
-
-        const fill_texture = new WGLTexture(gl, fill_image);
         this.gl_elems = {
-            map: map, program: program, vertices: vertices, texcoords: texcoords, grid_cell_size: grid_cell_size, fill_texture: fill_texture
+            gl: gl, map: map, program: program, vertices: vertices, texcoords: texcoords, grid_cell_size: grid_cell_size
         };
+
+        if (!this.is_delayed) await this.updateData('');
     }
 
     /**
@@ -116,7 +134,7 @@ class Contour<ArrayType extends TypedArray> extends PlotComponent {
      * Render the contours
      */
     public render(gl: WebGLAnyRenderingContext, matrix: number[] | Float32Array) {
-        if (this.gl_elems === null) return;
+        if (this.gl_elems === null || this.fill_texture === null) return;
         const gl_elems = this.gl_elems;
 
         if (matrix instanceof Float32Array)
@@ -138,7 +156,7 @@ class Contour<ArrayType extends TypedArray> extends PlotComponent {
         gl_elems.program.use(
             {'a_pos': gl_elems.vertices, 'a_grid_cell_size': gl_elems.grid_cell_size, 'a_tex_coord': gl_elems.texcoords},
             uniforms,
-            {'u_fill_sampler': gl_elems.fill_texture}
+            {'u_fill_sampler': this.fill_texture}
         );
 
         gl.enable(gl.BLEND);

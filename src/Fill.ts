@@ -2,7 +2,7 @@
 import { PlotComponent, getGLFormatTypeAlignment } from './PlotComponent';
 import { ColorMap, makeTextureImage } from './Colormap';
 import { WGLBuffer, WGLProgram, WGLTexture } from 'autumn-wgl';
-import { RawScalarField } from './RawField';
+import { DelayedScalarField, RawScalarField } from './RawField';
 import { MapType } from './Map';
 import { TypedArray, WebGLAnyRenderingContext } from './AutumnTypes';
 import { Float16Array } from '@petamoriken/float16';
@@ -33,31 +33,34 @@ interface RasterOptions {
 }
 
 interface PlotComponentFillGLElems {
+    gl: WebGLAnyRenderingContext;
     program: WGLProgram;
     vertices: WGLBuffer;
 
-    fill_texture: WGLTexture;
     texcoords: WGLBuffer;
     cmap_texture: WGLTexture;
     cmap_nonlin_texture: WGLTexture;
 }
 
 class PlotComponentFill<ArrayType extends TypedArray> extends PlotComponent {
-    private readonly field: RawScalarField<ArrayType>;
+    private readonly field: DelayedScalarField<ArrayType>;
     public readonly cmap: ColorMap;
     public readonly opacity: number;
 
     private readonly cmap_image: HTMLCanvasElement;
     private readonly index_map: Float16Array;
+    private readonly is_delayed: boolean
 
     private gl_elems: PlotComponentFillGLElems | null;
+    private fill_texture: WGLTexture | null;
     protected image_mag_filter: number | null;
     protected cmap_mag_filter: number | null;
 
-    constructor(field: RawScalarField<ArrayType>, opts: ContourFillOptions) {
+    constructor(field: RawScalarField<ArrayType> | DelayedScalarField<ArrayType>, opts: ContourFillOptions) {
         super();
 
-        this.field = field;
+        this.is_delayed = !RawScalarField.isa(field)
+        this.field = RawScalarField.isa(field) ? DelayedScalarField.fromRawScalarField(field) : field;
         this.cmap = opts.cmap;
         this.opacity = opts.opacity || 1.;
 
@@ -87,8 +90,29 @@ class PlotComponentFill<ArrayType extends TypedArray> extends PlotComponent {
         this.index_map = new Float16Array(inv_cmap_norm);
 
         this.gl_elems = null;
+        this.fill_texture = null;
         this.image_mag_filter = null;
         this.cmap_mag_filter = null;
+    }
+
+    public async updateData(key: string) {
+        if (this.gl_elems !== null) {
+            const gl = this.gl_elems.gl;
+            const tex_data = await this.field.getTextureData(key);
+            const {format, type, row_alignment} = getGLFormatTypeAlignment(gl, !(tex_data instanceof Float32Array));
+        
+            const fill_image = {'format': format, 'type': type,
+                'width': this.field.grid.ni, 'height': this.field.grid.nj, 'image': tex_data,
+                'mag_filter': this.image_mag_filter, 'row_alignment': row_alignment,
+            };
+    
+            if (this.fill_texture === null) {
+                this.fill_texture = new WGLTexture(gl, fill_image);
+            }
+            else {
+                this.fill_texture.setImageData(fill_image);
+            }
+        }
     }
 
     public async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
@@ -104,15 +128,6 @@ class PlotComponentFill<ArrayType extends TypedArray> extends PlotComponent {
         const vertices = verts_buf;
         const texcoords = tex_coords_buf;
 
-        const {format, type, row_alignment} = getGLFormatTypeAlignment(gl, this.field.isFloat16());
-        
-        const fill_image = {'format': format, 'type': type,
-            'width': this.field.grid.ni, 'height': this.field.grid.nj, 'image': this.field.getTextureData(),
-            'mag_filter': this.image_mag_filter, 'row_alignment': row_alignment,
-        };
-
-        const fill_texture = new WGLTexture(gl, fill_image);
-
         const cmap_image = {'format': gl.RGBA, 'type': gl.UNSIGNED_BYTE, 'image': this.cmap_image, 'mag_filter': this.cmap_mag_filter};
         const cmap_texture = new WGLTexture(gl, cmap_image);
 
@@ -126,13 +141,15 @@ class PlotComponentFill<ArrayType extends TypedArray> extends PlotComponent {
 
         const cmap_nonlin_texture = new WGLTexture(gl, cmap_nonlin_image);
         this.gl_elems = {
-            program: program, vertices: vertices, texcoords: texcoords, 
-            fill_texture: fill_texture, cmap_texture: cmap_texture, cmap_nonlin_texture: cmap_nonlin_texture,
+            gl: gl, program: program, vertices: vertices, texcoords: texcoords, 
+            cmap_texture: cmap_texture, cmap_nonlin_texture: cmap_nonlin_texture,
         };
+
+        if (!this.is_delayed) await this.updateData('');
     }
 
     public render(gl: WebGLAnyRenderingContext, matrix: number[] | Float32Array) {
-        if (this.gl_elems === null) return;
+        if (this.gl_elems === null || this.fill_texture === null) return;
         const gl_elems = this.gl_elems;
 
         if (matrix instanceof Float32Array) 
@@ -142,7 +159,7 @@ class PlotComponentFill<ArrayType extends TypedArray> extends PlotComponent {
             {'a_pos': gl_elems.vertices, 'a_tex_coord': gl_elems.texcoords},
             {'u_cmap_min': this.cmap.levels[0], 'u_cmap_max': this.cmap.levels[this.cmap.levels.length - 1], 'u_matrix': matrix, 'u_opacity': this.opacity,
              'u_n_index': this.index_map.length, 'u_offset': 0},
-            {'u_fill_sampler': gl_elems.fill_texture, 'u_cmap_sampler': gl_elems.cmap_texture, 'u_cmap_nonlin_sampler': gl_elems.cmap_nonlin_texture}
+            {'u_fill_sampler': this.fill_texture, 'u_cmap_sampler': gl_elems.cmap_texture, 'u_cmap_nonlin_sampler': gl_elems.cmap_nonlin_texture}
         );
 
         gl.enable(gl.BLEND);
@@ -185,7 +202,7 @@ class Raster<ArrayType extends TypedArray> extends PlotComponentFill<ArrayType> 
     public async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
         this.image_mag_filter = gl.NEAREST;
         this.cmap_mag_filter = gl.LINEAR;
-        super.onAdd(map, gl);
+        await super.onAdd(map, gl);
     }
 
     /**
@@ -221,7 +238,7 @@ class ContourFill<ArrayType extends TypedArray> extends PlotComponentFill<ArrayT
     public async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
         this.image_mag_filter = gl.LINEAR;
         this.cmap_mag_filter = gl.NEAREST;
-        super.onAdd(map, gl);
+        await super.onAdd(map, gl);
     }
 
     /**

@@ -9,45 +9,83 @@ function makeSynthetic500mbLayers() {
     const height_pert = 10;
     const height_grad = 0.5
     const vel_pert = 60;
-
-    let hght = [], u = [], v = [];
-    for (i = 0; i < nx; i++) {
-        for (j = 0; j < ny; j++) {
-            let v_fac = 1;
-            if (grid.type == 'latlon' || grid.type == 'latlonrot') {
-                v_fac = Math.cos(coords.y[j] * Math.PI / 180);
-            }
-
-            const idx = i + j * nx;
-            hght[idx] = height_pert * (Math.cos(4 * Math.PI * i / (nx - 1)) * Math.cos(2 * Math.PI * j / (ny - 1))) - height_grad * j;
-            let u_earth = vel_pert * (Math.cos(4 * Math.PI * i / (nx - 1)) * Math.sin(2 * Math.PI * j / (ny - 1)) + height_grad);
-            let v_earth = -vel_pert * Math.sin(4 * Math.PI * i / (nx - 1)) * Math.cos(2 * Math.PI * j / (ny - 1));
-
-            const mag = Math.hypot(u_earth, v_earth);
-            v_earth /= v_fac;
-
-            u[idx] = u_earth * mag / Math.hypot(u_earth, v_earth);
-            v[idx] = v_earth * mag / Math.hypot(u_earth, v_earth);
-        }
-    }
-    const colormap = apgl.colormaps.pw_speed500mb;
+    const speed = 0.001;
 
     const arrayType = float16.Float16Array;
 
-    const raw_hght_field = new apgl.RawScalarField(grid, new arrayType(hght));
-    const raw_u_field = new apgl.RawScalarField(grid, new arrayType(u));
-    const raw_v_field = new apgl.RawScalarField(grid, new arrayType(v));
+    function makeHeight(key) {
+        let hght = [];
+        for (i = 0; i < nx; i++) {
+            for (j = 0; j < ny; j++) {
+                const idx = i + j * nx;
+                hght[idx] = height_pert * (Math.cos(-key * speed + 4 * Math.PI * i / (nx - 1)) * Math.cos(2 * Math.PI * j / (ny - 1))) - height_grad * j;
+            }
+        }
+        return new arrayType(hght);
+    }
 
-    const raw_ws_field = apgl.RawScalarField.aggregateFields(Math.hypot, raw_u_field, raw_v_field);
-    const raw_vec_field = new apgl.RawVectorField(grid, new arrayType(u), new arrayType(v), {relative_to: 'grid'});
+    function makeWinds(key) {
+        let u = [], v = [];
+        for (i = 0; i < nx; i++) {
+            for (j = 0; j < ny; j++) {
+                let v_fac = 1;
+                if (grid.type == 'latlon' || grid.type == 'latlonrot') {
+                    v_fac = Math.cos(coords.y[j] * Math.PI / 180);
+                }
+    
+                const idx = i + j * nx;
+                let u_earth = vel_pert * (Math.cos(-key * speed + 4 * Math.PI * i / (nx - 1)) * Math.sin(2 * Math.PI * j / (ny - 1)) + height_grad);
+                let v_earth = -vel_pert * Math.sin(-key * speed + 4 * Math.PI * i / (nx - 1)) * Math.cos(2 * Math.PI * j / (ny - 1));
+    
+                const mag = Math.hypot(u_earth, v_earth);
+                v_earth /= v_fac;
+    
+                u[idx] = u_earth * mag / Math.hypot(u_earth, v_earth);
+                v[idx] = v_earth * mag / Math.hypot(u_earth, v_earth);
+            }
+        }
+
+        return {u: new arrayType(u), v: new arrayType(v)};
+    }
+
+    function makeWindSpeed(key) {
+        const winds = makeWinds(key);
+        const wspd = [];
+
+        for (let idx = 0; idx < winds.u.length; idx++) {
+            wspd[idx] = Math.hypot(winds.u[idx], winds.v[idx]);
+        }
+
+        return new arrayType(wspd);
+    }
+
+    const colormap = apgl.colormaps.pw_speed500mb;
+
+    const raw_hght_field = new apgl.DelayedScalarField(grid, makeHeight);
+    const raw_wind_field = new apgl.DelayedVectorField(grid, makeWinds, {relative_to: 'grid'});
+    const raw_ws_field = new apgl.DelayedScalarField(grid, makeWindSpeed);
 
     const cntr = new apgl.Contour(raw_hght_field, {interval: 1, color: '#000000', thinner: zoom => zoom < 5 ? 2 : 1});
     const filled = new apgl.ContourFill(raw_ws_field, {'cmap': colormap, 'opacity': 0.8});
-    const barbs = new apgl.Barbs(raw_vec_field, {color: '#000000', thin_fac: 16});
+    const barbs = new apgl.Barbs(raw_wind_field, {color: '#000000', thin_fac: 16});
 
     const hght_layer = new apgl.PlotLayer('height', cntr);
     const ws_layer = new apgl.PlotLayer('wind-speed', filled);
     const barb_layer = new apgl.PlotLayer('barbs', barbs);
+
+    hght_layer.updateData(0);
+    ws_layer.updateData(0);
+    barb_layer.updateData(0);
+
+    function updateTime(time) {
+        hght_layer.updateData(time);
+        ws_layer.updateData(time);
+        barb_layer.updateData(time);
+
+        window.requestAnimationFrame(updateTime);
+    }
+
+    updateTime(0);
 
     const svg = apgl.makeColorBar(colormap, {label: "Wind Speed (kts)", fontface: 'Trebuchet MS', 
                                              ticks: [20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140],

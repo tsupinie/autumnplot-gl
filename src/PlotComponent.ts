@@ -10,6 +10,7 @@ const worker = new Worker(new URL('./PlotLayer.worker', import.meta.url));
 const layer_worker = Comlink.wrap<PlotLayerWorker>(worker);
 
 abstract class PlotComponent {
+    public abstract updateData(key: string) : void;
     public abstract onAdd(map: MapType, gl: WebGLAnyRenderingContext) : Promise<void>;
     public abstract render(gl: WebGLAnyRenderingContext, matrix: number[] | Float32Array) : void;
 }
