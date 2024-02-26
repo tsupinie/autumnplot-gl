@@ -149,7 +149,7 @@ class Hodographs extends PlotComponent {
         if (this.gl_elems !== null) {
             // XXX: This might leak VRAM
             const gl = this.gl_elems.gl;
-            this.gl_elems.bg_billboard.updateData(key);
+            await this.gl_elems.bg_billboard.updateData(key);
 
             const profiles = await this.profile_field.getProfiles(key);
             

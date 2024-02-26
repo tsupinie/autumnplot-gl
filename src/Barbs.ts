@@ -181,7 +181,7 @@ class Barbs<ArrayType extends TypedArray> extends PlotComponent {
 
     public async updateData(key: string) {
         if (this.gl_elems !== null) {
-            this.gl_elems.barb_billboards.updateData(key);
+            await this.gl_elems.barb_billboards.updateData(key);
         }
     }
 
