@@ -146,58 +146,58 @@ class Hodographs extends PlotComponent {
             HODO_HEIGHT_TEXTURE = _createHodoHeightTexture();
         }
 
-        if (this.gl_elems !== null) {
-            // XXX: This might leak VRAM
-            const gl = this.gl_elems.gl;
-            await this.gl_elems.bg_billboard.updateData(key);
+        if (this.gl_elems === null) return;
 
-            const profiles = await this.profile_field.getProfiles(key);
-            
-            const hodo_polyline = await layer_worker.makePolyLines(profiles.map(prof => {
-                const pt_ll = new LngLat(prof['lon'], prof['lat']).toMercatorCoord();
-    
-                const zoom = getMinZoom(prof['jlat'], prof['ilon'], this.thin_fac);
-                const max_tex_z = Math.max(...HODO_COLORS.map(s => Math.max(...s['bounds'])))
-    
-                return {
-                    'verts': [...prof['u']].map((u, ipt) => [u - prof['smu'], prof['v'][ipt] - prof['smv']]),
-                    'origin': [pt_ll.x, pt_ll.y],
-                    'zoom': zoom,
-                    'texcoords': [...prof['z']].map(z => [z /  max_tex_z, 0.5])
-                } as LineSpec;
-            }))
-            const height_image = {'format': gl.RGBA, 'type': gl.UNSIGNED_BYTE, 'image': HODO_HEIGHT_TEXTURE, 'mag_filter': gl.NEAREST};
-            const hodo_line = new PolylineCollection(gl, hodo_polyline, height_image, 1.5, this.hodo_scale * this.bg_size);
+        // XXX: This might leak VRAM
+        const gl = this.gl_elems.gl;
+        await this.gl_elems.bg_billboard.updateData(key);
 
-            const sm_polyline = await layer_worker.makePolyLines(profiles.map(prof => {
-                const pt_ll = new LngLat(prof['lon'], prof['lat']).toMercatorCoord();
-                let ret = {};
-    
-                const zoom = getMinZoom(prof['jlat'], prof['ilon'], this.thin_fac);
-    
-                const sm_mag = Math.hypot(prof['smu'], prof['smv']);
-                const sm_ang = Math.PI / 2 - Math.atan2(-prof['smv'], -prof['smu']);
-                const buffer = 2
-    
-                return {
-                    'verts': [[buffer * Math.sin(sm_ang), buffer * Math.cos(sm_ang)], 
-                              [sm_mag * Math.sin(sm_ang), sm_mag * Math.cos(sm_ang)]],
-                    'origin': [pt_ll.x, pt_ll.y],
-                    'zoom': zoom,
-                    'texcoords': [[0.5, 0.5], [0.5, 0.5]]
-                } as LineSpec;
-            }));
-    
-            let byte_color = this.bgcolor.map(c => c * 255);
-            byte_color.push(255)
-            const sm_image = {'format': gl.RGBA, 'type': gl.UNSIGNED_BYTE, 'width': 1, 'height': 1, 'image': new Uint8Array(byte_color), 
-                              'mag_filter': gl.NEAREST}
-    
-            const sm_line = new PolylineCollection(gl, sm_polyline, sm_image, 1, this.hodo_scale * this.bg_size);
+        const profiles = await this.profile_field.getProfiles(key);
+        
+        const hodo_polyline = await layer_worker.makePolyLines(profiles.map(prof => {
+            const pt_ll = new LngLat(prof['lon'], prof['lat']).toMercatorCoord();
 
-            this.line_elems = {
-                hodo_line: hodo_line, sm_line: sm_line
-            }
+            const zoom = getMinZoom(prof['jlat'], prof['ilon'], this.thin_fac);
+            const max_tex_z = Math.max(...HODO_COLORS.map(s => Math.max(...s['bounds'])))
+
+            return {
+                'verts': [...prof['u']].map((u, ipt) => [u - prof['smu'], prof['v'][ipt] - prof['smv']]),
+                'origin': [pt_ll.x, pt_ll.y],
+                'zoom': zoom,
+                'texcoords': [...prof['z']].map(z => [z /  max_tex_z, 0.5])
+            } as LineSpec;
+        }))
+        const height_image = {'format': gl.RGBA, 'type': gl.UNSIGNED_BYTE, 'image': HODO_HEIGHT_TEXTURE, 'mag_filter': gl.NEAREST};
+        const hodo_line = new PolylineCollection(gl, hodo_polyline, height_image, 1.5, this.hodo_scale * this.bg_size);
+
+        const sm_polyline = await layer_worker.makePolyLines(profiles.map(prof => {
+            const pt_ll = new LngLat(prof['lon'], prof['lat']).toMercatorCoord();
+            let ret = {};
+
+            const zoom = getMinZoom(prof['jlat'], prof['ilon'], this.thin_fac);
+
+            const sm_mag = Math.hypot(prof['smu'], prof['smv']);
+            const sm_ang = Math.PI / 2 - Math.atan2(-prof['smv'], -prof['smu']);
+            const buffer = 2
+
+            return {
+                'verts': [[buffer * Math.sin(sm_ang), buffer * Math.cos(sm_ang)], 
+                            [sm_mag * Math.sin(sm_ang), sm_mag * Math.cos(sm_ang)]],
+                'origin': [pt_ll.x, pt_ll.y],
+                'zoom': zoom,
+                'texcoords': [[0.5, 0.5], [0.5, 0.5]]
+            } as LineSpec;
+        }));
+
+        let byte_color = this.bgcolor.map(c => c * 255);
+        byte_color.push(255)
+        const sm_image = {'format': gl.RGBA, 'type': gl.UNSIGNED_BYTE, 'width': 1, 'height': 1, 'image': new Uint8Array(byte_color), 
+                            'mag_filter': gl.NEAREST}
+
+        const sm_line = new PolylineCollection(gl, sm_polyline, sm_image, 1, this.hodo_scale * this.bg_size);
+
+        this.line_elems = {
+            hodo_line: hodo_line, sm_line: sm_line
         }
     }
 

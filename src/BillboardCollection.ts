@@ -28,6 +28,7 @@ class BillboardCollection<ArrayType extends TypedArray> {
     private gl_elems: BillboardCollectionGLElems | null;
     private wind_textures: {u: WGLTexture, v: WGLTexture} | null;
     private readonly trim_inaccessible: number;
+    private show_field: boolean;
 
     constructor(field: DelayedVectorField<ArrayType>, thin_fac: number, max_zoom: number, 
                 billboard_image: WGLTextureSpec, billboard_spec: BillboardSpec, billboard_color: [number, number, number], billboard_size_mult: number) {
@@ -45,33 +46,35 @@ class BillboardCollection<ArrayType extends TypedArray> {
         const n_density_tiers = Math.log2(thin_fac);
         const n_inaccessible_tiers = Math.max(n_density_tiers + 1 - max_zoom, 0);
         this.trim_inaccessible = Math.pow(2, n_inaccessible_tiers);
+        this.show_field = true;
     }
 
-    public async updateData(key: string) {
-        if (this.gl_elems !== null) {
-            const gl = this.gl_elems.gl;
-            const data = this.field.getThinnedField(this.trim_inaccessible, this.trim_inaccessible);
+    public async updateData(key: string | undefined) {
+        if (this.gl_elems === null) return;
 
-            const {u: u_thin, v: v_thin} = await data.getTextureData(key);
-            const {format, type, row_alignment} = getGLFormatTypeAlignment(gl, !(u_thin instanceof Float32Array));
-    
-            const u_image = {'format': format, 'type': type,
-                'width': data.grid.ni, 'height': data.grid.nj, 'image': u_thin,
-                'mag_filter': gl.NEAREST, 'row_alignment': row_alignment,
-            };
-    
-            const v_image = {'format': format, 'type': type,
-                'width': data.grid.ni, 'height': data.grid.nj, 'image': v_thin,
-                'mag_filter': gl.NEAREST, 'row_alignment': row_alignment,
-            };
+        const gl = this.gl_elems.gl;
+        const data = this.field.getThinnedField(this.trim_inaccessible, this.trim_inaccessible);
 
-            if (this.wind_textures === null) {
-                this.wind_textures = {u: new WGLTexture(gl, u_image), v: new WGLTexture(gl, v_image)};
-            }
-            else {
-                this.wind_textures.u.setImageData(u_image);
-                this.wind_textures.v.setImageData(v_image);
-            }
+        const {u: u_thin, v: v_thin} = key === undefined ? {u: null, v: null} : await data.getTextureData(key);
+        this.show_field = u_thin !== null;
+        const {format, type, row_alignment} = getGLFormatTypeAlignment(gl, !(u_thin instanceof Float32Array));
+
+        const u_image = {'format': format, 'type': type,
+            'width': data.grid.ni, 'height': data.grid.nj, 'image': u_thin,
+            'mag_filter': gl.NEAREST, 'row_alignment': row_alignment,
+        };
+
+        const v_image = {'format': format, 'type': type,
+            'width': data.grid.ni, 'height': data.grid.nj, 'image': v_thin,
+            'mag_filter': gl.NEAREST, 'row_alignment': row_alignment,
+        };
+
+        if (this.wind_textures === null) {
+            this.wind_textures = {u: new WGLTexture(gl, u_image), v: new WGLTexture(gl, v_image)};
+        }
+        else {
+            this.wind_textures.u.setImageData(u_image);
+            this.wind_textures.v.setImageData(v_image);
         }
     }
 
@@ -88,7 +91,7 @@ class BillboardCollection<ArrayType extends TypedArray> {
     }
 
     public render(gl: WebGLAnyRenderingContext, matrix: number[] | Float32Array, [map_width, map_height]: [number, number], map_zoom: number, map_bearing: number, map_pitch: number) {
-        if (this.gl_elems === null || this.wind_textures === null) return;
+        if (this.gl_elems === null || this.wind_textures === null || !this.show_field) return;
 
         if (matrix instanceof Float32Array)
             matrix = [...matrix];

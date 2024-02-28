@@ -44,6 +44,7 @@ class Paintball<ArrayType extends TypedArray> extends PlotComponent {
     private gl_elems: PaintballGLElems | null;
     private fill_texture: WGLTexture | null;
     private is_delayed: boolean;
+    private show_field: boolean;
 
     /**
      * Create a paintball plot
@@ -65,15 +66,17 @@ class Paintball<ArrayType extends TypedArray> extends PlotComponent {
 
         this.gl_elems = null;
         this.fill_texture = null;
+        this.show_field = true;
     }
 
-    public async updateData(key: string) {
+    public async updateData(key: string | undefined) {
         if (this.gl_elems === null) return;
         const gl = this.gl_elems.gl;
 
         gl.pixelStorei(gl.UNPACK_ALIGNMENT, 2);
 
-        const tex_data = await this.field.getTextureData(key);
+        const tex_data = key === undefined ? null : await this.field.getTextureData(key);
+        this.show_field = tex_data !== null;
         const {format, type, row_alignment} = getGLFormatTypeAlignment(gl, !(tex_data instanceof Float32Array));
 
         const fill_image = {'format': format, 'type': type,
@@ -114,7 +117,7 @@ class Paintball<ArrayType extends TypedArray> extends PlotComponent {
      * Render the paintball plot
      */
     public render(gl: WebGLAnyRenderingContext, matrix: number[] | Float32Array) {
-        if (this.gl_elems === null || this.fill_texture === null) return;
+        if (this.gl_elems === null || this.fill_texture === null || !this.show_field) return;
         const gl_elems = this.gl_elems;
 
         if (matrix instanceof Float32Array)

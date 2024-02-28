@@ -55,6 +55,7 @@ class PlotComponentFill<ArrayType extends TypedArray> extends PlotComponent {
     private fill_texture: WGLTexture | null;
     protected image_mag_filter: number | null;
     protected cmap_mag_filter: number | null;
+    private show_field: boolean;
 
     constructor(field: RawScalarField<ArrayType> | DelayedScalarField<ArrayType>, opts: ContourFillOptions) {
         super();
@@ -93,25 +94,28 @@ class PlotComponentFill<ArrayType extends TypedArray> extends PlotComponent {
         this.fill_texture = null;
         this.image_mag_filter = null;
         this.cmap_mag_filter = null;
+        this.show_field = true;
     }
 
-    public async updateData(key: string) {
-        if (this.gl_elems !== null) {
-            const gl = this.gl_elems.gl;
-            const tex_data = await this.field.getTextureData(key);
-            const {format, type, row_alignment} = getGLFormatTypeAlignment(gl, !(tex_data instanceof Float32Array));
+    public async updateData(key: string | undefined) {
+        if (this.gl_elems === null) return;
+
+        const gl = this.gl_elems.gl;
         
-            const fill_image = {'format': format, 'type': type,
-                'width': this.field.grid.ni, 'height': this.field.grid.nj, 'image': tex_data,
-                'mag_filter': this.image_mag_filter, 'row_alignment': row_alignment,
-            };
+        const tex_data = key === undefined ? null : await this.field.getTextureData(key);
+        this.show_field = tex_data !== null;
+        const {format, type, row_alignment} = getGLFormatTypeAlignment(gl, !(tex_data instanceof Float32Array));
     
-            if (this.fill_texture === null) {
-                this.fill_texture = new WGLTexture(gl, fill_image);
-            }
-            else {
-                this.fill_texture.setImageData(fill_image);
-            }
+        const fill_image = {'format': format, 'type': type,
+            'width': this.field.grid.ni, 'height': this.field.grid.nj, 'image': tex_data,
+            'mag_filter': this.image_mag_filter, 'row_alignment': row_alignment,
+        };
+
+        if (this.fill_texture === null) {
+            this.fill_texture = new WGLTexture(gl, fill_image);
+        }
+        else {
+            this.fill_texture.setImageData(fill_image);
         }
     }
 
@@ -149,7 +153,7 @@ class PlotComponentFill<ArrayType extends TypedArray> extends PlotComponent {
     }
 
     public render(gl: WebGLAnyRenderingContext, matrix: number[] | Float32Array) {
-        if (this.gl_elems === null || this.fill_texture === null) return;
+        if (this.gl_elems === null || this.fill_texture === null || !this.show_field) return;
         const gl_elems = this.gl_elems;
 
         if (matrix instanceof Float32Array) 

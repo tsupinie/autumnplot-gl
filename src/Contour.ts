@@ -63,6 +63,7 @@ class Contour<ArrayType extends TypedArray> extends PlotComponent {
     private gl_elems: ContourGLElems | null;
     private fill_texture: WGLTexture | null;
     private readonly is_delayed : boolean;
+    private show_field: boolean;
 
     /**
      * Create a contoured field
@@ -85,25 +86,27 @@ class Contour<ArrayType extends TypedArray> extends PlotComponent {
 
         this.gl_elems = null;
         this.fill_texture = null;
+        this.show_field = true;
     }
 
-    public async updateData(key: string) {
-        if (this.gl_elems !== null) {
-            const gl = this.gl_elems.gl;
-            const tex_data = await this.field.getTextureData(key);
-            const {format, type, row_alignment} = getGLFormatTypeAlignment(gl, !(tex_data instanceof Float32Array));
+    public async updateData(key: string | undefined) {
+        if (this.gl_elems === null) return;
 
-            const fill_image = {'format': format, 'type': type, 
-                'width': this.field.grid.ni, 'height': this.field.grid.nj, 'image': tex_data,
-                'mag_filter': gl.LINEAR, 'row_alignment': row_alignment,
-            };
+        const gl = this.gl_elems.gl;
+        const tex_data = key === undefined ? null : await this.field.getTextureData(key);
+        this.show_field = tex_data !== null;
+        const {format, type, row_alignment} = getGLFormatTypeAlignment(gl, !(tex_data instanceof Float32Array));
 
-            if (this.fill_texture === null) {
-                this.fill_texture = new WGLTexture(gl, fill_image);
-            }
-            else {
-                this.fill_texture.setImageData(fill_image);
-            }
+        const fill_image = {'format': format, 'type': type, 
+            'width': this.field.grid.ni, 'height': this.field.grid.nj, 'image': tex_data,
+            'mag_filter': gl.LINEAR, 'row_alignment': row_alignment,
+        };
+
+        if (this.fill_texture === null) {
+            this.fill_texture = new WGLTexture(gl, fill_image);
+        }
+        else {
+            this.fill_texture.setImageData(fill_image);
         }
     }
 
@@ -134,7 +137,7 @@ class Contour<ArrayType extends TypedArray> extends PlotComponent {
      * Render the contours
      */
     public render(gl: WebGLAnyRenderingContext, matrix: number[] | Float32Array) {
-        if (this.gl_elems === null || this.fill_texture === null) return;
+        if (this.gl_elems === null || this.fill_texture === null || !this.show_field) return;
         const gl_elems = this.gl_elems;
 
         if (matrix instanceof Float32Array)

@@ -539,7 +539,7 @@ class RawScalarField<ArrayType extends TypedArray> {
 
 class DelayedScalarField<ArrayType extends TypedArray> {
     public readonly grid: Grid;
-    public readonly data_getter: (key: string) => Promise<ArrayType>;
+    public readonly data_getter: (key: string | undefined) => Promise<ArrayType>;
 
     constructor(grid: Grid, data_getter: (key: string) => Promise<ArrayType>) {
         this.grid = grid;
