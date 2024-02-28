@@ -67,8 +67,6 @@ function makeVectorRotationTexture(gl: WebGLAnyRenderingContext, grid: Grid) {
         rot_vals[icd] = Math.atan2(y_pertlon - y, x_pertlon - x);
     }
 
-    console.log(rot_vals[0]);
-
     const {format, type, row_alignment} = getGLFormatTypeAlignment(gl, true);
 
     const rot_img: WGLTextureSpec = {
