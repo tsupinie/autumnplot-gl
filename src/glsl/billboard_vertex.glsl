@@ -15,6 +15,7 @@ uniform highp float u_bb_mag_wrap;
 
 uniform sampler2D u_u_sampler;
 uniform sampler2D u_v_sampler;
+uniform sampler2D u_rot_sampler;
 
 varying highp vec2 v_tex_coord;
 
@@ -56,6 +57,7 @@ void main() {
 
     highp float u = texture2D(u_u_sampler, a_tex_coord).r;
     highp float v = texture2D(u_v_sampler, a_tex_coord).r;
+    highp float rot = texture2D(u_rot_sampler, a_tex_coord).r;
 
     lowp float bb_aspect = u_bb_width / u_bb_height;
     lowp float ang = (abs(u) < 1e-6 && abs(v) < 1e-6) ? 0. : atan(v, u) - 3.141592654 / 2.0;
@@ -85,7 +87,7 @@ void main() {
             texcoord = tex_loc + vec2(u_bb_width, u_bb_height);
         }
 
-        mat4 barb_rotation = rotationZMatrix(ang + radians(u_map_bearing));
+        mat4 barb_rotation = rotationZMatrix(ang + radians(u_map_bearing) - rot);
         mat4 map_stretch_matrix = scalingMatrix(1.0, 1. / u_map_aspect, 1.0);
         offset = map_stretch_matrix * barb_rotation * offset;
     }

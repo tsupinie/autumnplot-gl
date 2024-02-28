@@ -13,6 +13,7 @@ class BillboardCollectionGLElems {
     vertices: WGLBuffer;
     texcoords: WGLBuffer;
     texture: WGLTexture;
+    proj_rot_texture: WGLTexture;
 }
 
 class BillboardCollection<ArrayType extends TypedArray> {
@@ -49,18 +50,18 @@ class BillboardCollection<ArrayType extends TypedArray> {
     public async updateData(key: string) {
         if (this.gl_elems !== null) {
             const gl = this.gl_elems.gl;
-            const earth_relative = this.field.getThinnedField(this.trim_inaccessible, this.trim_inaccessible).toEarthRelative();
+            const data = this.field.getThinnedField(this.trim_inaccessible, this.trim_inaccessible);
 
-            const {u: u_thin, v: v_thin} = await earth_relative.getTextureData(key);
+            const {u: u_thin, v: v_thin} = await data.getTextureData(key);
             const {format, type, row_alignment} = getGLFormatTypeAlignment(gl, !(u_thin instanceof Float32Array));
     
             const u_image = {'format': format, 'type': type,
-                'width': earth_relative.grid.ni, 'height': earth_relative.grid.nj, 'image': u_thin,
+                'width': data.grid.ni, 'height': data.grid.nj, 'image': u_thin,
                 'mag_filter': gl.NEAREST, 'row_alignment': row_alignment,
             };
     
             const v_image = {'format': format, 'type': type,
-                'width': earth_relative.grid.ni, 'height': earth_relative.grid.nj, 'image': v_thin,
+                'width': data.grid.ni, 'height': data.grid.nj, 'image': v_thin,
                 'mag_filter': gl.NEAREST, 'row_alignment': row_alignment,
             };
 
@@ -79,10 +80,11 @@ class BillboardCollection<ArrayType extends TypedArray> {
 
         const thinned_field = this.field.getThinnedField(this.trim_inaccessible, this.trim_inaccessible);
         const {vertices, texcoords} = await thinned_field.grid.getWGLBillboardBuffers(gl, this.thin_fac / this.trim_inaccessible, this.max_zoom);
+        const {rotation: proj_rotation_tex} = thinned_field.grid.getVectorRotationTexture(gl);
 
         const texture = new WGLTexture(gl, this.billboard_image);
 
-        this.gl_elems = {gl: gl, program: program, vertices: vertices, texcoords: texcoords, texture: texture};
+        this.gl_elems = {gl: gl, program: program, vertices: vertices, texcoords: texcoords, texture: texture, proj_rot_texture: proj_rotation_tex};
     }
 
     public render(gl: WebGLAnyRenderingContext, matrix: number[] | Float32Array, [map_width, map_height]: [number, number], map_zoom: number, map_bearing: number, map_pitch: number) {
@@ -102,7 +104,7 @@ class BillboardCollection<ArrayType extends TypedArray> {
             {'u_bb_size': bb_size, 'u_bb_width': bb_width, 'u_bb_height': bb_height,
              'u_bb_mag_bin_size': this.spec.BB_MAG_BIN_SIZE, 'u_bb_mag_wrap': this.spec.BB_MAG_WRAP, 'u_offset': 0,
              'u_bb_color': this.color, 'u_matrix': matrix, 'u_map_aspect': map_height / map_width, 'u_zoom': map_zoom, 'u_map_bearing': map_bearing},
-            {'u_sampler': gl_elems.texture, 'u_u_sampler': this.wind_textures.u, 'u_v_sampler': this.wind_textures.v}
+            {'u_sampler': gl_elems.texture, 'u_u_sampler': this.wind_textures.u, 'u_v_sampler': this.wind_textures.v, 'u_rot_sampler': gl_elems.proj_rot_texture}
         );
 
         gl.enable(gl.BLEND);

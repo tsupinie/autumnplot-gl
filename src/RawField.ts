@@ -2,9 +2,9 @@
 import { Float16Array } from "@petamoriken/float16";
 import { TypedArray, WebGLAnyRenderingContext, WindProfile } from "./AutumnTypes";
 import { lambertConformalConic, rotateSphere } from "./Map";
-import { layer_worker } from "./PlotComponent";
+import { getGLFormatTypeAlignment, layer_worker } from "./PlotComponent";
 import { Cache, zip } from "./utils";
-import { WGLBuffer } from "autumn-wgl";
+import { WGLBuffer, WGLTexture, WGLTextureSpec } from "autumn-wgl";
 
 interface EarthCoords {
     lons: Float32Array;
@@ -48,6 +48,38 @@ async function makeWGLBillboardBuffers(gl: WebGLAnyRenderingContext, grid: Grid,
     return {'vertices': vertices, 'texcoords': texcoords};
 }
 
+function makeVectorRotationTexture(gl: WebGLAnyRenderingContext, grid: Grid) {
+    const coords = grid.getEarthCoords();
+
+    if (!grid.is_conformal) {
+        // If the grid is non-conformal, we need a fully general change of basis from grid coordinates to earth coordinates. This is not supported for now, so warn about it.
+        console.warn('Vector rotations for non-conformal projections are not supported. The output may look incorrect.')
+    }
+
+    const rot_vals = new Float16Array(coords.lats.length);
+
+    for (let icd = 0; icd < coords.lats.length; icd++) {
+        const lon = coords.lons[icd];
+        const lat = coords.lats[icd];
+
+        const [x, y] = grid.transform(lon, lat);
+        const [x_pertlon, y_pertlon] = grid.transform(lon + 0.01, lat);
+        rot_vals[icd] = Math.atan2(y_pertlon - y, x_pertlon - x);
+    }
+
+    console.log(rot_vals[0]);
+
+    const {format, type, row_alignment} = getGLFormatTypeAlignment(gl, true);
+
+    const rot_img: WGLTextureSpec = {
+        format: format, type: type, row_alignment: row_alignment, image: new Uint16Array(rot_vals.buffer),
+        width: grid.ni, height: grid.nj, mag_filter: gl.LINEAR
+    };
+
+    const rot_tex = new WGLTexture(gl, rot_img);
+    return {'rotation': rot_tex};
+}
+
 type GridType = 'latlon' | 'latlonrot' | 'lcc';
 
 abstract class Grid {
@@ -58,6 +90,7 @@ abstract class Grid {
 
     private readonly buffer_cache: Cache<[WebGLAnyRenderingContext], Promise<{'vertices': WGLBuffer, 'texcoords': WGLBuffer, 'cellsize': WGLBuffer}>>;
     private readonly billboard_buffer_cache: Cache<[WebGLAnyRenderingContext, number, number], Promise<{'vertices': WGLBuffer, 'texcoords': WGLBuffer}>>;
+    private readonly vector_rotation_cache: Cache<[WebGLAnyRenderingContext], {'rotation': WGLTexture}>
 
     constructor(type: GridType, is_conformal: boolean, ni: number, nj: number) {
         this.type = type;
@@ -74,6 +107,10 @@ abstract class Grid {
         this.billboard_buffer_cache = new Cache((gl: WebGLAnyRenderingContext, thin_fac: number, max_zoom: number) => {
             return makeWGLBillboardBuffers(gl, this, thin_fac, max_zoom);
         });
+
+        this.vector_rotation_cache = new Cache((gl: WebGLAnyRenderingContext) => {
+            return makeVectorRotationTexture(gl, this);
+        })
     }
 
     public abstract copy(opts?: {ni?: number, nj?: number}): Grid;
@@ -89,6 +126,10 @@ abstract class Grid {
 
     public async getWGLBillboardBuffers(gl: WebGLAnyRenderingContext, thin_fac: number, max_zoom: number) {
         return await this.billboard_buffer_cache.getValue(gl, thin_fac, max_zoom);
+    }
+
+    public getVectorRotationTexture(gl: WebGLAnyRenderingContext) {
+        return this.vector_rotation_cache.getValue(gl);
     }
 }
 
@@ -667,68 +708,6 @@ class DelayedVectorField<ArrayType extends TypedArray> {
         }
 
         return new DelayedVectorField(new_grid, new_getter, {relative_to: this.relative_to});
-    }
-
-    public toEarthRelative() {
-        let new_getter;
-        if (this.relative_to == 'earth') {
-            new_getter = this.data_getter;
-        }
-        else {
-            new_getter = async (key: string) => {
-                const {u: u_ary, v: v_ary} = await this.data_getter(key);
-
-                const arrayType = getArrayConstructor(u_ary);
-
-                const grid = this.grid;
-                const coords = grid.getEarthCoords();
-                const u_rot = new arrayType(coords.lats.length);
-                const v_rot = new arrayType(coords.lats.length);
-    
-                for (let icd = 0; icd < coords.lats.length; icd++) {
-                    const lon = coords.lons[icd];
-                    const lat = coords.lats[icd];
-                    const u = u_ary[icd];
-                    const v = v_ary[icd];
-    
-                    if (Math.abs(u) < 1e-6 && Math.abs(v) < 1e-6) {
-                        u_rot[icd] = 0;
-                        v_rot[icd] = 0;
-                        continue;
-                    }
-    
-                    const [x, y] = grid.transform(lon, lat);
-                    const [x_pertlon, y_pertlon] = grid.transform(lon + 0.01, lat);
-                    const mag_pertlon = Math.hypot(x - x_pertlon, y - y_pertlon);
-    
-                    const x_dotlon = (x_pertlon - x) / mag_pertlon;
-                    const y_dotlon = (y_pertlon - y) / mag_pertlon;
-    
-                    let x_dotlat, y_dotlat;
-    
-                    if (grid.is_conformal) {
-                        // If the grid is conformal, v and u are rotated by the same amount in the same direction.
-                        x_dotlat = -y_dotlon;
-                        y_dotlat = x_dotlon;
-                    } 
-                    else {
-                        // If the grid is non-conformal, we need a fully general change of basis from grid coordinates to earth coordinates.
-                        const [x_pertlat, y_pertlat] = grid.transform(lon, lat + 0.01);
-                        const mag_pertlat = Math.hypot(x - x_pertlat, y - y_pertlat);
-        
-                        x_dotlat = (x_pertlat - x) / mag_pertlat;
-                        y_dotlat = (y_pertlat - y) / mag_pertlat;
-                    }
-    
-                    u_rot[icd] = x_dotlon * u + y_dotlon * v;
-                    v_rot[icd] = x_dotlat * u + y_dotlat * v;
-                }
-
-                return {u: u_rot, v: v_rot};
-            }
-        }
-
-        return new DelayedVectorField(this.grid, new_getter);
     }
 
     public static fromRawVectorField<ArrayType extends TypedArray>(raw_field: RawVectorField<ArrayType>) {
