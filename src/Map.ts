@@ -176,10 +176,18 @@ function mercatorXfromLng(lng: number) {
     return (180 + lng) / 360;
 }
 
+function lngFromMercatorX(x: number) {
+    return 360 * x - 180;
+}
+
 function mercatorYfromLat(lat: number) {
     const sin_lat = Math.sin(lat * Math.PI / 180);
     const y = (180 - (90 / Math.PI * Math.log((1 + sin_lat) / (1 - sin_lat)))) / 360;
     return Math.min(2, Math.max(-2, y));
+}
+
+function latFromMercatorY(y: number) {
+    return Math.atan(Math.sinh((180 - y * 360) * Math.PI / 180)) * 180 / Math.PI;
 }
 
 /**
@@ -212,6 +220,10 @@ function mercatorYfromLat(lat: number) {
 
     public toMercatorCoord() {
         return {x: mercatorXfromLng(this.lng), y: mercatorYfromLat(this.lat)};
+    }
+
+    public static fromMercatorCoord(x: number, y: number) {
+        return new LngLat(lngFromMercatorX(x), latFromMercatorY(y));
     }
 }
 

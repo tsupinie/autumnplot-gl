@@ -142,6 +142,7 @@ interface TextSpec {
     lat: number;
     lon: number;
     text: string;
+    min_zoom?: number;
 }
 
 type HorizontalAlign = 'left' | 'center' | 'right';
@@ -193,7 +194,7 @@ class TextCollection {
 
         const n_verts = text_locs.map(tl => tl.text.length).reduce((a, b) => a + b, 0) * 6;
 
-        const anchor_data = new Float32Array(n_verts * 2);
+        const anchor_data = new Float32Array(n_verts * 3);
         const offset_data = new Float32Array(n_verts * 2);
         const tc_data = new Float32Array(n_verts * 2);
 
@@ -201,6 +202,7 @@ class TextCollection {
 
         text_locs.forEach(loc => {
             const {lat, lon, text} = loc;
+            const min_zoom = loc.min_zoom === undefined ? 0 : loc.min_zoom;
             const {x: anchor_x, y: anchor_y} = new LngLat(lon, lat).toMercatorCoord();
             
             let x_offset = 0;
@@ -217,12 +219,12 @@ class TextCollection {
 
                 x_offset += glyph_info.left;
 
-                anchor_data[i_anch++] = anchor_x; anchor_data[i_anch++] = anchor_y;
-                anchor_data[i_anch++] = anchor_x; anchor_data[i_anch++] = anchor_y;
-                anchor_data[i_anch++] = anchor_x; anchor_data[i_anch++] = anchor_y;
-                anchor_data[i_anch++] = anchor_x; anchor_data[i_anch++] = anchor_y;
-                anchor_data[i_anch++] = anchor_x; anchor_data[i_anch++] = anchor_y;
-                anchor_data[i_anch++] = anchor_x; anchor_data[i_anch++] = anchor_y;
+                anchor_data[i_anch++] = anchor_x; anchor_data[i_anch++] = anchor_y; anchor_data[i_anch++] = min_zoom;
+                anchor_data[i_anch++] = anchor_x; anchor_data[i_anch++] = anchor_y; anchor_data[i_anch++] = min_zoom;
+                anchor_data[i_anch++] = anchor_x; anchor_data[i_anch++] = anchor_y; anchor_data[i_anch++] = min_zoom;
+                anchor_data[i_anch++] = anchor_x; anchor_data[i_anch++] = anchor_y; anchor_data[i_anch++] = min_zoom;
+                anchor_data[i_anch++] = anchor_x; anchor_data[i_anch++] = anchor_y; anchor_data[i_anch++] = min_zoom;
+                anchor_data[i_anch++] = anchor_x; anchor_data[i_anch++] = anchor_y; anchor_data[i_anch++] = min_zoom;
                 
                 offset_data[i_off++] = x_offset;                    offset_data[i_off++] = font_atlas.baseline + glyph_info.top - glyph_info.height;
                 offset_data[i_off++] = x_offset;                    offset_data[i_off++] = font_atlas.baseline + glyph_info.top - glyph_info.height;
@@ -264,7 +266,7 @@ class TextCollection {
             }
         });
 
-        this.anchors = new WGLBuffer(gl, anchor_data, 2, gl.TRIANGLE_STRIP);
+        this.anchors = new WGLBuffer(gl, anchor_data, 3, gl.TRIANGLE_STRIP);
         this.offsets = new WGLBuffer(gl, offset_data, 2, gl.TRIANGLE_STRIP);
         this.texcoords = new WGLBuffer(gl, tc_data, 2, gl.TRIANGLE_STRIP);
     }
@@ -274,9 +276,11 @@ class TextCollection {
         return new TextCollection(gl, text_locs, atlas, opts);
     }
 
-    render(gl: WebGLAnyRenderingContext, matrix: number[], [map_width, map_height]: [number, number]) {
-        const uniforms: Record<string, any> = {'u_matrix': matrix, 'u_map_width': map_width, 'u_map_height': map_height, 'u_font_size': this.opts.font_size,
-                                               'u_text_color': this.opts.text_color, 'u_halo_color': this.opts.halo_color, 'u_offset': 0}
+    render(gl: WebGLAnyRenderingContext, matrix: number[], [map_width, map_height]: [number, number], map_zoom: number) {
+        const uniforms: Record<string, any> = {
+            'u_matrix': matrix, 'u_map_width': map_width, 'u_map_height': map_height, 'u_map_zoom': map_zoom, 'u_font_size': this.opts.font_size,
+            'u_text_color': this.opts.text_color, 'u_halo_color': this.opts.halo_color, 'u_offset': 0
+        }
 
         uniforms['u_is_halo'] = this.opts.halo ? 1 : 0;
 
@@ -289,6 +293,30 @@ class TextCollection {
         gl.enable(gl.BLEND);
         gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 
+        this.program.draw();
+
+        if (this.opts.halo) {
+            this.program.setUniforms({'u_is_halo': 0});
+            this.program.draw();
+        }
+
+        this.program.setUniforms({'u_offset': -2, 'u_is_halo': this.opts.halo ? 1 : 0});
+        this.program.draw();
+
+        if (this.opts.halo) {
+            this.program.setUniforms({'u_is_halo': 0});
+            this.program.draw();
+        }
+
+        this.program.setUniforms({'u_offset': -1, 'u_is_halo': this.opts.halo ? 1 : 0});
+        this.program.draw();
+
+        if (this.opts.halo) {
+            this.program.setUniforms({'u_is_halo': 0});
+            this.program.draw();
+        }
+
+        this.program.setUniforms({'u_offset': 1, 'u_is_halo': this.opts.halo ? 1 : 0});
         this.program.draw();
 
         if (this.opts.halo) {
