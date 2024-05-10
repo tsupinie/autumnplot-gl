@@ -131,8 +131,9 @@ function makeHodoLayers() {
         {lat: 35.17, lon: -96.84, ilon: 1, jlat: 0, smu: 0, smv: 20, u: hodo_u, v: hodo_v, z: hodo_z},
         {lat: 35.67, lon: -97.34, ilon: 0, jlat: 1, smu: 0, smv: 20, u: hodo_u, v: hodo_v, z: hodo_z},
         {lat: 35.67, lon: -96.84, ilon: 1, jlat: 1, smu: 0, smv: 20, u: hodo_u, v: hodo_v, z: hodo_z},
+        {lat: 36.17, lon: -96.84, ilon: 1, jlat: 2, smu: 0, smv: 20, u: hodo_u, v: hodo_v, z: hodo_z},
     ];
-    const hodo_grid = new apgl.PlateCarreeGrid(2, 2, -97.34, 35.17, -96.84, 35.67);
+    const hodo_grid = new apgl.PlateCarreeGrid(2, 3, -97.34, 35.17, -96.84, 36.17);
     const raw_prof_field = new apgl.RawProfileField(hodo_grid, profs);
     const hodos = new apgl.Hodographs(raw_prof_field, {bgcolor: '#000000', thin_fac: 64});
     const hodo_layer = new apgl.PlotLayer('hodos', hodos);
