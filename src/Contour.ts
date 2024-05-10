@@ -41,13 +41,6 @@ interface ContourOptions {
      * @default Draw contours at regular intervals given by the `interval` option.
      */
     levels?: number[];
-
-    /** 
-     * A function to thin the contours based on zoom level. The function should take a zoom level and return a number `n` that means to only show every 
-     * `n`th contour.
-     * @default Don't thin the contours on any zoom level
-     */
-    thinner?: (zoom: number) => number;
 }
 
 interface ContourGLElems {
@@ -56,19 +49,17 @@ interface ContourGLElems {
 }
 
 /** 
- * A field of contoured data. The contours can optionally be thinned based on map zoom level.
+ * A field of contoured data.
  * @example
  * // Create a contoured height field, with black contours every 30 m (assuming the height field is in 
- * // meters) and only using every other contour when the map zoom level is less than 5.
- * const contours = new Contour(height_field, {color: '#000000', interval: 30, 
- *                                                  thinner: zoom => zoom < 5 ? 2 : 1});
+ * // meters).
+ * const contours = new Contour(height_field, {color: '#000000', interval: 30});
  */
 class Contour<ArrayType extends TypedArray> extends PlotComponent {
     private readonly field: RawScalarField<ArrayType>;
     public readonly color: string;
     public readonly interval: number;
     public readonly levels: number[];
-    public readonly thinner: (zoom: number) => number;
 
     private gl_elems: ContourGLElems | null;
 
@@ -86,8 +77,6 @@ class Contour<ArrayType extends TypedArray> extends PlotComponent {
         this.levels = opts.levels || [];
 
         this.color = opts.color || '#000000';
-
-        this.thinner = opts.thinner || (() => 1);
 
         this.gl_elems = null;
     }
