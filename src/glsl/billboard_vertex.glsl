@@ -68,7 +68,8 @@ void main() {
     vec2 texcoord = vec2(0.0, 0.0);
     
     if (u_zoom >= min_zoom) {
-        vec2 tex_loc = vec2(mod(mag, u_bb_mag_wrap) / u_bb_mag_bin_size * u_bb_width, floor(mag / u_bb_mag_wrap) * u_bb_height);
+        // Subtracting a small number off of u_bb_mag_wrap fixes (I think) a precision issue on some GPUs
+        vec2 tex_loc = vec2(mod(mag, u_bb_mag_wrap - 1e-5) / u_bb_mag_bin_size * u_bb_width, floor(mag / (u_bb_mag_wrap - 1e-5)) * u_bb_height);
 
         if (corner < 0.5) {
             offset = vec4(-u_bb_size, u_bb_size, 0., 0.);

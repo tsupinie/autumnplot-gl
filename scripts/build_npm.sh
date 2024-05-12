@@ -3,6 +3,15 @@ rm -rf lib/*
 npx -p typescript tsc --declaration --outDir lib --target es2020 --sourceMap false --allowJs false 
 cp -r src/glsl lib/.
 
+cpp_files=(marchingsquares_embind.d.ts marchingsquares.d.ts marchingsquares.js marchingsquares.wasm)
+
+mkdir lib/cpp
+
+for file in ${cpp_files[@]}
+do
+    cp src/cpp/$file lib/cpp/.
+done
+
 for file in `ls lib/*.js`
 do
     cp $file /tmp/file.js

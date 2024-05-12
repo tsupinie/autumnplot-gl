@@ -1,6 +1,6 @@
 
 import { PlotComponent, getGLFormatTypeAlignment } from './PlotComponent';
-import { ColorMap, makeTextureImage } from './Colormap';
+import { ColorMap, makeIndexMap, makeTextureImage } from './Colormap';
 import { WGLBuffer, WGLProgram, WGLTexture } from 'autumn-wgl';
 import { DelayedScalarField, RawScalarField } from './RawField';
 import { MapType } from './Map';
@@ -66,29 +66,7 @@ class PlotComponentFill<ArrayType extends TypedArray> extends PlotComponent {
         this.opacity = opts.opacity || 1.;
 
         this.cmap_image = makeTextureImage(this.cmap);
-
-        const levels = this.cmap.levels;
-        const n_lev = levels.length - 1;
-
-        // Build a texture to account for nonlinear colormaps (basically inverts the relationship between
-        //  the normalized index and the normalized level)
-        const n_nonlin = 101;
-        const map_norm = [];
-        for (let i = 0; i < n_nonlin; i++) {
-            map_norm.push(i / (n_nonlin - 1));
-        }
-
-        const input_norm = levels.map((lev, ilev) => ilev / n_lev);
-        const cmap_norm = levels.map(lev => (lev - levels[0]) / (levels[n_lev] - levels[0]));
-        const inv_cmap_norm = map_norm.map(lev => {
-            let jlev;
-            for (jlev = 0; !(cmap_norm[jlev] <= lev && lev <= cmap_norm[jlev + 1]); jlev++) {}
-
-            const alpha = (lev - cmap_norm[jlev]) / (cmap_norm[jlev + 1] - cmap_norm[jlev]);
-            return input_norm[jlev] * (1 - alpha) + input_norm[jlev + 1] * alpha;
-        });
-
-        this.index_map = new Float16Array(inv_cmap_norm);
+        this.index_map = makeIndexMap(this.cmap);
 
         this.gl_elems = null;
         this.fill_texture = null;

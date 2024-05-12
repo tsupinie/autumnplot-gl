@@ -1,0 +1,6 @@
+*.o
+*.wasm
+
+marchingsquares
+marchingsquares.js
+marchingsquares_embind.d.ts

@@ -1,6 +1,6 @@
 
 import { PlotComponent } from "./PlotComponent";
-import Contour, {ContourOptions} from "./Contour";
+import Contour, {ContourOptions, initMSModule, ContourLabels} from "./Contour";
 import {ContourFill, Raster, ContourFillOptions, RasterOptions} from "./Fill";
 import Barbs, {BarbsOptions} from "./Barbs";
 import Paintball, {PaintballOptions} from "./Paintball";
@@ -25,9 +25,13 @@ const colormaps = {
     nws_storm_clear_refl: nws_storm_clear_refl,
 }
 
+function initAutumnPlot() {
+    initMSModule();
+}
+
 export {PlotComponent,
         Barbs, BarbsOptions,
-        Contour, ContourOptions,
+        Contour, ContourOptions, ContourLabels,
         ContourFill, Raster, ContourFillOptions, RasterOptions,
         Paintball, PaintballOptions,
         Hodographs, HodographOptions, WindProfile,
@@ -36,4 +40,5 @@ export {PlotComponent,
         ColorMap, colormaps, makeColorBar, makePaintballKey, Color, ColorbarOrientation, ColorbarTickDirection, ColorBarOptions, PaintballKeyOptions,
         RawScalarField, DelayedScalarField, RawVectorField, DelayedVectorField, RawProfileField, DelayedProfileField,
         Grid, GridType, VectorRelativeTo, RawVectorFieldOptions, PlateCarreeGrid, PlateCarreeRotatedGrid, LambertGrid,
-        WebGLAnyRenderingContext, TypedArray};
+        WebGLAnyRenderingContext, TypedArray,
+        initAutumnPlot};

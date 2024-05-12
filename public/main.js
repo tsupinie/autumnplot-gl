@@ -6,12 +6,13 @@ function makeSynthetic500mbLayers() {
     //const grid = new apgl.PlateCarreeRotatedGrid(nx, ny, 65.305142, 36.08852, 180, -14.82122, -12.302501, 42.306283, 16.7);
     const coords = grid.getGridCoords();
 
+    const height_base = 570;
     const height_pert = 10;
     const height_grad = 0.5
     const vel_pert = 60;
     const speed = 0.001;
 
-    const arrayType = float16.Float16Array;
+    const arrayType = Float32Array;
 
     function makeHeight(key) {
         let hght = [];
@@ -69,18 +70,23 @@ function makeSynthetic500mbLayers() {
     const filled = new apgl.ContourFill(raw_ws_field, {'cmap': colormap, 'opacity': 0.8});
     const barbs = new apgl.Barbs(raw_wind_field, {color: '#000000', thin_fac: 16});
 
+    const labels = new apgl.ContourLabels(cntr, {text_color: '#ffffff', halo: true});
+
     const hght_layer = new apgl.PlotLayer('height', cntr);
     const ws_layer = new apgl.PlotLayer('wind-speed', filled);
     const barb_layer = new apgl.PlotLayer('barbs', barbs);
+    const label_layer = new apgl.PlotLayer('label', labels);
 
     hght_layer.updateData(0);
     ws_layer.updateData(0);
     barb_layer.updateData(0);
+    label_layer.updateData(0);
 
     function updateTime(time) {
         hght_layer.updateData(time);
         ws_layer.updateData(time);
         barb_layer.updateData(time);
+        label_layer.updateData(time);
 
         window.requestAnimationFrame(updateTime);
     }
@@ -91,7 +97,7 @@ function makeSynthetic500mbLayers() {
                                              ticks: [20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140],
                                              orientation: 'horizontal', tick_direction: 'bottom'});
 
-    return {layers: [ws_layer, hght_layer, barb_layer], colorbar: svg};
+    return {layers: [ws_layer, hght_layer, barb_layer, label_layer], colorbar: svg};
 }
 
 async function fetchBinary(fname) {
