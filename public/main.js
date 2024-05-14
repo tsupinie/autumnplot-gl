@@ -19,7 +19,7 @@ function makeSynthetic500mbLayers() {
         for (i = 0; i < nx; i++) {
             for (j = 0; j < ny; j++) {
                 const idx = i + j * nx;
-                hght[idx] = height_pert * (Math.cos(-key * speed + 4 * Math.PI * i / (nx - 1)) * Math.cos(2 * Math.PI * j / (ny - 1))) - height_grad * j;
+                hght[idx] = height_base + height_pert * (Math.cos(-key * speed + 4 * Math.PI * i / (nx - 1)) * Math.cos(2 * Math.PI * j / (ny - 1))) - height_grad * j;
             }
         }
         return new arrayType(hght);
