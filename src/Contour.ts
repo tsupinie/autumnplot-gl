@@ -110,7 +110,7 @@ class Contour<ArrayType extends TypedArray> extends PlotComponent {
 
         const grid = new msm.FloatList();
         grid.resize(this.field.grid.ni * this.field.grid.nj, 0);
-        const tex_data = key === undefined ? null : await this.field.getTextureData(key);
+        const tex_data = key === undefined ? null : await this.field.data_getter(key);
         if (tex_data === null) return {};
 
         tex_data.forEach((v, i) => grid.set(i, v));
