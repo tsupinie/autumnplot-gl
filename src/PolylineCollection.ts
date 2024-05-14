@@ -43,7 +43,6 @@ class PolylineCollection {
         this.width = line_width;
 
         const shader_defines = [];
-        this.program = new WGLProgram(gl, polyline_vertex_src, polyline_fragment_src);
 
         this.vertices = new WGLBuffer(gl, polyline['vertices'], 3, gl.TRIANGLE_STRIP);
         this.extrusion = new WGLBuffer(gl, polyline['extrusion'], 2, gl.TRIANGLE_STRIP);
@@ -105,6 +104,8 @@ class PolylineCollection {
             this.line_data = null;
             this.index_map = null;
         }
+
+        this.program = new WGLProgram(gl, polyline_vertex_src, polyline_fragment_src, {define: shader_defines});
     }
 
     static async make(gl: WebGLAnyRenderingContext, lines: LineData[], opts?: PolylineCollectionOpts) {
