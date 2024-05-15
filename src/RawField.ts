@@ -546,10 +546,6 @@ class RawScalarField<ArrayType extends TypedArray> {
 
         return new RawScalarField(args[0].grid, agg_data);
     }
-
-    public static isa<ArrayType extends TypedArray>(obj: any) : obj is RawScalarField<ArrayType> {
-        return ('grid' in obj) && ('data' in obj);
-    }
 }
 
 type VectorRelativeTo = 'earth' | 'grid';
@@ -622,10 +618,6 @@ class RawVectorField<ArrayType extends TypedArray> {
     public get grid() {
         return this.u.grid
     }
-
-    public static isa<ArrayType extends TypedArray>(obj: any) : obj is RawVectorField<ArrayType> {
-        return ('grid' in obj) && ('u' in obj) && ('v' in obj);
-    }
 }
 
 /** A class grid of wind profiles */
@@ -656,10 +648,6 @@ class RawProfileField {
         });
 
         return new RawVectorField(this.grid, u, v, {relative_to: 'grid'});
-    }
-
-    public static isa(obj: any) : obj is RawProfileField {
-        return ('grid' in obj) && ('profiles' in obj);
     }
 }
 
