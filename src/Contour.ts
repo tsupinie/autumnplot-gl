@@ -7,22 +7,8 @@ import { PolylineCollection } from './PolylineCollection';
 import { TextCollection, TextCollectionOptions, TextSpec } from './TextCollection';
 import { WGLTexture } from 'autumn-wgl';
 
-import Module from './cpp/marchingsquares';
-import { MarchingSquaresModule } from './cpp/marchingsquares';
-import { LineString, Point } from './cpp/marchingsquares_embind';
-import './cpp/marchingsquares.wasm';
 import { hex2rgb, normalizeOptions } from './utils';
 import { kdTree } from 'kd-tree-javascript';
-
-let msm_promise: Promise<MarchingSquaresModule> | null = null;
-
-function initMSModule() {
-    if (msm_promise === null) {
-        msm_promise = Module();
-    }
-
-    return msm_promise;
-}
 
 interface ContourOptions {
     /** 
@@ -100,66 +86,7 @@ class Contour<ArrayType extends TypedArray> extends PlotComponent {
     }
 
     public async getContours() {
-        const msm = await initMSModule();
-
-        const grid_coords = this.field.grid.getGridCoords();
-
-        const grid = new msm.FloatList();
-        grid.resize(this.field.grid.ni * this.field.grid.nj, 0);
-        const tex_data = this.field.data;
-
-        tex_data.forEach((v, i) => grid.set(i, v));
-
-        const grid_x = new msm.FloatList();
-        grid_x.resize(this.field.grid.ni, 0);
-        grid_coords.x.forEach((v, i) => grid_x.set(i, v));
-
-        const grid_y = new msm.FloatList();
-        grid_y.resize(this.field.grid.nj, 0);
-        grid_coords.y.forEach((v, i) => grid_y.set(i, v));
-
-        const levels = [...this.levels];
-        if (levels.length == 0) {
-            const levels_cpp = msm.getContourLevelsFloat32(grid, this.field.grid.ni, this.field.grid.nj, this.interval);
-
-            for (let ilvl = 0; ilvl < levels_cpp.size(); ilvl++) {
-                levels.push(levels_cpp.get(ilvl));
-            }
-
-            levels_cpp.delete();
-        }
-
-        const contours: Record<number, [number, number][][]> = {};
-        levels.forEach(v => {
-            const contours_ = msm.makeContoursFloat32(grid, grid_x, grid_y, v);
-            contours[v] = [];
-
-            for (let icntr = 0; icntr < contours_.size(); icntr++) {
-                const contour: LineString = contours_.get(icntr);
-                const contour_point_list = contour.point_list;
-
-                contours[v].push([]);
-
-                for (let ipt = 0; ipt < contour_point_list.size(); ipt++) {
-                    const pt: Point = contour_point_list.get(ipt);
-                    const [lon, lat] = this.field.grid.transform(pt.x, pt.y, {inverse: true});
-                    contours[v][icntr].push([lon, lat]);
-
-                    pt.delete();
-                }
-
-                contour_point_list.delete();
-                contour.delete();
-            }
-
-            contours_.delete();
-        });
-
-        grid.delete();
-        grid_x.delete();
-        grid_y.delete();
-
-        return contours;
+        return await this.field.getContours({interval: this.interval, levels: this.levels});
     }
 
     /**
@@ -369,5 +296,5 @@ class ContourLabels<ArrayType extends TypedArray> extends PlotComponent {
 }
 
 export default Contour;
-export {initMSModule, ContourLabels};
+export {ContourLabels};
 export type {ContourOptions};

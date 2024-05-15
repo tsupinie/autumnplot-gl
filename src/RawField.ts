@@ -1,6 +1,7 @@
 
 import { Float16Array } from "@petamoriken/float16";
-import { TypedArray, WindProfile } from "./AutumnTypes";
+import { ContourData, TypedArray, WindProfile } from "./AutumnTypes";
+import { contourCreator, FieldContourOpts } from "./ContourCreator";
 import { Grid } from "./Grid";
 import { Cache, zip } from "./utils";
 
@@ -15,6 +16,8 @@ class RawScalarField<ArrayType extends TypedArray> {
     public readonly grid: Grid;
     public readonly data: ArrayType;
 
+    private readonly contour_cache: Cache<[FieldContourOpts], Promise<ContourData>>;
+
     /**
      * Create a data field. 
      * @param grid - The grid on which the data are defined
@@ -27,6 +30,10 @@ class RawScalarField<ArrayType extends TypedArray> {
         if (grid.ni * grid.nj != data.length) {
             throw `Data size (${data.length}) doesn't match the grid dimensions (${grid.ni} x ${grid.nj}; expected ${grid.ni * grid.nj} points)`;
         }
+
+        this.contour_cache = new Cache(async (opts: FieldContourOpts) => {
+            return await contourCreator(this.data, this.grid, opts);
+        });
     }
 
     /** @internal */
@@ -42,6 +49,10 @@ class RawScalarField<ArrayType extends TypedArray> {
         }
 
         return data as TextureDataType<ArrayType>;
+    }
+
+    public async getContours(opts: FieldContourOpts) {
+        return await this.contour_cache.getValue(opts);
     }
 
     /**
@@ -171,5 +182,5 @@ class RawProfileField {
     }
 }
 
-export {RawScalarField, RawVectorField, RawProfileField, PlateCarreeGrid, PlateCarreeRotatedGrid, LambertGrid, Grid};
-export type {GridType, RawVectorFieldOptions, VectorRelativeTo, TextureDataType};
+export {RawScalarField, RawVectorField, RawProfileField};
+export type {RawVectorFieldOptions, VectorRelativeTo, TextureDataType};

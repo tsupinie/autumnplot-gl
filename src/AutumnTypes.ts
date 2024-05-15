@@ -46,5 +46,7 @@ function isWebGL2Ctx(gl: WebGLAnyRenderingContext) : gl is WebGL2RenderingContex
 
 type TypedArray = Float16Array | Float32Array;
 
+type ContourData = Record<number, [number, number][][]>;
+
 export {isWebGL2Ctx};
-export type {WindProfile, BillboardSpec, Polyline, LineData, WebGLAnyRenderingContext, TypedArray};
+export type {WindProfile, BillboardSpec, Polyline, LineData, WebGLAnyRenderingContext, TypedArray, ContourData};

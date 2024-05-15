@@ -1,6 +1,6 @@
 
 import { PlotComponent } from "./PlotComponent";
-import Contour, {ContourOptions, initMSModule, ContourLabels} from "./Contour";
+import Contour, {ContourOptions, ContourLabels} from "./Contour";
 import {ContourFill, Raster, ContourFillOptions, RasterOptions} from "./Fill";
 import Barbs, {BarbsOptions} from "./Barbs";
 import Paintball, {PaintballOptions} from "./Paintball";
@@ -13,6 +13,8 @@ import { ColorMap, bluered, redblue, pw_speed500mb, pw_speed850mb, pw_cape, pw_t
 import { makeColorBar, makePaintballKey, ColorbarOrientation, ColorbarTickDirection, ColorBarOptions, PaintballKeyOptions } from "./ColorBar";
 import { RawScalarField, RawVectorField, RawProfileField, VectorRelativeTo, RawVectorFieldOptions} from "./RawField";
 import { Grid, GridType, PlateCarreeGrid, PlateCarreeRotatedGrid, LambertGrid } from './Grid'
+
+import { initMSModule } from './ContourCreator';
 
 const colormaps = {
     bluered: bluered,
