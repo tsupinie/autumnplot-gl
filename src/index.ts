@@ -1,6 +1,6 @@
 
 import { PlotComponent } from "./PlotComponent";
-import Contour, {ContourOptions, ContourLabels} from "./Contour";
+import Contour, {ContourOptions, ContourLabels, ContourLabelOptions} from "./Contour";
 import {ContourFill, Raster, ContourFillOptions, RasterOptions} from "./Fill";
 import Barbs, {BarbsOptions} from "./Barbs";
 import Paintball, {PaintballOptions} from "./Paintball";
@@ -14,7 +14,7 @@ import { makeColorBar, makePaintballKey, ColorbarOrientation, ColorbarTickDirect
 import { RawScalarField, RawVectorField, RawProfileField, VectorRelativeTo, RawVectorFieldOptions} from "./RawField";
 import { Grid, GridType, PlateCarreeGrid, PlateCarreeRotatedGrid, LambertGrid } from './Grid'
 
-import { initMSModule } from './ContourCreator';
+import { initMSModule, FieldContourOpts } from './ContourCreator';
 
 const colormaps = {
     bluered: bluered,
@@ -33,7 +33,7 @@ function initAutumnPlot() {
 
 export {PlotComponent,
         Barbs, BarbsOptions,
-        Contour, ContourOptions, ContourLabels,
+        Contour, ContourOptions, ContourLabels, ContourLabelOptions,
         ContourFill, Raster, ContourFillOptions, RasterOptions,
         Paintball, PaintballOptions,
         Hodographs, HodographOptions, WindProfile,
@@ -43,4 +43,4 @@ export {PlotComponent,
         RawScalarField, RawVectorField, RawProfileField,
         Grid, GridType, VectorRelativeTo, RawVectorFieldOptions, PlateCarreeGrid, PlateCarreeRotatedGrid, LambertGrid,
         WebGLAnyRenderingContext, TypedArray,
-        initAutumnPlot};
+        initAutumnPlot, FieldContourOpts};

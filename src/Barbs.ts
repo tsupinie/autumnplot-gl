@@ -177,6 +177,10 @@ class Barbs<ArrayType extends TypedArray> extends PlotComponent {
         this.gl_elems = null;
     }
 
+    /**
+     * Update the field displayed as barbs
+     * @param fields - The new field to display as barbs
+     */
     public async updateField(fields: RawVectorField<ArrayType>) {
         this.fields = fields;
         if (this.gl_elems === null) return;

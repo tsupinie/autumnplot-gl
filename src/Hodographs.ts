@@ -111,6 +111,10 @@ class Hodographs extends PlotComponent {
         this.line_elems = null;
     }
 
+    /**
+     * Update the profiles displayed
+     * @param field - The new profiles to display as hodographs
+     */
     public async updateField(field: RawProfileField) {
         this.profile_field = field;
 

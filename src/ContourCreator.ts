@@ -17,7 +17,14 @@ function initMSModule() {
 }
 
 interface FieldContourOpts {
+    /**
+     * The interval at which to create contours. The field will be contoured at this interval from its minimum to its maximum.
+     */
     interval?: number;
+
+    /**
+     * Contour the field at these specific levels.
+     */
     levels?: number[];
 }
 

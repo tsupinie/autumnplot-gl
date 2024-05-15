@@ -70,6 +70,10 @@ class Contour<ArrayType extends TypedArray> extends PlotComponent {
         this.contours = null;
     }
 
+    /**
+     * Update the data displayed as contours
+     * @param field - The new field to contour
+     */
     public async updateField(field: RawScalarField<ArrayType>) {
         this.field = field;
         if (this.gl_elems === null) return;
@@ -129,12 +133,45 @@ interface ContourLabelGLElems {
 }
 
 interface ContourLabelOptions {
+    /**
+     * Number of decimal places to use in the contour labels
+     * @default 0
+     */
     n_decimal_places?: number;
+
+    /**
+     * Font face to use for the contour labels
+     * @default 'Trebuchet MS'
+     */
     font_face?: string;
+
+    /**
+     * Font size in points to use for the contour labels
+     * @default 12
+     */
     font_size?: number;
+
+    /**
+     * URL template to use in retrieving the font data for the labels. The default is to use the template from the map style.
+     */
     font_url_template?: string;
+
+    /**
+     * Text color for the contour labels
+     * @default '#000000'
+     */
     text_color?: string;
+
+    /**
+     * Halo (outline) color for the contour labels
+     * @default '#000000'
+     */
     halo_color?: string;
+
+    /**
+     * Whether to draw the halo (outline) on the contour labels
+     * @default false
+     */
     halo?: boolean;
 }
 
@@ -164,6 +201,9 @@ class ContourLabels<ArrayType extends TypedArray> extends PlotComponent {
         this.gl_elems = null;
     }
 
+    /**
+     * Update contour labels when the field for the associated Contour object has been changed.
+     */
     public async updateField() {
         if (this.gl_elems === null) return;
 
@@ -275,6 +315,10 @@ class ContourLabels<ArrayType extends TypedArray> extends PlotComponent {
         map.triggerRepaint();
     }
 
+    /** 
+     * @internal 
+     * Add the contour labels to a map
+     */
     public async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
         this.gl_elems = {
             gl: gl, map: map,
@@ -283,6 +327,10 @@ class ContourLabels<ArrayType extends TypedArray> extends PlotComponent {
         this.updateField();
     }
 
+    /** 
+     * @internal 
+     * Render the contour labels
+     */
     public render(gl: WebGLAnyRenderingContext, matrix: number[]) {
         if (this.gl_elems === null || this.text_collection === null) return;
         const gl_elems = this.gl_elems;
@@ -297,4 +345,4 @@ class ContourLabels<ArrayType extends TypedArray> extends PlotComponent {
 
 export default Contour;
 export {ContourLabels};
-export type {ContourOptions};
+export type {ContourOptions, ContourLabelOptions};

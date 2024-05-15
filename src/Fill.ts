@@ -179,6 +179,14 @@ class Raster<ArrayType extends TypedArray> extends PlotComponentFill<ArrayType> 
     }
 
     /**
+     * Update the data displayed as a raster plot
+     * @param field - The new field to display as a raster plot
+     */
+    public async updateField(field: RawScalarField<ArrayType>) {
+        await super.updateField(field);
+    }
+
+    /**
      * @internal
      * Add the raster plot to a map
      */
@@ -212,6 +220,14 @@ class ContourFill<ArrayType extends TypedArray> extends PlotComponentFill<ArrayT
      */
     constructor(field: RawScalarField<ArrayType>, opts: ContourFillOptions) {
         super(field, opts);
+    }
+
+    /**
+     * Update the data displayed as filled contours
+     * @param field - The new field to display as filled contours
+     */
+    public async updateField(field: RawScalarField<ArrayType>) {
+        await super.updateField(field);
     }
 
     /**

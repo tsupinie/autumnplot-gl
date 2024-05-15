@@ -65,6 +65,10 @@ class Paintball<ArrayType extends TypedArray> extends PlotComponent {
         this.fill_texture = null;
     }
 
+    /**
+     * Update the field displayed as a paintball plot
+     * @param field - The new field to display as a paintball plot
+     */
     public async updateField(field: RawScalarField<ArrayType>) {
         this.field = field;
 
