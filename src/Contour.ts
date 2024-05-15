@@ -42,7 +42,7 @@ interface ContourGLElems {
  * // meters).
  * const contours = new Contour(height_field, {color: '#000000', interval: 30});
  */
-class Contour<ArrayType extends TypedArray> extends PlotComponent {
+class Contour<ArrayType extends TypedArray> extends PlotComponent<RawScalarField<ArrayType>> {
     private field: RawScalarField<ArrayType>;
     public readonly color: string;
     public readonly interval: number;
@@ -185,7 +185,7 @@ const contour_label_opt_defaults: Required<ContourLabelOptions> = {
     halo: false
 }
 
-class ContourLabels<ArrayType extends TypedArray> extends PlotComponent {
+class ContourLabels<ArrayType extends TypedArray> extends PlotComponent<void> {
     private readonly contours: Contour<ArrayType>;
     private gl_elems: ContourLabelGLElems | null;
     private text_collection: TextCollection | null;

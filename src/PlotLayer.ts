@@ -34,15 +34,15 @@ abstract class PlotLayerBase {
  * const wind_speed_layer = new PlotLayer('wind-speed-fill', wind_speed_fill);
  * const barb_layer = new PlotLayer('barbs', wind_barbs);
  */
-class PlotLayer extends PlotLayerBase {
-    private readonly field: PlotComponent;
+class PlotLayer<FieldType> extends PlotLayerBase {
+    private readonly field: PlotComponent<FieldType>;
 
     /**
      * Create a map layer from a field
      * @param id    - A unique id for this layer
      * @param field - The field to plot in this layer
      */
-    constructor(id: string, field: PlotComponent) {
+    constructor(id: string, field: PlotComponent<FieldType>) {
         super(id);
         this.field = field;
     }
@@ -79,8 +79,8 @@ class PlotLayer extends PlotLayerBase {
  * // Set the date/time in the map layer
  * height_layer.setActiveKey('20230112_1200');
  */
-class MultiPlotLayer extends PlotLayerBase {
-    private fields: Record<string, PlotComponent>;
+class MultiPlotLayer<FieldType> extends PlotLayerBase {
+    private fields: Record<string, PlotComponent<FieldType>>;
     private field_key: string | null;
 
     private gl: WebGLAnyRenderingContext | null;
@@ -150,7 +150,7 @@ class MultiPlotLayer extends PlotLayerBase {
      * @param field - The field to add
      * @param dt    - The date/time at which the field is valid
      */
-    public addField(field: PlotComponent, key: string) {
+    public addField(field: PlotComponent<FieldType>, key: string) {
         const old_field_key = this.field_key;
 
         if (this.map !== null && this.gl !== null && field !== null) {

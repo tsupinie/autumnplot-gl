@@ -36,7 +36,7 @@ interface PaintballGLElems {
  * of single-precision floats, this works for up to 24 members. (Technically speaking, I don't need the quotes around "bits", as they're bits of the 
  * significand of an IEEE 754 float.)
  */
-class Paintball<ArrayType extends TypedArray> extends PlotComponent {
+class Paintball<ArrayType extends TypedArray> extends PlotComponent<RawScalarField<ArrayType>> {
     private field: RawScalarField<ArrayType>;
     public readonly colors: number[];
     public readonly opacity: number;
