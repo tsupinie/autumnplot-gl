@@ -22,7 +22,7 @@ function makeSynthetic500mbLayers() {
                 hght[idx] = height_base + height_pert * (Math.cos(-key * speed + 4 * Math.PI * i / (nx - 1)) * Math.cos(2 * Math.PI * j / (ny - 1))) - height_grad * j;
             }
         }
-        return new arrayType(hght);
+        return new apgl.RawScalarField(grid, new arrayType(hght));
     }
 
     function makeWinds(key) {
@@ -46,25 +46,25 @@ function makeSynthetic500mbLayers() {
             }
         }
 
-        return {u: new arrayType(u), v: new arrayType(v)};
+        return new apgl.RawVectorField(grid, new arrayType(u), new arrayType(v), {relative_to: 'grid'});
     }
 
     function makeWindSpeed(key) {
         const winds = makeWinds(key);
         const wspd = [];
 
-        for (let idx = 0; idx < winds.u.length; idx++) {
-            wspd[idx] = Math.hypot(winds.u[idx], winds.v[idx]);
+        for (let idx = 0; idx < winds.u.data.length; idx++) {
+            wspd[idx] = Math.hypot(winds.u.data[idx], winds.v.data[idx]);
         }
 
-        return new arrayType(wspd);
+        return new apgl.RawScalarField(grid, new arrayType(wspd));
     }
 
     const colormap = apgl.colormaps.pw_speed500mb;
 
-    const raw_hght_field = new apgl.DelayedScalarField(grid, makeHeight);
-    const raw_wind_field = new apgl.DelayedVectorField(grid, makeWinds, {relative_to: 'grid'});
-    const raw_ws_field = new apgl.DelayedScalarField(grid, makeWindSpeed);
+    const raw_hght_field = makeHeight(0);
+    const raw_wind_field = makeWinds(0);
+    const raw_ws_field = makeWindSpeed(0);
 
     const cntr = new apgl.Contour(raw_hght_field, {interval: 1, color: '#000000', thinner: zoom => zoom < 5 ? 2 : 1});
     const filled = new apgl.ContourFill(raw_ws_field, {'cmap': colormap, 'opacity': 0.8});
@@ -77,21 +77,16 @@ function makeSynthetic500mbLayers() {
     const barb_layer = new apgl.PlotLayer('barbs', barbs);
     const label_layer = new apgl.PlotLayer('label', labels);
 
-    hght_layer.updateData(0);
-    ws_layer.updateData(0);
-    barb_layer.updateData(0);
-    label_layer.updateData(0);
-
     function updateTime(time) {
-        hght_layer.updateData(time);
-        ws_layer.updateData(time);
-        barb_layer.updateData(time);
-        label_layer.updateData(time);
+        cntr.updateField(makeHeight(time));
+        filled.updateField(makeWindSpeed(time));
+        barbs.updateField(makeWinds(time));
+        labels.updateField();
 
         window.requestAnimationFrame(updateTime);
     }
 
-    updateTime(0);
+    //updateTime(0);
 
     const svg = apgl.makeColorBar(colormap, {label: "Wind Speed (kts)", fontface: 'Trebuchet MS', 
                                              ticks: [20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140],

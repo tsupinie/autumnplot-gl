@@ -2,7 +2,7 @@
 import { PlotComponent, getGLFormatTypeAlignment } from './PlotComponent';
 import { ColorMap, makeIndexMap, makeTextureImage } from './Colormap';
 import { WGLBuffer, WGLProgram, WGLTexture } from 'autumn-wgl';
-import { DelayedScalarField, RawScalarField } from './RawField';
+import { RawScalarField } from './RawField';
 import { MapType } from './Map';
 import { TypedArray, WebGLAnyRenderingContext } from './AutumnTypes';
 import { Float16Array } from '@petamoriken/float16';
@@ -34,6 +34,7 @@ interface RasterOptions {
 
 interface PlotComponentFillGLElems {
     gl: WebGLAnyRenderingContext;
+    map: MapType;
     program: WGLProgram;
     vertices: WGLBuffer;
 
@@ -43,25 +44,22 @@ interface PlotComponentFillGLElems {
 }
 
 class PlotComponentFill<ArrayType extends TypedArray> extends PlotComponent {
-    private readonly field: DelayedScalarField<ArrayType>;
+    private field: RawScalarField<ArrayType>;
     public readonly cmap: ColorMap;
     public readonly opacity: number;
 
     private readonly cmap_image: HTMLCanvasElement;
     private readonly index_map: Float16Array;
-    private readonly is_delayed: boolean
 
     private gl_elems: PlotComponentFillGLElems | null;
     private fill_texture: WGLTexture | null;
     protected image_mag_filter: number | null;
     protected cmap_mag_filter: number | null;
-    private show_field: boolean;
 
-    constructor(field: RawScalarField<ArrayType> | DelayedScalarField<ArrayType>, opts: ContourFillOptions) {
+    constructor(field: RawScalarField<ArrayType>, opts: ContourFillOptions) {
         super();
 
-        this.is_delayed = !RawScalarField.isa(field)
-        this.field = RawScalarField.isa(field) ? DelayedScalarField.fromRawScalarField(field) : field;
+        this.field = field;
         this.cmap = opts.cmap;
         this.opacity = opts.opacity || 1.;
 
@@ -72,16 +70,17 @@ class PlotComponentFill<ArrayType extends TypedArray> extends PlotComponent {
         this.fill_texture = null;
         this.image_mag_filter = null;
         this.cmap_mag_filter = null;
-        this.show_field = true;
     }
 
-    public async updateData(key: string | undefined) {
+    public async updateField(field: RawScalarField<ArrayType>) {
+        this.field = field;
+
         if (this.gl_elems === null) return;
 
         const gl = this.gl_elems.gl;
+        const map = this.gl_elems.map;
         
-        const tex_data = key === undefined ? null : await this.field.getTextureData(key);
-        this.show_field = tex_data !== null;
+        const tex_data = this.field.getTextureData();
         const {format, type, row_alignment} = getGLFormatTypeAlignment(gl, !(tex_data instanceof Float32Array));
     
         const fill_image = {'format': format, 'type': type,
@@ -95,6 +94,8 @@ class PlotComponentFill<ArrayType extends TypedArray> extends PlotComponent {
         else {
             this.fill_texture.setImageData(fill_image);
         }
+
+        map.triggerRepaint();
     }
 
     public async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
@@ -123,15 +124,15 @@ class PlotComponentFill<ArrayType extends TypedArray> extends PlotComponent {
 
         const cmap_nonlin_texture = new WGLTexture(gl, cmap_nonlin_image);
         this.gl_elems = {
-            gl: gl, program: program, vertices: vertices, texcoords: texcoords, 
+            gl: gl, map: map, program: program, vertices: vertices, texcoords: texcoords, 
             cmap_texture: cmap_texture, cmap_nonlin_texture: cmap_nonlin_texture,
         };
 
-        if (!this.is_delayed) await this.updateData('');
+        this.updateField(this.field);
     }
 
     public render(gl: WebGLAnyRenderingContext, matrix: number[] | Float32Array) {
-        if (this.gl_elems === null || this.fill_texture === null || !this.show_field) return;
+        if (this.gl_elems === null || this.fill_texture === null) return;
         const gl_elems = this.gl_elems;
 
         if (matrix instanceof Float32Array) 

@@ -4,7 +4,7 @@ import { PolylineCollection } from "./PolylineCollection";
 import { BillboardCollection } from "./BillboardCollection";
 import { getMinZoom, hex2rgb } from './utils';
 import { LngLat, MapType } from "./Map";
-import { DelayedProfileField, RawProfileField } from "./RawField";
+import { RawProfileField } from "./RawField";
 import { LineData, TypedArray, WebGLAnyRenderingContext } from "./AutumnTypes";
 import { Float16Array } from "@petamoriken/float16";
 import { ColorMap } from "./Colormap";
@@ -80,7 +80,7 @@ interface HodographGLElems<ArrayType extends TypedArray> {
 
 /** A class representing a a field of hodograph plots */
 class Hodographs extends PlotComponent {
-    private readonly profile_field: DelayedProfileField;
+    private profile_field: RawProfileField;
     public readonly bgcolor: string;
     public readonly thin_fac: number;
 
@@ -88,20 +88,18 @@ class Hodographs extends PlotComponent {
     private line_elems: {hodo_line: PolylineCollection, sm_line: PolylineCollection} | null;
     private readonly hodo_scale;
     private readonly bg_size;
-    private readonly is_delayed: boolean;
 
     /**
      * Create a field of hodographs
      * @param profile_field - The grid of profiles to plot
      * @param opts          - Various options to use when creating the hodographs 
      */
-    constructor(profile_field: RawProfileField | DelayedProfileField, opts?: HodographOptions) {
+    constructor(profile_field: RawProfileField, opts?: HodographOptions) {
         super();
 
         opts = opts || {};
         
-        this.is_delayed = !RawProfileField.isa(profile_field);
-        this.profile_field = RawProfileField.isa(profile_field) ? DelayedProfileField.fromRawProfileField(profile_field) : profile_field;
+        this.profile_field = profile_field;
 
         this.bgcolor = opts.bgcolor || '#000000'
         this.thin_fac = opts.thin_fac || 1;
@@ -113,14 +111,16 @@ class Hodographs extends PlotComponent {
         this.line_elems = null;
     }
 
-    public async updateData(key: string) {
+    public async updateField(field: RawProfileField) {
+        this.profile_field = field;
+
         if (this.gl_elems === null) return;
         // XXX: This might leak VRAM
         const gl = this.gl_elems.gl;
 
-        await this.gl_elems.bg_billboard.updateData(key);
+        this.gl_elems.bg_billboard.updateField(field.getStormMotionGrid());
 
-        const profiles = await this.profile_field.getProfiles(key);
+        const profiles = this.profile_field.profiles;
         
         const hodo_polyline = profiles.map(prof => {
             const zoom = getMinZoom(prof['jlat'], prof['ilon'], this.thin_fac);
@@ -177,7 +177,7 @@ class Hodographs extends PlotComponent {
             gl: gl, map: map, bg_billboard: bg_billboard
         };
 
-        if (!this.is_delayed) this.updateData('');
+        this.updateField(this.profile_field);
     }
 
     /**

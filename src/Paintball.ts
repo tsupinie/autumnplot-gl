@@ -2,7 +2,7 @@
 import { TypedArray, WebGLAnyRenderingContext } from "./AutumnTypes";
 import { MapType } from "./Map";
 import { PlotComponent, getGLFormatTypeAlignment } from "./PlotComponent";
-import { DelayedScalarField, RawScalarField } from "./RawField";
+import { RawScalarField } from "./RawField";
 import { hex2rgba } from "./utils";
 import { WGLBuffer, WGLProgram, WGLTexture } from "autumn-wgl";
 
@@ -37,14 +37,12 @@ interface PaintballGLElems {
  * significand of an IEEE 754 float.)
  */
 class Paintball<ArrayType extends TypedArray> extends PlotComponent {
-    private readonly field: DelayedScalarField<ArrayType>;
+    private field: RawScalarField<ArrayType>;
     public readonly colors: number[];
     public readonly opacity: number;
 
     private gl_elems: PaintballGLElems | null;
     private fill_texture: WGLTexture | null;
-    private is_delayed: boolean;
-    private show_field: boolean;
 
     /**
      * Create a paintball plot
@@ -53,11 +51,10 @@ class Paintball<ArrayType extends TypedArray> extends PlotComponent {
      *               `M2` is the same thing for member 2, and `M3` and `M4` and up to `Mn` are the same thing for the rest of the members.
      * @param opts  - Options for creating the paintball plot
      */
-    constructor(field: RawScalarField<ArrayType> | DelayedScalarField<ArrayType>, opts?: PaintballOptions) {
+    constructor(field: RawScalarField<ArrayType>, opts?: PaintballOptions) {
         super();
 
-        this.is_delayed = !RawScalarField.isa(field);
-        this.field = RawScalarField.isa(field) ? DelayedScalarField.fromRawScalarField(field) : field;
+        this.field = field;
 
         opts = opts !== undefined ? opts : {};
         const colors = opts.colors !== undefined ? [...opts.colors] : ['#000000'];
@@ -66,17 +63,17 @@ class Paintball<ArrayType extends TypedArray> extends PlotComponent {
 
         this.gl_elems = null;
         this.fill_texture = null;
-        this.show_field = true;
     }
 
-    public async updateData(key: string | undefined) {
+    public async updateField(field: RawScalarField<ArrayType>) {
+        this.field = field;
+
         if (this.gl_elems === null) return;
         const gl = this.gl_elems.gl;
 
         gl.pixelStorei(gl.UNPACK_ALIGNMENT, 2);
 
-        const tex_data = key === undefined ? null : await this.field.getTextureData(key);
-        this.show_field = tex_data !== null;
+        const tex_data = this.field.getTextureData();
         const {format, type, row_alignment} = getGLFormatTypeAlignment(gl, !(tex_data instanceof Float32Array));
 
         const fill_image = {'format': format, 'type': type,
@@ -109,7 +106,7 @@ class Paintball<ArrayType extends TypedArray> extends PlotComponent {
             gl: gl, program: program, vertices: vertices, texcoords: texcoords,
         };
 
-        if (!this.is_delayed) this.updateData('');
+        this.updateField(this.field);
     }
 
     /**
@@ -117,7 +114,7 @@ class Paintball<ArrayType extends TypedArray> extends PlotComponent {
      * Render the paintball plot
      */
     public render(gl: WebGLAnyRenderingContext, matrix: number[] | Float32Array) {
-        if (this.gl_elems === null || this.fill_texture === null || !this.show_field) return;
+        if (this.gl_elems === null || this.fill_texture === null) return;
         const gl_elems = this.gl_elems;
 
         if (matrix instanceof Float32Array)

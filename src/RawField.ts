@@ -509,6 +509,21 @@ class RawScalarField<ArrayType extends TypedArray> {
         }
     }
 
+    /** @internal */
+    public getTextureData() : TextureDataType<ArrayType> {
+        // Need to give float16 data as uint16s to make WebGL happy: https://github.com/petamoriken/float16/issues/105
+        const raw_data = this.data;
+        let data: any;
+        if (raw_data instanceof Float32Array) {
+            data = raw_data;
+        }
+        else {
+            data = new Uint16Array(raw_data.buffer);
+        }
+
+        return data as TextureDataType<ArrayType>;
+    }
+
     /**
      * Create a new field by aggregating a number of fields using a specific function
      * @param func - A function that will be applied each element of the field. It should take the same number of arguments as fields you have and return a single number.
@@ -534,84 +549,6 @@ class RawScalarField<ArrayType extends TypedArray> {
 
     public static isa<ArrayType extends TypedArray>(obj: any) : obj is RawScalarField<ArrayType> {
         return ('grid' in obj) && ('data' in obj);
-    }
-}
-
-class DelayedScalarField<ArrayType extends TypedArray> {
-    public readonly grid: Grid;
-    public readonly data_getter: (key: string | undefined) => Promise<ArrayType>;
-
-    constructor(grid: Grid, data_getter: (key: string) => Promise<ArrayType>) {
-        this.grid = grid;
-        this.data_getter = data_getter;
-    }
-
-    /** @internal */
-    public async getTextureData(key: string) : Promise<TextureDataType<ArrayType>> {
-        // Need to give float16 data as uint16s to make WebGL happy: https://github.com/petamoriken/float16/issues/105
-        const raw_data = await this.data_getter(key);
-        let data: any;
-        if (raw_data instanceof Float32Array) {
-            data = raw_data;
-        }
-        else {
-            data = new Uint16Array(raw_data.buffer);
-        }
-
-        return data as TextureDataType<ArrayType>;
-    }
-
-    public getThinnedField(thin_x: number, thin_y: number) {
-        const new_grid = this.grid.getThinnedGrid(thin_x, thin_y);
-
-        const new_getter = async (key: string) => {
-            const data = await this.data_getter(key);
-            const arrayType = getArrayConstructor(data);
-            const new_data = new arrayType(new_grid.ni * new_grid.nj);
-    
-            for (let i = 0; i < new_grid.ni; i++) {
-                for (let j = 0 ; j < new_grid.nj; j++) {
-                    const idx_old = i * thin_x + this.grid.ni * j * thin_y;
-                    const idx = i + new_grid.ni * j;
-    
-                    new_data[idx] = data[idx_old];
-                }
-            }
-
-            return new_data;
-        }
-
-        return new DelayedScalarField(new_grid, new_getter);
-    }
-
-    /**
-     * Create a new field by aggregating a number of fields using a specific function
-     * @param func - A function that will be applied each element of the field. It should take the same number of arguments as fields you have and return a single number.
-     * @param args - The RawScalarFields to aggregate
-     * @returns a new gridded field
-     * @example
-     * // Compute wind speed from u and v
-     * wind_speed_field = RawScalarField.aggreateFields(Math.hypot, u_field, v_field);
-     */
-    public static aggregateFields<ArrayType extends TypedArray>(func: (...args: number[]) => number, ...args: DelayedScalarField<ArrayType>[]) {
-        function* mapGenerator<T, U>(gen: Generator<T>, func: (arg: T) => U) {
-            for (const elem of gen) {
-                yield func(elem);
-            }
-        }
-
-        const new_getter = async (key: string) => {
-            const data = await Promise.all(args.map(a => a.data_getter(key)));
-            const arrayType = getArrayConstructor(data[0]);
-            const zipped_args = zip(...data);
-            return new arrayType(mapGenerator(zipped_args, (a: number[]): number => func(...a)));
-        }
-
-        return new DelayedScalarField(args[0].grid, new_getter);
-    }
-
-    public static fromRawScalarField<ArrayType extends TypedArray>(raw_field: RawScalarField<ArrayType>) {
-        return new DelayedScalarField(raw_field.grid, async () => raw_field.data);
     }
 }
 
@@ -646,31 +583,10 @@ class RawVectorField<ArrayType extends TypedArray> {
         this.relative_to = opts.relative_to === undefined ? 'grid' : opts.relative_to;
     }
 
-    public get grid() {
-        return this.u.grid
-    }
-
-    public static isa<ArrayType extends TypedArray>(obj: any) : obj is RawVectorField<ArrayType> {
-        return ('grid' in obj) && ('u' in obj) && ('v' in obj);
-    }
-}
-
-class DelayedVectorField<ArrayType extends TypedArray> {
-    public readonly grid: Grid;
-    public readonly data_getter: (key: string) => Promise<{u: ArrayType, v: ArrayType}>
-    public readonly relative_to: VectorRelativeTo;
-
-    constructor(grid: Grid, data_getter: (key: string) => Promise<{u: ArrayType, v: ArrayType}>, opts?: RawVectorFieldOptions) {
-        opts = opts === undefined ? {} : opts;
-
-        this.grid = grid;
-        this.data_getter = data_getter;
-        this.relative_to = opts.relative_to === undefined ? 'grid' : opts.relative_to;
-    }
-
-    public async getTextureData(key: string) {
+    public getTextureData() {
         // Need to give float16 data as uint16s to make WebGL happy: https://github.com/petamoriken/float16/issues/105
-        const {u: raw_u, v: raw_v} = await this.data_getter(key);
+        const raw_u = this.u.data;
+        const raw_v = this.v.data;
 
         const u: any = raw_u instanceof Float32Array ? raw_u : new Uint16Array(raw_u.buffer);
         const v: any = raw_v instanceof Float32Array ? raw_v : new Uint16Array(raw_v.buffer);
@@ -697,19 +613,18 @@ class DelayedVectorField<ArrayType extends TypedArray> {
             return new_data;
         }
 
-        const new_getter = async (key: string) => {
-            const {u, v} = await this.data_getter(key);
+        const thin_u = thinGrid(this.u.data);
+        const thin_v = thinGrid(this.v.data);
 
-            const thin_u = thinGrid(u);
-            const thin_v = thinGrid(v);
-            return {u: thin_u, v: thin_v};
-        }
-
-        return new DelayedVectorField(new_grid, new_getter, {relative_to: this.relative_to});
+        return new RawVectorField(new_grid, thin_u, thin_v, {relative_to: this.relative_to});
     }
 
-    public static fromRawVectorField<ArrayType extends TypedArray>(raw_field: RawVectorField<ArrayType>) {
-        return new DelayedVectorField(raw_field.grid, async () => ({u: raw_field.u.data, v: raw_field.v.data}), {relative_to: raw_field.relative_to});
+    public get grid() {
+        return this.u.grid
+    }
+
+    public static isa<ArrayType extends TypedArray>(obj: any) : obj is RawVectorField<ArrayType> {
+        return ('grid' in obj) && ('u' in obj) && ('v' in obj);
     }
 }
 
@@ -728,47 +643,25 @@ class RawProfileField {
         this.grid = grid;
     }
 
+    /** Get the gridded storm motion vector field (internal method) */
+    public getStormMotionGrid() {
+        const profiles = this.profiles
+        const u = new Float16Array(this.grid.ni * this.grid.nj).fill(parseFloat('nan'));
+        const v = new Float16Array(this.grid.ni * this.grid.nj).fill(parseFloat('nan'));
+
+        profiles.forEach(prof => {
+            const idx = prof.ilon + this.grid.ni * prof.jlat;
+            u[idx] = prof.smu;
+            v[idx] = prof.smv;
+        });
+
+        return new RawVectorField(this.grid, u, v, {relative_to: 'grid'});
+    }
+
     public static isa(obj: any) : obj is RawProfileField {
         return ('grid' in obj) && ('profiles' in obj);
     }
 }
 
-class DelayedProfileField {
-    public readonly data_getter: (key: string) => Promise<WindProfile[]>;
-    public readonly grid: Grid;
-
-    constructor(grid: Grid, data_getter: (key: string) => Promise<WindProfile[]>) {
-        this.grid = grid;
-        this.data_getter = data_getter;
-    }
-
-    public getProfiles(key: string) {
-        return this.data_getter(key);
-    }
-
-     /** Get the gridded storm motion vector field (internal method) */
-    public getStormMotionGrid() {
-        const data_getter = async (key: string) => {
-            const profiles = await this.data_getter(key);
-            const u = new Float16Array(this.grid.ni * this.grid.nj).fill(parseFloat('nan'));
-            const v = new Float16Array(this.grid.ni * this.grid.nj).fill(parseFloat('nan'));
-    
-            profiles.forEach(prof => {
-                const idx = prof.ilon + this.grid.ni * prof.jlat;
-                u[idx] = prof.smu;
-                v[idx] = prof.smv;
-            });
-
-            return {u: u, v: v};
-        }
-
-        return new DelayedVectorField(this.grid, data_getter, {relative_to: 'grid'});
-    }
-
-    public static fromRawProfileField(raw_field: RawProfileField) {
-        return new DelayedProfileField(raw_field.grid, async () => raw_field.profiles);
-    }
-}
-
-export {RawScalarField, DelayedScalarField, RawVectorField, DelayedVectorField, RawProfileField, DelayedProfileField, PlateCarreeGrid, PlateCarreeRotatedGrid, LambertGrid, Grid};
+export {RawScalarField, RawVectorField, RawProfileField, PlateCarreeGrid, PlateCarreeRotatedGrid, LambertGrid, Grid};
 export type {GridType, RawVectorFieldOptions, VectorRelativeTo, TextureDataType};

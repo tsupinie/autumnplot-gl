@@ -2,7 +2,7 @@
 import { LineData, TypedArray, WebGLAnyRenderingContext} from './AutumnTypes';
 import { LngLat, MapType } from './Map';
 import { PlotComponent, getGLFormatTypeAlignment } from './PlotComponent';
-import { DelayedScalarField, RawScalarField } from './RawField';
+import { RawScalarField } from './RawField';
 import { PolylineCollection } from './PolylineCollection';
 import { TextCollection, TextCollectionOptions, TextSpec } from './TextCollection';
 import { WGLTexture } from 'autumn-wgl';
@@ -57,26 +57,23 @@ interface ContourGLElems {
  * const contours = new Contour(height_field, {color: '#000000', interval: 30});
  */
 class Contour<ArrayType extends TypedArray> extends PlotComponent {
-    private readonly field: DelayedScalarField<ArrayType>;
+    private field: RawScalarField<ArrayType>;
     public readonly color: string;
     public readonly interval: number;
     public readonly levels: number[];
 
     private gl_elems: ContourGLElems | null;
     private contours: PolylineCollection | null;
-    private readonly is_delayed : boolean;
-    private show_field: boolean;
 
     /**
      * Create a contoured field
      * @param field - The field to contour
      * @param opts  - Options for creating the contours
      */
-    constructor(field: RawScalarField<ArrayType> | DelayedScalarField<ArrayType>, opts: ContourOptions) {
+    constructor(field: RawScalarField<ArrayType>, opts: ContourOptions) {
         super();
 
-        this.is_delayed = !RawScalarField.isa(field);
-        this.field = RawScalarField.isa(field) ? DelayedScalarField.fromRawScalarField(field) : field;
+        this.field = field;
 
         this.interval = opts.interval || 1;
         this.levels = opts.levels || [];
@@ -85,33 +82,31 @@ class Contour<ArrayType extends TypedArray> extends PlotComponent {
 
         this.gl_elems = null;
         this.contours = null;
-        this.show_field = true;
     }
 
-    public async updateData(key: string | undefined) {
+    public async updateField(field: RawScalarField<ArrayType>) {
+        this.field = field;
         if (this.gl_elems === null) return;
 
         const gl = this.gl_elems.gl;
-        const tex_data = key === undefined ? null : await this.field.getTextureData(key);
-        this.show_field = tex_data !== null;
 
-        const contour_data = await this.getContours(key);
+        const contour_data = await this.getContours();
         const line_data = Object.values(contour_data).flat().map(c => {
             return {vertices: c} as LineData;
         });
 
         this.contours = await PolylineCollection.make(gl, line_data, {line_width: 2, color: this.color});
+        this.gl_elems.map.triggerRepaint();
     }
 
-    public async getContours(key: string | undefined) {
+    public async getContours() {
         const msm = await initMSModule();
 
         const grid_coords = this.field.grid.getGridCoords();
 
         const grid = new msm.FloatList();
         grid.resize(this.field.grid.ni * this.field.grid.nj, 0);
-        const tex_data = key === undefined ? null : await this.field.data_getter(key);
-        if (tex_data === null) return {};
+        const tex_data = this.field.data;
 
         tex_data.forEach((v, i) => grid.set(i, v));
 
@@ -177,7 +172,7 @@ class Contour<ArrayType extends TypedArray> extends PlotComponent {
             gl: gl, map: map
         };
 
-        if (!this.is_delayed) await this.updateData('');
+        await this.updateField(this.field);
     }
 
     /**
@@ -185,7 +180,7 @@ class Contour<ArrayType extends TypedArray> extends PlotComponent {
      * Render the contours
      */
     public render(gl: WebGLAnyRenderingContext, matrix: number[] | Float32Array) {
-        if (this.gl_elems === null || !this.show_field || this.contours === null) return;
+        if (this.gl_elems === null || this.contours === null) return;
         const gl_elems = this.gl_elems;
 
         if (matrix instanceof Float32Array)
@@ -242,7 +237,7 @@ class ContourLabels<ArrayType extends TypedArray> extends PlotComponent {
         this.gl_elems = null;
     }
 
-    public async updateData(key: string) {
+    public async updateField() {
         if (this.gl_elems === null) return;
 
         const map = this.gl_elems.map;
@@ -255,7 +250,7 @@ class ContourLabels<ArrayType extends TypedArray> extends PlotComponent {
 
         const label_pos: TextSpec[] = [];
 
-        const contour_data = await this.contours.getContours(key);
+        const contour_data = await this.contours.getContours();
         const contour_levels = Object.keys(contour_data).map(parseFloat);
         contour_levels.sort((a, b) => a - b);
 
@@ -350,6 +345,7 @@ class ContourLabels<ArrayType extends TypedArray> extends PlotComponent {
         };
 
         this.text_collection = await TextCollection.make(gl, label_pos, font_url, tc_opts);
+        map.triggerRepaint();
     }
 
     public async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
@@ -357,7 +353,7 @@ class ContourLabels<ArrayType extends TypedArray> extends PlotComponent {
             gl: gl, map: map,
         }
 
-        this.updateData('');
+        this.updateField();
     }
 
     public render(gl: WebGLAnyRenderingContext, matrix: number[]) {

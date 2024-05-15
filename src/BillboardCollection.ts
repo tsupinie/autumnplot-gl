@@ -1,7 +1,7 @@
 
 import { BillboardSpec, TypedArray, WebGLAnyRenderingContext } from "./AutumnTypes";
 import { getGLFormatTypeAlignment } from "./PlotComponent";
-import { DelayedVectorField } from "./RawField";
+import { RawVectorField } from "./RawField";
 import { WGLBuffer, WGLProgram, WGLTexture, WGLTextureSpec } from "autumn-wgl";
 
 const billboard_vertex_shader_src = require('./glsl/billboard_vertex.glsl');
@@ -17,7 +17,7 @@ class BillboardCollectionGLElems {
 }
 
 class BillboardCollection<ArrayType extends TypedArray> {
-    private readonly field: DelayedVectorField<ArrayType>;
+    private field: RawVectorField<ArrayType>;
     public readonly spec: BillboardSpec;
     public readonly color: [number, number, number];
     public readonly size_multiplier: number;
@@ -30,7 +30,7 @@ class BillboardCollection<ArrayType extends TypedArray> {
     private readonly trim_inaccessible: number;
     private show_field: boolean;
 
-    constructor(field: DelayedVectorField<ArrayType>, thin_fac: number, max_zoom: number, 
+    constructor(field: RawVectorField<ArrayType>, thin_fac: number, max_zoom: number, 
                 billboard_image: WGLTextureSpec, billboard_spec: BillboardSpec, billboard_color: [number, number, number], billboard_size_mult: number) {
 
         this.field = field;
@@ -49,13 +49,15 @@ class BillboardCollection<ArrayType extends TypedArray> {
         this.show_field = true;
     }
 
-    public async updateData(key: string | undefined) {
+    public updateField(field: RawVectorField<ArrayType>) {
+        this.field = field;
+
         if (this.gl_elems === null) return;
 
         const gl = this.gl_elems.gl;
         const data = this.field.getThinnedField(this.trim_inaccessible, this.trim_inaccessible);
 
-        const {u: u_thin, v: v_thin} = key === undefined ? {u: null, v: null} : await data.getTextureData(key);
+        const {u: u_thin, v: v_thin} = data.getTextureData();
         this.show_field = u_thin !== null;
         const {format, type, row_alignment} = getGLFormatTypeAlignment(gl, !(u_thin instanceof Float32Array));
 

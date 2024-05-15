@@ -36,7 +36,6 @@ abstract class PlotLayerBase {
  */
 class PlotLayer extends PlotLayerBase {
     private readonly field: PlotComponent;
-    private pre_add_key: string | null;
 
     /**
      * Create a map layer from a field
@@ -46,17 +45,6 @@ class PlotLayer extends PlotLayerBase {
     constructor(id: string, field: PlotComponent) {
         super(id);
         this.field = field;
-        this.pre_add_key = null;
-    }
-
-    public async updateData(key: string) {
-        if (this.map === null) {
-            this.pre_add_key = key;
-        }
-        else {
-            await this.field.updateData(key);
-            this.repaint();
-        }
     }
 
     /**
@@ -66,11 +54,6 @@ class PlotLayer extends PlotLayerBase {
     public async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
         this.map = map;
         await this.field.onAdd(map, gl);
-
-        if (this.pre_add_key !== null) {
-            this.updateData(this.pre_add_key);
-            this.pre_add_key = null;
-        }
     }
 
     /**

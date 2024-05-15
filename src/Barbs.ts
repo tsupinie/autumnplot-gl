@@ -2,7 +2,7 @@
 import { PlotComponent } from "./PlotComponent";
 import { BillboardCollection } from './BillboardCollection';
 import { hex2rgba } from './utils';
-import { DelayedVectorField, RawVectorField } from "./RawField";
+import { RawVectorField } from "./RawField";
 import { MapType } from "./Map";
 import { TypedArray, WebGLAnyRenderingContext } from "./AutumnTypes";
 
@@ -140,8 +140,8 @@ interface BarbsOptions {
 }
 
 interface BarbsGLElems<ArrayType extends TypedArray> {
-    map: MapType | null;
-    barb_billboards: BillboardCollection<ArrayType> | null;
+    map: MapType;
+    barb_billboards: BillboardCollection<ArrayType>;
 }
 
 /** 
@@ -154,23 +154,21 @@ interface BarbsGLElems<ArrayType extends TypedArray> {
  */
 class Barbs<ArrayType extends TypedArray> extends PlotComponent {
     /** The vector field */
-    private readonly fields: DelayedVectorField<ArrayType>;
+    private fields: RawVectorField<ArrayType>;
     public readonly color: [number, number, number];
     public readonly thin_fac: number;
 
     private gl_elems: BarbsGLElems<ArrayType> | null;
-    private readonly is_delayed: boolean;
 
     /**
      * Create a field of wind barbs
      * @param fields - The vector field to plot as barbs
      * @param opts   - Options for creating the wind barbs
      */
-    constructor(fields: RawVectorField<ArrayType> | DelayedVectorField<ArrayType>, opts: BarbsOptions) {
+    constructor(fields: RawVectorField<ArrayType>, opts: BarbsOptions) {
         super();
 
-        this.is_delayed = !RawVectorField.isa(fields);
-        this.fields = RawVectorField.isa(fields) ? DelayedVectorField.fromRawVectorField(fields) : fields;
+        this.fields = fields;
 
         const color = hex2rgba(opts.color || '#000000');
         this.color = [color[0], color[1], color[2]];
@@ -179,9 +177,11 @@ class Barbs<ArrayType extends TypedArray> extends PlotComponent {
         this.gl_elems = null;
     }
 
-    public async updateData(key: string | undefined) {
+    public async updateField(fields: RawVectorField<ArrayType>) {
+        this.fields = fields;
         if (this.gl_elems === null) return;
-        await this.gl_elems.barb_billboards.updateData(key);
+        this.gl_elems.barb_billboards.updateField(fields);
+        this.gl_elems.map.triggerRepaint();
     }
 
     /**
@@ -208,7 +208,7 @@ class Barbs<ArrayType extends TypedArray> extends PlotComponent {
             map: map, barb_billboards: barb_billboards
         }
 
-        if (!this.is_delayed) this.updateData('');
+        this.updateField(this.fields);
     }
 
     /**
