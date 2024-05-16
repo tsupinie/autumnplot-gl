@@ -186,6 +186,20 @@ The second argument to `addField()` is the key to associate with this field. Thi
 height_layer.setActiveKey('20230112_1200');
 ```
 
+### Typescript Considerations
+
+autumnplot-gl is written in Tyescript to facilitate type info in large projects. Typescript isn't necessary to use autumnplot-gl, but if you want to use it, there are some considerations. 
+
+Many of the plot component classes have generic types. The typescript compiler can generally figure out the generic type parameters, but if you're declaring a variable to be a plot component, you'll probably need to specify those ahead of time. The first type parameter is the array type (either Float32Array or Float16Array), and the second is the type of the Map you're using.
+
+```typescript
+// Import the map from maplibre-gl, if that's what you're using. Mapbox should be similar.
+import { Map } from 'maplibre-gl';
+
+// Declare a contour field which contours an array of float float32s with the MapLibre map.
+const cntr: Contour<Float32Array, Map>;
+```
+
 ## Built-in color maps
 autumnplot-gl comes with several built-in color maps, accessible via `import {colormaps} from 'autumnplot-gl'`. These are basic blue/red and red/blue diverging color maps plus a selection from [PivotalWeather](https://www.pivotalweather.com). The blue/red and red/blue are functions that take a minimum contour level, a maximum contour level, and a number of colors. For example, this creates a blue/red colormap starting at -10, ending at 10, and with 20 colors:
 
