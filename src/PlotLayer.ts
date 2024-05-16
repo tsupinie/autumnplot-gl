@@ -128,7 +128,7 @@ class MultiPlotLayer<MapType extends MapLikeType> extends PlotLayerBase<MapType>
 
     /**
      * Set the active key
-     * @param key - The new key
+     * @param key - The new key. The field with that key is plotted immediately.
      */
     public setActiveKey(key: string) {
         const old_field_key = this.field_key;
@@ -146,9 +146,9 @@ class MultiPlotLayer<MapType extends MapLikeType> extends PlotLayerBase<MapType>
     }
 
     /**
-     * Add a field valid at a specific date/time
+     * Add a field with a given key
      * @param field - The field to add
-     * @param dt    - The date/time at which the field is valid
+     * @param key   - The key to associate with the field
      */
     public addField(field: PlotComponent<MapType>, key: string) {
         const old_field_key = this.field_key;
