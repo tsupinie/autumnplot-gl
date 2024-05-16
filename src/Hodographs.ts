@@ -79,7 +79,7 @@ interface HodographGLElems<ArrayType extends TypedArray> {
 }
 
 /** A class representing a a field of hodograph plots */
-class Hodographs extends PlotComponent<RawProfileField> {
+class Hodographs extends PlotComponent {
     private profile_field: RawProfileField;
     public readonly bgcolor: string;
     public readonly thin_fac: number;

@@ -152,7 +152,7 @@ interface BarbsGLElems<ArrayType extends TypedArray> {
  * const vector_field = new RawVectorField(grid, u_data, v_data);
  * const barbs = new Barbs(vector_field, {color: '#000000', thin_fac: 16});
  */
-class Barbs<ArrayType extends TypedArray> extends PlotComponent<RawVectorField<ArrayType>> {
+class Barbs<ArrayType extends TypedArray> extends PlotComponent {
     /** The vector field */
     private fields: RawVectorField<ArrayType>;
     public readonly color: [number, number, number];

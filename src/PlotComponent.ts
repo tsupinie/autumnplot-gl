@@ -9,8 +9,7 @@ import { WebGLAnyRenderingContext, isWebGL2Ctx } from './AutumnTypes';
 const worker = new Worker(new URL('./PlotLayer.worker', import.meta.url));
 const layer_worker = Comlink.wrap<PlotLayerWorker>(worker);
 
-abstract class PlotComponent<FieldType> {
-    public abstract updateField(field: FieldType) : Promise<void>;
+abstract class PlotComponent {
     public abstract onAdd(map: MapType, gl: WebGLAnyRenderingContext) : Promise<void>;
     public abstract render(gl: WebGLAnyRenderingContext, matrix: number[] | Float32Array) : void;
 }

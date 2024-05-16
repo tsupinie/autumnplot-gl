@@ -43,7 +43,7 @@ interface PlotComponentFillGLElems {
     cmap_nonlin_texture: WGLTexture;
 }
 
-class PlotComponentFill<ArrayType extends TypedArray> extends PlotComponent<RawScalarField<ArrayType>> {
+class PlotComponentFill<ArrayType extends TypedArray> extends PlotComponent {
     private field: RawScalarField<ArrayType>;
     public readonly cmap: ColorMap;
     public readonly opacity: number;
