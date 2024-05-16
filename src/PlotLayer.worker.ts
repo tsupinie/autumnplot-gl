@@ -287,7 +287,7 @@ function makePolylines(lines: LineData[]) : Polyline {
     n_points_per_vert['vertices'] += 1;
 
     const n_verts = lines.map(l => l.vertices.length).reduce((a, b) => a + b);
-    const n_out_verts = (n_verts - lines.length) * 6;
+    const n_out_verts = n_verts * 4 - lines.length * 2;
     const ary_lens = Object.fromEntries(Object.entries(n_points_per_vert).map(([k, nppv]) => [k, n_out_verts * nppv]));
 
     let ret: Polyline = {
@@ -397,7 +397,7 @@ function makePolylines(lines: LineData[]) : Polyline {
         }
         
         if ('zoom' in ret) {
-            for (let ivt = 0; ivt < verts.length * 4; ivt++) {
+            for (let ivt = 0; ivt < verts.length * 4 - 2; ivt++) {
                 ret.zoom[ilns.zoom++] = line['zoom'];
             }
         }
