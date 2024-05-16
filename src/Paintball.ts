@@ -1,6 +1,6 @@
 
 import { TypedArray, WebGLAnyRenderingContext } from "./AutumnTypes";
-import { MapType } from "./Map";
+import { MapLikeType } from "./Map";
 import { PlotComponent, getGLFormatTypeAlignment } from "./PlotComponent";
 import { RawScalarField } from "./RawField";
 import { hex2rgba } from "./utils";
@@ -36,7 +36,7 @@ interface PaintballGLElems {
  * of single-precision floats, this works for up to 24 members. (Technically speaking, I don't need the quotes around "bits", as they're bits of the 
  * significand of an IEEE 754 float.)
  */
-class Paintball<ArrayType extends TypedArray> extends PlotComponent {
+class Paintball<ArrayType extends TypedArray, MapType extends MapLikeType> extends PlotComponent<MapType> {
     private field: RawScalarField<ArrayType>;
     public readonly colors: number[];
     public readonly opacity: number;

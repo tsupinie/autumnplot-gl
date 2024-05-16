@@ -3,7 +3,7 @@ import { PlotComponent } from "./PlotComponent";
 import { PolylineCollection } from "./PolylineCollection";
 import { BillboardCollection } from "./BillboardCollection";
 import { getMinZoom, hex2rgb } from './utils';
-import { LngLat, MapType } from "./Map";
+import { LngLat, MapLikeType } from "./Map";
 import { RawProfileField } from "./RawField";
 import { LineData, TypedArray, WebGLAnyRenderingContext } from "./AutumnTypes";
 import { Float16Array } from "@petamoriken/float16";
@@ -72,19 +72,19 @@ interface HodographOptions {
     thin_fac?: number;
 }
 
-interface HodographGLElems<ArrayType extends TypedArray> {
+interface HodographGLElems<ArrayType extends TypedArray, MapType extends MapLikeType> {
     gl: WebGLAnyRenderingContext;
     map: MapType;
     bg_billboard: BillboardCollection<ArrayType>;
 }
 
 /** A class representing a a field of hodograph plots */
-class Hodographs extends PlotComponent {
+class Hodographs<MapType extends MapLikeType> extends PlotComponent<MapType> {
     private profile_field: RawProfileField;
     public readonly bgcolor: string;
     public readonly thin_fac: number;
 
-    private gl_elems: HodographGLElems<Float16Array>;
+    private gl_elems: HodographGLElems<Float16Array, MapType>;
     private line_elems: {hodo_line: PolylineCollection, sm_line: PolylineCollection} | null;
     private readonly hodo_scale;
     private readonly bg_size;
@@ -165,7 +165,7 @@ class Hodographs extends PlotComponent {
      * @internal
      * Add the hodographs to a map
      */
-    public async onAdd(map: mapboxgl.Map, gl: WebGLAnyRenderingContext) {
+    public async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
         if (HODO_BG_TEXTURE === null) {
             HODO_BG_TEXTURE = _createHodoBackgroundTexture();
         }

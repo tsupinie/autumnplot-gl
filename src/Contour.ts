@@ -1,6 +1,6 @@
 
 import { LineData, TypedArray, WebGLAnyRenderingContext} from './AutumnTypes';
-import { LngLat, MapType } from './Map';
+import { LngLat, MapLikeType } from './Map';
 import { PlotComponent, getGLFormatTypeAlignment } from './PlotComponent';
 import { RawScalarField } from './RawField';
 import { PolylineCollection } from './PolylineCollection';
@@ -30,7 +30,7 @@ interface ContourOptions {
     levels?: number[];
 }
 
-interface ContourGLElems {
+interface ContourGLElems<MapType extends MapLikeType> {
     gl: WebGLAnyRenderingContext;
     map: MapType;
 }
@@ -42,13 +42,13 @@ interface ContourGLElems {
  * // meters).
  * const contours = new Contour(height_field, {color: '#000000', interval: 30});
  */
-class Contour<ArrayType extends TypedArray> extends PlotComponent {
+class Contour<ArrayType extends TypedArray, MapType extends MapLikeType> extends PlotComponent<MapType> {
     private field: RawScalarField<ArrayType>;
     public readonly color: string;
     public readonly interval: number;
     public readonly levels: number[];
 
-    private gl_elems: ContourGLElems | null;
+    private gl_elems: ContourGLElems<MapType> | null;
     private contours: PolylineCollection | null;
 
     /**
@@ -127,7 +127,7 @@ class Contour<ArrayType extends TypedArray> extends PlotComponent {
     }
 }
 
-interface ContourLabelGLElems {
+interface ContourLabelGLElems<MapType extends MapLikeType> {
     gl: WebGLAnyRenderingContext;
     map: MapType;
 }
@@ -185,13 +185,13 @@ const contour_label_opt_defaults: Required<ContourLabelOptions> = {
     halo: false
 }
 
-class ContourLabels<ArrayType extends TypedArray> extends PlotComponent {
-    private readonly contours: Contour<ArrayType>;
-    private gl_elems: ContourLabelGLElems | null;
+class ContourLabels<ArrayType extends TypedArray, MapType extends MapLikeType> extends PlotComponent<MapType> {
+    private readonly contours: Contour<ArrayType, MapType>;
+    private gl_elems: ContourLabelGLElems<MapType> | null;
     private text_collection: TextCollection | null;
     private readonly opts: Required<ContourLabelOptions>;
 
-    constructor(contours: Contour<ArrayType>, opts?: ContourLabelOptions) {
+    constructor(contours: Contour<ArrayType, MapType>, opts?: ContourLabelOptions) {
         super();
 
         this.opts = normalizeOptions(opts, contour_label_opt_defaults);

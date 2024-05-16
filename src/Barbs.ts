@@ -3,7 +3,7 @@ import { PlotComponent } from "./PlotComponent";
 import { BillboardCollection } from './BillboardCollection';
 import { hex2rgba } from './utils';
 import { RawVectorField } from "./RawField";
-import { MapType } from "./Map";
+import { MapLikeType } from "./Map";
 import { TypedArray, WebGLAnyRenderingContext } from "./AutumnTypes";
 
 const BARB_DIMS = {
@@ -139,7 +139,7 @@ interface BarbsOptions {
     thin_fac?: number;
 }
 
-interface BarbsGLElems<ArrayType extends TypedArray> {
+interface BarbsGLElems<ArrayType extends TypedArray, MapType extends MapLikeType> {
     map: MapType;
     barb_billboards: BillboardCollection<ArrayType>;
 }
@@ -152,13 +152,13 @@ interface BarbsGLElems<ArrayType extends TypedArray> {
  * const vector_field = new RawVectorField(grid, u_data, v_data);
  * const barbs = new Barbs(vector_field, {color: '#000000', thin_fac: 16});
  */
-class Barbs<ArrayType extends TypedArray> extends PlotComponent {
+class Barbs<ArrayType extends TypedArray, MapType extends MapLikeType> extends PlotComponent<MapType> {
     /** The vector field */
     private fields: RawVectorField<ArrayType>;
     public readonly color: [number, number, number];
     public readonly thin_fac: number;
 
-    private gl_elems: BarbsGLElems<ArrayType> | null;
+    private gl_elems: BarbsGLElems<ArrayType, MapType> | null;
 
     /**
      * Create a field of wind barbs

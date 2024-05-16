@@ -3,7 +3,7 @@ import { PlotComponent, getGLFormatTypeAlignment } from './PlotComponent';
 import { ColorMap, makeIndexMap, makeTextureImage } from './Colormap';
 import { WGLBuffer, WGLProgram, WGLTexture } from 'autumn-wgl';
 import { RawScalarField } from './RawField';
-import { MapType } from './Map';
+import { MapLikeType } from './Map';
 import { TypedArray, WebGLAnyRenderingContext } from './AutumnTypes';
 import { Float16Array } from '@petamoriken/float16';
 
@@ -32,7 +32,7 @@ interface RasterOptions {
     opacity?: number;
 }
 
-interface PlotComponentFillGLElems {
+interface PlotComponentFillGLElems<MapType extends MapLikeType> {
     gl: WebGLAnyRenderingContext;
     map: MapType;
     program: WGLProgram;
@@ -43,7 +43,7 @@ interface PlotComponentFillGLElems {
     cmap_nonlin_texture: WGLTexture;
 }
 
-class PlotComponentFill<ArrayType extends TypedArray> extends PlotComponent {
+class PlotComponentFill<ArrayType extends TypedArray, MapType extends MapLikeType> extends PlotComponent<MapType> {
     private field: RawScalarField<ArrayType>;
     public readonly cmap: ColorMap;
     public readonly opacity: number;
@@ -51,7 +51,7 @@ class PlotComponentFill<ArrayType extends TypedArray> extends PlotComponent {
     private readonly cmap_image: HTMLCanvasElement;
     private readonly index_map: Float16Array;
 
-    private gl_elems: PlotComponentFillGLElems | null;
+    private gl_elems: PlotComponentFillGLElems<MapType> | null;
     private fill_texture: WGLTexture | null;
     protected image_mag_filter: number | null;
     protected cmap_mag_filter: number | null;
@@ -167,7 +167,7 @@ class PlotComponentFill<ArrayType extends TypedArray> extends PlotComponent {
  * // Create a raster plot with the provided color map
  * const raster = new Raster(wind_speed_field, {cmap: color_map});
  */
-class Raster<ArrayType extends TypedArray> extends PlotComponentFill<ArrayType> {
+class Raster<ArrayType extends TypedArray, MapType extends MapLikeType> extends PlotComponentFill<ArrayType, MapType> {
 
     /**
      * Create a raster plot
@@ -211,7 +211,7 @@ class Raster<ArrayType extends TypedArray> extends PlotComponentFill<ArrayType> 
  * // Create a field of filled contours with the provided color map
  * const fill = new ContourFill(wind_speed_field, {cmap: color_map});
  */
-class ContourFill<ArrayType extends TypedArray> extends PlotComponentFill<ArrayType> {
+class ContourFill<ArrayType extends TypedArray, MapType extends MapLikeType> extends PlotComponentFill<ArrayType, MapType> {
 
     /**
      * Create a filled contoured field

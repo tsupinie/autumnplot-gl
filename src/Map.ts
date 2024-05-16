@@ -1,8 +1,20 @@
 
-import mapboxgl from 'mapbox-gl';
-import maplibregl from 'maplibre-gl';
 
-type MapType = mapboxgl.Map | maplibregl.Map;
+// Stub in required method and property types for the mapping library. God help me if these start to diverge between Mapbox and MapLibre.
+type StyleSpecification = {
+    glyphs?: string;
+}
+
+type MapLikeType = {
+    triggerRepaint: () => void;
+    getCanvas: () => HTMLCanvasElement;
+    getStyle: () => StyleSpecification;
+
+    getZoom: () => number;
+    getMaxZoom: () => number;
+    getBearing: () => number;
+    getPitch: () => number;
+};
 
 interface LambertConformalConicParameters {
     lon_0: number,
@@ -228,4 +240,4 @@ function latFromMercatorY(y: number) {
 }
 
 export {LngLat, lambertConformalConic, rotateSphere};
-export type {MapType};
+export type {MapLikeType};

@@ -3,13 +3,13 @@ import * as Comlink from 'comlink';
 
 import { getOS } from "./utils";
 import { PlotLayerWorker } from './PlotLayer.worker';
-import { MapType } from './Map';
+import { MapLikeType } from './Map';
 import { WebGLAnyRenderingContext, isWebGL2Ctx } from './AutumnTypes';
 
 const worker = new Worker(new URL('./PlotLayer.worker', import.meta.url));
 const layer_worker = Comlink.wrap<PlotLayerWorker>(worker);
 
-abstract class PlotComponent {
+abstract class PlotComponent<MapType extends MapLikeType> {
     public abstract onAdd(map: MapType, gl: WebGLAnyRenderingContext) : Promise<void>;
     public abstract render(gl: WebGLAnyRenderingContext, matrix: number[] | Float32Array) : void;
 }
