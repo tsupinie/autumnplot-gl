@@ -209,7 +209,8 @@ const colormap = colormaps.bluered(-10, 10, 20);
 
 Here are all the colormaps available:
 
-![colormaps](https://user-images.githubusercontent.com/885575/219983547-b5dd5603-f882-43f5-b57a-e19295fb4b64.png)
+![colormaps](https://github.com/tsupinie/autumnplot-gl/assets/885575/348eb23a-67ed-48b3-9c69-b7d834ba1b03)
+
 
 ## Map tiles
 The above exmple uses map tiles from [Maptiler](https://www.maptiler.com/). Map tiles from Maptiler or Mapbox or others are free up to a (reasonably generous) limit, but the pricing can be a tad steep after reaching the limit. The tiles from these services are extremely detailed, and really what you're paying for there is the hardware to store, process, and serve that data. While these tiles are very nice, the detail is way overkill for a lot of uses in meteorology. 
