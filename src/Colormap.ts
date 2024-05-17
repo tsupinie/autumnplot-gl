@@ -21,7 +21,10 @@ function isColor(obj: any): obj is Color {
 }
 
 interface ColorMapOptions {
+    /** The color to use for areas where the value is below the lowest value in the color map */
     overflow_color?: Color | string;
+
+    /** The color to use for areas where the value is above the highest value in the color map */
     underflow_color?: Color | string;
 }
 
@@ -36,6 +39,7 @@ class ColorMap {
      * Create a color map
      * @param levels - The list of levels. The number of levels should always be one more than the number of colors.
      * @param colors - A list of colors
+     * @param opts   - Options for the color map
      */
     constructor(levels: number[], colors: Color[] | string[], opts?: ColorMapOptions) {
         if (levels.length != colors.length + 1) {
@@ -255,4 +259,4 @@ function makeIndexMap(colormap: ColorMap) {
 }
 
 export {ColorMap, bluered, redblue, pw_speed500mb, pw_speed850mb, pw_cape, pw_t2m, pw_td2m, nws_storm_clear_refl, makeTextureImage, makeIndexMap}
-export type {Color};
+export type {Color, ColorMapOptions};
