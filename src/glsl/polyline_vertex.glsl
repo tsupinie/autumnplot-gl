@@ -1,18 +1,34 @@
 uniform mat4 u_matrix;
+uniform int u_offset;
 
 attribute vec2 a_pos;
-attribute float a_min_zoom;
 attribute vec2 a_extrusion;
-attribute vec2 a_offset;
-attribute vec2 a_tex_coord;
-uniform lowp float u_offset_scale;
-uniform lowp float u_map_aspect;
-uniform lowp float u_zoom;
-uniform lowp float u_line_width;
-uniform highp float u_map_bearing;
-//uniform highp float u_map_pitch;
+attribute float a_data;
 
-varying highp vec2 v_tex_coord;
+#ifdef ZOOM
+attribute float a_min_zoom;
+#endif
+
+#ifdef OFFSET
+attribute vec2 a_offset;
+#endif
+
+uniform lowp float u_line_width;
+uniform lowp float u_map_width;
+uniform lowp float u_map_height;
+uniform highp float u_map_bearing;
+
+#ifdef ZOOM
+uniform lowp float u_zoom;
+#endif
+
+#ifdef OFFSET
+uniform lowp float u_offset_scale;
+#endif
+
+#ifdef DATA
+varying highp float v_data;
+#endif
 
 mat4 scalingMatrix(float x_scale, float y_scale, float z_scale) {
     return mat4(x_scale, 0.0,     0.0,     0.0,
@@ -27,8 +43,8 @@ mat4 rotationZMatrix(float angle) {
 
     return mat4( c,  s,  0., 0.,
                 -s,  c,  0., 0.,
-                    0., 0., 1., 0.,
-                    0., 0., 0., 1.);
+                 0., 0., 1., 0.,
+                 0., 0., 0., 1.);
 }
 
 mat4 rotationXMatrix(float angle) {
@@ -36,23 +52,41 @@ mat4 rotationXMatrix(float angle) {
     float c = cos(angle);
 
     return mat4( 1.,  0., 0., 0.,
-                    0.,  c,  s,  0.,
-                    0., -s,  c,  0.,
-                    0.,  0., 0., 1.);
+                 0.,  c,  s,  0.,
+                 0., -s,  c,  0.,
+                 0.,  0., 0., 1.);
 }
 
 void main() {
-    vec4 center_pos = u_matrix * vec4(a_pos.xy, 0.0, 1.0);
-    vec4 offset = vec4(0.0, 0.0, 0.0, 0.0);
-    
-    if (u_zoom >= a_min_zoom) {
-        vec2 offset_2d = a_offset + u_line_width * a_extrusion;
+    float globe_width = 1.;
+    vec2 globe_offset = vec2(globe_width * float(u_offset), 0.);
 
-        mat4 rotation_matrix = rotationZMatrix(radians(u_map_bearing));
-        mat4 map_stretch_matrix = scalingMatrix(u_offset_scale, u_offset_scale / u_map_aspect, 1.);
-        offset = map_stretch_matrix * rotation_matrix * vec4(offset_2d, 0., 0.);
+    vec4 center_pos = u_matrix * vec4(a_pos.xy + globe_offset, 0.0, 1.0);
+    vec4 offset = vec4(0.0, 0.0, 0.0, 0.0);
+
+#ifdef ZOOM
+    if (u_zoom >= a_min_zoom) {
+#endif
+
+        vec2 offset_ext = u_line_width * 1.5 * a_extrusion;
+
+        mat4 map_stretch_matrix = scalingMatrix(u_map_height / u_map_width, 1., 1.);
+        mat4 rotation_matrix = rotationZMatrix(radians(u_map_bearing));  
+        offset = map_stretch_matrix * rotation_matrix * vec4(offset_ext, 0., 0.);
+
+#ifdef OFFSET
+        map_stretch_matrix = scalingMatrix(1., u_map_width / u_map_height, 1.);
+        vec2 offset_offset = u_offset_scale * a_offset;
+        offset += map_stretch_matrix * rotation_matrix * vec4(offset_offset, 0., 0.);
+#endif
+
+#ifdef ZOOM
     }
+#endif
 
     gl_Position = center_pos + offset;
-    v_tex_coord = a_tex_coord;
+
+#ifdef DATA
+    v_data = a_data;
+#endif
 }

@@ -88,14 +88,17 @@ function makeColorBar(colormap: ColorMap, opts: ColorBarOptions) {
 
     const chars_left = getNChar(ticks[0]);
     const chars_right = getNChar(ticks[ticks.length - 1]);
+    const need_overflow = colormap.underflow_color !== null || colormap.overflow_color !== null;
 
     const bar_long_size = 600;
     const bar_cross_size = bar_long_size / 9;
-    const bar_long_pad = orientation == 'horizontal' ? Math.max(chars_left, chars_right) * 6 : 8;
+    const bar_long_pad = Math.max(orientation == 'horizontal' ? Math.max(chars_left, chars_right) * 6 : 8, 
+                                  need_overflow ? bar_cross_size / (2 * Math.sqrt(3)) : 0);
     const bar_cross_pad = 3;
     const bar_thickness = 10;
 
-    let height: number, width: number, bar_left: number, bar_top: number, bar_width: number, bar_height: number;
+    let height: number, width: number, bar_left: number, bar_top: number, bar_width: number, bar_height: number, bar_right: number, bar_bottom: number,
+        bar_middle: number, bar_low_arrow: number, bar_high_arrow: number;
 
     if (orientation == 'vertical') {
         height = bar_long_size;
@@ -105,6 +108,12 @@ function makeColorBar(colormap: ColorMap, opts: ColorBarOptions) {
         bar_top = bar_long_pad;
         bar_width = bar_thickness;
         bar_height = bar_long_size - 2 * bar_long_pad;
+
+        bar_right = bar_left + bar_width;
+        bar_middle = bar_left + bar_width / 2;
+        bar_bottom = bar_top + bar_height;
+        bar_low_arrow = colormap.underflow_color === null ? bar_bottom : bar_bottom + bar_cross_size / (Math.sqrt(3) * 2);
+        bar_high_arrow = colormap.overflow_color === null ? bar_top : bar_top - bar_cross_size / (Math.sqrt(3) * 2);
     }
     else {
         width = bar_long_size;
@@ -114,6 +123,12 @@ function makeColorBar(colormap: ColorMap, opts: ColorBarOptions) {
         bar_top = tick_dir == 'bottom' ? bar_cross_pad : bar_cross_size - 6 - bar_cross_pad - bar_thickness;
         bar_height = bar_thickness;
         bar_width = bar_long_size - 2 * bar_long_pad;
+
+        bar_right = bar_left + bar_width;
+        bar_middle = bar_top + bar_height / 2;
+        bar_bottom = bar_top + bar_height;
+        bar_low_arrow = colormap.underflow_color === null ? bar_left : bar_left - bar_cross_size / (Math.sqrt(3) * 2);
+        bar_high_arrow = colormap.overflow_color === null ? bar_right : bar_right + bar_cross_size / (Math.sqrt(3) * 2);
     }
 
     const n_colors = colormap.colors.length;
@@ -132,6 +147,7 @@ function makeColorBar(colormap: ColorMap, opts: ColorBarOptions) {
     }
     const gticks = createElement('g', gtickattrs, root);
 
+    // Make the colored background
     colormap.colors.forEach((color, icolor) => {
         let attrs: Record<string, string | number> = {};
 
@@ -146,6 +162,34 @@ function makeColorBar(colormap: ColorMap, opts: ColorBarOptions) {
         createElement('rect', {...attrs, fill: color.color, opacity: color.opacity}, gbar);
     });
 
+    // Make the overflow and underflow triangles
+    if (colormap.underflow_color !== null) {
+        let point_list: string;
+        if (orientation == 'vertical') {
+            point_list = `${bar_right} ${bar_bottom}, ${bar_middle} ${bar_low_arrow}, ${bar_left} ${bar_bottom}, ${bar_right} ${bar_bottom}`;
+        }
+        else {
+            point_list = `${bar_left} ${bar_bottom}, ${bar_low_arrow} ${bar_middle}, ${bar_left} ${bar_top}, ${bar_left} ${bar_bottom}`;
+        }
+
+        const underflow_attrs = {points: point_list, fill: colormap.underflow_color.color, opacity: colormap.underflow_color.opacity};
+        createElement('polygon', underflow_attrs, gbar);
+    }
+
+    if (colormap.overflow_color !== null) {
+        let point_list: string;
+        if (orientation == 'vertical') {
+            point_list = `${bar_left} ${bar_top}, ${bar_middle} ${bar_high_arrow}, ${bar_right} ${bar_top}, ${bar_left} ${bar_top}`;
+        }
+        else {
+            point_list = `${bar_right} ${bar_top}, ${bar_high_arrow} ${bar_middle}, ${bar_right} ${bar_bottom}, ${bar_right} ${bar_top}`;
+        }
+
+        const overflow_attrs = {points: point_list, fill: colormap.overflow_color.color, opacity: colormap.overflow_color.opacity};
+        createElement('polygon', overflow_attrs, gbar);
+    }
+
+    // Make the ticks marks and labels
     const first_level = colormap.levels[0];
     const last_level = colormap.levels[colormap.levels.length - 1];
 
@@ -181,17 +225,26 @@ function makeColorBar(colormap: ColorMap, opts: ColorBarOptions) {
         text.textContent = level.toString();
     });
 
+    // Draw the outline
+    let point_list: string;
+    if (orientation == 'vertical') {
+        point_list = `${bar_left} ${bar_top}, ${bar_middle} ${bar_high_arrow}, ${bar_right} ${bar_top}, ${bar_right} ${bar_bottom}, ` +
+                     `${bar_middle} ${bar_low_arrow}, ${bar_left} ${bar_bottom}, ${bar_left} ${bar_top}`;
+    }
+    else {
+        point_list = `${bar_left} ${bar_top}, ${bar_right} ${bar_top}, ${bar_high_arrow} ${bar_middle}, ${bar_right} ${bar_bottom}, ` +
+                     `${bar_left} ${bar_bottom}, ${bar_low_arrow} ${bar_middle}, ${bar_left} ${bar_top}`;
+    }
+
     const outline_attrs = {
-        x: bar_left,
-        y: bar_top,
-        width: bar_width,
-        height: bar_height,
+        points: point_list,
         stroke: '#000000',
         'stroke-width': 1.5,
         fill: 'none'
     };
-    createElement('rect', outline_attrs, root);
+    createElement('polygon', outline_attrs, root);
 
+    // Draw the colorbar label
     let labelattrs;
     if (orientation == 'vertical') {
         labelattrs = tick_dir == 'left' ? {transform: `translate(15, ${height / 2}) rotate(-90)`} : {transform: `translate(${width - 6}, ${height / 2}) rotate(-90)`};

@@ -2,39 +2,97 @@
 function makeSynthetic500mbLayers() {
     const nx = 121, ny = 61;
     const grid = new apgl.PlateCarreeGrid(nx, ny, -130, 20, -65, 55);
-    let hght = [], u = [], v = [];
-    for (i = 0; i < nx; i++) {
-        for (j = 0; j < ny; j++) {
-            const idx = i + j * nx;
-            hght[idx] = 10 * (Math.cos(4 * Math.PI * i / (nx - 1)) * Math.cos(2 * Math.PI * j / (ny - 1)) - 0.05 * j);
-            u[idx] = 60 * (Math.cos(4 * Math.PI * i / (nx - 1)) * Math.sin(2 * Math.PI * j / (ny - 1)) + 0.5);
-            v[idx] = -60 * Math.sin(4 * Math.PI * i / (nx - 1)) * Math.cos(2 * Math.PI * j / (ny - 1));
+    //const grid = new apgl.LambertGrid(nx, ny, -97.5, 38.5, [38.5, 38.5], -3600000, -1800000, 3600000, 1800000);
+    //const grid = new apgl.PlateCarreeRotatedGrid(nx, ny, 65.305142, 36.08852, 180, -14.82122, -12.302501, 42.306283, 16.7);
+    const coords = grid.getGridCoords();
+
+    const height_base = 570;
+    const height_pert = 10;
+    const height_grad = 0.5
+    const vel_pert = 60;
+    const speed = 0.001;
+
+    const arrayType = Float32Array;
+
+    function makeHeight(key) {
+        let hght = [];
+        for (i = 0; i < nx; i++) {
+            for (j = 0; j < ny; j++) {
+                const idx = i + j * nx;
+                hght[idx] = height_base + height_pert * (Math.cos(-key * speed + 4 * Math.PI * i / (nx - 1)) * Math.cos(2 * Math.PI * j / (ny - 1))) - height_grad * j;
+            }
         }
+        return new apgl.RawScalarField(grid, new arrayType(hght));
     }
+
+    function makeWinds(key) {
+        let u = [], v = [];
+        for (i = 0; i < nx; i++) {
+            for (j = 0; j < ny; j++) {
+                let v_fac = 1;
+                if (grid.type == 'latlon' || grid.type == 'latlonrot') {
+                    v_fac = Math.cos(coords.y[j] * Math.PI / 180);
+                }
+    
+                const idx = i + j * nx;
+                let u_earth = vel_pert * (Math.cos(-key * speed + 4 * Math.PI * i / (nx - 1)) * Math.sin(2 * Math.PI * j / (ny - 1)) + height_grad);
+                let v_earth = -vel_pert * Math.sin(-key * speed + 4 * Math.PI * i / (nx - 1)) * Math.cos(2 * Math.PI * j / (ny - 1));
+    
+                const mag = Math.hypot(u_earth, v_earth);
+                v_earth /= v_fac;
+    
+                u[idx] = u_earth * mag / Math.hypot(u_earth, v_earth);
+                v[idx] = v_earth * mag / Math.hypot(u_earth, v_earth);
+            }
+        }
+
+        return new apgl.RawVectorField(grid, new arrayType(u), new arrayType(v), {relative_to: 'grid'});
+    }
+
+    function makeWindSpeed(key) {
+        const winds = makeWinds(key);
+        const wspd = [];
+
+        for (let idx = 0; idx < winds.u.data.length; idx++) {
+            wspd[idx] = Math.hypot(winds.u.data[idx], winds.v.data[idx]);
+        }
+
+        return new apgl.RawScalarField(grid, new arrayType(wspd));
+    }
+
     const colormap = apgl.colormaps.pw_speed500mb;
 
-    const arrayType = float16.Float16Array;
-
-    const raw_hght_field = new apgl.RawScalarField(grid, new arrayType(hght));
-    const raw_u_field = new apgl.RawScalarField(grid, new arrayType(u));
-    const raw_v_field = new apgl.RawScalarField(grid, new arrayType(v));
-
-    const raw_ws_field = apgl.RawScalarField.aggregateFields(Math.hypot, raw_u_field, raw_v_field);
-    const raw_vec_field = new apgl.RawVectorField(grid, new arrayType(u), new arrayType(v), {relative_to: 'grid'});
+    const raw_hght_field = makeHeight(0);
+    const raw_wind_field = makeWinds(0);
+    const raw_ws_field = makeWindSpeed(0);
 
     const cntr = new apgl.Contour(raw_hght_field, {interval: 1, color: '#000000', thinner: zoom => zoom < 5 ? 2 : 1});
     const filled = new apgl.ContourFill(raw_ws_field, {'cmap': colormap, 'opacity': 0.8});
-    const barbs = new apgl.Barbs(raw_vec_field, {color: '#000000', thin_fac: 16});
+    const barbs = new apgl.Barbs(raw_wind_field, {color: '#000000', thin_fac: 16});
+
+    const labels = new apgl.ContourLabels(cntr, {text_color: '#ffffff', halo: true});
 
     const hght_layer = new apgl.PlotLayer('height', cntr);
     const ws_layer = new apgl.PlotLayer('wind-speed', filled);
     const barb_layer = new apgl.PlotLayer('barbs', barbs);
+    const label_layer = new apgl.PlotLayer('label', labels);
+
+    function updateTime(time) {
+        cntr.updateField(makeHeight(time));
+        filled.updateField(makeWindSpeed(time));
+        barbs.updateField(makeWinds(time));
+        labels.updateField();
+
+        window.requestAnimationFrame(updateTime);
+    }
+
+    //updateTime(0);
 
     const svg = apgl.makeColorBar(colormap, {label: "Wind Speed (kts)", fontface: 'Trebuchet MS', 
                                              ticks: [20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140],
                                              orientation: 'horizontal', tick_direction: 'bottom'});
 
-    return {layers: [ws_layer, hght_layer, barb_layer], colorbar: svg};
+    return {layers: [ws_layer, hght_layer, barb_layer, label_layer], colorbar: svg};
 }
 
 async function fetchBinary(fname) {
@@ -74,6 +132,23 @@ async function makeHREFLayers() {
     return {layers: [paintball_layer, nh_prob_layer], colorbar: svg};
 }
 
+async function makeGFSLayers() {
+    const grid_gfs = new apgl.PlateCarreeGrid(1440, 721, 0, -90, 360, 90);
+
+    const colormap = apgl.colormaps.pw_t2m
+    const t2m_data = await fetchBinary('data/gfs.bin.gz');
+    const t2m_field = new apgl.RawScalarField(grid_gfs, t2m_data);
+    const t2m_contour = new apgl.ContourFill(t2m_field, {'cmap': colormap});
+    const t2m_layer = new apgl.PlotLayer('nh_probs', t2m_contour);
+
+
+    const svg = apgl.makeColorBar(colormap, {label: "Temperature", fontface: 'Trebuchet MS', 
+                                             ticks: [-60, -50, -40, -30, -20, -10, 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120],
+                                             orientation: 'horizontal', tick_direction: 'bottom'});
+
+    return {layers: [t2m_layer], colorbar: svg};
+}
+
 function makeHodoLayers() {
     const hodo_u = [];
     const hodo_v = [];
@@ -87,12 +162,13 @@ function makeHodoLayers() {
         hodo_z.push(z);
     }
     const profs = [
-        {lat: 35.17, lon: -97.34, ilon: 0, jlat: 0, smu: 0, smv: 20, u: hodo_u, v: hodo_v, z: hodo_z},
-        {lat: 35.17, lon: -96.84, ilon: 1, jlat: 0, smu: 0, smv: 20, u: hodo_u, v: hodo_v, z: hodo_z},
-        {lat: 35.67, lon: -97.34, ilon: 0, jlat: 1, smu: 0, smv: 20, u: hodo_u, v: hodo_v, z: hodo_z},
-        {lat: 35.67, lon: -96.84, ilon: 1, jlat: 1, smu: 0, smv: 20, u: hodo_u, v: hodo_v, z: hodo_z},
+        {lat: 35.17, lon: -97.44, ilon: 0, jlat: 0, smu: 0, smv: 20, u: hodo_u, v: hodo_v, z: hodo_z},
+        {lat: 35.17, lon: -96.94, ilon: 1, jlat: 0, smu: 0, smv: 20, u: hodo_u, v: hodo_v, z: hodo_z},
+        {lat: 35.67, lon: -97.44, ilon: 0, jlat: 1, smu: 0, smv: 20, u: hodo_u, v: hodo_v, z: hodo_z},
+        {lat: 35.67, lon: -96.94, ilon: 1, jlat: 1, smu: 0, smv: 20, u: hodo_u, v: hodo_v, z: hodo_z},
+        {lat: 36.17, lon: -97.44, ilon: 0, jlat: 2, smu: 0, smv: 20, u: hodo_u, v: hodo_v, z: hodo_z},
     ];
-    const hodo_grid = new apgl.PlateCarreeGrid(2, 2, -97.34, 35.17, -96.84, 35.67);
+    const hodo_grid = new apgl.PlateCarreeGrid(2, 3, -97.44, 35.17, -96.94, 36.17);
     const raw_prof_field = new apgl.RawProfileField(hodo_grid, profs);
     const hodos = new apgl.Hodographs(raw_prof_field, {bgcolor: '#000000', thin_fac: 64});
     const hodo_layer = new apgl.PlotLayer('hodos', hodos);
@@ -123,6 +199,11 @@ const views = {
     'href': {
         name: "HREF",
         makeLayers: makeHREFLayers,
+        maxZoom: 7,
+    },
+    'gfs': {
+        name: "GFS",
+        makeLayers: makeGFSLayers,
         maxZoom: 7,
     },
     'hodo': {

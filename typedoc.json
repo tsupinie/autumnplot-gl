@@ -1,10 +1,11 @@
 {
     "entryPoints": ["src/index.ts"],
+    "entryFileName": "index",
     "out": "docs",
     "intentionallyNotExported": [
-        "Coords",
+        "GridCoords", "EarthCoords", "TextureDataType", "StyleSpecification"
     ],
-    "theme": "markdown",
+    "plugin": ["typedoc-plugin-markdown"],
     "githubPages": false,
     "excludePrivate": true,
     "excludeInternal": true

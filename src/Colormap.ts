@@ -6,6 +6,7 @@ import cape_colormap_data from "./json/pwcape_colormap.json";
 import t2m_colormap_data from "./json/pwt2m_colormap.json";
 import td2m_colormap_data from "./json/pwtd2m_colormap.json";
 import nws_storm_clear_refl_colormap_data from "./json/nws_storm_clear_refl_colormap.json";
+import { Float16Array } from "@petamoriken/float16";
 
 interface Color {
     /** The color as a hex color string */
@@ -19,23 +20,40 @@ function isColor(obj: any): obj is Color {
     return (typeof obj == 'object') && 'color' in obj && 'opacity' in obj;
 }
 
+interface ColorMapOptions {
+    /** The color to use for areas where the value is below the lowest value in the color map */
+    overflow_color?: Color | string;
+
+    /** The color to use for areas where the value is above the highest value in the color map */
+    underflow_color?: Color | string;
+}
+
 /** A mapping from values to colors */
 class ColorMap {
     public readonly levels: number[];
     public readonly colors: Color[];
+    public readonly overflow_color: Color | null;
+    public readonly underflow_color: Color | null;
 
     /**
      * Create a color map
      * @param levels - The list of levels. The number of levels should always be one more than the number of colors.
      * @param colors - A list of colors
+     * @param opts   - Options for the color map
      */
-    constructor(levels: number[], colors: Color[] | string[]) {
+    constructor(levels: number[], colors: Color[] | string[], opts?: ColorMapOptions) {
         if (levels.length != colors.length + 1) {
             throw `Mismatch between number of levels (${levels.length}) and number of colors (${colors.length}; expected ${levels.length - 1})`;
         }
 
+        const normalizeColor = (c: Color | string) => isColor(c) ? c : {'color': c, 'opacity': 1.};
+
         this.levels = levels;
-        this.colors = colors.map(c => isColor(c) ? c : {'color': c, 'opacity': 1.});
+        this.colors = colors.map(c => normalizeColor(c));
+
+        opts = opts === undefined ? {} : opts;
+        this.overflow_color = opts.overflow_color === undefined ? null : normalizeColor(opts.overflow_color);
+        this.underflow_color = opts.underflow_color === undefined ? null : normalizeColor(opts.underflow_color);
     }
 
     /**
@@ -60,22 +78,38 @@ class ColorMap {
     public withOpacity(func: (level_lower: number, level_upper: number) => number) {
         const new_colors: Color[] = [];
         const new_levels: number[] = [];
+        const opts: ColorMapOptions = {};
 
         for (let ic = 0 ; ic < this.colors.length ; ic++) {
             const color = this.colors[ic];
             const level_lower = this.levels[ic];
             const level_upper = this.levels[ic + 1];
 
-            const new_color = {'color': color['color'], 'opacity': func(level_lower, level_upper)};
-            if (new_color['opacity'] > 0) {
+            const new_opacity = func(level_lower, level_upper)
+            const new_color = {color: color.color, opacity: new_opacity};
+            if (new_opacity > 0) {
                 if (new_levels[new_levels.length - 1] != level_lower)
                     new_levels.push(level_lower)
                 new_levels.push(level_upper);
                 new_colors.push(new_color);
             }
         }
+
+        if (this.underflow_color !== null) {
+            const underflow_opacity = func(this.levels[0], this.levels[0]);
+            if (underflow_opacity > 0) {
+                opts.underflow_color = {color: this.underflow_color.color, opacity: underflow_opacity};
+            }
+        }
+
+        if (this.overflow_color !== null) {
+            const overflow_opacity = func(this.levels[this.levels.length - 1], this.levels[this.levels.length - 1]);
+            if (overflow_opacity > 0) {
+                opts.overflow_color = {color: this.overflow_color.color, opacity: overflow_opacity};
+            }
+        }
         
-        return new ColorMap(new_levels, new_colors);
+        return new ColorMap(new_levels, new_colors, opts);
     }
 
     /**
@@ -131,13 +165,27 @@ class ColorMap {
     }
 }
 
+function buildColormap(cm_data: {levels: number[], colors: string[]}, overflow: 'under' | 'over' | 'both' | 'neither') {
+    const n_colors = cm_data.colors.length;
+    const opts: ColorMapOptions = {};
+
+    if (overflow == 'over' || overflow == 'both') {
+        opts.overflow_color = cm_data.colors[n_colors - 1];
+    }
+    if (overflow == 'under' || overflow == 'both') {
+        opts.underflow_color = cm_data.colors[0];
+    }
+
+    return new ColorMap(cm_data.levels, cm_data.colors, opts);
+}
+
 // Some built-in colormaps
-const pw_speed500mb = new ColorMap(spd500_colormap_data.levels, spd500_colormap_data.colors).withOpacity((levl, levu) => Math.min((levu - 20) / 10, 1.));
-const pw_speed850mb = new ColorMap(spd850_colormap_data.levels, spd850_colormap_data.colors).withOpacity((levl, levu) => Math.min((levu - 20) / 10, 1.));
-const pw_cape = new ColorMap(cape_colormap_data.levels, cape_colormap_data.colors).withOpacity((levl, levu) => Math.min(levu / 1000., 1.));
-const pw_t2m = new ColorMap(t2m_colormap_data.levels, t2m_colormap_data.colors);
-const pw_td2m = new ColorMap(td2m_colormap_data.levels, td2m_colormap_data.colors);
-const nws_storm_clear_refl = new ColorMap(nws_storm_clear_refl_colormap_data.levels, nws_storm_clear_refl_colormap_data.colors);
+const pw_speed500mb = buildColormap(spd500_colormap_data, 'over').withOpacity((levl, levu) => Math.min((levu - 20) / 10, 1.));
+const pw_speed850mb = buildColormap(spd850_colormap_data, 'over').withOpacity((levl, levu) => Math.min((levu - 20) / 10, 1.));
+const pw_cape = buildColormap(cape_colormap_data, 'over').withOpacity((levl, levu) => Math.min(levu / 1000., 1.));
+const pw_t2m = buildColormap(t2m_colormap_data, 'both');
+const pw_td2m = buildColormap(td2m_colormap_data, 'both');
+const nws_storm_clear_refl = buildColormap(nws_storm_clear_refl_colormap_data, 'over');
 
 /**
  * Create a diverging red/blue colormap, where red corresponds to the lowest value and blue corresponds to the highest value
@@ -185,5 +233,30 @@ function makeTextureImage(colormap: ColorMap) {
     return cmap_image;
 }
 
-export {ColorMap, bluered, redblue, pw_speed500mb, pw_speed850mb, pw_cape, pw_t2m, pw_td2m, nws_storm_clear_refl, makeTextureImage}
-export type {Color};
+function makeIndexMap(colormap: ColorMap) {
+    // Build a texture to account for nonlinear colormaps (basically inverts the relationship between
+    //  the normalized index and the normalized level)
+    const n_nonlin = 101;
+    const map_norm = [];
+    for (let i = 0; i < n_nonlin; i++) {
+        map_norm.push(i / (n_nonlin - 1));
+    }
+
+    const levels = colormap.levels;
+    const n_lev = levels.length - 1;
+
+    const input_norm = levels.map((lev, ilev) => ilev / n_lev);
+    const cmap_norm = levels.map(lev => (lev - levels[0]) / (levels[n_lev] - levels[0]));
+    const inv_cmap_norm = map_norm.map(lev => {
+        let jlev;
+        for (jlev = 0; !(cmap_norm[jlev] <= lev && lev <= cmap_norm[jlev + 1]); jlev++) {}
+
+        const alpha = (lev - cmap_norm[jlev]) / (cmap_norm[jlev + 1] - cmap_norm[jlev]);
+        return input_norm[jlev] * (1 - alpha) + input_norm[jlev + 1] * alpha;
+    });
+
+    return new Float16Array(inv_cmap_norm);
+}
+
+export {ColorMap, bluered, redblue, pw_speed500mb, pw_speed850mb, pw_cape, pw_t2m, pw_td2m, nws_storm_clear_refl, makeTextureImage, makeIndexMap}
+export type {Color, ColorMapOptions};

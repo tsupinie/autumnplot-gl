@@ -1,6 +1,6 @@
 
 import { getMinZoom } from "./utils";
-import { PolylineSpec, LineSpec } from "./AutumnTypes";
+import { LineData, Polyline } from "./AutumnTypes";
 
 import * as Comlink from 'comlink';
 import { LngLat } from "./Map";
@@ -269,14 +269,14 @@ function makePolylinesMiter(lines) {
 }
 */
 
-function makePolylines(lines: LineSpec[]) : PolylineSpec {
+function makePolylines(lines: LineData[]) : Polyline {
     const n_points_per_vert = Object.fromEntries(Object.entries(lines[0]).map(([k, v]) => {
         let n_verts: number;
-        if (v.length === undefined) {
+        if (typeof v === 'number') {
             n_verts = 1;
         }
-        else if (v[0].length === undefined) {
-            n_verts = v.length;
+        else if (typeof v[0] === 'number') {
+            n_verts = 1;
         }
         else {
             n_verts = v[0].length;
@@ -284,85 +284,123 @@ function makePolylines(lines: LineSpec[]) : PolylineSpec {
         return [k, n_verts];
     }));
     n_points_per_vert['extrusion'] = 2;
+    n_points_per_vert['vertices'] += 1;
 
-    const n_verts = lines.map(l => l['verts'].length).reduce((a, b) => a + b);
-    const n_out_verts = (n_verts - lines.length) * 6;
+    const n_verts = lines.map(l => l.vertices.length).reduce((a, b) => a + b);
+    const n_out_verts = n_verts * 4 - lines.length * 2;
     const ary_lens = Object.fromEntries(Object.entries(n_points_per_vert).map(([k, nppv]) => [k, n_out_verts * nppv]));
 
-    let ret: PolylineSpec = {
-        'verts': new Float32Array(ary_lens['verts']),
-        'origin': new Float32Array(ary_lens['origin']),
-        'extrusion': new Float32Array(ary_lens['extrusion']),
-        'zoom': new Float32Array(ary_lens['zoom']),
-        'texcoords': new Float32Array(ary_lens['texcoords']),
+    let ret: Polyline = {
+        vertices: new Float32Array(ary_lens['vertices']),
+        extrusion: new Float32Array(ary_lens['extrusion']),
+    }
+
+    if ('offsets' in lines[0]) {
+        ret.offsets = new Float32Array(ary_lens['offsets']);
+    }
+
+    if ('data' in lines[0]) {
+        ret.data = new Float32Array(ary_lens['data']);
+    }
+
+    if ('zoom' in lines[0]) {
+        ret.zoom = new Float32Array(ary_lens['zoom']);
     }
 
     let ilns = Object.fromEntries(Object.keys(ary_lens).map(k => [k, 0]));
 
-    const compute_normal_vec = (pt1: [number, number], pt2: [number, number]) => {
+    const compute_normal_vec = (pt1: [number, number], pt2: [number, number], flip_y_coord: boolean) => {
         const line_vec_x = pt2[0] - pt1[0];
         const line_vec_y = pt2[1] - pt1[1];
         const line_vec_mag = Math.hypot(line_vec_x, line_vec_y);
 
-        return [line_vec_y / line_vec_mag, -line_vec_x / line_vec_mag];
+        const ext_x = line_vec_y / line_vec_mag;
+        const ext_y = -line_vec_x / line_vec_mag;
+
+        return [ext_x, flip_y_coord ? -ext_y : ext_y];
     }
 
     lines.forEach(line => {
-        const verts = line['verts'];
-        const texcoords = line['texcoords'];
+        const verts = line.vertices.map(v => {
+            const v_ll = new LngLat(...v).toMercatorCoord();
+            return [v_ll.x, v_ll.y] as [number, number];
+        });
 
-        let ary_ivt = ilns['verts'];
+        const has_offsets = line.offsets !== undefined;
+        const extrusion_verts = has_offsets ? line.offsets : verts;
+
         let pt_prev: [number, number], pt_this = verts[0], pt_next = verts[1];
-        let tc_prev: [number, number], tc_this = texcoords[0], tc_next = texcoords[1];
-        let [ext_x, ext_y] = compute_normal_vec(pt_this, pt_next);
+        let ept_prev: [number, number], ept_this = extrusion_verts[0], ept_next = extrusion_verts[1];
+        let len_prev: number, len_this = 0;
+        let [ext_x, ext_y] = compute_normal_vec(ept_this, ept_next, !has_offsets);
 
-        ret['verts'][ary_ivt + 0] = pt_this[0]; ret['verts'][ary_ivt + 1] = pt_this[1];
-        ret['texcoords'][ary_ivt + 0] = tc_this[0]; ret['texcoords'][ary_ivt + 1] = tc_this[1];
-        ret['extrusion'][ary_ivt + 0] = ext_x; ret['extrusion'][ary_ivt + 1] = ext_y;
+        ret.vertices[ilns.vertices++] = pt_this[0]; ret.vertices[ilns.vertices++] = pt_this[1]; ret.vertices[ilns.vertices++] = len_this;
+        ret.extrusion[ilns.extrusion++] = ext_x; ret.extrusion[ilns.extrusion++] = ext_y;
 
         for (let ivt = 1; ivt < verts.length; ivt++) {
             pt_this = verts[ivt]; pt_prev = verts[ivt - 1];
-            tc_this = texcoords[ivt]; tc_prev = texcoords[ivt - 1];
-            [ext_x, ext_y] = compute_normal_vec(pt_prev, pt_this);
+            ept_this = extrusion_verts[ivt]; ept_prev = extrusion_verts[ivt - 1];
 
-            ary_ivt = ilns['verts'] + (1 + (ivt - 1) * 4) * n_points_per_vert['verts'];
+            [ext_x, ext_y] = compute_normal_vec(ept_prev, ept_this, !has_offsets);
+            len_prev = len_this; len_this += Math.hypot(verts[ivt - 1][0] - verts[ivt][0], verts[ivt - 1][1] - verts[ivt][1]);
 
-            ret['verts'][ary_ivt + 0] = pt_prev[0]; ret['verts'][ary_ivt + 1] = pt_prev[1];
-            ret['verts'][ary_ivt + 2] = pt_prev[0]; ret['verts'][ary_ivt + 3] = pt_prev[1];
+            ret.vertices[ilns.vertices++] = pt_prev[0]; ret.vertices[ilns.vertices++] = pt_prev[1]; ret.vertices[ilns.vertices++] = len_prev;
+            ret.vertices[ilns.vertices++] = pt_prev[0]; ret.vertices[ilns.vertices++] = pt_prev[1]; ret.vertices[ilns.vertices++] = len_prev;
 
-            ret['verts'][ary_ivt + 4] = pt_this[0]; ret['verts'][ary_ivt + 5] = pt_this[1];
-            ret['verts'][ary_ivt + 6] = pt_this[0]; ret['verts'][ary_ivt + 7] = pt_this[1];
+            ret.vertices[ilns.vertices++] = pt_this[0]; ret.vertices[ilns.vertices++] = pt_this[1]; ret.vertices[ilns.vertices++] = len_this;
+            ret.vertices[ilns.vertices++] = pt_this[0]; ret.vertices[ilns.vertices++] = pt_this[1]; ret.vertices[ilns.vertices++] = len_this;
 
-            ret['texcoords'][ary_ivt + 0] = tc_prev[0]; ret['texcoords'][ary_ivt + 1] = tc_prev[1];
-            ret['texcoords'][ary_ivt + 2] = tc_prev[0]; ret['texcoords'][ary_ivt + 3] = tc_prev[1];
+            ret.extrusion[ilns.extrusion++] =  ext_x; ret.extrusion[ilns.extrusion++] =  ext_y;
+            ret.extrusion[ilns.extrusion++] = -ext_x; ret.extrusion[ilns.extrusion++] = -ext_y;
 
-            ret['texcoords'][ary_ivt + 4] = tc_this[0]; ret['texcoords'][ary_ivt + 5] = tc_this[1];
-            ret['texcoords'][ary_ivt + 6] = tc_this[0]; ret['texcoords'][ary_ivt + 7] = tc_this[1];
-
-            ret['extrusion'][ary_ivt + 0 ] =  ext_x; ret['extrusion'][ary_ivt + 1 ] =  ext_y;
-            ret['extrusion'][ary_ivt + 2 ] = -ext_x; ret['extrusion'][ary_ivt + 3 ] = -ext_y;
-
-            ret['extrusion'][ary_ivt + 4 ] =  ext_x; ret['extrusion'][ary_ivt + 5 ] =  ext_y;
-            ret['extrusion'][ary_ivt + 6 ] = -ext_x; ret['extrusion'][ary_ivt + 7 ] = -ext_y;
+            ret.extrusion[ilns.extrusion++] =  ext_x; ret.extrusion[ilns.extrusion++] =  ext_y;
+            ret.extrusion[ilns.extrusion++] = -ext_x; ret.extrusion[ilns.extrusion++] = -ext_y;
         }
 
-        ret['verts'][ary_ivt + 8] = pt_this[0]; ret['verts'][ary_ivt + 9] = pt_this[1];
-        ret['texcoords'][ary_ivt + 8] = tc_this[0]; ret['texcoords'][ary_ivt + 9] = tc_this[1];
-        ret['extrusion'][ary_ivt + 8] = -ext_x; ret['extrusion'][ary_ivt + 9] = -ext_y;
+        ret.vertices[ilns.vertices++] = pt_this[0]; ret.vertices[ilns.vertices++] = pt_this[1]; ret.vertices[ilns.vertices++] = len_this;
+        ret.extrusion[ilns.extrusion++] = -ext_x; ret.extrusion[ilns.extrusion++] = -ext_y;
 
-        for (let ivt = 0; ivt < (verts.length - 1) * 6 * n_points_per_vert['origin']; ivt += n_points_per_vert['origin']) {
-            line['origin'].forEach((cd, icd) => {
-                ret['origin'][ilns['origin'] + ivt + icd] = cd;
-            })
+        if ('offsets' in ret) {
+            const offsets = line.offsets;
+            let off_prev: [number, number], off_this = offsets[0];
+
+            ret.offsets[ilns.offsets++] = off_this[0]; ret.offsets[ilns.offsets++] = off_this[1];
+
+            for (let ivt = 1; ivt < offsets.length; ivt++) {
+                off_this = offsets[ivt]; off_prev = offsets[ivt - 1];
+
+                ret.offsets[ilns.offsets++] = off_prev[0]; ret.offsets[ilns.offsets++] = off_prev[1];
+                ret.offsets[ilns.offsets++] = off_prev[0]; ret.offsets[ilns.offsets++] = off_prev[1];
+                ret.offsets[ilns.offsets++] = off_this[0]; ret.offsets[ilns.offsets++] = off_this[1];
+                ret.offsets[ilns.offsets++] = off_this[0]; ret.offsets[ilns.offsets++] = off_this[1];
+            }
+
+            ret.offsets[ilns.offsets++] = off_this[0]; ret.offsets[ilns.offsets++] = off_this[1];
+        }
+
+        if ('data' in ret) {
+            const data = line.data;
+            let data_prev: number, data_this = data[0];
+
+            ret.data[ilns.data++] = data_this;
+            
+            for (let ivt = 1; ivt < data.length; ivt++) {
+                data_this = data[ivt]; data_prev = data[ivt - 1];
+
+                ret.data[ilns.data++] = data_prev;
+                ret.data[ilns.data++] = data_prev;
+                ret.data[ilns.data++] = data_this;
+                ret.data[ilns.data++] = data_this;
+            }
+
+            ret.data[ilns.data++] = data_this;
         }
         
-        for (let ivt = 0; ivt < (verts.length - 1) * 6 * n_points_per_vert['zoom']; ivt += n_points_per_vert['zoom']) {
-            ret['zoom'][ilns['zoom'] + ivt] = line['zoom'];
+        if ('zoom' in ret) {
+            for (let ivt = 0; ivt < verts.length * 4 - 2; ivt++) {
+                ret.zoom[ilns.zoom++] = line['zoom'];
+            }
         }
-
-        Object.keys(ilns).forEach(k => {
-            ilns[k] += (verts.length - 1) * 6 * n_points_per_vert[k];
-        })
     })
 
     return ret;

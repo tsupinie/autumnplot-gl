@@ -1,14 +1,13 @@
 
 import { TypedArray, WebGLAnyRenderingContext } from "./AutumnTypes";
-import { MapType } from "./Map";
+import { MapLikeType } from "./Map";
 import { PlotComponent, getGLFormatTypeAlignment } from "./PlotComponent";
 import { RawScalarField } from "./RawField";
-import { Cache, hex2rgba } from "./utils";
+import { hex2rgba } from "./utils";
 import { WGLBuffer, WGLProgram, WGLTexture } from "autumn-wgl";
 
 const paintball_vertex_shader_src = require('./glsl/paintball_vertex.glsl');
 const paintball_fragment_shader_src = require('./glsl/paintball_fragment.glsl');
-const program_cache = new Cache((gl: WebGLAnyRenderingContext) => new WGLProgram(gl, paintball_vertex_shader_src, paintball_fragment_shader_src));
 
 interface PaintballOptions {
     /**
@@ -24,9 +23,9 @@ interface PaintballOptions {
 }
 
 interface PaintballGLElems {
+    gl: WebGLAnyRenderingContext;
     program: WGLProgram;
     vertices: WGLBuffer;
-    fill_texture: WGLTexture;
     texcoords: WGLBuffer;
 }
 
@@ -37,12 +36,13 @@ interface PaintballGLElems {
  * of single-precision floats, this works for up to 24 members. (Technically speaking, I don't need the quotes around "bits", as they're bits of the 
  * significand of an IEEE 754 float.)
  */
-class Paintball<ArrayType extends TypedArray> extends PlotComponent {
-    private readonly field: RawScalarField<ArrayType>;
+class Paintball<ArrayType extends TypedArray, MapType extends MapLikeType> extends PlotComponent<MapType> {
+    private field: RawScalarField<ArrayType>;
     public readonly colors: number[];
     public readonly opacity: number;
 
     private gl_elems: PaintballGLElems | null;
+    private fill_texture: WGLTexture | null;
 
     /**
      * Create a paintball plot
@@ -62,6 +62,35 @@ class Paintball<ArrayType extends TypedArray> extends PlotComponent {
         this.opacity = opts.opacity !== undefined ? opts.opacity : 1.;
 
         this.gl_elems = null;
+        this.fill_texture = null;
+    }
+
+    /**
+     * Update the field displayed as a paintball plot
+     * @param field - The new field to display as a paintball plot
+     */
+    public async updateField(field: RawScalarField<ArrayType>) {
+        this.field = field;
+
+        if (this.gl_elems === null) return;
+        const gl = this.gl_elems.gl;
+
+        gl.pixelStorei(gl.UNPACK_ALIGNMENT, 2);
+
+        const tex_data = this.field.getTextureData();
+        const {format, type, row_alignment} = getGLFormatTypeAlignment(gl, !(tex_data instanceof Float32Array));
+
+        const fill_image = {'format': format, 'type': type,
+            'width': this.field.grid.ni, 'height': this.field.grid.nj, 'image': tex_data,
+            'mag_filter': gl.NEAREST, 'row_alignment': row_alignment,
+        };
+
+        if (this.fill_texture === null) {
+            this.fill_texture = new WGLTexture(gl, fill_image);
+        }
+        else {
+            this.fill_texture.setImageData(fill_image);
+        }
     }
 
     /**
@@ -71,46 +100,49 @@ class Paintball<ArrayType extends TypedArray> extends PlotComponent {
     public async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
         gl.getExtension('OES_texture_float');
 
-        const program = program_cache.getValue(gl);
+        const program = new WGLProgram(gl, paintball_vertex_shader_src, paintball_fragment_shader_src);
 
         const {vertices: verts_buf, texcoords: tex_coords_buf} = await this.field.grid.getWGLBuffers(gl);
         const vertices = verts_buf;
         const texcoords = tex_coords_buf;
 
-        gl.pixelStorei(gl.UNPACK_ALIGNMENT, 2);
-
-        const {format, type, row_alignment} = getGLFormatTypeAlignment(gl, this.field.isFloat16());
-
-        const fill_image = {'format': format, 'type': type,
-            'width': this.field.grid.ni, 'height': this.field.grid.nj, 'image': this.field.getTextureData(),
-            'mag_filter': gl.NEAREST, 'row_alignment': row_alignment,
-        };
-
-        const fill_texture = new WGLTexture(gl, fill_image);
-
         this.gl_elems = {
-            program: program, vertices: vertices, fill_texture: fill_texture, texcoords: texcoords,
+            gl: gl, program: program, vertices: vertices, texcoords: texcoords,
         };
+
+        this.updateField(this.field);
     }
 
     /**
      * @internal
      * Render the paintball plot
      */
-    public render(gl: WebGLAnyRenderingContext, matrix: number[]) {
-        if (this.gl_elems === null) return;
+    public render(gl: WebGLAnyRenderingContext, matrix: number[] | Float32Array) {
+        if (this.gl_elems === null || this.fill_texture === null) return;
         const gl_elems = this.gl_elems;
+
+        if (matrix instanceof Float32Array)
+            matrix = [...matrix];
 
         // Render to framebuffer
         gl_elems.program.use(
             {'a_pos': gl_elems.vertices, 'a_tex_coord': gl_elems.texcoords},
-            {'u_matrix': matrix, 'u_opacity': this.opacity, 'u_colors': this.colors, 'u_num_colors': this.colors.length / 4},
-            {'u_fill_sampler': gl_elems.fill_texture}
+            {'u_matrix': matrix, 'u_opacity': this.opacity, 'u_colors': this.colors, 'u_num_colors': this.colors.length / 4, 'u_offset': 0},
+            {'u_fill_sampler': this.fill_texture}
         );
 
         gl.enable(gl.BLEND);
         gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 
+        gl_elems.program.draw();
+
+        gl_elems.program.setUniforms({'u_offset': -2});
+        gl_elems.program.draw();
+
+        gl_elems.program.setUniforms({'u_offset': -1});
+        gl_elems.program.draw();
+
+        gl_elems.program.setUniforms({'u_offset': 1});
         gl_elems.program.draw();
     }
 }

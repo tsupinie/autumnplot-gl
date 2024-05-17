@@ -1,20 +1,28 @@
 
 import { WebGLAnyRenderingContext } from './AutumnTypes';
-import { MapType } from './Map';
+import { MapLikeType } from './Map';
 
 import { PlotComponent } from './PlotComponent';
 
-abstract class PlotLayerBase {
+abstract class PlotLayerBase<MapType extends MapLikeType> {
     public readonly type: 'custom';
     public readonly id: string;
+    protected map: MapType;
 
     constructor(id: string) {
         this.type = 'custom';
         this.id = id;
+        this.map = null;
     }
 
     public abstract onAdd(map: MapType, gl: WebGLAnyRenderingContext) : void;
-    public abstract render(gl: WebGLAnyRenderingContext, matrix: number[]) : void;
+    public abstract render(gl: WebGLAnyRenderingContext, matrix: number[] | Float32Array) : void;
+
+    protected repaint() {
+        if (this.map !== null) {
+            this.map.triggerRepaint();
+        }
+    }
 }
 
 /** 
@@ -26,15 +34,15 @@ abstract class PlotLayerBase {
  * const wind_speed_layer = new PlotLayer('wind-speed-fill', wind_speed_fill);
  * const barb_layer = new PlotLayer('barbs', wind_barbs);
  */
-class PlotLayer extends PlotLayerBase {
-    private readonly field: PlotComponent;
+class PlotLayer<MapType extends MapLikeType> extends PlotLayerBase<MapType> {
+    private readonly field: PlotComponent<MapType>;
 
     /**
      * Create a map layer from a field
      * @param id    - A unique id for this layer
      * @param field - The field to plot in this layer
      */
-    constructor(id: string, field: PlotComponent) {
+    constructor(id: string, field: PlotComponent<MapType>) {
         super(id);
         this.field = field;
     }
@@ -43,15 +51,16 @@ class PlotLayer extends PlotLayerBase {
      * @internal
      * Add this layer to a map
      */
-    public onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
-        this.field.onAdd(map, gl);
+    public async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
+        this.map = map;
+        await this.field.onAdd(map, gl);
     }
 
     /**
      * @internal
      * Render this layer
      */
-    public render(gl: WebGLAnyRenderingContext, matrix: number[]) {
+    public render(gl: WebGLAnyRenderingContext, matrix: number[] | Float32Array) {
         this.field.render(gl, matrix);
     }
 }
@@ -70,12 +79,11 @@ class PlotLayer extends PlotLayerBase {
  * // Set the date/time in the map layer
  * height_layer.setActiveKey('20230112_1200');
  */
-class MultiPlotLayer extends PlotLayerBase {
-    private fields: Record<string, PlotComponent>;
+class MultiPlotLayer<MapType extends MapLikeType> extends PlotLayerBase<MapType> {
+    private fields: Record<string, PlotComponent<MapType>>;
     private field_key: string | null;
 
-    private map: MapType | null;
-    private gl: WebGLAnyRenderingContext | null
+    private gl: WebGLAnyRenderingContext | null;
 
     /**
      * Create a time-varying map layer
@@ -100,18 +108,18 @@ class MultiPlotLayer extends PlotLayerBase {
 
         Object.values(this.fields).forEach(field => {
             field.onAdd(map, gl).then(res => {
-                this.repaintIfNecessary(null);
+                this.repaint();
             });
         });
 
-        this.repaintIfNecessary(null);
+        this.repaint();
     }
 
     /**
      * @internal
      * Render this layer
      */
-    public render(gl: WebGLAnyRenderingContext, matrix: number[]) {
+    public render(gl: WebGLAnyRenderingContext, matrix: number[] | Float32Array) {
         if (this.map !== null && this.gl !== null && this.field_key !== null 
             && this.fields.hasOwnProperty(this.field_key) && this.fields[this.field_key] !== null) {
             this.fields[this.field_key].render(gl, matrix);
@@ -120,13 +128,13 @@ class MultiPlotLayer extends PlotLayerBase {
 
     /**
      * Set the active key
-     * @param key - The new key
+     * @param key - The new key. The field with that key is plotted immediately.
      */
     public setActiveKey(key: string) {
         const old_field_key = this.field_key;
         this.field_key = key;
 
-        this.repaintIfNecessary(old_field_key);
+        this.repaint();
     }
 
     /**
@@ -138,16 +146,16 @@ class MultiPlotLayer extends PlotLayerBase {
     }
 
     /**
-     * Add a field valid at a specific date/time
+     * Add a field with a given key
      * @param field - The field to add
-     * @param dt    - The date/time at which the field is valid
+     * @param key   - The key to associate with the field
      */
-    public addField(field: PlotComponent, key: string) {
+    public addField(field: PlotComponent<MapType>, key: string) {
         const old_field_key = this.field_key;
 
         if (this.map !== null && this.gl !== null && field !== null) {
             field.onAdd(this.map, this.gl).then(res => {
-                this.repaintIfNecessary(null);
+                this.repaint();
             });
         }
 
@@ -155,12 +163,6 @@ class MultiPlotLayer extends PlotLayerBase {
         
         if (this.field_key === null) {
             this.field_key = key;
-        }
-    }
-
-    private repaintIfNecessary(old_field_key: string | null) {
-        if (this.map !== null && old_field_key !== this.field_key) {
-            this.map.triggerRepaint();
         }
     }
 }

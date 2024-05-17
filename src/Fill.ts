@@ -1,16 +1,15 @@
 
 import { PlotComponent, getGLFormatTypeAlignment } from './PlotComponent';
-import { ColorMap, makeTextureImage } from './Colormap';
+import { ColorMap, makeIndexMap, makeTextureImage } from './Colormap';
 import { WGLBuffer, WGLProgram, WGLTexture } from 'autumn-wgl';
 import { RawScalarField } from './RawField';
-import { MapType } from './Map';
+import { MapLikeType } from './Map';
 import { TypedArray, WebGLAnyRenderingContext } from './AutumnTypes';
 import { Float16Array } from '@petamoriken/float16';
-import { Cache } from './utils';
+import { hex2rgb } from './utils';
 
 const contourfill_vertex_shader_src = require('./glsl/contourfill_vertex.glsl');
 const contourfill_fragment_shader_src = require('./glsl/contourfill_fragment.glsl');
-const program_cache = new Cache((gl: WebGLAnyRenderingContext) => new WGLProgram(gl, contourfill_vertex_shader_src, contourfill_fragment_shader_src));
 
 interface ContourFillOptions {
     /** The color map to use when creating the fills */
@@ -34,25 +33,27 @@ interface RasterOptions {
     opacity?: number;
 }
 
-interface PlotComponentFillGLElems {
+interface PlotComponentFillGLElems<MapType extends MapLikeType> {
+    gl: WebGLAnyRenderingContext;
+    map: MapType;
     program: WGLProgram;
     vertices: WGLBuffer;
 
-    fill_texture: WGLTexture;
     texcoords: WGLBuffer;
     cmap_texture: WGLTexture;
     cmap_nonlin_texture: WGLTexture;
 }
 
-class PlotComponentFill<ArrayType extends TypedArray> extends PlotComponent {
-    private readonly field: RawScalarField<ArrayType>;
+class PlotComponentFill<ArrayType extends TypedArray, MapType extends MapLikeType> extends PlotComponent<MapType> {
+    private field: RawScalarField<ArrayType>;
     public readonly cmap: ColorMap;
     public readonly opacity: number;
 
     private readonly cmap_image: HTMLCanvasElement;
     private readonly index_map: Float16Array;
 
-    private gl_elems: PlotComponentFillGLElems | null;
+    private gl_elems: PlotComponentFillGLElems<MapType> | null;
+    private fill_texture: WGLTexture | null;
     protected image_mag_filter: number | null;
     protected cmap_mag_filter: number | null;
 
@@ -64,33 +65,38 @@ class PlotComponentFill<ArrayType extends TypedArray> extends PlotComponent {
         this.opacity = opts.opacity || 1.;
 
         this.cmap_image = makeTextureImage(this.cmap);
-
-        const levels = this.cmap.levels;
-        const n_lev = levels.length - 1;
-
-        // Build a texture to account for nonlinear colormaps (basically inverts the relationship between
-        //  the normalized index and the normalized level)
-        const n_nonlin = 101;
-        const map_norm = [];
-        for (let i = 0; i < n_nonlin; i++) {
-            map_norm.push(i / (n_nonlin - 1));
-        }
-
-        const input_norm = levels.map((lev, ilev) => ilev / n_lev);
-        const cmap_norm = levels.map(lev => (lev - levels[0]) / (levels[n_lev] - levels[0]));
-        const inv_cmap_norm = map_norm.map(lev => {
-            let jlev;
-            for (jlev = 0; !(cmap_norm[jlev] <= lev && lev <= cmap_norm[jlev + 1]); jlev++) {}
-
-            const alpha = (lev - cmap_norm[jlev]) / (cmap_norm[jlev + 1] - cmap_norm[jlev]);
-            return input_norm[jlev] * (1 - alpha) + input_norm[jlev + 1] * alpha;
-        });
-
-        this.index_map = new Float16Array(inv_cmap_norm);
+        this.index_map = makeIndexMap(this.cmap);
 
         this.gl_elems = null;
+        this.fill_texture = null;
         this.image_mag_filter = null;
         this.cmap_mag_filter = null;
+    }
+
+    public async updateField(field: RawScalarField<ArrayType>) {
+        this.field = field;
+
+        if (this.gl_elems === null) return;
+
+        const gl = this.gl_elems.gl;
+        const map = this.gl_elems.map;
+        
+        const tex_data = this.field.getTextureData();
+        const {format, type, row_alignment} = getGLFormatTypeAlignment(gl, !(tex_data instanceof Float32Array));
+    
+        const fill_image = {'format': format, 'type': type,
+            'width': this.field.grid.ni, 'height': this.field.grid.nj, 'image': tex_data,
+            'mag_filter': this.image_mag_filter, 'row_alignment': row_alignment,
+        };
+
+        if (this.fill_texture === null) {
+            this.fill_texture = new WGLTexture(gl, fill_image);
+        }
+        else {
+            this.fill_texture.setImageData(fill_image);
+        }
+
+        map.triggerRepaint();
     }
 
     public async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
@@ -100,20 +106,11 @@ class PlotComponentFill<ArrayType extends TypedArray> extends PlotComponent {
             throw `Implement magnification filtes in a subclass`;
         }
         
-        const program = program_cache.getValue(gl);
+        const program = new WGLProgram(gl, contourfill_vertex_shader_src, contourfill_fragment_shader_src);
 
         const {vertices: verts_buf, texcoords: tex_coords_buf} = await this.field.grid.getWGLBuffers(gl);
         const vertices = verts_buf;
         const texcoords = tex_coords_buf;
-
-        const {format, type, row_alignment} = getGLFormatTypeAlignment(gl, this.field.isFloat16());
-        
-        const fill_image = {'format': format, 'type': type,
-            'width': this.field.grid.ni, 'height': this.field.grid.nj, 'image': this.field.getTextureData(),
-            'mag_filter': this.image_mag_filter, 'row_alignment': row_alignment,
-        };
-
-        const fill_texture = new WGLTexture(gl, fill_image);
 
         const cmap_image = {'format': gl.RGBA, 'type': gl.UNSIGNED_BYTE, 'image': this.cmap_image, 'mag_filter': this.cmap_mag_filter};
         const cmap_texture = new WGLTexture(gl, cmap_image);
@@ -128,25 +125,42 @@ class PlotComponentFill<ArrayType extends TypedArray> extends PlotComponent {
 
         const cmap_nonlin_texture = new WGLTexture(gl, cmap_nonlin_image);
         this.gl_elems = {
-            program: program, vertices: vertices, texcoords: texcoords, 
-            fill_texture: fill_texture, cmap_texture: cmap_texture, cmap_nonlin_texture: cmap_nonlin_texture,
+            gl: gl, map: map, program: program, vertices: vertices, texcoords: texcoords, 
+            cmap_texture: cmap_texture, cmap_nonlin_texture: cmap_nonlin_texture,
         };
+
+        this.updateField(this.field);
     }
 
-    public render(gl: WebGLAnyRenderingContext, matrix: number[]) {
-        if (this.gl_elems === null) return;
+    public render(gl: WebGLAnyRenderingContext, matrix: number[] | Float32Array) {
+        if (this.gl_elems === null || this.fill_texture === null) return;
         const gl_elems = this.gl_elems;
+
+        if (matrix instanceof Float32Array) 
+            matrix = [...matrix];
+
+        const underflow_color = this.cmap.underflow_color === null ? [0, 0, 0, 0] : hex2rgb(this.cmap.underflow_color.color).concat(this.cmap.underflow_color.opacity);
+        const overflow_color = this.cmap.overflow_color === null ? [0, 0, 0, 0] : hex2rgb(this.cmap.overflow_color.color).concat(this.cmap.overflow_color.opacity);
 
         gl_elems.program.use(
             {'a_pos': gl_elems.vertices, 'a_tex_coord': gl_elems.texcoords},
             {'u_cmap_min': this.cmap.levels[0], 'u_cmap_max': this.cmap.levels[this.cmap.levels.length - 1], 'u_matrix': matrix, 'u_opacity': this.opacity,
-             'u_n_index': this.index_map.length},
-            {'u_fill_sampler': gl_elems.fill_texture, 'u_cmap_sampler': gl_elems.cmap_texture, 'u_cmap_nonlin_sampler': gl_elems.cmap_nonlin_texture}
+             'u_n_index': this.index_map.length, 'u_underflow_color': underflow_color, 'u_overflow_color': overflow_color, 'u_offset': 0},
+            {'u_fill_sampler': this.fill_texture, 'u_cmap_sampler': gl_elems.cmap_texture, 'u_cmap_nonlin_sampler': gl_elems.cmap_nonlin_texture}
         );
 
         gl.enable(gl.BLEND);
         gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 
+        gl_elems.program.draw();
+
+        gl_elems.program.setUniforms({'u_offset': -2});
+        gl_elems.program.draw();
+
+        gl_elems.program.setUniforms({'u_offset': -1});
+        gl_elems.program.draw();
+
+        gl_elems.program.setUniforms({'u_offset': 1});
         gl_elems.program.draw();
     }
 }
@@ -157,7 +171,7 @@ class PlotComponentFill<ArrayType extends TypedArray> extends PlotComponent {
  * // Create a raster plot with the provided color map
  * const raster = new Raster(wind_speed_field, {cmap: color_map});
  */
-class Raster<ArrayType extends TypedArray> extends PlotComponentFill<ArrayType> {
+class Raster<ArrayType extends TypedArray, MapType extends MapLikeType> extends PlotComponentFill<ArrayType, MapType> {
 
     /**
      * Create a raster plot
@@ -169,20 +183,28 @@ class Raster<ArrayType extends TypedArray> extends PlotComponentFill<ArrayType> 
     }
 
     /**
+     * Update the data displayed as a raster plot
+     * @param field - The new field to display as a raster plot
+     */
+    public async updateField(field: RawScalarField<ArrayType>) {
+        await super.updateField(field);
+    }
+
+    /**
      * @internal
      * Add the raster plot to a map
      */
     public async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
         this.image_mag_filter = gl.NEAREST;
         this.cmap_mag_filter = gl.LINEAR;
-        super.onAdd(map, gl);
+        await super.onAdd(map, gl);
     }
 
     /**
      * @internal
      * Render the raster plot
      */
-    public render(gl: WebGLAnyRenderingContext, matrix: number[]) {
+    public render(gl: WebGLAnyRenderingContext, matrix: number[] | Float32Array) {
         super.render(gl, matrix);
     }
 }
@@ -193,7 +215,7 @@ class Raster<ArrayType extends TypedArray> extends PlotComponentFill<ArrayType> 
  * // Create a field of filled contours with the provided color map
  * const fill = new ContourFill(wind_speed_field, {cmap: color_map});
  */
-class ContourFill<ArrayType extends TypedArray> extends PlotComponentFill<ArrayType> {
+class ContourFill<ArrayType extends TypedArray, MapType extends MapLikeType> extends PlotComponentFill<ArrayType, MapType> {
 
     /**
      * Create a filled contoured field
@@ -205,20 +227,28 @@ class ContourFill<ArrayType extends TypedArray> extends PlotComponentFill<ArrayT
     }
 
     /**
+     * Update the data displayed as filled contours
+     * @param field - The new field to display as filled contours
+     */
+    public async updateField(field: RawScalarField<ArrayType>) {
+        await super.updateField(field);
+    }
+
+    /**
      * @internal
      * Add the filled contours to a map
      */
     public async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
         this.image_mag_filter = gl.LINEAR;
         this.cmap_mag_filter = gl.NEAREST;
-        super.onAdd(map, gl);
+        await super.onAdd(map, gl);
     }
 
     /**
      * @internal
      * Render the filled contours
      */
-    public render(gl: WebGLAnyRenderingContext, matrix: number[]) {
+    public render(gl: WebGLAnyRenderingContext, matrix: number[] | Float32Array) {
         super.render(gl, matrix);
     }
 }

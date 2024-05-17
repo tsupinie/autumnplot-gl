@@ -3,7 +3,7 @@ import { PlotComponent } from "./PlotComponent";
 import { BillboardCollection } from './BillboardCollection';
 import { hex2rgba } from './utils';
 import { RawVectorField } from "./RawField";
-import { MapType } from "./Map";
+import { MapLikeType } from "./Map";
 import { TypedArray, WebGLAnyRenderingContext } from "./AutumnTypes";
 
 const BARB_DIMS = {
@@ -139,9 +139,9 @@ interface BarbsOptions {
     thin_fac?: number;
 }
 
-interface BarbsGLElems<ArrayType extends TypedArray> {
-    map: MapType | null;
-    barb_billboards: BillboardCollection<ArrayType> | null;
+interface BarbsGLElems<ArrayType extends TypedArray, MapType extends MapLikeType> {
+    map: MapType;
+    barb_billboards: BillboardCollection<ArrayType>;
 }
 
 /** 
@@ -152,13 +152,13 @@ interface BarbsGLElems<ArrayType extends TypedArray> {
  * const vector_field = new RawVectorField(grid, u_data, v_data);
  * const barbs = new Barbs(vector_field, {color: '#000000', thin_fac: 16});
  */
-class Barbs<ArrayType extends TypedArray> extends PlotComponent {
+class Barbs<ArrayType extends TypedArray, MapType extends MapLikeType> extends PlotComponent<MapType> {
     /** The vector field */
-    private readonly fields: RawVectorField<ArrayType>;
+    private fields: RawVectorField<ArrayType>;
     public readonly color: [number, number, number];
     public readonly thin_fac: number;
 
-    private gl_elems: BarbsGLElems<ArrayType> | null;
+    private gl_elems: BarbsGLElems<ArrayType, MapType> | null;
 
     /**
      * Create a field of wind barbs
@@ -178,6 +178,17 @@ class Barbs<ArrayType extends TypedArray> extends PlotComponent {
     }
 
     /**
+     * Update the field displayed as barbs
+     * @param fields - The new field to display as barbs
+     */
+    public async updateField(fields: RawVectorField<ArrayType>) {
+        this.fields = fields;
+        if (this.gl_elems === null) return;
+        this.gl_elems.barb_billboards.updateField(fields);
+        this.gl_elems.map.triggerRepaint();
+    }
+
+    /**
      * @internal 
      * Add the barb field to a map
      */
@@ -193,19 +204,22 @@ class Barbs<ArrayType extends TypedArray> extends PlotComponent {
 
         const barb_image = {format: gl.RGBA, type: gl.UNSIGNED_BYTE, image: BARB_TEXTURE, mag_filter: gl.NEAREST};
 
-        const barb_billboards = new BillboardCollection(gl, this.fields, this.thin_fac, map_max_zoom, barb_image, 
+        const barb_billboards = new BillboardCollection(this.fields, this.thin_fac, map_max_zoom, barb_image, 
             BARB_DIMS, this.color, 0.1);
+        await barb_billboards.setup(gl);
 
         this.gl_elems = {
             map: map, barb_billboards: barb_billboards
         }
+
+        this.updateField(this.fields);
     }
 
     /**
      * @internal 
      * Render the barb field
      */
-    public render(gl: WebGLAnyRenderingContext, matrix: number[]) {
+    public render(gl: WebGLAnyRenderingContext, matrix: number[] | Float32Array) {
         if (this.gl_elems === null) return;
         const gl_elems = this.gl_elems
 
