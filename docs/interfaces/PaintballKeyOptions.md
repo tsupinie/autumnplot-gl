@@ -1,42 +1,43 @@
-[autumnplot-gl](../README.md) / [Exports](../modules.md) / PaintballKeyOptions
+[**autumnplot-gl**](../index.md) • **Docs**
+
+***
+
+[autumnplot-gl](../globals.md) / PaintballKeyOptions
 
 # Interface: PaintballKeyOptions
 
-## Table of contents
-
-### Properties
-
-- [fontface](PaintballKeyOptions.md#fontface)
-- [n\_cols](PaintballKeyOptions.md#n_cols)
-
 ## Properties
 
-### fontface
+### fontface?
 
-• `Optional` **fontface**: `string`
+> `optional` **fontface**: `string`
 
 A font face to use for the label and tick values.
 
-**`Default`**
+#### Default
 
+```ts
 'sans-serif'
+```
 
-#### Defined in
+#### Source
 
-[ColorBar.ts:219](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/ColorBar.ts#L219)
+[ColorBar.ts:272](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/ColorBar.ts#L272)
 
-___
+***
 
-### n\_cols
+### n\_cols?
 
-• `Optional` **n\_cols**: `number`
+> `optional` **n\_cols**: `number`
 
 The number of columns of entries in the key
 
-**`Default`**
+#### Default
 
+```ts
 1
+```
 
-#### Defined in
+#### Source
 
-[ColorBar.ts:213](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/ColorBar.ts#L213)
+[ColorBar.ts:266](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/ColorBar.ts#L266)

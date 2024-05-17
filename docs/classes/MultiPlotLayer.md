@@ -1,10 +1,14 @@
-[autumnplot-gl](../README.md) / [Exports](../modules.md) / MultiPlotLayer
+[**autumnplot-gl**](../index.md) • **Docs**
 
-# Class: MultiPlotLayer
+***
+
+[autumnplot-gl](../globals.md) / MultiPlotLayer
+
+# Class: MultiPlotLayer\<MapType\>
 
 A varying map layer. If the data don't have a varying component, such as over time, it might be easier to use an [PlotLayer](PlotLayer.md) instead.
 
-**`Example`**
+## Example
 
 ```ts
 // Create a varying map layer
@@ -19,107 +23,113 @@ height_layer.addField(height_contour_f02, '20230112_1400');
 height_layer.setActiveKey('20230112_1200');
 ```
 
-## Hierarchy
+## Extends
 
-- `PlotLayerBase`
+- `PlotLayerBase`\<`MapType`\>
 
-  ↳ **`MultiPlotLayer`**
+## Type parameters
 
-## Table of contents
-
-### Constructors
-
-- [constructor](MultiPlotLayer.md#constructor)
-
-### Properties
-
-- [id](MultiPlotLayer.md#id)
-- [type](MultiPlotLayer.md#type)
-
-### Methods
-
-- [addField](MultiPlotLayer.md#addfield)
-- [getKeys](MultiPlotLayer.md#getkeys)
-- [setActiveKey](MultiPlotLayer.md#setactivekey)
+• **MapType** *extends* [`MapLikeType`](../type-aliases/MapLikeType.md)
 
 ## Constructors
 
-### constructor
+### new MultiPlotLayer()
 
-• **new MultiPlotLayer**(`id`)
+> **new MultiPlotLayer**\<`MapType`\>(`id`): [`MultiPlotLayer`](MultiPlotLayer.md)\<`MapType`\>
 
 Create a time-varying map layer
 
 #### Parameters
 
-| Name | Type | Description |
-| :------ | :------ | :------ |
-| `id` | `string` | A unique id for this layer |
+• **id**: `string`
+
+A unique id for this layer
+
+#### Returns
+
+[`MultiPlotLayer`](MultiPlotLayer.md)\<`MapType`\>
 
 #### Overrides
 
-PlotLayerBase.constructor
+`PlotLayerBase<MapType>.constructor`
 
-#### Defined in
+#### Source
 
-[PlotLayer.ts:84](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/PlotLayer.ts#L84)
+[PlotLayer.ts:92](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/PlotLayer.ts#L92)
 
 ## Properties
 
 ### id
 
-• `Readonly` **id**: `string`
+> `readonly` **id**: `string`
 
 #### Inherited from
 
-PlotLayerBase.id
+`PlotLayerBase.id`
 
-#### Defined in
+#### Source
 
-[PlotLayer.ts:9](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/PlotLayer.ts#L9)
+[PlotLayer.ts:9](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/PlotLayer.ts#L9)
 
-___
+***
+
+### map
+
+> `protected` **map**: `MapType`
+
+#### Inherited from
+
+`PlotLayerBase.map`
+
+#### Source
+
+[PlotLayer.ts:10](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/PlotLayer.ts#L10)
+
+***
 
 ### type
 
-• `Readonly` **type**: ``"custom"``
+> `readonly` **type**: `"custom"`
 
 #### Inherited from
 
-PlotLayerBase.type
+`PlotLayerBase.type`
 
-#### Defined in
+#### Source
 
-[PlotLayer.ts:8](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/PlotLayer.ts#L8)
+[PlotLayer.ts:8](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/PlotLayer.ts#L8)
 
 ## Methods
 
-### addField
+### addField()
 
-▸ **addField**(`field`, `key`): `void`
+> **addField**(`field`, `key`): `void`
 
-Add a field valid at a specific date/time
+Add a field with a given key
 
 #### Parameters
 
-| Name | Type | Description |
-| :------ | :------ | :------ |
-| `field` | [`PlotComponent`](PlotComponent.md) | The field to add |
-| `key` | `string` | - |
+• **field**: [`PlotComponent`](PlotComponent.md)\<`MapType`\>
+
+The field to add
+
+• **key**: `string`
+
+The key to associate with the field
 
 #### Returns
 
 `void`
 
-#### Defined in
+#### Source
 
-[PlotLayer.ts:145](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/PlotLayer.ts#L145)
+[PlotLayer.ts:153](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/PlotLayer.ts#L153)
 
-___
+***
 
-### getKeys
+### getKeys()
 
-▸ **getKeys**(): `string`[]
+> **getKeys**(): `string`[]
 
 Get a list of all dates/times that have been added to the layer
 
@@ -129,28 +139,46 @@ Get a list of all dates/times that have been added to the layer
 
 An array of dates/times
 
-#### Defined in
+#### Source
 
-[PlotLayer.ts:136](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/PlotLayer.ts#L136)
+[PlotLayer.ts:144](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/PlotLayer.ts#L144)
 
-___
+***
 
-### setActiveKey
+### repaint()
 
-▸ **setActiveKey**(`key`): `void`
-
-Set the active key
-
-#### Parameters
-
-| Name | Type | Description |
-| :------ | :------ | :------ |
-| `key` | `string` | The new key |
+> `protected` **repaint**(): `void`
 
 #### Returns
 
 `void`
 
-#### Defined in
+#### Inherited from
 
-[PlotLayer.ts:125](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/PlotLayer.ts#L125)
+`PlotLayerBase.repaint`
+
+#### Source
+
+[PlotLayer.ts:21](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/PlotLayer.ts#L21)
+
+***
+
+### setActiveKey()
+
+> **setActiveKey**(`key`): `void`
+
+Set the active key
+
+#### Parameters
+
+• **key**: `string`
+
+The new key. The field with that key is plotted immediately.
+
+#### Returns
+
+`void`
+
+#### Source
+
+[PlotLayer.ts:133](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/PlotLayer.ts#L133)

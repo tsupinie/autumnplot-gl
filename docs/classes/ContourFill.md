@@ -1,122 +1,138 @@
-[autumnplot-gl](../README.md) / [Exports](../modules.md) / ContourFill
+[**autumnplot-gl**](../index.md) • **Docs**
 
-# Class: ContourFill<ArrayType\>
+***
+
+[autumnplot-gl](../globals.md) / ContourFill
+
+# Class: ContourFill\<ArrayType, MapType\>
 
 A filled contoured field
 
-**`Example`**
+## Example
 
 ```ts
 // Create a field of filled contours with the provided color map
 const fill = new ContourFill(wind_speed_field, {cmap: color_map});
 ```
 
+## Extends
+
+- `PlotComponentFill`\<`ArrayType`, `MapType`\>
+
 ## Type parameters
 
-| Name | Type |
-| :------ | :------ |
-| `ArrayType` | extends [`TypedArray`](../modules.md#typedarray) |
+• **ArrayType** *extends* [`TypedArray`](../type-aliases/TypedArray.md)
 
-## Hierarchy
-
-- `PlotComponentFill`<`ArrayType`\>
-
-  ↳ **`ContourFill`**
-
-## Table of contents
-
-### Constructors
-
-- [constructor](ContourFill.md#constructor)
-
-### Properties
-
-- [cmap](ContourFill.md#cmap)
-- [cmap\_mag\_filter](ContourFill.md#cmap_mag_filter)
-- [image\_mag\_filter](ContourFill.md#image_mag_filter)
-- [opacity](ContourFill.md#opacity)
+• **MapType** *extends* [`MapLikeType`](../type-aliases/MapLikeType.md)
 
 ## Constructors
 
-### constructor
+### new ContourFill()
 
-• **new ContourFill**<`ArrayType`\>(`field`, `opts`)
+> **new ContourFill**\<`ArrayType`, `MapType`\>(`field`, `opts`): [`ContourFill`](ContourFill.md)\<`ArrayType`, `MapType`\>
 
 Create a filled contoured field
 
-#### Type parameters
-
-| Name | Type |
-| :------ | :------ |
-| `ArrayType` | extends [`TypedArray`](../modules.md#typedarray) |
-
 #### Parameters
 
-| Name | Type | Description |
-| :------ | :------ | :------ |
-| `field` | [`RawScalarField`](RawScalarField.md)<`ArrayType`\> | The field to create filled contours from |
-| `opts` | [`ContourFillOptions`](../interfaces/ContourFillOptions.md) | Options for creating the filled contours |
+• **field**: [`RawScalarField`](RawScalarField.md)\<`ArrayType`\>
+
+The field to create filled contours from
+
+• **opts**: [`ContourFillOptions`](../interfaces/ContourFillOptions.md)
+
+Options for creating the filled contours
+
+#### Returns
+
+[`ContourFill`](ContourFill.md)\<`ArrayType`, `MapType`\>
 
 #### Overrides
 
-PlotComponentFill&lt;ArrayType\&gt;.constructor
+`PlotComponentFill<ArrayType, MapType>.constructor`
 
-#### Defined in
+#### Source
 
-[Fill.ts:203](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/Fill.ts#L203)
+[Fill.ts:225](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Fill.ts#L225)
 
 ## Properties
 
 ### cmap
 
-• `Readonly` **cmap**: [`ColorMap`](ColorMap.md)
+> `readonly` **cmap**: [`ColorMap`](ColorMap.md)
 
 #### Inherited from
 
-PlotComponentFill.cmap
+`PlotComponentFill.cmap`
 
-#### Defined in
+#### Source
 
-[Fill.ts:49](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/Fill.ts#L49)
+[Fill.ts:49](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Fill.ts#L49)
 
-___
+***
 
 ### cmap\_mag\_filter
 
-• `Protected` **cmap\_mag\_filter**: `number`
+> `protected` **cmap\_mag\_filter**: `number`
 
 #### Inherited from
 
-PlotComponentFill.cmap\_mag\_filter
+`PlotComponentFill.cmap_mag_filter`
 
-#### Defined in
+#### Source
 
-[Fill.ts:57](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/Fill.ts#L57)
+[Fill.ts:58](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Fill.ts#L58)
 
-___
+***
 
 ### image\_mag\_filter
 
-• `Protected` **image\_mag\_filter**: `number`
+> `protected` **image\_mag\_filter**: `number`
 
 #### Inherited from
 
-PlotComponentFill.image\_mag\_filter
+`PlotComponentFill.image_mag_filter`
 
-#### Defined in
+#### Source
 
-[Fill.ts:56](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/Fill.ts#L56)
+[Fill.ts:57](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Fill.ts#L57)
 
-___
+***
 
 ### opacity
 
-• `Readonly` **opacity**: `number`
+> `readonly` **opacity**: `number`
 
 #### Inherited from
 
-PlotComponentFill.opacity
+`PlotComponentFill.opacity`
 
-#### Defined in
+#### Source
 
-[Fill.ts:50](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/Fill.ts#L50)
+[Fill.ts:50](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Fill.ts#L50)
+
+## Methods
+
+### updateField()
+
+> **updateField**(`field`): `Promise`\<`void`\>
+
+Update the data displayed as filled contours
+
+#### Parameters
+
+• **field**: [`RawScalarField`](RawScalarField.md)\<`ArrayType`\>
+
+The new field to display as filled contours
+
+#### Returns
+
+`Promise`\<`void`\>
+
+#### Overrides
+
+`PlotComponentFill.updateField`
+
+#### Source
+
+[Fill.ts:233](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Fill.ts#L233)

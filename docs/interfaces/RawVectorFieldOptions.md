@@ -1,25 +1,25 @@
-[autumnplot-gl](../README.md) / [Exports](../modules.md) / RawVectorFieldOptions
+[**autumnplot-gl**](../index.md) • **Docs**
+
+***
+
+[autumnplot-gl](../globals.md) / RawVectorFieldOptions
 
 # Interface: RawVectorFieldOptions
 
-## Table of contents
-
-### Properties
-
-- [relative\_to](RawVectorFieldOptions.md#relative_to)
-
 ## Properties
 
-### relative\_to
+### relative\_to?
 
-• `Optional` **relative\_to**: [`VectorRelativeTo`](../modules.md#vectorrelativeto)
+> `optional` **relative\_to**: [`VectorRelativeTo`](../type-aliases/VectorRelativeTo.md)
 
 Whether the vectors are relative to the grid ('grid') or Earth ('earth')
 
-**`Default`**
+#### Default
 
+```ts
 'grid'
+```
 
-#### Defined in
+#### Source
 
-[RawField.ts:468](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L468)
+[RawField.ts:89](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/RawField.ts#L89)

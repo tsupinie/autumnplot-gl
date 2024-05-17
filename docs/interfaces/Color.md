@@ -1,34 +1,31 @@
-[autumnplot-gl](../README.md) / [Exports](../modules.md) / Color
+[**autumnplot-gl**](../index.md) • **Docs**
+
+***
+
+[autumnplot-gl](../globals.md) / Color
 
 # Interface: Color
-
-## Table of contents
-
-### Properties
-
-- [color](Color.md#color)
-- [opacity](Color.md#opacity)
 
 ## Properties
 
 ### color
 
-• **color**: `string`
+> **color**: `string`
 
 The color as a hex color string
 
-#### Defined in
+#### Source
 
-[Colormap.ts:12](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/Colormap.ts#L12)
+[Colormap.ts:13](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Colormap.ts#L13)
 
-___
+***
 
 ### opacity
 
-• **opacity**: `number`
+> **opacity**: `number`
 
 The opacity as a number from 0 to 1
 
-#### Defined in
+#### Source
 
-[Colormap.ts:15](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/Colormap.ts#L15)
+[Colormap.ts:16](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Colormap.ts#L16)

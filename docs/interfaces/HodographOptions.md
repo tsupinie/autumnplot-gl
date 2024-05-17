@@ -1,39 +1,38 @@
-[autumnplot-gl](../README.md) / [Exports](../modules.md) / HodographOptions
+[**autumnplot-gl**](../index.md) • **Docs**
+
+***
+
+[autumnplot-gl](../globals.md) / HodographOptions
 
 # Interface: HodographOptions
 
-## Table of contents
-
-### Properties
-
-- [bgcolor](HodographOptions.md#bgcolor)
-- [thin\_fac](HodographOptions.md#thin_fac)
-
 ## Properties
 
-### bgcolor
+### bgcolor?
 
-• `Optional` **bgcolor**: `string`
+> `optional` **bgcolor**: `string`
 
 The color of the hodograph plot background as a hex string
 
-#### Defined in
+#### Source
 
-[Hodographs.ts:92](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/Hodographs.ts#L92)
+[Hodographs.ts:65](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Hodographs.ts#L65)
 
-___
+***
 
-### thin\_fac
+### thin\_fac?
 
-• `Optional` **thin\_fac**: `number`
+> `optional` **thin\_fac**: `number`
 
 How much to thin the hodographs at zoom level 1 on the map. This effectively means to plot every `n`th hodograph in the i and j directions, where `n` = 
 `thin_fac`. `thin_fac` should be a power of 2.
 
-**`Default`**
+#### Default
 
+```ts
 1
+```
 
-#### Defined in
+#### Source
 
-[Hodographs.ts:99](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/Hodographs.ts#L99)
+[Hodographs.ts:72](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Hodographs.ts#L72)

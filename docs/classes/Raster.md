@@ -1,122 +1,138 @@
-[autumnplot-gl](../README.md) / [Exports](../modules.md) / Raster
+[**autumnplot-gl**](../index.md) • **Docs**
 
-# Class: Raster<ArrayType\>
+***
+
+[autumnplot-gl](../globals.md) / Raster
+
+# Class: Raster\<ArrayType, MapType\>
 
 A raster (i.e. pixel) plot
 
-**`Example`**
+## Example
 
 ```ts
 // Create a raster plot with the provided color map
 const raster = new Raster(wind_speed_field, {cmap: color_map});
 ```
 
+## Extends
+
+- `PlotComponentFill`\<`ArrayType`, `MapType`\>
+
 ## Type parameters
 
-| Name | Type |
-| :------ | :------ |
-| `ArrayType` | extends [`TypedArray`](../modules.md#typedarray) |
+• **ArrayType** *extends* [`TypedArray`](../type-aliases/TypedArray.md)
 
-## Hierarchy
-
-- `PlotComponentFill`<`ArrayType`\>
-
-  ↳ **`Raster`**
-
-## Table of contents
-
-### Constructors
-
-- [constructor](Raster.md#constructor)
-
-### Properties
-
-- [cmap](Raster.md#cmap)
-- [cmap\_mag\_filter](Raster.md#cmap_mag_filter)
-- [image\_mag\_filter](Raster.md#image_mag_filter)
-- [opacity](Raster.md#opacity)
+• **MapType** *extends* [`MapLikeType`](../type-aliases/MapLikeType.md)
 
 ## Constructors
 
-### constructor
+### new Raster()
 
-• **new Raster**<`ArrayType`\>(`field`, `opts`)
+> **new Raster**\<`ArrayType`, `MapType`\>(`field`, `opts`): [`Raster`](Raster.md)\<`ArrayType`, `MapType`\>
 
 Create a raster plot
 
-#### Type parameters
-
-| Name | Type |
-| :------ | :------ |
-| `ArrayType` | extends [`TypedArray`](../modules.md#typedarray) |
-
 #### Parameters
 
-| Name | Type | Description |
-| :------ | :------ | :------ |
-| `field` | [`RawScalarField`](RawScalarField.md)<`ArrayType`\> | The field to create the raster plot from |
-| `opts` | [`RasterOptions`](../interfaces/RasterOptions.md) | Options for creating the raster plot |
+• **field**: [`RawScalarField`](RawScalarField.md)\<`ArrayType`\>
+
+The field to create the raster plot from
+
+• **opts**: [`RasterOptions`](../interfaces/RasterOptions.md)
+
+Options for creating the raster plot
+
+#### Returns
+
+[`Raster`](Raster.md)\<`ArrayType`, `MapType`\>
 
 #### Overrides
 
-PlotComponentFill&lt;ArrayType\&gt;.constructor
+`PlotComponentFill<ArrayType, MapType>.constructor`
 
-#### Defined in
+#### Source
 
-[Fill.ts:167](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/Fill.ts#L167)
+[Fill.ts:181](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Fill.ts#L181)
 
 ## Properties
 
 ### cmap
 
-• `Readonly` **cmap**: [`ColorMap`](ColorMap.md)
+> `readonly` **cmap**: [`ColorMap`](ColorMap.md)
 
 #### Inherited from
 
-PlotComponentFill.cmap
+`PlotComponentFill.cmap`
 
-#### Defined in
+#### Source
 
-[Fill.ts:49](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/Fill.ts#L49)
+[Fill.ts:49](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Fill.ts#L49)
 
-___
+***
 
 ### cmap\_mag\_filter
 
-• `Protected` **cmap\_mag\_filter**: `number`
+> `protected` **cmap\_mag\_filter**: `number`
 
 #### Inherited from
 
-PlotComponentFill.cmap\_mag\_filter
+`PlotComponentFill.cmap_mag_filter`
 
-#### Defined in
+#### Source
 
-[Fill.ts:57](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/Fill.ts#L57)
+[Fill.ts:58](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Fill.ts#L58)
 
-___
+***
 
 ### image\_mag\_filter
 
-• `Protected` **image\_mag\_filter**: `number`
+> `protected` **image\_mag\_filter**: `number`
 
 #### Inherited from
 
-PlotComponentFill.image\_mag\_filter
+`PlotComponentFill.image_mag_filter`
 
-#### Defined in
+#### Source
 
-[Fill.ts:56](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/Fill.ts#L56)
+[Fill.ts:57](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Fill.ts#L57)
 
-___
+***
 
 ### opacity
 
-• `Readonly` **opacity**: `number`
+> `readonly` **opacity**: `number`
 
 #### Inherited from
 
-PlotComponentFill.opacity
+`PlotComponentFill.opacity`
 
-#### Defined in
+#### Source
 
-[Fill.ts:50](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/Fill.ts#L50)
+[Fill.ts:50](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Fill.ts#L50)
+
+## Methods
+
+### updateField()
+
+> **updateField**(`field`): `Promise`\<`void`\>
+
+Update the data displayed as a raster plot
+
+#### Parameters
+
+• **field**: [`RawScalarField`](RawScalarField.md)\<`ArrayType`\>
+
+The new field to display as a raster plot
+
+#### Returns
+
+`Promise`\<`void`\>
+
+#### Overrides
+
+`PlotComponentFill.updateField`
+
+#### Source
+
+[Fill.ts:189](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Fill.ts#L189)

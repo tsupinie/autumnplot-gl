@@ -1,91 +1,59 @@
-[autumnplot-gl](../README.md) / [Exports](../modules.md) / ContourOptions
+[**autumnplot-gl**](../index.md) • **Docs**
+
+***
+
+[autumnplot-gl](../globals.md) / ContourOptions
 
 # Interface: ContourOptions
 
-## Table of contents
-
-### Properties
-
-- [color](ContourOptions.md#color)
-- [interval](ContourOptions.md#interval)
-- [levels](ContourOptions.md#levels)
-- [thinner](ContourOptions.md#thinner)
-
 ## Properties
 
-### color
+### color?
 
-• `Optional` **color**: `string`
+> `optional` **color**: `string`
 
 The color of the contours as a hex color string
 
-**`Default`**
+#### Default
 
+```ts
 '#000000'
+```
 
-#### Defined in
+#### Source
 
-[Contour.ts:18](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/Contour.ts#L18)
+[Contour.ts:18](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Contour.ts#L18)
 
-___
+***
 
-### interval
+### interval?
 
-• `Optional` **interval**: `number`
+> `optional` **interval**: `number`
 
 The contour interval for drawing contours at regular intervals
 
-**`Default`**
+#### Default
 
+```ts
 1
+```
 
-#### Defined in
+#### Source
 
-[Contour.ts:24](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/Contour.ts#L24)
+[Contour.ts:24](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Contour.ts#L24)
 
-___
+***
 
-### levels
+### levels?
 
-• `Optional` **levels**: `number`[]
+> `optional` **levels**: `number`[]
 
 A list of arbitrary levels (up to 40) to contour. This overrides the `interval` option.
 
-**`Default`**
+#### Default
 
 Draw contours at regular intervals given by the `interval` option.
 
-#### Defined in
+#### Source
 
-[Contour.ts:30](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/Contour.ts#L30)
-
-___
-
-### thinner
-
-• `Optional` **thinner**: (`zoom`: `number`) => `number`
-
-#### Type declaration
-
-▸ (`zoom`): `number`
-
-A function to thin the contours based on zoom level. The function should take a zoom level and return a number `n` that means to only show every 
-`n`th contour.
-
-**`Default`**
-
-Don't thin the contours on any zoom level
-
-##### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `zoom` | `number` |
-
-##### Returns
-
-`number`
-
-#### Defined in
-
-[Contour.ts:37](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/Contour.ts#L37)
+[Contour.ts:30](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Contour.ts#L30)

@@ -1,11 +1,15 @@
-[autumnplot-gl](../README.md) / [Exports](../modules.md) / PlotLayer
+[**autumnplot-gl**](../index.md) • **Docs**
 
-# Class: PlotLayer
+***
+
+[autumnplot-gl](../globals.md) / PlotLayer
+
+# Class: PlotLayer\<MapType\>
 
 A static map layer. The data are assumed to be static in time. If the data have a time component (e.g., a model forecast), an [MultiPlotLayer](MultiPlotLayer.md) 
 may be more appropriate.
 
-**`Example`**
+## Example
 
 ```ts
 // Create map layers from provided fields
@@ -14,70 +18,100 @@ const wind_speed_layer = new PlotLayer('wind-speed-fill', wind_speed_fill);
 const barb_layer = new PlotLayer('barbs', wind_barbs);
 ```
 
-## Hierarchy
+## Extends
 
-- `PlotLayerBase`
+- `PlotLayerBase`\<`MapType`\>
 
-  ↳ **`PlotLayer`**
+## Type parameters
 
-## Table of contents
-
-### Constructors
-
-- [constructor](PlotLayer.md#constructor)
-
-### Properties
-
-- [id](PlotLayer.md#id)
-- [type](PlotLayer.md#type)
+• **MapType** *extends* [`MapLikeType`](../type-aliases/MapLikeType.md)
 
 ## Constructors
 
-### constructor
+### new PlotLayer()
 
-• **new PlotLayer**(`id`, `field`)
+> **new PlotLayer**\<`MapType`\>(`id`, `field`): [`PlotLayer`](PlotLayer.md)\<`MapType`\>
 
 Create a map layer from a field
 
 #### Parameters
 
-| Name | Type | Description |
-| :------ | :------ | :------ |
-| `id` | `string` | A unique id for this layer |
-| `field` | [`PlotComponent`](PlotComponent.md) | The field to plot in this layer |
+• **id**: `string`
+
+A unique id for this layer
+
+• **field**: [`PlotComponent`](PlotComponent.md)\<`MapType`\>
+
+The field to plot in this layer
+
+#### Returns
+
+[`PlotLayer`](PlotLayer.md)\<`MapType`\>
 
 #### Overrides
 
-PlotLayerBase.constructor
+`PlotLayerBase<MapType>.constructor`
 
-#### Defined in
+#### Source
 
-[PlotLayer.ts:37](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/PlotLayer.ts#L37)
+[PlotLayer.ts:45](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/PlotLayer.ts#L45)
 
 ## Properties
 
 ### id
 
-• `Readonly` **id**: `string`
+> `readonly` **id**: `string`
 
 #### Inherited from
 
-PlotLayerBase.id
+`PlotLayerBase.id`
 
-#### Defined in
+#### Source
 
-[PlotLayer.ts:9](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/PlotLayer.ts#L9)
+[PlotLayer.ts:9](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/PlotLayer.ts#L9)
 
-___
+***
+
+### map
+
+> `protected` **map**: `MapType`
+
+#### Inherited from
+
+`PlotLayerBase.map`
+
+#### Source
+
+[PlotLayer.ts:10](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/PlotLayer.ts#L10)
+
+***
 
 ### type
 
-• `Readonly` **type**: ``"custom"``
+> `readonly` **type**: `"custom"`
 
 #### Inherited from
 
-PlotLayerBase.type
+`PlotLayerBase.type`
 
-#### Defined in
+#### Source
 
-[PlotLayer.ts:8](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/PlotLayer.ts#L8)
+[PlotLayer.ts:8](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/PlotLayer.ts#L8)
+
+## Methods
+
+### repaint()
+
+> `protected` **repaint**(): `void`
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+`PlotLayerBase.repaint`
+
+#### Source
+
+[PlotLayer.ts:21](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/PlotLayer.ts#L21)

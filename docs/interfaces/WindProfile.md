@@ -1,107 +1,97 @@
-[autumnplot-gl](../README.md) / [Exports](../modules.md) / WindProfile
+[**autumnplot-gl**](../index.md) • **Docs**
+
+***
+
+[autumnplot-gl](../globals.md) / WindProfile
 
 # Interface: WindProfile
-
-## Table of contents
-
-### Properties
-
-- [ilon](WindProfile.md#ilon)
-- [jlat](WindProfile.md#jlat)
-- [lat](WindProfile.md#lat)
-- [lon](WindProfile.md#lon)
-- [smu](WindProfile.md#smu)
-- [smv](WindProfile.md#smv)
-- [u](WindProfile.md#u)
-- [v](WindProfile.md#v)
-- [z](WindProfile.md#z)
 
 ## Properties
 
 ### ilon
 
-• **ilon**: `number`
+> **ilon**: `number`
 
-#### Defined in
+#### Source
 
-[AutumnTypes.ts:8](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/AutumnTypes.ts#L8)
+[AutumnTypes.ts:8](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/AutumnTypes.ts#L8)
 
-___
+***
 
 ### jlat
 
-• **jlat**: `number`
+> **jlat**: `number`
 
-#### Defined in
+#### Source
 
-[AutumnTypes.ts:7](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/AutumnTypes.ts#L7)
+[AutumnTypes.ts:7](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/AutumnTypes.ts#L7)
 
-___
+***
 
 ### lat
 
-• **lat**: `number`
+> **lat**: `number`
 
-#### Defined in
+#### Source
 
-[AutumnTypes.ts:5](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/AutumnTypes.ts#L5)
+[AutumnTypes.ts:5](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/AutumnTypes.ts#L5)
 
-___
+***
 
 ### lon
 
-• **lon**: `number`
+> **lon**: `number`
 
-#### Defined in
+#### Source
 
-[AutumnTypes.ts:6](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/AutumnTypes.ts#L6)
+[AutumnTypes.ts:6](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/AutumnTypes.ts#L6)
 
-___
+***
 
 ### smu
 
-• **smu**: `number`
+> **smu**: `number`
 
-#### Defined in
+#### Source
 
-[AutumnTypes.ts:9](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/AutumnTypes.ts#L9)
+[AutumnTypes.ts:9](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/AutumnTypes.ts#L9)
 
-___
+***
 
 ### smv
 
-• **smv**: `number`
+> **smv**: `number`
 
-#### Defined in
+#### Source
 
-[AutumnTypes.ts:10](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/AutumnTypes.ts#L10)
+[AutumnTypes.ts:10](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/AutumnTypes.ts#L10)
 
-___
+***
 
 ### u
 
-• **u**: `Float32Array`
+> **u**: `Float32Array`
 
-#### Defined in
+#### Source
 
-[AutumnTypes.ts:11](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/AutumnTypes.ts#L11)
+[AutumnTypes.ts:11](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/AutumnTypes.ts#L11)
 
-___
+***
 
 ### v
 
-• **v**: `Float32Array`
+> **v**: `Float32Array`
 
-#### Defined in
+#### Source
 
-[AutumnTypes.ts:12](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/AutumnTypes.ts#L12)
+[AutumnTypes.ts:12](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/AutumnTypes.ts#L12)
 
-___
+***
 
 ### z
 
-• **z**: `Float32Array`
+> **z**: `Float32Array`
 
-#### Defined in
+#### Source
 
-[AutumnTypes.ts:13](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/AutumnTypes.ts#L13)
+[AutumnTypes.ts:13](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/AutumnTypes.ts#L13)

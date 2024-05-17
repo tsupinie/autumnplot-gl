@@ -2,10 +2,13 @@
 
 ## Files
 * [autumnplot-gl.js](autumnplot-gl.js): The main code
+* [autumnplot-gl.js.map](autumnplot-gl.js.map): The source map for the main code (optional)
 * [110.autumnplot-gl.js](110.autumnplot-gl.js): A web worker file
+* [110.autumnplot-gl.js.map](110.autumnplot-gl.js.map): The source map for the web worker file (optional)
+* [marchingsquares.wasm](marchingsquares.wasm): A WebAssembly binary file for the contouring
 
 ## Usage
-To use autumnplot-gl, grab both these files and put them in the same directory in your project. Then add this to your web page:
+To use autumnplot-gl, grab these files and put them in the same directory in your project. Then add this to your web page:
 
 ```html
 <script src="path/to/autumnplot-gl.js"></script>

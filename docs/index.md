@@ -1,4 +1,6 @@
-autumnplot-gl / [Exports](modules.md)
+**autumnplot-gl** • [**Docs**](globals.md)
+
+***
 
 # autumnplot-gl
 Hardware-accelerated geospatial data plotting in the browser
@@ -18,7 +20,25 @@ autumnplot-gl is designed to be used with either [Mapbox GL JS](https://docs.map
 npm i autumnplot-gl
 ```
 
-Additionally, pre-built autumnplot-gl javascript files area available [here](https://tsupinie.github.io/autumnplot-gl/dist/). Adding them to your page exposes the API via the `apgl` global variable (e.g., instead of `new PlateCarreeGrid(...)` in the examples, you'd call `new apgl.PlateCarreeGrid(...)`). 
+Unfortunately, you may have to modify your build tool configuration to include the WebAssembly binary. For webpack, I've found adding this to webpack.config.js works:
+
+```javascript
+{
+    "module": {
+        "rules": [
+            {
+                test: /\.wasm$/,
+                type: "asset/resource",
+                generator: {
+                    filename: "static/js/[name].wasm"
+                }
+            }
+        ]
+    }
+}
+```
+
+In addition to the Typescript library, pre-built autumnplot-gl javascript files area available [here](https://tsupinie.github.io/autumnplot-gl/dist/). Adding them to your page exposes the API via the `apgl` global variable (e.g., instead of `new PlateCarreeGrid(...)` in the examples, you'd call `new apgl.PlateCarreeGrid(...)`). 
 
 ### A basic contour plot
 The first step in plotting data is to create a grid. Currently, the only supported grids are PlateCarreeGrid (a.k.a. Lat/Lon), RotatedPlateCarreeGrid, and LambertGrid (a.k.a. Lambert Conformal Conic).
@@ -66,6 +86,19 @@ map.on('load', () => {
 ```
 
 The `'railway_transit_tunnel'` argument is a layer in the map style, and this means to add your layer just below that layer on the map. This usually produces better results than just blindly slapping all your layers on top of all the map (though the map style itself may require some tweaking to produce the best results).
+
+### Contour Labeling
+
+Typically, when plotting meteorological data, contours are labeled with their values, which you can do with `ContourLabels`:
+
+```javascript
+const labels = new ContourLabels(height_contour, {text_color: '#ffffff', halo: true});
+const label_layer = new PlotLayer('label', labels);
+
+map.on('load', () => {
+    map.addLayer(label_layer, 'railway_transit_tunnel');
+});
+```
 
 ### Barbs
 
@@ -116,13 +149,25 @@ document.getElementById('colorbar-container').appendChild(colorbar_svg);
 ```
 
 ### Varying the data plots
-The previous steps have gone through plotting a static dataset on a map, but in many instances, you want to view a dataset that changes, say over time. Rather than continually remove and add new layers when the user changes the time, which would get tedious, waste video RAM, and probably wouldn't perform very well, autumnplot-gl provides `MultiPlotLayer`, which allows the plotted data to easily and quickly change over time (or height or any other axis that might be relevant).
+The previous steps have gone through plotting a static dataset on a map, but in many instances, you want to view a dataset that changes, say over time. In order to switch the data currently plotted, you can call `updateField()` on the plot component (e.g, `ContourFilled`, `Barbs`, etc.) to switch what field is plotted. 
+
+```javascript
+// Create the initial field
+const height_field_f00 = new RawScalarField(grid, height_data_f00);
+const fills = new Contour(height_data_f00, {interval: 30});
+
+// Update the field plotted
+const height_field_f01 = new RawScalarField(grid, height_data_f01);
+fills.updateField(height_field_f01);
+```
+
+Another way to vary the data is to use `MultiPlotLayer`. The main difference between this and using `updateField()` is that `MultiPlotLayer` will put all data for all times onto VRAM at once. In contrast, with `PlotLayer` and `updateField()`, only the data currently plotted are stored on VRAM. For large grids, this may take up a large amount of VRAM, so you may not want to use this, and it may be removed in later versions.
 
 ```javascript
 // Contour some data
-const height_contour_f00 = new Contour(grid, height_f00);
-const height_contour_f01 = new Contour(grid, height_f01);
-const height_contour_f02 = new Contour(grid, height_f02);
+const height_contour_f00 = new Contour(height_f00);
+const height_contour_f01 = new Contour(height_f01);
+const height_contour_f02 = new Contour(height_f02);
 
 // Create a varying map layer
 const height_layer_time = new MultiPlotLayer('height-contour-time');
@@ -145,6 +190,20 @@ The second argument to `addField()` is the key to associate with this field. Thi
 height_layer.setActiveKey('20230112_1200');
 ```
 
+### Typescript Considerations
+
+autumnplot-gl is written in Tyescript to facilitate type info in large projects. Typescript isn't necessary to use autumnplot-gl, but if you want to use it, there are some considerations. 
+
+Many of the plot component classes have generic types. The typescript compiler can generally figure out the generic type parameters, but if you're declaring a variable to be a plot component, you'll probably need to specify those ahead of time. The first type parameter is the array type (either Float32Array or Float16Array), and the second is the type of the Map you're using.
+
+```typescript
+// Import the map from maplibre-gl, if that's what you're using. Mapbox should be similar.
+import { Map } from 'maplibre-gl';
+
+// Declare a contour field which contours an array of float float32s with the MapLibre map.
+const cntr: Contour<Float32Array, Map>;
+```
+
 ## Built-in color maps
 autumnplot-gl comes with several built-in color maps, accessible via `import {colormaps} from 'autumnplot-gl'`. These are basic blue/red and red/blue diverging color maps plus a selection from [PivotalWeather](https://www.pivotalweather.com). The blue/red and red/blue are functions that take a minimum contour level, a maximum contour level, and a number of colors. For example, this creates a blue/red colormap starting at -10, ending at 10, and with 20 colors:
 
@@ -162,10 +221,9 @@ The above exmple uses map tiles from [Maptiler](https://www.maptiler.com/). Map 
 So, I've created some [less-detailed map tiles](https://tsupinie.github.io/autumnplot-gl/tiles/) that are small enough that they can be hosted without dedicated hardware. However the tradeoff is that they're only useful down to zoom level 8 or 9 on the map, such that the viewport is somewhere between half a US state and a few counties in size. If that's good enough for you, then these tiles could be useful.
 
 ## Conspicuous absences
-A few capabilities are missing from this library as of v2.2.
+A few capabilities are missing from this library as of v3.0.
 * Helper functions for reading from specific data formats. For instance, I'd like to add support for reading from a zarr file.
 * A whole bunch of little things that ought to be fairly straightforward like tweaking the size of the wind barbs and contour thicknesses.
-* Support for contour labeling. I'd like to add it, but I'm not really sure how I'd do it with the contours as I've implemented them. Any WebGL gurus, get in touch.
 
 ## Closing thoughts
 Even though autumnplot-gl is currently an extremely new package with relatively limited capability, I hope folks see potential and find it useful. Any contributions to fill out some missing features are welcome.

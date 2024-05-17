@@ -1,75 +1,71 @@
-[autumnplot-gl](../README.md) / [Exports](../modules.md) / RawProfileField
+[**autumnplot-gl**](../index.md) • **Docs**
+
+***
+
+[autumnplot-gl](../globals.md) / RawProfileField
 
 # Class: RawProfileField
 
 A class grid of wind profiles
 
-## Table of contents
-
-### Constructors
-
-- [constructor](RawProfileField.md#constructor)
-
-### Properties
-
-- [grid](RawProfileField.md#grid)
-- [profiles](RawProfileField.md#profiles)
-
-### Methods
-
-- [getStormMotionGrid](RawProfileField.md#getstormmotiongrid)
-
 ## Constructors
 
-### constructor
+### new RawProfileField()
 
-• **new RawProfileField**(`grid`, `profiles`)
+> **new RawProfileField**(`grid`, `profiles`): [`RawProfileField`](RawProfileField.md)
 
 Create a grid of wind profiles
 
 #### Parameters
 
-| Name | Type | Description |
-| :------ | :------ | :------ |
-| `grid` | [`Grid`](Grid.md) | The grid on which the profiles are defined |
-| `profiles` | [`WindProfile`](../interfaces/WindProfile.md)[] | The wind profiles themselves, which should be given as a 1D array in row-major order, with the first profile being at the lower-left corner of the grid |
+• **grid**: [`Grid`](Grid.md)
 
-#### Defined in
+The grid on which the profiles are defined
 
-[RawField.ts:573](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L573)
+• **profiles**: [`WindProfile`](../interfaces/WindProfile.md)[]
+
+The wind profiles themselves, which should be given as a 1D array in row-major order, with the first profile being at the lower-left corner of the grid
+
+#### Returns
+
+[`RawProfileField`](RawProfileField.md)
+
+#### Source
+
+[RawField.ts:164](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/RawField.ts#L164)
 
 ## Properties
 
 ### grid
 
-• `Readonly` **grid**: [`Grid`](Grid.md)
+> `readonly` **grid**: [`Grid`](Grid.md)
 
-#### Defined in
+#### Source
 
-[RawField.ts:566](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L566)
+[RawField.ts:157](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/RawField.ts#L157)
 
-___
+***
 
 ### profiles
 
-• `Readonly` **profiles**: [`WindProfile`](../interfaces/WindProfile.md)[]
+> `readonly` **profiles**: [`WindProfile`](../interfaces/WindProfile.md)[]
 
-#### Defined in
+#### Source
 
-[RawField.ts:565](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L565)
+[RawField.ts:156](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/RawField.ts#L156)
 
 ## Methods
 
-### getStormMotionGrid
+### getStormMotionGrid()
 
-▸ **getStormMotionGrid**(): [`RawVectorField`](RawVectorField.md)<`Float16Array`\>
+> **getStormMotionGrid**(): [`RawVectorField`](RawVectorField.md)\<`Float16Array`\>
 
 Get the gridded storm motion vector field (internal method)
 
 #### Returns
 
-[`RawVectorField`](RawVectorField.md)<`Float16Array`\>
+[`RawVectorField`](RawVectorField.md)\<`Float16Array`\>
 
-#### Defined in
+#### Source
 
-[RawField.ts:579](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L579)
+[RawField.ts:170](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/RawField.ts#L170)

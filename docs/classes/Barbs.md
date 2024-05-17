@@ -1,11 +1,15 @@
-[autumnplot-gl](../README.md) / [Exports](../modules.md) / Barbs
+[**autumnplot-gl**](../index.md) • **Docs**
 
-# Class: Barbs<ArrayType\>
+***
+
+[autumnplot-gl](../globals.md) / Barbs
+
+# Class: Barbs\<ArrayType, MapType\>
 
 A class representing a field of wind barbs. The barbs are automatically thinned based on the zoom level on the map; the user only has to provide a
 thinning factor at zoom level 1.
 
-**`Example`**
+## Example
 
 ```ts
 // Create a barb field with black barbs and plotting every 16th wind barb in both i and j at zoom level 1
@@ -13,74 +17,84 @@ const vector_field = new RawVectorField(grid, u_data, v_data);
 const barbs = new Barbs(vector_field, {color: '#000000', thin_fac: 16});
 ```
 
+## Extends
+
+- [`PlotComponent`](PlotComponent.md)\<`MapType`\>
+
 ## Type parameters
 
-| Name | Type |
-| :------ | :------ |
-| `ArrayType` | extends [`TypedArray`](../modules.md#typedarray) |
+• **ArrayType** *extends* [`TypedArray`](../type-aliases/TypedArray.md)
 
-## Hierarchy
-
-- [`PlotComponent`](PlotComponent.md)
-
-  ↳ **`Barbs`**
-
-## Table of contents
-
-### Constructors
-
-- [constructor](Barbs.md#constructor)
-
-### Properties
-
-- [color](Barbs.md#color)
-- [thin\_fac](Barbs.md#thin_fac)
+• **MapType** *extends* [`MapLikeType`](../type-aliases/MapLikeType.md)
 
 ## Constructors
 
-### constructor
+### new Barbs()
 
-• **new Barbs**<`ArrayType`\>(`fields`, `opts`)
+> **new Barbs**\<`ArrayType`, `MapType`\>(`fields`, `opts`): [`Barbs`](Barbs.md)\<`ArrayType`, `MapType`\>
 
 Create a field of wind barbs
 
-#### Type parameters
-
-| Name | Type |
-| :------ | :------ |
-| `ArrayType` | extends [`TypedArray`](../modules.md#typedarray) |
-
 #### Parameters
 
-| Name | Type | Description |
-| :------ | :------ | :------ |
-| `fields` | [`RawVectorField`](RawVectorField.md)<`ArrayType`\> | The vector field to plot as barbs |
-| `opts` | [`BarbsOptions`](../interfaces/BarbsOptions.md) | Options for creating the wind barbs |
+• **fields**: [`RawVectorField`](RawVectorField.md)\<`ArrayType`\>
+
+The vector field to plot as barbs
+
+• **opts**: [`BarbsOptions`](../interfaces/BarbsOptions.md)
+
+Options for creating the wind barbs
+
+#### Returns
+
+[`Barbs`](Barbs.md)\<`ArrayType`, `MapType`\>
 
 #### Overrides
 
-[PlotComponent](PlotComponent.md).[constructor](PlotComponent.md#constructor)
+[`PlotComponent`](PlotComponent.md).[`constructor`](PlotComponent.md#constructors)
 
-#### Defined in
+#### Source
 
-[Barbs.ts:168](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/Barbs.ts#L168)
+[Barbs.ts:168](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Barbs.ts#L168)
 
 ## Properties
 
 ### color
 
-• `Readonly` **color**: [`number`, `number`, `number`]
+> `readonly` **color**: [`number`, `number`, `number`]
 
-#### Defined in
+#### Source
 
-[Barbs.ts:158](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/Barbs.ts#L158)
+[Barbs.ts:158](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Barbs.ts#L158)
 
-___
+***
 
 ### thin\_fac
 
-• `Readonly` **thin\_fac**: `number`
+> `readonly` **thin\_fac**: `number`
 
-#### Defined in
+#### Source
 
-[Barbs.ts:159](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/Barbs.ts#L159)
+[Barbs.ts:159](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Barbs.ts#L159)
+
+## Methods
+
+### updateField()
+
+> **updateField**(`fields`): `Promise`\<`void`\>
+
+Update the field displayed as barbs
+
+#### Parameters
+
+• **fields**: [`RawVectorField`](RawVectorField.md)\<`ArrayType`\>
+
+The new field to display as barbs
+
+#### Returns
+
+`Promise`\<`void`\>
+
+#### Source
+
+[Barbs.ts:184](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Barbs.ts#L184)

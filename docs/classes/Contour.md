@@ -1,122 +1,123 @@
-[autumnplot-gl](../README.md) / [Exports](../modules.md) / Contour
+[**autumnplot-gl**](../index.md) • **Docs**
 
-# Class: Contour<ArrayType\>
+***
 
-A field of contoured data. The contours can optionally be thinned based on map zoom level.
+[autumnplot-gl](../globals.md) / Contour
 
-**`Example`**
+# Class: Contour\<ArrayType, MapType\>
+
+A field of contoured data.
+
+## Example
 
 ```ts
 // Create a contoured height field, with black contours every 30 m (assuming the height field is in 
-// meters) and only using every other contour when the map zoom level is less than 5.
-const contours = new Contour(height_field, {color: '#000000', interval: 30, 
-                                                 thinner: zoom => zoom < 5 ? 2 : 1});
+// meters).
+const contours = new Contour(height_field, {color: '#000000', interval: 30});
 ```
+
+## Extends
+
+- [`PlotComponent`](PlotComponent.md)\<`MapType`\>
 
 ## Type parameters
 
-| Name | Type |
-| :------ | :------ |
-| `ArrayType` | extends [`TypedArray`](../modules.md#typedarray) |
+• **ArrayType** *extends* [`TypedArray`](../type-aliases/TypedArray.md)
 
-## Hierarchy
-
-- [`PlotComponent`](PlotComponent.md)
-
-  ↳ **`Contour`**
-
-## Table of contents
-
-### Constructors
-
-- [constructor](Contour.md#constructor)
-
-### Properties
-
-- [color](Contour.md#color)
-- [interval](Contour.md#interval)
-- [levels](Contour.md#levels)
-- [thinner](Contour.md#thinner)
+• **MapType** *extends* [`MapLikeType`](../type-aliases/MapLikeType.md)
 
 ## Constructors
 
-### constructor
+### new Contour()
 
-• **new Contour**<`ArrayType`\>(`field`, `opts`)
+> **new Contour**\<`ArrayType`, `MapType`\>(`field`, `opts`): [`Contour`](Contour.md)\<`ArrayType`, `MapType`\>
 
 Create a contoured field
 
-#### Type parameters
-
-| Name | Type |
-| :------ | :------ |
-| `ArrayType` | extends [`TypedArray`](../modules.md#typedarray) |
-
 #### Parameters
 
-| Name | Type | Description |
-| :------ | :------ | :------ |
-| `field` | [`RawScalarField`](RawScalarField.md)<`ArrayType`\> | The field to contour |
-| `opts` | [`ContourOptions`](../interfaces/ContourOptions.md) | Options for creating the contours |
+• **field**: [`RawScalarField`](RawScalarField.md)\<`ArrayType`\>
+
+The field to contour
+
+• **opts**: [`ContourOptions`](../interfaces/ContourOptions.md)
+
+Options for creating the contours
+
+#### Returns
+
+[`Contour`](Contour.md)\<`ArrayType`, `MapType`\>
 
 #### Overrides
 
-[PlotComponent](PlotComponent.md).[constructor](PlotComponent.md#constructor)
+[`PlotComponent`](PlotComponent.md).[`constructor`](PlotComponent.md#constructors)
 
-#### Defined in
+#### Source
 
-[Contour.ts:71](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/Contour.ts#L71)
+[Contour.ts:59](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Contour.ts#L59)
 
 ## Properties
 
 ### color
 
-• `Readonly` **color**: [`number`, `number`, `number`]
+> `readonly` **color**: `string`
 
-#### Defined in
+#### Source
 
-[Contour.ts:59](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/Contour.ts#L59)
+[Contour.ts:47](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Contour.ts#L47)
 
-___
+***
 
 ### interval
 
-• `Readonly` **interval**: `number`
+> `readonly` **interval**: `number`
 
-#### Defined in
+#### Source
 
-[Contour.ts:60](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/Contour.ts#L60)
+[Contour.ts:48](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Contour.ts#L48)
 
-___
+***
 
 ### levels
 
-• `Readonly` **levels**: `number`[]
+> `readonly` **levels**: `number`[]
 
-#### Defined in
+#### Source
 
-[Contour.ts:61](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/Contour.ts#L61)
+[Contour.ts:49](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Contour.ts#L49)
 
-___
+## Methods
 
-### thinner
+### getContours()
 
-• `Readonly` **thinner**: (`zoom`: `number`) => `number`
+> **getContours**(): `Promise`\<[`ContourData`](../type-aliases/ContourData.md)\>
 
-#### Type declaration
+#### Returns
 
-▸ (`zoom`): `number`
+`Promise`\<[`ContourData`](../type-aliases/ContourData.md)\>
 
-##### Parameters
+#### Source
 
-| Name | Type |
-| :------ | :------ |
-| `zoom` | `number` |
+[Contour.ts:92](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Contour.ts#L92)
 
-##### Returns
+***
 
-`number`
+### updateField()
 
-#### Defined in
+> **updateField**(`field`): `Promise`\<`void`\>
 
-[Contour.ts:62](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/Contour.ts#L62)
+Update the data displayed as contours
+
+#### Parameters
+
+• **field**: [`RawScalarField`](RawScalarField.md)\<`ArrayType`\>
+
+The new field to contour
+
+#### Returns
+
+`Promise`\<`void`\>
+
+#### Source
+
+[Contour.ts:77](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Contour.ts#L77)

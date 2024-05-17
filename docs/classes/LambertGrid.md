@@ -1,217 +1,222 @@
-[autumnplot-gl](../README.md) / [Exports](../modules.md) / LambertGrid
+[**autumnplot-gl**](../index.md) • **Docs**
+
+***
+
+[autumnplot-gl](../globals.md) / LambertGrid
 
 # Class: LambertGrid
 
 A Lambert conformal conic grid with uniform grid spacing
 
-## Hierarchy
+## Extends
 
 - [`Grid`](Grid.md)
 
-  ↳ **`LambertGrid`**
-
-## Table of contents
-
-### Constructors
-
-- [constructor](LambertGrid.md#constructor)
-
-### Properties
-
-- [is\_conformal](LambertGrid.md#is_conformal)
-- [lat\_0](LambertGrid.md#lat_0)
-- [lat\_std](LambertGrid.md#lat_std)
-- [ll\_x](LambertGrid.md#ll_x)
-- [ll\_y](LambertGrid.md#ll_y)
-- [lon\_0](LambertGrid.md#lon_0)
-- [ni](LambertGrid.md#ni)
-- [nj](LambertGrid.md#nj)
-- [type](LambertGrid.md#type)
-- [ur\_x](LambertGrid.md#ur_x)
-- [ur\_y](LambertGrid.md#ur_y)
-
-### Methods
-
-- [copy](LambertGrid.md#copy)
-- [getCoords](LambertGrid.md#getcoords)
-- [getThinnedGrid](LambertGrid.md#getthinnedgrid)
-- [getWGLBillboardBuffers](LambertGrid.md#getwglbillboardbuffers)
-- [getWGLBuffers](LambertGrid.md#getwglbuffers)
-- [transform](LambertGrid.md#transform)
-
 ## Constructors
 
-### constructor
+### new LambertGrid()
 
-• **new LambertGrid**(`ni`, `nj`, `lon_0`, `lat_0`, `lat_std`, `ll_x`, `ll_y`, `ur_x`, `ur_y`)
+> **new LambertGrid**(`ni`, `nj`, `lon_0`, `lat_0`, `lat_std`, `ll_x`, `ll_y`, `ur_x`, `ur_y`): [`LambertGrid`](LambertGrid.md)
 
 Create a Lambert conformal conic grid
 
 #### Parameters
 
-| Name | Type | Description |
-| :------ | :------ | :------ |
-| `ni` | `number` | The number of grid points in the i (longitude) direction |
-| `nj` | `number` | The number of grid points in the j (latitude) direction |
-| `lon_0` | `number` | The standard longitude for the projection; this is also the center longitude for the projection |
-| `lat_0` | `number` | The center latitude for the projection |
-| `lat_std` | [`number`, `number`] | The standard latitudes for the projection |
-| `ll_x` | `number` | The x coordinate in projection space of the lower-left corner of the grid |
-| `ll_y` | `number` | The y coordinate in projection space of the lower-left corner of the grid |
-| `ur_x` | `number` | The x coordinate in projection space of the upper-right corner of the grid |
-| `ur_y` | `number` | The y coordinate in projection space of the upper-right corner of the grid |
+• **ni**: `number`
+
+The number of grid points in the i (longitude) direction
+
+• **nj**: `number`
+
+The number of grid points in the j (latitude) direction
+
+• **lon\_0**: `number`
+
+The standard longitude for the projection; this is also the center longitude for the projection
+
+• **lat\_0**: `number`
+
+The center latitude for the projection
+
+• **lat\_std**: [`number`, `number`]
+
+The standard latitudes for the projection
+
+• **ll\_x**: `number`
+
+The x coordinate in projection space of the lower-left corner of the grid
+
+• **ll\_y**: `number`
+
+The y coordinate in projection space of the lower-left corner of the grid
+
+• **ur\_x**: `number`
+
+The x coordinate in projection space of the upper-right corner of the grid
+
+• **ur\_y**: `number`
+
+The y coordinate in projection space of the upper-right corner of the grid
+
+#### Returns
+
+[`LambertGrid`](LambertGrid.md)
 
 #### Overrides
 
-[Grid](Grid.md).[constructor](Grid.md#constructor)
+[`Grid`](Grid.md).[`constructor`](Grid.md#constructors)
 
-#### Defined in
+#### Source
 
-[RawField.ts:300](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L300)
+[Grid.ts:388](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L388)
 
 ## Properties
 
 ### is\_conformal
 
-• `Readonly` **is\_conformal**: `boolean`
+> `readonly` **is\_conformal**: `boolean`
 
 #### Inherited from
 
-[Grid](Grid.md).[is_conformal](Grid.md#is_conformal)
+[`Grid`](Grid.md).[`is_conformal`](Grid.md#is_conformal)
 
-#### Defined in
+#### Source
 
-[RawField.ts:52](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L52)
+[Grid.ts:86](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L86)
 
-___
+***
 
 ### lat\_0
 
-• `Readonly` **lat\_0**: `number`
+> `readonly` **lat\_0**: `number`
 
-#### Defined in
+#### Source
 
-[RawField.ts:278](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L278)
+[Grid.ts:365](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L365)
 
-___
+***
 
 ### lat\_std
 
-• `Readonly` **lat\_std**: [`number`, `number`]
+> `readonly` **lat\_std**: [`number`, `number`]
 
-#### Defined in
+#### Source
 
-[RawField.ts:279](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L279)
+[Grid.ts:366](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L366)
 
-___
+***
 
 ### ll\_x
 
-• `Readonly` **ll\_x**: `number`
+> `readonly` **ll\_x**: `number`
 
-#### Defined in
+#### Source
 
-[RawField.ts:280](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L280)
+[Grid.ts:367](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L367)
 
-___
+***
 
 ### ll\_y
 
-• `Readonly` **ll\_y**: `number`
+> `readonly` **ll\_y**: `number`
 
-#### Defined in
+#### Source
 
-[RawField.ts:281](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L281)
+[Grid.ts:368](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L368)
 
-___
+***
 
 ### lon\_0
 
-• `Readonly` **lon\_0**: `number`
+> `readonly` **lon\_0**: `number`
 
-#### Defined in
+#### Source
 
-[RawField.ts:277](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L277)
+[Grid.ts:364](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L364)
 
-___
+***
 
 ### ni
 
-• `Readonly` **ni**: `number`
+> `readonly` **ni**: `number`
 
 #### Inherited from
 
-[Grid](Grid.md).[ni](Grid.md#ni)
+[`Grid`](Grid.md).[`ni`](Grid.md#ni)
 
-#### Defined in
+#### Source
 
-[RawField.ts:50](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L50)
+[Grid.ts:84](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L84)
 
-___
+***
 
 ### nj
 
-• `Readonly` **nj**: `number`
+> `readonly` **nj**: `number`
 
 #### Inherited from
 
-[Grid](Grid.md).[nj](Grid.md#nj)
+[`Grid`](Grid.md).[`nj`](Grid.md#nj)
 
-#### Defined in
+#### Source
 
-[RawField.ts:51](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L51)
+[Grid.ts:85](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L85)
 
-___
+***
 
 ### type
 
-• `Readonly` **type**: [`GridType`](../modules.md#gridtype)
+> `readonly` **type**: [`GridType`](../type-aliases/GridType.md)
 
 #### Inherited from
 
-[Grid](Grid.md).[type](Grid.md#type)
+[`Grid`](Grid.md).[`type`](Grid.md#type)
 
-#### Defined in
+#### Source
 
-[RawField.ts:49](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L49)
+[Grid.ts:83](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L83)
 
-___
+***
 
 ### ur\_x
 
-• `Readonly` **ur\_x**: `number`
+> `readonly` **ur\_x**: `number`
 
-#### Defined in
+#### Source
 
-[RawField.ts:282](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L282)
+[Grid.ts:369](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L369)
 
-___
+***
 
 ### ur\_y
 
-• `Readonly` **ur\_y**: `number`
+> `readonly` **ur\_y**: `number`
 
-#### Defined in
+#### Source
 
-[RawField.ts:283](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L283)
+[Grid.ts:370](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L370)
 
 ## Methods
 
-### copy
+### copy()
 
-▸ **copy**(`opts?`): [`LambertGrid`](LambertGrid.md)
+> **copy**(`opts`?): [`LambertGrid`](LambertGrid.md)
 
 #### Parameters
 
-| Name | Type |
-| :------ | :------ |
-| `opts?` | `Object` |
-| `opts.ll_x?` | `number` |
-| `opts.ll_y?` | `number` |
-| `opts.ni?` | `number` |
-| `opts.nj?` | `number` |
-| `opts.ur_x?` | `number` |
-| `opts.ur_y?` | `number` |
+• **opts?**
+
+• **opts.ll\_x?**: `number`
+
+• **opts.ll\_y?**: `number`
+
+• **opts.ni?**: `number`
+
+• **opts.nj?**: `number`
+
+• **opts.ur\_x?**: `number`
+
+• **opts.ur\_y?**: `number`
 
 #### Returns
 
@@ -219,44 +224,61 @@ ___
 
 #### Overrides
 
-[Grid](Grid.md).[copy](Grid.md#copy)
+[`Grid`](Grid.md).[`copy`](Grid.md#copy)
 
-#### Defined in
+#### Source
 
-[RawField.ts:333](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L333)
+[Grid.ts:439](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L439)
 
-___
+***
 
-### getCoords
+### getEarthCoords()
 
-▸ **getCoords**(): `Coords`
+> **getEarthCoords**(): `EarthCoords`
 
 Get a list of longitudes and latitudes on the grid (internal method)
 
 #### Returns
 
-`Coords`
+`EarthCoords`
 
 #### Overrides
 
-[Grid](Grid.md).[getCoords](Grid.md#getcoords)
+[`Grid`](Grid.md).[`getEarthCoords`](Grid.md#getearthcoords)
 
-#### Defined in
+#### Source
 
-[RawField.ts:348](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L348)
+[Grid.ts:454](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L454)
 
-___
+***
 
-### getThinnedGrid
+### getGridCoords()
 
-▸ **getThinnedGrid**(`thin_x`, `thin_y`): [`LambertGrid`](LambertGrid.md)
+> **getGridCoords**(): `GridCoords`
+
+#### Returns
+
+`GridCoords`
+
+#### Overrides
+
+[`Grid`](Grid.md).[`getGridCoords`](Grid.md#getgridcoords)
+
+#### Source
+
+[Grid.ts:458](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L458)
+
+***
+
+### getThinnedGrid()
+
+> **getThinnedGrid**(`thin_x`, `thin_y`): [`LambertGrid`](LambertGrid.md)
 
 #### Parameters
 
-| Name | Type |
-| :------ | :------ |
-| `thin_x` | `number` |
-| `thin_y` | `number` |
+• **thin\_x**: `number`
+
+• **thin\_y**: `number`
 
 #### Returns
 
@@ -264,76 +286,121 @@ ___
 
 #### Overrides
 
-[Grid](Grid.md).[getThinnedGrid](Grid.md#getthinnedgrid)
+[`Grid`](Grid.md).[`getThinnedGrid`](Grid.md#getthinnedgrid)
 
-#### Defined in
+#### Source
 
-[RawField.ts:359](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L359)
+[Grid.ts:469](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L469)
 
-___
+***
 
-### getWGLBillboardBuffers
+### getVectorRotationTexture()
 
-▸ **getWGLBillboardBuffers**(`gl`, `thin_fac`, `max_zoom`): `Promise`<{ `texcoords`: `WGLBuffer` ; `vertices`: `WGLBuffer`  }\>
+> **getVectorRotationTexture**(`gl`): `object`
 
 #### Parameters
 
-| Name | Type |
-| :------ | :------ |
-| `gl` | [`WebGLAnyRenderingContext`](../modules.md#webglanyrenderingcontext) |
-| `thin_fac` | `number` |
-| `max_zoom` | `number` |
+• **gl**: [`WebGLAnyRenderingContext`](../type-aliases/WebGLAnyRenderingContext.md)
 
 #### Returns
 
-`Promise`<{ `texcoords`: `WGLBuffer` ; `vertices`: `WGLBuffer`  }\>
+`object`
+
+##### rotation
+
+> **rotation**: `WGLTexture`
 
 #### Inherited from
 
-[Grid](Grid.md).[getWGLBillboardBuffers](Grid.md#getwglbillboardbuffers)
+[`Grid`](Grid.md).[`getVectorRotationTexture`](Grid.md#getvectorrotationtexture)
 
-#### Defined in
+#### Source
 
-[RawField.ts:84](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L84)
+[Grid.ts:128](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L128)
 
-___
+***
 
-### getWGLBuffers
+### getWGLBillboardBuffers()
 
-▸ **getWGLBuffers**(`gl`): `Promise`<{ `cellsize`: `WGLBuffer` ; `texcoords`: `WGLBuffer` ; `vertices`: `WGLBuffer`  }\>
+> **getWGLBillboardBuffers**(`gl`, `thin_fac`, `max_zoom`): `Promise`\<`object`\>
 
 #### Parameters
 
-| Name | Type |
-| :------ | :------ |
-| `gl` | [`WebGLAnyRenderingContext`](../modules.md#webglanyrenderingcontext) |
+• **gl**: [`WebGLAnyRenderingContext`](../type-aliases/WebGLAnyRenderingContext.md)
+
+• **thin\_fac**: `number`
+
+• **max\_zoom**: `number`
 
 #### Returns
 
-`Promise`<{ `cellsize`: `WGLBuffer` ; `texcoords`: `WGLBuffer` ; `vertices`: `WGLBuffer`  }\>
+`Promise`\<`object`\>
+
+##### texcoords
+
+> **texcoords**: `WGLBuffer`
+
+##### vertices
+
+> **vertices**: `WGLBuffer`
 
 #### Inherited from
 
-[Grid](Grid.md).[getWGLBuffers](Grid.md#getwglbuffers)
+[`Grid`](Grid.md).[`getWGLBillboardBuffers`](Grid.md#getwglbillboardbuffers)
 
-#### Defined in
+#### Source
 
-[RawField.ts:80](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L80)
+[Grid.ts:124](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L124)
 
-___
+***
 
-### transform
+### getWGLBuffers()
 
-▸ **transform**(`x`, `y`, `opts?`): [`number`, `number`]
+> **getWGLBuffers**(`gl`): `Promise`\<`object`\>
 
 #### Parameters
 
-| Name | Type |
-| :------ | :------ |
-| `x` | `number` |
-| `y` | `number` |
-| `opts?` | `Object` |
-| `opts.inverse?` | `boolean` |
+• **gl**: [`WebGLAnyRenderingContext`](../type-aliases/WebGLAnyRenderingContext.md)
+
+#### Returns
+
+`Promise`\<`object`\>
+
+##### cellsize
+
+> **cellsize**: `WGLBuffer`
+
+##### texcoords
+
+> **texcoords**: `WGLBuffer`
+
+##### vertices
+
+> **vertices**: `WGLBuffer`
+
+#### Inherited from
+
+[`Grid`](Grid.md).[`getWGLBuffers`](Grid.md#getwglbuffers)
+
+#### Source
+
+[Grid.ts:120](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L120)
+
+***
+
+### transform()
+
+> **transform**(`x`, `y`, `opts`?): [`number`, `number`]
+
+#### Parameters
+
+• **x**: `number`
+
+• **y**: `number`
+
+• **opts?**
+
+• **opts.inverse?**: `boolean`
 
 #### Returns
 
@@ -341,8 +408,8 @@ ___
 
 #### Overrides
 
-[Grid](Grid.md).[transform](Grid.md#transform)
+[`Grid`](Grid.md).[`transform`](Grid.md#transform)
 
-#### Defined in
+#### Source
 
-[RawField.ts:352](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L352)
+[Grid.ts:462](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L462)

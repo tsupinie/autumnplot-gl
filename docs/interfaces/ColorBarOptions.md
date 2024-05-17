@@ -1,107 +1,110 @@
-[autumnplot-gl](../README.md) / [Exports](../modules.md) / ColorBarOptions
+[**autumnplot-gl**](../index.md) • **Docs**
+
+***
+
+[autumnplot-gl](../globals.md) / ColorBarOptions
 
 # Interface: ColorBarOptions
 
-## Table of contents
-
-### Properties
-
-- [fontface](ColorBarOptions.md#fontface)
-- [label](ColorBarOptions.md#label)
-- [orientation](ColorBarOptions.md#orientation)
-- [tick\_direction](ColorBarOptions.md#tick_direction)
-- [ticklabelsize](ColorBarOptions.md#ticklabelsize)
-- [ticks](ColorBarOptions.md#ticks)
-
 ## Properties
 
-### fontface
+### fontface?
 
-• `Optional` **fontface**: `string`
+> `optional` **fontface**: `string`
 
 A font face to use for the label and tick values.
 
-**`Default`**
+#### Default
 
+```ts
 'sans-serif'
+```
 
-#### Defined in
+#### Source
 
-[ColorBar.ts:33](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/ColorBar.ts#L33)
+[ColorBar.ts:33](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/ColorBar.ts#L33)
 
-___
+***
 
-### label
+### label?
 
-• `Optional` **label**: `string`
+> `optional` **label**: `string`
 
 The label to place along the color bar
 
-#### Defined in
+#### Source
 
-[ColorBar.ts:8](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/ColorBar.ts#L8)
+[ColorBar.ts:8](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/ColorBar.ts#L8)
 
-___
+***
 
-### orientation
+### orientation?
 
-• `Optional` **orientation**: [`ColorbarOrientation`](../modules.md#colorbarorientation)
+> `optional` **orientation**: [`ColorbarOrientation`](../type-aliases/ColorbarOrientation.md)
 
 The orientation for the color bar. Valid values are 'horizontal' and 'vertical'.
 
-**`Default`**
+#### Default
 
+```ts
 'vertical'
+```
 
-#### Defined in
+#### Source
 
-[ColorBar.ts:27](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/ColorBar.ts#L27)
+[ColorBar.ts:27](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/ColorBar.ts#L27)
 
-___
+***
 
-### tick\_direction
+### tick\_direction?
 
-• `Optional` **tick\_direction**: [`ColorbarTickDirection`](../modules.md#colorbartickdirection)
+> `optional` **tick\_direction**: [`ColorbarTickDirection`](../type-aliases/ColorbarTickDirection.md)
 
 The direction the ticks should face. Valid values are 'left' and 'right' if orientation is 'vertical' and 'top' and 
 'bottom' if orientation is 'horizontal'.
 
-**`Default`**
+#### Default
 
+```ts
 'left' if orientation is 'vertical' and 'bottom' if orientation is 'horizontal'
+```
 
-#### Defined in
+#### Source
 
-[ColorBar.ts:21](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/ColorBar.ts#L21)
+[ColorBar.ts:21](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/ColorBar.ts#L21)
 
-___
+***
 
-### ticklabelsize
+### ticklabelsize?
 
-• `Optional` **ticklabelsize**: `number`
+> `optional` **ticklabelsize**: `number`
 
 The font size (in points) to use for the tick labels
 
-**`Default`**
+#### Default
 
+```ts
 12
+```
 
-#### Defined in
+#### Source
 
-[ColorBar.ts:39](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/ColorBar.ts#L39)
+[ColorBar.ts:39](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/ColorBar.ts#L39)
 
-___
+***
 
-### ticks
+### ticks?
 
-• `Optional` **ticks**: `number`[]
+> `optional` **ticks**: `number`[]
 
 An array of numbers to use as the tick locations.
 
-**`Default`**
+#### Default
 
-Use all the levels in the color map provided to [makeColorBar](../modules.md#makecolorbar).
+```ts
+Use all the levels in the color map provided to {@link makeColorBar}.
+```
 
-#### Defined in
+#### Source
 
-[ColorBar.ts:14](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/ColorBar.ts#L14)
+[ColorBar.ts:14](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/ColorBar.ts#L14)

@@ -1,216 +1,253 @@
-[autumnplot-gl](../README.md) / [Exports](../modules.md) / Grid
+[**autumnplot-gl**](../index.md) • **Docs**
 
-# Class: Grid
+***
 
-## Hierarchy
+[autumnplot-gl](../globals.md) / Grid
 
-- **`Grid`**
+# Class: `abstract` Grid
 
-  ↳ [`PlateCarreeGrid`](PlateCarreeGrid.md)
+## Extended by
 
-  ↳ [`PlateCarreeRotatedGrid`](PlateCarreeRotatedGrid.md)
-
-  ↳ [`LambertGrid`](LambertGrid.md)
-
-## Table of contents
-
-### Constructors
-
-- [constructor](Grid.md#constructor)
-
-### Properties
-
-- [is\_conformal](Grid.md#is_conformal)
-- [ni](Grid.md#ni)
-- [nj](Grid.md#nj)
-- [type](Grid.md#type)
-
-### Methods
-
-- [copy](Grid.md#copy)
-- [getCoords](Grid.md#getcoords)
-- [getThinnedGrid](Grid.md#getthinnedgrid)
-- [getWGLBillboardBuffers](Grid.md#getwglbillboardbuffers)
-- [getWGLBuffers](Grid.md#getwglbuffers)
-- [transform](Grid.md#transform)
+- [`PlateCarreeGrid`](PlateCarreeGrid.md)
+- [`PlateCarreeRotatedGrid`](PlateCarreeRotatedGrid.md)
+- [`LambertGrid`](LambertGrid.md)
 
 ## Constructors
 
-### constructor
+### new Grid()
 
-• **new Grid**(`type`, `is_conformal`, `ni`, `nj`)
+> **new Grid**(`type`, `is_conformal`, `ni`, `nj`): [`Grid`](Grid.md)
 
 #### Parameters
 
-| Name | Type |
-| :------ | :------ |
-| `type` | [`GridType`](../modules.md#gridtype) |
-| `is_conformal` | `boolean` |
-| `ni` | `number` |
-| `nj` | `number` |
+• **type**: [`GridType`](../type-aliases/GridType.md)
 
-#### Defined in
+• **is\_conformal**: `boolean`
 
-[RawField.ts:57](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L57)
+• **ni**: `number`
+
+• **nj**: `number`
+
+#### Returns
+
+[`Grid`](Grid.md)
+
+#### Source
+
+[Grid.ts:92](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L92)
 
 ## Properties
 
 ### is\_conformal
 
-• `Readonly` **is\_conformal**: `boolean`
+> `readonly` **is\_conformal**: `boolean`
 
-#### Defined in
+#### Source
 
-[RawField.ts:52](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L52)
+[Grid.ts:86](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L86)
 
-___
+***
 
 ### ni
 
-• `Readonly` **ni**: `number`
+> `readonly` **ni**: `number`
 
-#### Defined in
+#### Source
 
-[RawField.ts:50](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L50)
+[Grid.ts:84](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L84)
 
-___
+***
 
 ### nj
 
-• `Readonly` **nj**: `number`
+> `readonly` **nj**: `number`
 
-#### Defined in
+#### Source
 
-[RawField.ts:51](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L51)
+[Grid.ts:85](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L85)
 
-___
+***
 
 ### type
 
-• `Readonly` **type**: [`GridType`](../modules.md#gridtype)
+> `readonly` **type**: [`GridType`](../type-aliases/GridType.md)
 
-#### Defined in
+#### Source
 
-[RawField.ts:49](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L49)
+[Grid.ts:83](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L83)
 
 ## Methods
 
-### copy
+### copy()
 
-▸ `Abstract` **copy**(`opts?`): [`Grid`](Grid.md)
+> `abstract` **copy**(`opts`?): [`Grid`](Grid.md)
 
 #### Parameters
 
-| Name | Type |
-| :------ | :------ |
-| `opts?` | `Object` |
-| `opts.ni?` | `number` |
-| `opts.nj?` | `number` |
+• **opts?**
+
+• **opts.ni?**: `number`
+
+• **opts.nj?**: `number`
 
 #### Returns
 
 [`Grid`](Grid.md)
 
-#### Defined in
+#### Source
 
-[RawField.ts:74](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L74)
+[Grid.ts:113](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L113)
 
-___
+***
 
-### getCoords
+### getEarthCoords()
 
-▸ `Abstract` **getCoords**(): `Coords`
+> `abstract` **getEarthCoords**(): `EarthCoords`
 
 #### Returns
 
-`Coords`
+`EarthCoords`
 
-#### Defined in
+#### Source
 
-[RawField.ts:76](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L76)
+[Grid.ts:115](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L115)
 
-___
+***
 
-### getThinnedGrid
+### getGridCoords()
 
-▸ `Abstract` **getThinnedGrid**(`thin_x`, `thin_y`): [`Grid`](Grid.md)
+> `abstract` **getGridCoords**(): `GridCoords`
+
+#### Returns
+
+`GridCoords`
+
+#### Source
+
+[Grid.ts:116](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L116)
+
+***
+
+### getThinnedGrid()
+
+> `abstract` **getThinnedGrid**(`thin_x`, `thin_y`): [`Grid`](Grid.md)
 
 #### Parameters
 
-| Name | Type |
-| :------ | :------ |
-| `thin_x` | `number` |
-| `thin_y` | `number` |
+• **thin\_x**: `number`
+
+• **thin\_y**: `number`
 
 #### Returns
 
 [`Grid`](Grid.md)
 
-#### Defined in
+#### Source
 
-[RawField.ts:78](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L78)
+[Grid.ts:118](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L118)
 
-___
+***
 
-### getWGLBillboardBuffers
+### getVectorRotationTexture()
 
-▸ **getWGLBillboardBuffers**(`gl`, `thin_fac`, `max_zoom`): `Promise`<{ `texcoords`: `WGLBuffer` ; `vertices`: `WGLBuffer`  }\>
+> **getVectorRotationTexture**(`gl`): `object`
 
 #### Parameters
 
-| Name | Type |
-| :------ | :------ |
-| `gl` | [`WebGLAnyRenderingContext`](../modules.md#webglanyrenderingcontext) |
-| `thin_fac` | `number` |
-| `max_zoom` | `number` |
+• **gl**: [`WebGLAnyRenderingContext`](../type-aliases/WebGLAnyRenderingContext.md)
 
 #### Returns
 
-`Promise`<{ `texcoords`: `WGLBuffer` ; `vertices`: `WGLBuffer`  }\>
+`object`
 
-#### Defined in
+##### rotation
 
-[RawField.ts:84](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L84)
+> **rotation**: `WGLTexture`
 
-___
+#### Source
 
-### getWGLBuffers
+[Grid.ts:128](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L128)
 
-▸ **getWGLBuffers**(`gl`): `Promise`<{ `cellsize`: `WGLBuffer` ; `texcoords`: `WGLBuffer` ; `vertices`: `WGLBuffer`  }\>
+***
+
+### getWGLBillboardBuffers()
+
+> **getWGLBillboardBuffers**(`gl`, `thin_fac`, `max_zoom`): `Promise`\<`object`\>
 
 #### Parameters
 
-| Name | Type |
-| :------ | :------ |
-| `gl` | [`WebGLAnyRenderingContext`](../modules.md#webglanyrenderingcontext) |
+• **gl**: [`WebGLAnyRenderingContext`](../type-aliases/WebGLAnyRenderingContext.md)
+
+• **thin\_fac**: `number`
+
+• **max\_zoom**: `number`
 
 #### Returns
 
-`Promise`<{ `cellsize`: `WGLBuffer` ; `texcoords`: `WGLBuffer` ; `vertices`: `WGLBuffer`  }\>
+`Promise`\<`object`\>
 
-#### Defined in
+##### texcoords
 
-[RawField.ts:80](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L80)
+> **texcoords**: `WGLBuffer`
 
-___
+##### vertices
 
-### transform
+> **vertices**: `WGLBuffer`
 
-▸ `Abstract` **transform**(`x`, `y`, `opts?`): [`number`, `number`]
+#### Source
+
+[Grid.ts:124](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L124)
+
+***
+
+### getWGLBuffers()
+
+> **getWGLBuffers**(`gl`): `Promise`\<`object`\>
 
 #### Parameters
 
-| Name | Type |
-| :------ | :------ |
-| `x` | `number` |
-| `y` | `number` |
-| `opts?` | `Object` |
-| `opts.inverse?` | `boolean` |
+• **gl**: [`WebGLAnyRenderingContext`](../type-aliases/WebGLAnyRenderingContext.md)
+
+#### Returns
+
+`Promise`\<`object`\>
+
+##### cellsize
+
+> **cellsize**: `WGLBuffer`
+
+##### texcoords
+
+> **texcoords**: `WGLBuffer`
+
+##### vertices
+
+> **vertices**: `WGLBuffer`
+
+#### Source
+
+[Grid.ts:120](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L120)
+
+***
+
+### transform()
+
+> `abstract` **transform**(`x`, `y`, `opts`?): [`number`, `number`]
+
+#### Parameters
+
+• **x**: `number`
+
+• **y**: `number`
+
+• **opts?**
+
+• **opts.inverse?**: `boolean`
 
 #### Returns
 
 [`number`, `number`]
 
-#### Defined in
+#### Source
 
-[RawField.ts:77](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/RawField.ts#L77)
+[Grid.ts:117](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L117)

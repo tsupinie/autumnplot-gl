@@ -1,74 +1,69 @@
-[autumnplot-gl](../README.md) / [Exports](../modules.md) / PlotComponent
+[**autumnplot-gl**](../index.md) • **Docs**
 
-# Class: PlotComponent
+***
 
-## Hierarchy
+[autumnplot-gl](../globals.md) / PlotComponent
 
-- **`PlotComponent`**
+# Class: `abstract` PlotComponent\<MapType\>
 
-  ↳ [`Barbs`](Barbs.md)
+## Extended by
 
-  ↳ [`Contour`](Contour.md)
+- [`Barbs`](Barbs.md)
+- [`Contour`](Contour.md)
+- [`ContourLabels`](ContourLabels.md)
+- [`Paintball`](Paintball.md)
+- [`Hodographs`](Hodographs.md)
 
-  ↳ [`Paintball`](Paintball.md)
+## Type parameters
 
-  ↳ [`Hodographs`](Hodographs.md)
-
-## Table of contents
-
-### Constructors
-
-- [constructor](PlotComponent.md#constructor)
-
-### Methods
-
-- [onAdd](PlotComponent.md#onadd)
-- [render](PlotComponent.md#render)
+• **MapType** *extends* [`MapLikeType`](../type-aliases/MapLikeType.md)
 
 ## Constructors
 
-### constructor
+### new PlotComponent()
 
-• **new PlotComponent**()
-
-## Methods
-
-### onAdd
-
-▸ `Abstract` **onAdd**(`map`, `gl`): `Promise`<`void`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `map` | [`MapType`](../modules.md#maptype) |
-| `gl` | [`WebGLAnyRenderingContext`](../modules.md#webglanyrenderingcontext) |
+> **new PlotComponent**\<`MapType`\>(): [`PlotComponent`](PlotComponent.md)\<`MapType`\>
 
 #### Returns
 
-`Promise`<`void`\>
+[`PlotComponent`](PlotComponent.md)\<`MapType`\>
 
-#### Defined in
+## Methods
 
-[PlotComponent.ts:13](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/PlotComponent.ts#L13)
+### onAdd()
 
-___
-
-### render
-
-▸ `Abstract` **render**(`gl`, `matrix`): `void`
+> `abstract` **onAdd**(`map`, `gl`): `Promise`\<`void`\>
 
 #### Parameters
 
-| Name | Type |
-| :------ | :------ |
-| `gl` | [`WebGLAnyRenderingContext`](../modules.md#webglanyrenderingcontext) |
-| `matrix` | `number`[] |
+• **map**: `MapType`
+
+• **gl**: [`WebGLAnyRenderingContext`](../type-aliases/WebGLAnyRenderingContext.md)
+
+#### Returns
+
+`Promise`\<`void`\>
+
+#### Source
+
+[PlotComponent.ts:13](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/PlotComponent.ts#L13)
+
+***
+
+### render()
+
+> `abstract` **render**(`gl`, `matrix`): `void`
+
+#### Parameters
+
+• **gl**: [`WebGLAnyRenderingContext`](../type-aliases/WebGLAnyRenderingContext.md)
+
+• **matrix**: `number`[] \| `Float32Array`
 
 #### Returns
 
 `void`
 
-#### Defined in
+#### Source
 
-[PlotComponent.ts:14](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/PlotComponent.ts#L14)
+[PlotComponent.ts:14](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/PlotComponent.ts#L14)

@@ -1,38 +1,37 @@
-[autumnplot-gl](../README.md) / [Exports](../modules.md) / RasterOptions
+[**autumnplot-gl**](../index.md) • **Docs**
+
+***
+
+[autumnplot-gl](../globals.md) / RasterOptions
 
 # Interface: RasterOptions
-
-## Table of contents
-
-### Properties
-
-- [cmap](RasterOptions.md#cmap)
-- [opacity](RasterOptions.md#opacity)
 
 ## Properties
 
 ### cmap
 
-• **cmap**: [`ColorMap`](../classes/ColorMap.md)
+> **cmap**: [`ColorMap`](../classes/ColorMap.md)
 
 The color map to use when creating the raster plot
 
-#### Defined in
+#### Source
 
-[Fill.ts:28](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/Fill.ts#L28)
+[Fill.ts:27](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Fill.ts#L27)
 
-___
+***
 
-### opacity
+### opacity?
 
-• `Optional` **opacity**: `number`
+> `optional` **opacity**: `number`
 
 The opacity for the raster plot
 
-**`Default`**
+#### Default
 
+```ts
 1
+```
 
-#### Defined in
+#### Source
 
-[Fill.ts:34](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/Fill.ts#L34)
+[Fill.ts:33](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Fill.ts#L33)

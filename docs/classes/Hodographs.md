@@ -1,65 +1,89 @@
-[autumnplot-gl](../README.md) / [Exports](../modules.md) / Hodographs
+[**autumnplot-gl**](../index.md) • **Docs**
 
-# Class: Hodographs
+***
+
+[autumnplot-gl](../globals.md) / Hodographs
+
+# Class: Hodographs\<MapType\>
 
 A class representing a a field of hodograph plots
 
-## Hierarchy
+## Extends
 
-- [`PlotComponent`](PlotComponent.md)
+- [`PlotComponent`](PlotComponent.md)\<`MapType`\>
 
-  ↳ **`Hodographs`**
+## Type parameters
 
-## Table of contents
-
-### Constructors
-
-- [constructor](Hodographs.md#constructor)
-
-### Properties
-
-- [bgcolor](Hodographs.md#bgcolor)
-- [thin\_fac](Hodographs.md#thin_fac)
+• **MapType** *extends* [`MapLikeType`](../type-aliases/MapLikeType.md)
 
 ## Constructors
 
-### constructor
+### new Hodographs()
 
-• **new Hodographs**(`profile_field`, `opts?`)
+> **new Hodographs**\<`MapType`\>(`profile_field`, `opts`?): [`Hodographs`](Hodographs.md)\<`MapType`\>
 
 Create a field of hodographs
 
 #### Parameters
 
-| Name | Type | Description |
-| :------ | :------ | :------ |
-| `profile_field` | [`RawProfileField`](RawProfileField.md) | The grid of profiles to plot |
-| `opts?` | [`HodographOptions`](../interfaces/HodographOptions.md) | Various options to use when creating the hodographs |
+• **profile\_field**: [`RawProfileField`](RawProfileField.md)
+
+The grid of profiles to plot
+
+• **opts?**: [`HodographOptions`](../interfaces/HodographOptions.md)
+
+Various options to use when creating the hodographs
+
+#### Returns
+
+[`Hodographs`](Hodographs.md)\<`MapType`\>
 
 #### Overrides
 
-[PlotComponent](PlotComponent.md).[constructor](PlotComponent.md#constructor)
+[`PlotComponent`](PlotComponent.md).[`constructor`](PlotComponent.md#constructors)
 
-#### Defined in
+#### Source
 
-[Hodographs.ts:122](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/Hodographs.ts#L122)
+[Hodographs.ts:97](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Hodographs.ts#L97)
 
 ## Properties
 
 ### bgcolor
 
-• `Readonly` **bgcolor**: [`number`, `number`, `number`]
+> `readonly` **bgcolor**: `string`
 
-#### Defined in
+#### Source
 
-[Hodographs.ts:112](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/Hodographs.ts#L112)
+[Hodographs.ts:84](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Hodographs.ts#L84)
 
-___
+***
 
 ### thin\_fac
 
-• `Readonly` **thin\_fac**: `number`
+> `readonly` **thin\_fac**: `number`
 
-#### Defined in
+#### Source
 
-[Hodographs.ts:113](https://github.com/tsupinie/autumnplot-gl/blob/f74c7b8/src/Hodographs.ts#L113)
+[Hodographs.ts:85](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Hodographs.ts#L85)
+
+## Methods
+
+### updateField()
+
+> **updateField**(`field`): `Promise`\<`void`\>
+
+Update the profiles displayed
+
+#### Parameters
+
+• **field**: [`RawProfileField`](RawProfileField.md)
+
+The new profiles to display as hodographs
+
+#### Returns
+
+`Promise`\<`void`\>
+
+#### Source
+
+[Hodographs.ts:118](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Hodographs.ts#L118)
