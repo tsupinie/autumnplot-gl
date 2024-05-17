@@ -6,6 +6,7 @@ import { RawScalarField } from './RawField';
 import { MapLikeType } from './Map';
 import { TypedArray, WebGLAnyRenderingContext } from './AutumnTypes';
 import { Float16Array } from '@petamoriken/float16';
+import { hex2rgb } from './utils';
 
 const contourfill_vertex_shader_src = require('./glsl/contourfill_vertex.glsl');
 const contourfill_fragment_shader_src = require('./glsl/contourfill_fragment.glsl');
@@ -138,10 +139,13 @@ class PlotComponentFill<ArrayType extends TypedArray, MapType extends MapLikeTyp
         if (matrix instanceof Float32Array) 
             matrix = [...matrix];
 
+        const underflow_color = this.cmap.underflow_color === null ? [0, 0, 0, 0] : hex2rgb(this.cmap.underflow_color.color).concat(this.cmap.underflow_color.opacity);
+        const overflow_color = this.cmap.overflow_color === null ? [0, 0, 0, 0] : hex2rgb(this.cmap.overflow_color.color).concat(this.cmap.overflow_color.opacity);
+
         gl_elems.program.use(
             {'a_pos': gl_elems.vertices, 'a_tex_coord': gl_elems.texcoords},
             {'u_cmap_min': this.cmap.levels[0], 'u_cmap_max': this.cmap.levels[this.cmap.levels.length - 1], 'u_matrix': matrix, 'u_opacity': this.opacity,
-             'u_n_index': this.index_map.length, 'u_offset': 0},
+             'u_n_index': this.index_map.length, 'u_underflow_color': underflow_color, 'u_overflow_color': overflow_color, 'u_offset': 0},
             {'u_fill_sampler': this.fill_texture, 'u_cmap_sampler': gl_elems.cmap_texture, 'u_cmap_nonlin_sampler': gl_elems.cmap_nonlin_texture}
         );
 
