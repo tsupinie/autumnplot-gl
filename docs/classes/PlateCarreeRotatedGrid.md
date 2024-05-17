@@ -68,7 +68,7 @@ The latitude of the upper right corner of the grid (on the rotated earth)
 
 #### Source
 
-[Grid.ts:265](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L265)
+[Grid.ts:265](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Grid.ts#L265)
 
 ## Properties
 
@@ -82,7 +82,7 @@ The latitude of the upper right corner of the grid (on the rotated earth)
 
 #### Source
 
-[Grid.ts:86](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L86)
+[Grid.ts:86](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Grid.ts#L86)
 
 ***
 
@@ -92,7 +92,7 @@ The latitude of the upper right corner of the grid (on the rotated earth)
 
 #### Source
 
-[Grid.ts:245](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L245)
+[Grid.ts:245](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Grid.ts#L245)
 
 ***
 
@@ -102,7 +102,7 @@ The latitude of the upper right corner of the grid (on the rotated earth)
 
 #### Source
 
-[Grid.ts:244](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L244)
+[Grid.ts:244](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Grid.ts#L244)
 
 ***
 
@@ -112,7 +112,7 @@ The latitude of the upper right corner of the grid (on the rotated earth)
 
 #### Source
 
-[Grid.ts:243](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L243)
+[Grid.ts:243](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Grid.ts#L243)
 
 ***
 
@@ -126,7 +126,7 @@ The latitude of the upper right corner of the grid (on the rotated earth)
 
 #### Source
 
-[Grid.ts:84](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L84)
+[Grid.ts:84](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Grid.ts#L84)
 
 ***
 
@@ -140,7 +140,7 @@ The latitude of the upper right corner of the grid (on the rotated earth)
 
 #### Source
 
-[Grid.ts:85](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L85)
+[Grid.ts:85](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Grid.ts#L85)
 
 ***
 
@@ -150,7 +150,7 @@ The latitude of the upper right corner of the grid (on the rotated earth)
 
 #### Source
 
-[Grid.ts:242](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L242)
+[Grid.ts:242](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Grid.ts#L242)
 
 ***
 
@@ -160,7 +160,7 @@ The latitude of the upper right corner of the grid (on the rotated earth)
 
 #### Source
 
-[Grid.ts:241](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L241)
+[Grid.ts:241](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Grid.ts#L241)
 
 ***
 
@@ -174,7 +174,7 @@ The latitude of the upper right corner of the grid (on the rotated earth)
 
 #### Source
 
-[Grid.ts:83](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L83)
+[Grid.ts:83](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Grid.ts#L83)
 
 ***
 
@@ -184,7 +184,7 @@ The latitude of the upper right corner of the grid (on the rotated earth)
 
 #### Source
 
-[Grid.ts:247](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L247)
+[Grid.ts:247](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Grid.ts#L247)
 
 ***
 
@@ -194,7 +194,7 @@ The latitude of the upper right corner of the grid (on the rotated earth)
 
 #### Source
 
-[Grid.ts:246](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L246)
+[Grid.ts:246](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Grid.ts#L246)
 
 ## Methods
 
@@ -228,7 +228,7 @@ The latitude of the upper right corner of the grid (on the rotated earth)
 
 #### Source
 
-[Grid.ts:315](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L315)
+[Grid.ts:315](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Grid.ts#L315)
 
 ***
 
@@ -248,7 +248,7 @@ Get a list of longitudes and latitudes on the grid (internal method)
 
 #### Source
 
-[Grid.ts:330](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L330)
+[Grid.ts:330](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Grid.ts#L330)
 
 ***
 
@@ -266,7 +266,7 @@ Get a list of longitudes and latitudes on the grid (internal method)
 
 #### Source
 
-[Grid.ts:334](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L334)
+[Grid.ts:334](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Grid.ts#L334)
 
 ***
 
@@ -290,7 +290,7 @@ Get a list of longitudes and latitudes on the grid (internal method)
 
 #### Source
 
-[Grid.ts:345](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L345)
+[Grid.ts:345](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Grid.ts#L345)
 
 ***
 
@@ -316,7 +316,7 @@ Get a list of longitudes and latitudes on the grid (internal method)
 
 #### Source
 
-[Grid.ts:128](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L128)
+[Grid.ts:128](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Grid.ts#L128)
 
 ***
 
@@ -350,7 +350,7 @@ Get a list of longitudes and latitudes on the grid (internal method)
 
 #### Source
 
-[Grid.ts:124](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L124)
+[Grid.ts:124](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Grid.ts#L124)
 
 ***
 
@@ -384,7 +384,7 @@ Get a list of longitudes and latitudes on the grid (internal method)
 
 #### Source
 
-[Grid.ts:120](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L120)
+[Grid.ts:120](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Grid.ts#L120)
 
 ***
 
@@ -412,4 +412,4 @@ Get a list of longitudes and latitudes on the grid (internal method)
 
 #### Source
 
-[Grid.ts:338](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L338)
+[Grid.ts:338](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Grid.ts#L338)

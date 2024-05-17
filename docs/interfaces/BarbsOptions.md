@@ -22,7 +22,7 @@ The color to use for the barbs as a hex color string;.
 
 #### Source
 
-[Barbs.ts:132](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Barbs.ts#L132)
+[Barbs.ts:132](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Barbs.ts#L132)
 
 ***
 
@@ -41,4 +41,4 @@ How much to thin the barbs at zoom level 1 on the map. This effectively means to
 
 #### Source
 
-[Barbs.ts:139](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Barbs.ts#L139)
+[Barbs.ts:139](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Barbs.ts#L139)

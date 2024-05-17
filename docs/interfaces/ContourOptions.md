@@ -22,7 +22,7 @@ The color of the contours as a hex color string
 
 #### Source
 
-[Contour.ts:18](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Contour.ts#L18)
+[Contour.ts:18](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Contour.ts#L18)
 
 ***
 
@@ -40,7 +40,7 @@ The contour interval for drawing contours at regular intervals
 
 #### Source
 
-[Contour.ts:24](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Contour.ts#L24)
+[Contour.ts:24](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Contour.ts#L24)
 
 ***
 
@@ -56,4 +56,4 @@ Draw contours at regular intervals given by the `interval` option.
 
 #### Source
 
-[Contour.ts:30](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Contour.ts#L30)
+[Contour.ts:30](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Contour.ts#L30)

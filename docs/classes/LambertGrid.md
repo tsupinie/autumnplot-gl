@@ -68,7 +68,7 @@ The y coordinate in projection space of the upper-right corner of the grid
 
 #### Source
 
-[Grid.ts:388](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L388)
+[Grid.ts:388](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Grid.ts#L388)
 
 ## Properties
 
@@ -82,7 +82,7 @@ The y coordinate in projection space of the upper-right corner of the grid
 
 #### Source
 
-[Grid.ts:86](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L86)
+[Grid.ts:86](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Grid.ts#L86)
 
 ***
 
@@ -92,7 +92,7 @@ The y coordinate in projection space of the upper-right corner of the grid
 
 #### Source
 
-[Grid.ts:365](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L365)
+[Grid.ts:365](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Grid.ts#L365)
 
 ***
 
@@ -102,7 +102,7 @@ The y coordinate in projection space of the upper-right corner of the grid
 
 #### Source
 
-[Grid.ts:366](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L366)
+[Grid.ts:366](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Grid.ts#L366)
 
 ***
 
@@ -112,7 +112,7 @@ The y coordinate in projection space of the upper-right corner of the grid
 
 #### Source
 
-[Grid.ts:367](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L367)
+[Grid.ts:367](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Grid.ts#L367)
 
 ***
 
@@ -122,7 +122,7 @@ The y coordinate in projection space of the upper-right corner of the grid
 
 #### Source
 
-[Grid.ts:368](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L368)
+[Grid.ts:368](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Grid.ts#L368)
 
 ***
 
@@ -132,7 +132,7 @@ The y coordinate in projection space of the upper-right corner of the grid
 
 #### Source
 
-[Grid.ts:364](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L364)
+[Grid.ts:364](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Grid.ts#L364)
 
 ***
 
@@ -146,7 +146,7 @@ The y coordinate in projection space of the upper-right corner of the grid
 
 #### Source
 
-[Grid.ts:84](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L84)
+[Grid.ts:84](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Grid.ts#L84)
 
 ***
 
@@ -160,7 +160,7 @@ The y coordinate in projection space of the upper-right corner of the grid
 
 #### Source
 
-[Grid.ts:85](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L85)
+[Grid.ts:85](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Grid.ts#L85)
 
 ***
 
@@ -174,7 +174,7 @@ The y coordinate in projection space of the upper-right corner of the grid
 
 #### Source
 
-[Grid.ts:83](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L83)
+[Grid.ts:83](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Grid.ts#L83)
 
 ***
 
@@ -184,7 +184,7 @@ The y coordinate in projection space of the upper-right corner of the grid
 
 #### Source
 
-[Grid.ts:369](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L369)
+[Grid.ts:369](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Grid.ts#L369)
 
 ***
 
@@ -194,7 +194,7 @@ The y coordinate in projection space of the upper-right corner of the grid
 
 #### Source
 
-[Grid.ts:370](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L370)
+[Grid.ts:370](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Grid.ts#L370)
 
 ## Methods
 
@@ -228,7 +228,7 @@ The y coordinate in projection space of the upper-right corner of the grid
 
 #### Source
 
-[Grid.ts:439](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L439)
+[Grid.ts:439](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Grid.ts#L439)
 
 ***
 
@@ -248,7 +248,7 @@ Get a list of longitudes and latitudes on the grid (internal method)
 
 #### Source
 
-[Grid.ts:454](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L454)
+[Grid.ts:454](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Grid.ts#L454)
 
 ***
 
@@ -266,7 +266,7 @@ Get a list of longitudes and latitudes on the grid (internal method)
 
 #### Source
 
-[Grid.ts:458](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L458)
+[Grid.ts:458](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Grid.ts#L458)
 
 ***
 
@@ -290,7 +290,7 @@ Get a list of longitudes and latitudes on the grid (internal method)
 
 #### Source
 
-[Grid.ts:469](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L469)
+[Grid.ts:469](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Grid.ts#L469)
 
 ***
 
@@ -316,7 +316,7 @@ Get a list of longitudes and latitudes on the grid (internal method)
 
 #### Source
 
-[Grid.ts:128](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L128)
+[Grid.ts:128](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Grid.ts#L128)
 
 ***
 
@@ -350,7 +350,7 @@ Get a list of longitudes and latitudes on the grid (internal method)
 
 #### Source
 
-[Grid.ts:124](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L124)
+[Grid.ts:124](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Grid.ts#L124)
 
 ***
 
@@ -384,7 +384,7 @@ Get a list of longitudes and latitudes on the grid (internal method)
 
 #### Source
 
-[Grid.ts:120](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L120)
+[Grid.ts:120](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Grid.ts#L120)
 
 ***
 
@@ -412,4 +412,4 @@ Get a list of longitudes and latitudes on the grid (internal method)
 
 #### Source
 
-[Grid.ts:462](https://github.com/tsupinie/autumnplot-gl/blob/7275cfd3c408281ebdf9877f1a2a5b354d6cd87f/src/Grid.ts#L462)
+[Grid.ts:462](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Grid.ts#L462)
