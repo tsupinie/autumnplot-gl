@@ -2,8 +2,8 @@
 import { PlotComponent } from "./PlotComponent";
 import { PolylineCollection } from "./PolylineCollection";
 import { BillboardCollection } from "./BillboardCollection";
-import { getMinZoom, hex2rgb } from './utils';
-import { LngLat, MapLikeType } from "./Map";
+import { getMinZoom, hex2rgb, normalizeOptions } from './utils';
+import { MapLikeType } from "./Map";
 import { RawProfileField } from "./RawField";
 import { LineData, TypedArray, WebGLAnyRenderingContext } from "./AutumnTypes";
 import { Float16Array } from "@petamoriken/float16";
@@ -72,6 +72,11 @@ interface HodographOptions {
     thin_fac?: number;
 }
 
+const hodograph_opt_defaults: Required<HodographOptions> = {
+    bgcolor: '#000000',
+    thin_fac: 1
+}
+
 interface HodographGLElems<ArrayType extends TypedArray, MapType extends MapLikeType> {
     gl: WebGLAnyRenderingContext;
     map: MapType;
@@ -81,8 +86,7 @@ interface HodographGLElems<ArrayType extends TypedArray, MapType extends MapLike
 /** A class representing a a field of hodograph plots */
 class Hodographs<MapType extends MapLikeType> extends PlotComponent<MapType> {
     private profile_field: RawProfileField;
-    public readonly bgcolor: string;
-    public readonly thin_fac: number;
+    public readonly opts: Required<HodographOptions>;
 
     private gl_elems: HodographGLElems<Float16Array, MapType>;
     private line_elems: {hodo_line: PolylineCollection, sm_line: PolylineCollection} | null;
@@ -96,13 +100,9 @@ class Hodographs<MapType extends MapLikeType> extends PlotComponent<MapType> {
      */
     constructor(profile_field: RawProfileField, opts?: HodographOptions) {
         super();
-
-        opts = opts || {};
         
         this.profile_field = profile_field;
-
-        this.bgcolor = opts.bgcolor || '#000000'
-        this.thin_fac = opts.thin_fac || 1;
+        this.opts = normalizeOptions(opts, hodograph_opt_defaults);
 
         this.hodo_scale = (HODO_BG_DIMS.BB_TEX_WIDTH - LINE_WIDTH / 2) / (HODO_BG_DIMS.BB_TEX_WIDTH * BG_MAX_RING_MAG);
         this.bg_size = 140;
@@ -127,7 +127,7 @@ class Hodographs<MapType extends MapLikeType> extends PlotComponent<MapType> {
         const profiles = this.profile_field.profiles;
         
         const hodo_polyline = profiles.map(prof => {
-            const zoom = getMinZoom(prof['jlat'], prof['ilon'], this.thin_fac);
+            const zoom = getMinZoom(prof['jlat'], prof['ilon'], this.opts.thin_fac);
 
             return {
                 'offsets': [...prof['u']].map((u, ipt) => [u - prof['smu'], prof['v'][ipt] - prof['smv']]),
@@ -140,7 +140,7 @@ class Hodographs<MapType extends MapLikeType> extends PlotComponent<MapType> {
         const hodo_line = await PolylineCollection.make(gl, hodo_polyline, {line_width: 2.5, cmap: HODO_CMAP, offset_scale: this.hodo_scale * this.bg_size});
 
         const sm_polyline = profiles.map(prof => {
-            const zoom = getMinZoom(prof['jlat'], prof['ilon'], this.thin_fac);
+            const zoom = getMinZoom(prof['jlat'], prof['ilon'], this.opts.thin_fac);
 
             const sm_mag = Math.hypot(prof['smu'], prof['smv']);
             const sm_ang = Math.PI / 2 - Math.atan2(-prof['smv'], -prof['smu']);
@@ -154,7 +154,7 @@ class Hodographs<MapType extends MapLikeType> extends PlotComponent<MapType> {
             } as LineData;
         });
 
-        const sm_line = await PolylineCollection.make(gl, sm_polyline, {line_width: 1.5, color: this.bgcolor, offset_scale: this.hodo_scale * this.bg_size});
+        const sm_line = await PolylineCollection.make(gl, sm_polyline, {line_width: 1.5, color: this.opts.bgcolor, offset_scale: this.hodo_scale * this.bg_size});
 
         this.line_elems = {
             hodo_line: hodo_line, sm_line: sm_line
@@ -173,7 +173,7 @@ class Hodographs<MapType extends MapLikeType> extends PlotComponent<MapType> {
         const bg_image = {'format': gl.RGBA, 'type': gl.UNSIGNED_BYTE, 'image': HODO_BG_TEXTURE, 'mag_filter': gl.NEAREST};
         const max_zoom = map.getMaxZoom();
 
-        const bg_billboard = new BillboardCollection(this.profile_field.getStormMotionGrid(), this.thin_fac, max_zoom, bg_image, HODO_BG_DIMS, hex2rgb(this.bgcolor), 
+        const bg_billboard = new BillboardCollection(this.profile_field.getStormMotionGrid(), this.opts.thin_fac, max_zoom, bg_image, HODO_BG_DIMS, hex2rgb(this.opts.bgcolor), 
                                                      this.bg_size * 0.004);
         await bg_billboard.setup(gl);
 

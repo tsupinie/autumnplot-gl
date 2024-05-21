@@ -6,7 +6,7 @@ import { RawScalarField } from './RawField';
 import { MapLikeType } from './Map';
 import { TypedArray, WebGLAnyRenderingContext } from './AutumnTypes';
 import { Float16Array } from '@petamoriken/float16';
-import { hex2rgb } from './utils';
+import { hex2rgb, normalizeOptions } from './utils';
 
 const contourfill_vertex_shader_src = require('./glsl/contourfill_vertex.glsl');
 const contourfill_fragment_shader_src = require('./glsl/contourfill_fragment.glsl');
@@ -22,6 +22,13 @@ interface ContourFillOptions {
     opacity?: number;
 }
 
+const default_cmap = new ColorMap([0, 1], ['#000000'], {overflow_color: '#000000', underflow_color: '#000000'})
+
+const contour_fill_opt_defaults: Required<ContourFillOptions> = {
+    cmap: default_cmap,
+    opacity: 1,
+}
+
 interface RasterOptions {
     /** The color map to use when creating the raster plot */
     cmap: ColorMap;
@@ -31,6 +38,11 @@ interface RasterOptions {
      * @default 1
      */
     opacity?: number;
+}
+
+const raster_opt_defaults: Required<RasterOptions> = {
+    cmap: default_cmap,
+    opacity: 1,
 }
 
 interface PlotComponentFillGLElems<MapType extends MapLikeType> {
@@ -46,8 +58,7 @@ interface PlotComponentFillGLElems<MapType extends MapLikeType> {
 
 class PlotComponentFill<ArrayType extends TypedArray, MapType extends MapLikeType> extends PlotComponent<MapType> {
     private field: RawScalarField<ArrayType>;
-    public readonly cmap: ColorMap;
-    public readonly opacity: number;
+    public readonly opts: Required<ContourFillOptions>;
 
     private readonly cmap_image: HTMLCanvasElement;
     private readonly index_map: Float16Array;
@@ -61,11 +72,10 @@ class PlotComponentFill<ArrayType extends TypedArray, MapType extends MapLikeTyp
         super();
 
         this.field = field;
-        this.cmap = opts.cmap;
-        this.opacity = opts.opacity || 1.;
+        this.opts = normalizeOptions(opts, contour_fill_opt_defaults);
 
-        this.cmap_image = makeTextureImage(this.cmap);
-        this.index_map = makeIndexMap(this.cmap);
+        this.cmap_image = makeTextureImage(this.opts.cmap);
+        this.index_map = makeIndexMap(this.opts.cmap);
 
         this.gl_elems = null;
         this.fill_texture = null;
@@ -139,12 +149,13 @@ class PlotComponentFill<ArrayType extends TypedArray, MapType extends MapLikeTyp
         if (matrix instanceof Float32Array) 
             matrix = [...matrix];
 
-        const underflow_color = this.cmap.underflow_color === null ? [0, 0, 0, 0] : hex2rgb(this.cmap.underflow_color.color).concat(this.cmap.underflow_color.opacity);
-        const overflow_color = this.cmap.overflow_color === null ? [0, 0, 0, 0] : hex2rgb(this.cmap.overflow_color.color).concat(this.cmap.overflow_color.opacity);
+        const cmap = this.opts.cmap;
+        const underflow_color = cmap.underflow_color === null ? [0, 0, 0, 0] : hex2rgb(cmap.underflow_color.color).concat(cmap.underflow_color.opacity);
+        const overflow_color = cmap.overflow_color === null ? [0, 0, 0, 0] : hex2rgb(cmap.overflow_color.color).concat(cmap.overflow_color.opacity);
 
         gl_elems.program.use(
             {'a_pos': gl_elems.vertices, 'a_tex_coord': gl_elems.texcoords},
-            {'u_cmap_min': this.cmap.levels[0], 'u_cmap_max': this.cmap.levels[this.cmap.levels.length - 1], 'u_matrix': matrix, 'u_opacity': this.opacity,
+            {'u_cmap_min': cmap.levels[0], 'u_cmap_max': cmap.levels[cmap.levels.length - 1], 'u_matrix': matrix, 'u_opacity': this.opts.opacity,
              'u_n_index': this.index_map.length, 'u_underflow_color': underflow_color, 'u_overflow_color': overflow_color, 'u_offset': 0},
             {'u_fill_sampler': this.fill_texture, 'u_cmap_sampler': gl_elems.cmap_texture, 'u_cmap_nonlin_sampler': gl_elems.cmap_nonlin_texture}
         );
