@@ -1,6 +1,7 @@
 
 #include <vector>
 #include <unordered_map>
+#include <map>
 
 #ifdef EXECUTABLE
 #include <iostream>
@@ -97,13 +98,35 @@ const float MARCHING_SQUARES_SEGS[16][NSEGS][2][NDIM] = {
     {{{-1., -1.}, {-1., -1.}}, {{-1., -1.}, {-1., -1.}}}, // 15
 };
 
+void searchInterval(std::vector<float>& vec, float val_lb, float val_ub, unsigned int& index_lb, unsigned int& index_ub) {
+    unsigned int index = 0; 
+
+    index_lb = 0;
+    index_ub = vec.size() - 1;
+
+    for (auto it = vec.begin(); it != (vec.end() - 1); ++it) {
+        if (*it < val_lb && *(it + 1) > val_lb) index_lb = index + 1;
+        if (*it < val_ub && *(it + 1) > val_ub) {
+            index_ub = index;
+            return;
+        }
+
+        index++;
+    }
+}
+
+#define MIN(a, b) (a < b ? a : b)
+#define MIN4(a, b, c, d) (MIN(MIN(a, b), MIN(c, d)))
+#define MAX(a, b) (a > b ? a : b)
+#define MAX4(a, b, c, d) (MAX(MAX(a, b), MAX(c, d)))
+
 template<typename T>
-std::vector<LineString> makeContours(T* grid, float* xs, float* ys, int nx, int ny, float value) {
+std::map<float, std::vector<LineString>> makeContours(T* grid, float* xs, float* ys, int nx, int ny, std::vector<float>& values) {
     T esw, ese, enw, ene;
     char segs_idx;
-    std::vector<LineString> contours;
-    std::unordered_map<Point, LineString*> contour_frags_by_start;
-    std::unordered_map<Point, LineString*> contour_frags_by_end;
+    std::map<float, std::vector<LineString>> contours;
+    std::map<float, std::unordered_map<Point, LineString*>> contour_frags_by_start;
+    std::map<float, std::unordered_map<Point, LineString*>> contour_frags_by_end;
 
     for (int i = 0; i < nx - 1; i++) {
         for (int j = 0; j < ny - 1; j++) {
@@ -112,113 +135,126 @@ std::vector<LineString> makeContours(T* grid, float* xs, float* ys, int nx, int 
             enw = grid[i + nx * (j + 1)];
             ene = grid[(i + 1) + nx * (j + 1)];
 
-            segs_idx = char(esw > value) + (char(ese > value) << 1) + (char(ene > value) << 2) + (char(enw > value) << 3);
+            T min_grid_val = MIN4(esw, ese, enw, ene);
+            T max_grid_val = MAX4(esw, ese, enw, ene);
+            unsigned int val_idx_lb, val_idx_ub;
+            searchInterval(values, min_grid_val, max_grid_val, val_idx_lb, val_idx_ub);
 
-            for (int iseg = 0; iseg < NSEGS; iseg++) {
-                if (MARCHING_SQUARES_SEGS[segs_idx][iseg][0][0] < 0) continue;
+            for (unsigned int idx = val_idx_lb; idx <= val_idx_ub; idx++) {
+                float value = values[idx];
 
-                const float* start_seg_pt = MARCHING_SQUARES_SEGS[segs_idx][iseg][0];
-                Point start_pt = Point(start_seg_pt[0] + i, start_seg_pt[1] + j);
+                segs_idx = char(esw > value) + (char(ese > value) << 1) + (char(ene > value) << 2) + (char(enw > value) << 3);
 
-                const float* end_seg_pt = MARCHING_SQUARES_SEGS[segs_idx][iseg][1];
-                Point end_pt = Point(end_seg_pt[0] + i, end_seg_pt[1] + j);
+                for (int iseg = 0; iseg < NSEGS; iseg++) {
+                    if (MARCHING_SQUARES_SEGS[segs_idx][iseg][0][0] < 0) continue;
 
-                bool start_seen = contour_frags_by_end.find(start_pt) != contour_frags_by_end.end();
-                bool end_seen = contour_frags_by_start.find(end_pt) != contour_frags_by_start.end();
+                    const float* start_seg_pt = MARCHING_SQUARES_SEGS[segs_idx][iseg][0];
+                    Point start_pt = Point(start_seg_pt[0] + i, start_seg_pt[1] + j);
 
-                if (start_seen && end_seen) {
-                    // This segment joins two other contour fragments we've seen
-                    LineString* frag1 = contour_frags_by_end[start_pt];
-                    LineString* frag2 = contour_frags_by_start[end_pt];
+                    const float* end_seg_pt = MARCHING_SQUARES_SEGS[segs_idx][iseg][1];
+                    Point end_pt = Point(end_seg_pt[0] + i, end_seg_pt[1] + j);
 
-                    if (frag1 != frag2) {
-                        // This is really two different contour fragments, so we need to splice them together
-                        frag1->point_list.insert(frag1->point_list.end(), frag2->point_list.begin(), frag2->point_list.end());
+                    bool start_seen = contour_frags_by_end[value].find(start_pt) != contour_frags_by_end[value].end();
+                    bool end_seen = contour_frags_by_start[value].find(end_pt) != contour_frags_by_start[value].end();
+
+                    if (start_seen && end_seen) {
+                        // This segment joins two other contour fragments we've seen
+                        LineString* frag1 = contour_frags_by_end[value][start_pt];
+                        LineString* frag2 = contour_frags_by_start[value][end_pt];
+
+                        if (frag1 != frag2) {
+                            // This is really two different contour fragments, so we need to splice them together
+                            frag1->point_list.insert(frag1->point_list.end(), frag2->point_list.begin(), frag2->point_list.end());
+                        }
+                        else {
+                            // This is actually the same contour fragment, so we're closing it.
+                            frag1->point_list.push_back(frag2->point_list.front());
+                            contours[value].push_back(*frag1);
+                        }
+
+                        contour_frags_by_start[value].erase(end_pt);
+                        contour_frags_by_end[value].erase(start_pt);
+
+                        if (frag1 != frag2) {
+                            // This contour isn't closed yet, so put it back in the maps
+                            contour_frags_by_start[value][frag1->point_list.front()] = frag1;
+                            contour_frags_by_end[value][frag1->point_list.back()] = frag1;
+
+                            delete frag2;
+                            frag2 = NULL;
+                        }
+                        else {
+                            delete frag1;
+                            frag1 = NULL;
+                        }
+                    }
+                    else if (start_seen) {
+                        // The starting point for this segment is the ending point for some other contour
+                        LineString* frag = contour_frags_by_end[value][start_pt];
+                        frag->point_list.push_back(end_pt);
+
+                        contour_frags_by_end[value].erase(start_pt);
+                        contour_frags_by_end[value][end_pt] = frag;
+                    } 
+                    else if (end_seen) {
+                        // The ending point for this segment is the start point for some other contour
+                        LineString* frag = contour_frags_by_start[value][end_pt];
+                        frag->point_list.insert(frag->point_list.begin(), start_pt);
+
+                        contour_frags_by_start[value].erase(end_pt);
+                        contour_frags_by_start[value][start_pt] = frag;
                     }
                     else {
-                        // This is actually the same contour fragment, so we're closing it.
-                        frag1->point_list.push_back(frag2->point_list.front());
-                        contours.push_back(*frag1);
+                        // New contour segment
+                        LineString* frag = new LineString();
+                        frag->point_list.push_back(start_pt);
+                        frag->point_list.push_back(end_pt);
+
+                        contour_frags_by_start[value][start_pt] = frag;
+                        contour_frags_by_end[value][end_pt] = frag;
                     }
-
-                    contour_frags_by_start.erase(end_pt);
-                    contour_frags_by_end.erase(start_pt);
-
-                    if (frag1 != frag2) {
-                        // This contour isn't closed yet, so put it back in the maps
-                        contour_frags_by_start[frag1->point_list.front()] = frag1;
-                        contour_frags_by_end[frag1->point_list.back()] = frag1;
-
-                        delete frag2;
-                        frag2 = NULL;
-                    }
-                    else {
-                        delete frag1;
-                        frag1 = NULL;
-                    }
-                }
-                else if (start_seen) {
-                    // The starting point for this segment is the ending point for some other contour
-                    LineString* frag = contour_frags_by_end[start_pt];
-                    frag->point_list.push_back(end_pt);
-
-                    contour_frags_by_end.erase(start_pt);
-                    contour_frags_by_end[end_pt] = frag;
-                } 
-                else if (end_seen) {
-                    // The ending point for this segment is the start point for some other contour
-                    LineString* frag = contour_frags_by_start[end_pt];
-                    frag->point_list.insert(frag->point_list.begin(), start_pt);
-
-                    contour_frags_by_start.erase(end_pt);
-                    contour_frags_by_start[start_pt] = frag;
-                }
-                else {
-                    // New contour segment
-                    LineString* frag = new LineString();
-                    frag->point_list.push_back(start_pt);
-                    frag->point_list.push_back(end_pt);
-
-                    contour_frags_by_start[start_pt] = frag;
-                    contour_frags_by_end[end_pt] = frag;
                 }
             }
         }
     }
 
-    // The contours that intersect the edge of the grid will still be in the "fragments" maps, so add them to the contour list
-    for (auto it = contour_frags_by_start.begin(); it != contour_frags_by_start.end(); ++it) {
-        LineString* contour = it->second;
-        contours.push_back(*contour);
+    for (auto vit = values.begin(); vit != values.end(); ++vit) {
+        float value = *vit;
 
-        delete contour;
-        contour = NULL;
-    }
+        // The contours that intersect the edge of the grid will still be in the "fragments" maps, so add them to the contour list
+        for (auto it = contour_frags_by_start[value].begin(); it != contour_frags_by_start[value].end(); ++it) {
+            LineString* contour = it->second;
+            contours[value].push_back(*contour);
 
-    // Do the actual interpolation
-    for (auto it = contours.begin(); it != contours.end(); ++it) {
-        for (auto plit = it->point_list.begin(); plit != it->point_list.end(); ++plit) {
-            float x_floor = floorf(plit->x), y_floor = floorf(plit->y);
-            int i = static_cast<int>(x_floor), j = static_cast<int>(y_floor);
-            
-            if (x_floor != plit->x) {
-                float grid1 = static_cast<float>(grid[i + j * nx]);
-                float grid2 = static_cast<float>(grid[(i + 1) + j * nx]);
-                float alpha = (value - grid1) / (grid2 - grid1);
-                plit->x = xs[i] * (1 - alpha) + xs[i + 1] * alpha;
-            }
-            else {
-                plit->x = xs[i];
-            }
+            delete contour;
+            contour = NULL;
+        }
 
-            if (y_floor != plit->y) {
-                float grid1 = static_cast<float>(grid[i + j * nx]);
-                float grid2 = static_cast<float>(grid[i + (j + 1) * nx]);
-                float alpha = (value - grid1) / (grid2 - grid1);
-                plit->y = ys[j] * (1 - alpha) + ys[j + 1] * alpha;
-            }
-            else {
-                plit->y = ys[j];
+        // Do the actual interpolation
+        for (auto it = contours[value].begin(); it != contours[value].end(); ++it) {
+            for (auto plit = it->point_list.begin(); plit != it->point_list.end(); ++plit) {
+                float x_floor = floorf(plit->x), y_floor = floorf(plit->y);
+                int i = static_cast<int>(x_floor), j = static_cast<int>(y_floor);
+                
+                if (x_floor != plit->x) {
+                    float grid1 = static_cast<float>(grid[i + j * nx]);
+                    float grid2 = static_cast<float>(grid[(i + 1) + j * nx]);
+                    float alpha = (value - grid1) / (grid2 - grid1);
+                    plit->x = xs[i] * (1 - alpha) + xs[i + 1] * alpha;
+                }
+                else {
+                    plit->x = xs[i];
+                }
+
+                if (y_floor != plit->y) {
+                    float grid1 = static_cast<float>(grid[i + j * nx]);
+                    float grid2 = static_cast<float>(grid[i + (j + 1) * nx]);
+                    float alpha = (value - grid1) / (grid2 - grid1);
+                    plit->y = ys[j] * (1 - alpha) + ys[j + 1] * alpha;
+                }
+                else {
+                    plit->y = ys[j];
+                }
             }
         }
     }
@@ -226,7 +262,7 @@ std::vector<LineString> makeContours(T* grid, float* xs, float* ys, int nx, int 
     return contours;
 };
 
-template std::vector<LineString> makeContours(float* grid, float* xs, float* ys, int nx, int ny, float value);
+template std::map<float, std::vector<LineString>> makeContours(float* grid, float* xs, float* ys, int nx, int ny, std::vector<float>& value);
 
 template<typename T>
 std::vector<float> getContourLevels(T* grid, int nx, int ny, float interval) noexcept {
@@ -286,13 +322,13 @@ void checkGridSize(size_t grid_size, int nx, int ny) {
     }
 }
 
-std::vector<LineString> makeContoursFloat32WASM(std::vector<float>& grid, std::vector<float>& xs, std::vector<float>& ys, float value) {
+std::map<float, std::vector<LineString>> makeContoursFloat32WASM(std::vector<float>& grid, std::vector<float>& xs, std::vector<float>& ys, std::vector<float>& values) {
     int nx = xs.size();
     int ny = ys.size();
 
     checkGridSize(grid.size(), nx, ny);
 
-    return makeContours(grid.data(), xs.data(), ys.data(), nx, ny, value);
+    return makeContours(grid.data(), xs.data(), ys.data(), nx, ny, values);
 }
 
 std::vector<float> getContourLevelsFloat32WASM(std::vector<float>& grid, int nx, int ny, float interval) {
@@ -311,6 +347,7 @@ EMSCRIPTEN_BINDINGS(marching_squares) {
     emscripten::register_vector<float>("FloatList");
     emscripten::register_vector<LineString>("LineStringList");
     emscripten::register_vector<Point>("PointList");
+    emscripten::register_map<float, std::vector<LineString>>("ContourObject");
 
     emscripten::function("makeContoursFloat32", &makeContoursFloat32WASM);
     emscripten::function("getContourLevelsFloat32", &getContourLevelsFloat32WASM);
