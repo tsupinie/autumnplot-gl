@@ -1,5 +1,5 @@
 
-import { FloatList, LineString, Point } from "./cpp/marchingsquares_embind";
+import { FloatList, Contour, Point } from "./cpp/marchingsquares_embind";
 import Module from './cpp/marchingsquares';
 import { MarchingSquaresModule } from './cpp/marchingsquares';
 import './cpp/marchingsquares.wasm';
@@ -68,33 +68,28 @@ async function contourCreator<ArrayType extends TypedArray>(data: ArrayType, gri
 
     const contours: ContourData = {};
     const contours_cpp = msm.makeContoursFloat32(grid_data, grid_x, grid_y, levels_cpp);
-    for (let ilvl = 0; ilvl < levels_cpp.size(); ilvl++) {
-        const v = levels_cpp.get(ilvl);
 
-        const contour_cpp = contours_cpp.get(v);
-        if (contour_cpp === undefined)
-            continue;
+    for (let icntr = 0; icntr < contours_cpp.size(); icntr++) {
+        const contour: Contour = contours_cpp.get(icntr);
+        const v = contour.value;
 
-        contours[v] = [];
-        for (let icntr = 0; icntr < contour_cpp.size(); icntr++) {
-            const contour: LineString = contour_cpp.get(icntr);
-            const contour_point_list = contour.point_list;
+        if (!(v in contours))
+            contours[v] = [];
 
-            contours[v].push([]);
+        contours[v].push([]);
 
-            for (let ipt = 0; ipt < contour_point_list.size(); ipt++) {
-                const pt: Point = contour_point_list.get(ipt);
-                const [lon, lat] = grid.transform(pt.x, pt.y, {inverse: true});
-                contours[v][icntr].push([lon, lat]);
+        const contour_point_list = contour.point_list;
 
-                pt.delete();
-            }
+        for (let ipt = 0; ipt < contour_point_list.size(); ipt++) {
+            const pt: Point = contour_point_list.get(ipt);
+            const [lon, lat] = grid.transform(pt.x, pt.y, {inverse: true});
+            contours[v][contours[v].length - 1].push([lon, lat]);
 
-            contour_point_list.delete();
-            contour.delete();
+            pt.delete();
         }
 
-        contour_cpp.delete();
+        contour_point_list.delete();
+        contour.delete();
     }
 
     contours_cpp.delete();

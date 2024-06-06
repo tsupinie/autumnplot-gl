@@ -1,7 +1,6 @@
 
 #include <vector>
 #include <unordered_map>
-#include <map>
 
 #ifdef EXECUTABLE
 #include <iostream>
@@ -52,19 +51,20 @@ struct std::hash<Point> {
     }
 };
 
-class LineString {
+class Contour {
     public:
         std::vector<Point> point_list;
+        float value;
 
-        LineString() {};
+        Contour(float value) noexcept : value(value) {};
 
-        LineString& operator=(const LineString& other) noexcept {
+        Contour& operator=(const Contour& other) noexcept {
             this->point_list = other.point_list;
             return *this;
         }
 
 #ifdef EXECUTABLE
-        friend std::ostream& operator<<(std::ostream& stream, const LineString& frag) {
+        friend std::ostream& operator<<(std::ostream& stream, const Contour& frag) {
             stream << "Contour: ";
             auto it = frag.point_list.begin();
 
@@ -121,12 +121,12 @@ void searchInterval(std::vector<float>& vec, float val_lb, float val_ub, unsigne
 #define MAX4(a, b, c, d) (MAX(MAX(a, b), MAX(c, d)))
 
 template<typename T>
-std::map<float, std::vector<LineString>> makeContours(T* grid, float* xs, float* ys, int nx, int ny, std::vector<float>& values) {
+std::vector<Contour> makeContours(T* grid, float* xs, float* ys, int nx, int ny, std::vector<float>& values) {
     T esw, ese, enw, ene;
     char segs_idx;
-    std::map<float, std::vector<LineString>> contours;
-    std::map<float, std::unordered_map<Point, LineString*>> contour_frags_by_start;
-    std::map<float, std::unordered_map<Point, LineString*>> contour_frags_by_end;
+    std::vector<Contour> contours;
+    std::unordered_map<float, std::unordered_map<Point, Contour*>> contour_frags_by_start;
+    std::unordered_map<float, std::unordered_map<Point, Contour*>> contour_frags_by_end;
 
     for (int i = 0; i < nx - 1; i++) {
         for (int j = 0; j < ny - 1; j++) {
@@ -159,8 +159,8 @@ std::map<float, std::vector<LineString>> makeContours(T* grid, float* xs, float*
 
                     if (start_seen && end_seen) {
                         // This segment joins two other contour fragments we've seen
-                        LineString* frag1 = contour_frags_by_end[value][start_pt];
-                        LineString* frag2 = contour_frags_by_start[value][end_pt];
+                        Contour* frag1 = contour_frags_by_end[value][start_pt];
+                        Contour* frag2 = contour_frags_by_start[value][end_pt];
 
                         if (frag1 != frag2) {
                             // This is really two different contour fragments, so we need to splice them together
@@ -169,7 +169,7 @@ std::map<float, std::vector<LineString>> makeContours(T* grid, float* xs, float*
                         else {
                             // This is actually the same contour fragment, so we're closing it.
                             frag1->point_list.push_back(frag2->point_list.front());
-                            contours[value].push_back(*frag1);
+                            contours.push_back(*frag1);
                         }
 
                         contour_frags_by_start[value].erase(end_pt);
@@ -190,7 +190,7 @@ std::map<float, std::vector<LineString>> makeContours(T* grid, float* xs, float*
                     }
                     else if (start_seen) {
                         // The starting point for this segment is the ending point for some other contour
-                        LineString* frag = contour_frags_by_end[value][start_pt];
+                        Contour* frag = contour_frags_by_end[value][start_pt];
                         frag->point_list.push_back(end_pt);
 
                         contour_frags_by_end[value].erase(start_pt);
@@ -198,7 +198,7 @@ std::map<float, std::vector<LineString>> makeContours(T* grid, float* xs, float*
                     } 
                     else if (end_seen) {
                         // The ending point for this segment is the start point for some other contour
-                        LineString* frag = contour_frags_by_start[value][end_pt];
+                        Contour* frag = contour_frags_by_start[value][end_pt];
                         frag->point_list.insert(frag->point_list.begin(), start_pt);
 
                         contour_frags_by_start[value].erase(end_pt);
@@ -206,7 +206,7 @@ std::map<float, std::vector<LineString>> makeContours(T* grid, float* xs, float*
                     }
                     else {
                         // New contour segment
-                        LineString* frag = new LineString();
+                        Contour* frag = new Contour(value);
                         frag->point_list.push_back(start_pt);
                         frag->point_list.push_back(end_pt);
 
@@ -223,38 +223,40 @@ std::map<float, std::vector<LineString>> makeContours(T* grid, float* xs, float*
 
         // The contours that intersect the edge of the grid will still be in the "fragments" maps, so add them to the contour list
         for (auto it = contour_frags_by_start[value].begin(); it != contour_frags_by_start[value].end(); ++it) {
-            LineString* contour = it->second;
-            contours[value].push_back(*contour);
+            Contour* contour = it->second;
+            contours.push_back(*contour);
 
             delete contour;
             contour = NULL;
         }
+    }
 
-        // Do the actual interpolation
-        for (auto it = contours[value].begin(); it != contours[value].end(); ++it) {
-            for (auto plit = it->point_list.begin(); plit != it->point_list.end(); ++plit) {
-                float x_floor = floorf(plit->x), y_floor = floorf(plit->y);
-                int i = static_cast<int>(x_floor), j = static_cast<int>(y_floor);
-                
-                if (x_floor != plit->x) {
-                    float grid1 = static_cast<float>(grid[i + j * nx]);
-                    float grid2 = static_cast<float>(grid[(i + 1) + j * nx]);
-                    float alpha = (value - grid1) / (grid2 - grid1);
-                    plit->x = xs[i] * (1 - alpha) + xs[i + 1] * alpha;
-                }
-                else {
-                    plit->x = xs[i];
-                }
+    // Do the actual interpolation
+    for (auto it = contours.begin(); it != contours.end(); ++it) {
+        float value = it->value;
 
-                if (y_floor != plit->y) {
-                    float grid1 = static_cast<float>(grid[i + j * nx]);
-                    float grid2 = static_cast<float>(grid[i + (j + 1) * nx]);
-                    float alpha = (value - grid1) / (grid2 - grid1);
-                    plit->y = ys[j] * (1 - alpha) + ys[j + 1] * alpha;
-                }
-                else {
-                    plit->y = ys[j];
-                }
+        for (auto plit = it->point_list.begin(); plit != it->point_list.end(); ++plit) {
+            float x_floor = floorf(plit->x), y_floor = floorf(plit->y);
+            int i = static_cast<int>(x_floor), j = static_cast<int>(y_floor);
+            
+            if (x_floor != plit->x) {
+                float grid1 = static_cast<float>(grid[i + j * nx]);
+                float grid2 = static_cast<float>(grid[(i + 1) + j * nx]);
+                float alpha = (value - grid1) / (grid2 - grid1);
+                plit->x = xs[i] * (1 - alpha) + xs[i + 1] * alpha;
+            }
+            else {
+                plit->x = xs[i];
+            }
+
+            if (y_floor != plit->y) {
+                float grid1 = static_cast<float>(grid[i + j * nx]);
+                float grid2 = static_cast<float>(grid[i + (j + 1) * nx]);
+                float alpha = (value - grid1) / (grid2 - grid1);
+                plit->y = ys[j] * (1 - alpha) + ys[j + 1] * alpha;
+            }
+            else {
+                plit->y = ys[j];
             }
         }
     }
@@ -262,14 +264,14 @@ std::map<float, std::vector<LineString>> makeContours(T* grid, float* xs, float*
     return contours;
 };
 
-template std::map<float, std::vector<LineString>> makeContours(float* grid, float* xs, float* ys, int nx, int ny, std::vector<float>& value);
+template std::vector<Contour> makeContours(float* grid, float* xs, float* ys, int nx, int ny, std::vector<float>& value);
 
 template<typename T>
 std::vector<float> getContourLevels(T* grid, int nx, int ny, float interval) noexcept {
     T minval = std::numeric_limits<T>::infinity(), maxval = -std::numeric_limits<T>::infinity();
     for (int idx = 0; idx < nx * ny; idx++) {
-        minval = grid[idx] < minval ? grid[idx] : minval;
-        maxval = grid[idx] > maxval ? grid[idx] : maxval;
+        minval = MIN(minval, grid[idx]);
+        maxval = MAX(maxval, grid[idx]);
     }
 
     float lowest_contour = ceilf(minval / interval) * interval, highest_contour = floorf(maxval / interval) * interval;
@@ -322,7 +324,7 @@ void checkGridSize(size_t grid_size, int nx, int ny) {
     }
 }
 
-std::map<float, std::vector<LineString>> makeContoursFloat32WASM(std::vector<float>& grid, std::vector<float>& xs, std::vector<float>& ys, std::vector<float>& values) {
+std::vector<Contour> makeContoursFloat32WASM(std::vector<float>& grid, std::vector<float>& xs, std::vector<float>& ys, std::vector<float>& values) {
     int nx = xs.size();
     int ny = ys.size();
 
@@ -341,13 +343,13 @@ EMSCRIPTEN_BINDINGS(marching_squares) {
     emscripten::class_<Point>("Point")
         .property("x", &Point::x)
         .property("y", &Point::y);
-    emscripten::class_<LineString>("LineString")
-        .property("point_list", &LineString::point_list);
+    emscripten::class_<Contour>("Contour")
+        .property("point_list", &Contour::point_list)
+        .property("value", &Contour::value);
 
     emscripten::register_vector<float>("FloatList");
-    emscripten::register_vector<LineString>("LineStringList");
+    emscripten::register_vector<Contour>("ContourList");
     emscripten::register_vector<Point>("PointList");
-    emscripten::register_map<float, std::vector<LineString>>("ContourObject");
 
     emscripten::function("makeContoursFloat32", &makeContoursFloat32WASM);
     emscripten::function("getContourLevelsFloat32", &getContourLevelsFloat32WASM);
