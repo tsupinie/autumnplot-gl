@@ -1,5 +1,4 @@
 
-import { FloatList, Contour, Point } from "./cpp/marchingsquares_embind";
 import Module from './cpp/marchingsquares';
 import { MarchingSquaresModule } from './cpp/marchingsquares';
 import './cpp/marchingsquares.wasm';
@@ -34,73 +33,23 @@ async function contourCreator<ArrayType extends TypedArray>(data: ArrayType, gri
     }
 
     const interval = opts.interval === undefined ? 0 : opts.interval;
-    const levels = opts.levels === undefined ? [] : [...opts.levels];
 
     const msm = await initMSModule();
 
     console.time('contour');
     const grid_coords = grid.getGridCoords();
 
-    const grid_data = new msm.FloatList();
-    grid_data.resize(grid.ni * grid.nj, 0);
-    const tex_data = data;
+    console.time('getContourLevels');
+    const levels = opts.levels === undefined ? msm.getContourLevelsFloat32(data, grid.ni, grid.nj, interval) : opts.levels;
+    console.timeEnd('getContourLevels');
 
-    tex_data.forEach((v, i) => grid_data.set(i, v));
+    console.time('makeContours');
+    const contours = msm.makeContoursFloat32(data, grid_coords.x, grid_coords.y, levels, (x: number, y: number) => grid.transform(x, y, {inverse: true}));
+    console.timeEnd('makeContours');
 
-    const grid_x = new msm.FloatList();
-    grid_x.resize(grid.ni, 0);
-    grid_coords.x.forEach((v, i) => grid_x.set(i, v));
-
-    const grid_y = new msm.FloatList();
-    grid_y.resize(grid.nj, 0);
-    grid_coords.y.forEach((v, i) => grid_y.set(i, v));
-
-    let levels_cpp: FloatList;
-
-    if (levels.length == 0) {
-        levels_cpp = msm.getContourLevelsFloat32(grid_data, grid.ni, grid.nj, interval);
-    }
-    else {
-        levels_cpp = new msm.FloatList();
-        levels_cpp.resize(levels.length, 0);
-        levels.forEach((v, i) => levels_cpp.set(i, v));
-    }
-
-    const contours: ContourData = {};
-    const contours_cpp = msm.makeContoursFloat32(grid_data, grid_x, grid_y, levels_cpp);
-
-    for (let icntr = 0; icntr < contours_cpp.size(); icntr++) {
-        const contour: Contour = contours_cpp.get(icntr);
-        const v = contour.value;
-
-        if (!(v in contours))
-            contours[v] = [];
-
-        contours[v].push([]);
-
-        const contour_point_list = contour.point_list;
-
-        for (let ipt = 0; ipt < contour_point_list.size(); ipt++) {
-            const pt: Point = contour_point_list.get(ipt);
-            const [lon, lat] = grid.transform(pt.x, pt.y, {inverse: true});
-            contours[v][contours[v].length - 1].push([lon, lat]);
-
-            pt.delete();
-        }
-
-        contour_point_list.delete();
-        contour.delete();
-    }
-
-    contours_cpp.delete();
-
-    grid_data.delete();
-    grid_x.delete();
-    grid_y.delete();
-    levels_cpp.delete();
     console.timeEnd('contour');
 
-    return contours;
+    return contours as ContourData;
 }
 
 export {contourCreator, initMSModule};

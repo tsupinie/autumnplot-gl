@@ -32,7 +32,7 @@ interface ContourOptions {
 const contour_opt_defaults: Required<ContourOptions> = {
     color: '#000000',
     interval: 1,
-    levels: []
+    levels: undefined
 }
 
 interface ContourGLElems<MapType extends MapLikeType> {

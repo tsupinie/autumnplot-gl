@@ -7,6 +7,7 @@
 #endif
 
 #include <iostream>
+#include <chrono>
 
 #ifdef WASM
 #include <emscripten/bind.h>
@@ -127,6 +128,10 @@ std::vector<Contour> makeContours(T* grid, float* xs, float* ys, int nx, int ny,
     std::vector<Contour> contours;
     std::unordered_map<float, std::unordered_map<Point, Contour*>> contour_frags_by_start;
     std::unordered_map<float, std::unordered_map<Point, Contour*>> contour_frags_by_end;
+
+    if (values.size() == 0) {
+        return contours;
+    }
 
     for (int i = 0; i < nx - 1; i++) {
         for (int j = 0; j < ny - 1; j++) {
@@ -324,33 +329,100 @@ void checkGridSize(size_t grid_size, int nx, int ny) {
     }
 }
 
-std::vector<Contour> makeContoursFloat32WASM(std::vector<float>& grid, std::vector<float>& xs, std::vector<float>& ys, std::vector<float>& values) {
-    int nx = xs.size();
-    int ny = ys.size();
+emscripten::val makeContoursFloat32WASM(const emscripten::val& data, const emscripten::val& xs, const emscripten::val& ys, const emscripten::val& values,
+                                        const emscripten::val& grid_transformer) {
+    auto memory = emscripten::val::module_property("HEAPU8")["buffer"];
 
-    checkGridSize(grid.size(), nx, ny);
+    int nx = xs["length"].as<int>();
+    int ny = ys["length"].as<int>();
 
-    return makeContours(grid.data(), xs.data(), ys.data(), nx, ny, values);
+    checkGridSize(data["length"].as<int>(), nx, ny);
+
+    auto t0 = std::chrono::steady_clock::now();
+    float* xs_ary = new float[nx];
+    auto xs_memview = xs["constructor"].new_(memory, reinterpret_cast<uintptr_t>(xs_ary), nx);
+    xs_memview.call<void>("set", xs);
+
+    float* ys_ary = new float[ny];
+    auto ys_memview = ys["constructor"].new_(memory, reinterpret_cast<uintptr_t>(ys_ary), ny);
+    ys_memview.call<void>("set", ys);
+
+    float* data_ary = new float[nx * ny];
+    auto data_memview = data["constructor"].new_(memory, reinterpret_cast<uintptr_t>(data_ary), nx * ny);
+    data_memview.call<void>("set", data);
+
+    int n_levels = values["length"].as<int>();
+    std::vector<float> levels(n_levels, 0);
+    for (int ilev = 0; ilev < n_levels; ilev++) {
+        levels[ilev] = values[ilev].as<float>();
+    }
+
+    auto t1 = std::chrono::steady_clock::now();
+
+    std::vector<Contour> contours = makeContours(data_ary, xs_ary, ys_ary, nx, ny, levels);
+
+    auto t2 = std::chrono::steady_clock::now();
+ 
+    delete[] xs_ary;
+    delete[] ys_ary;
+    delete[] data_ary;
+
+    auto t3 = std::chrono::steady_clock::now();
+
+    emscripten::val js_contours = emscripten::val::object();
+    std::unordered_map<float, int> js_contours_added;
+
+    for (auto it = contours.begin(); it != contours.end(); ++it) {
+        float value = it->value;
+
+        if (js_contours_added.find(value) == js_contours_added.end()) {
+            js_contours.set(value, emscripten::val::array());
+            js_contours_added[value] = 0;
+        }
+
+        int contour_index = js_contours_added[value]++;
+        js_contours[value].call<void>("push", emscripten::val::array());
+
+        for (auto plit = it->point_list.begin(); plit != it->point_list.end(); ++plit) {
+            auto pt_trans = grid_transformer(plit->x, plit->y);
+            js_contours[value][contour_index].call<void>("push", pt_trans);
+        }
+    }
+    auto t4 = std::chrono::steady_clock::now();
+
+#ifdef PROFILE
+    std::cout << "Time to Unpack: " << std::chrono::duration_cast<std::chrono::microseconds>(t1 - t0).count() / 1000. << " ms" << std::endl;
+    std::cout << "Time to Contour: " << std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count() / 1000. << " ms" << std::endl;
+    std::cout << "Time to Delete: " << std::chrono::duration_cast<std::chrono::microseconds>(t3 - t2).count() / 1000. << " ms" << std::endl;
+    std::cout << "Time to Pack: " << std::chrono::duration_cast<std::chrono::microseconds>(t4 - t3).count() / 1000. << " ms" << std::endl;
+#endif
+
+    return js_contours;
 }
 
-std::vector<float> getContourLevelsFloat32WASM(std::vector<float>& grid, int nx, int ny, float interval) {
-    checkGridSize(grid.size(), nx, ny);
+emscripten::val getContourLevelsFloat32WASM(const emscripten::val& grid, int nx, int ny, float interval) {
+    auto memory = emscripten::val::module_property("HEAPU8")["buffer"];
 
-    return getContourLevels(grid.data(), nx, ny, interval);
+    checkGridSize(grid["length"].as<int>(), nx, ny);
+
+    float* grid_ary = new float[nx * ny];
+    auto grid_memview = grid["constructor"].new_(memory, reinterpret_cast<uintptr_t>(grid_ary), nx * ny);
+    grid_memview.call<void>("set", grid);
+
+    std::vector<float> levels = getContourLevels(grid_ary, nx, ny, interval);
+
+    delete[] grid_ary;
+
+    emscripten::val js_levels = emscripten::val::array();
+
+    for (auto lit = levels.begin(); lit != levels.end(); ++lit) {
+        js_levels.call<void>("push", *lit);
+    }
+
+    return js_levels;
 }
 
 EMSCRIPTEN_BINDINGS(marching_squares) {
-    emscripten::class_<Point>("Point")
-        .property("x", &Point::x)
-        .property("y", &Point::y);
-    emscripten::class_<Contour>("Contour")
-        .property("point_list", &Contour::point_list)
-        .property("value", &Contour::value);
-
-    emscripten::register_vector<float>("FloatList");
-    emscripten::register_vector<Contour>("ContourList");
-    emscripten::register_vector<Point>("PointList");
-
     emscripten::function("makeContoursFloat32", &makeContoursFloat32WASM);
     emscripten::function("getContourLevelsFloat32", &getContourLevelsFloat32WASM);
 }
