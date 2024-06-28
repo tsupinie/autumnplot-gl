@@ -284,7 +284,7 @@ std::vector<float> getContourLevels(T* grid, int nx, int ny, float interval) noe
     }
 
     float lowest_contour = ceilf((float)minval / interval) * interval, highest_contour = floorf((float)maxval / interval) * interval;
-    int n_contours = (int)floorf((highest_contour - lowest_contour) / interval) + 1;
+    unsigned int n_contours = (unsigned int)floorf((highest_contour - lowest_contour) / interval) + 1;
 
     std::vector<float> levels;
     levels.resize(n_contours);
