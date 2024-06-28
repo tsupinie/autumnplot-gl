@@ -1,7 +1,7 @@
 
 import { PlotComponent } from "./PlotComponent";
 import { BillboardCollection } from './BillboardCollection';
-import { hex2rgba } from './utils';
+import { hex2rgb, normalizeOptions } from './utils';
 import { RawVectorField } from "./RawField";
 import { MapLikeType } from "./Map";
 import { TypedArray, WebGLAnyRenderingContext } from "./AutumnTypes";
@@ -139,6 +139,11 @@ interface BarbsOptions {
     thin_fac?: number;
 }
 
+const barb_opt_defaults: Required<BarbsOptions> = {
+    color: '#000000',
+    thin_fac: 1
+}
+
 interface BarbsGLElems<ArrayType extends TypedArray, MapType extends MapLikeType> {
     map: MapType;
     barb_billboards: BillboardCollection<ArrayType>;
@@ -155,8 +160,8 @@ interface BarbsGLElems<ArrayType extends TypedArray, MapType extends MapLikeType
 class Barbs<ArrayType extends TypedArray, MapType extends MapLikeType> extends PlotComponent<MapType> {
     /** The vector field */
     private fields: RawVectorField<ArrayType>;
-    public readonly color: [number, number, number];
-    public readonly thin_fac: number;
+    public readonly opts: Required<BarbsOptions>;
+    private readonly color_rgb: [number, number, number];
 
     private gl_elems: BarbsGLElems<ArrayType, MapType> | null;
 
@@ -170,9 +175,9 @@ class Barbs<ArrayType extends TypedArray, MapType extends MapLikeType> extends P
 
         this.fields = fields;
 
-        const color = hex2rgba(opts.color || '#000000');
-        this.color = [color[0], color[1], color[2]];
-        this.thin_fac = opts.thin_fac || 1;
+        this.opts = normalizeOptions(opts, barb_opt_defaults);
+        const color_rgb = hex2rgb(this.opts.color);
+        this.color_rgb = [color_rgb[0], color_rgb[1], color_rgb[2]];
 
         this.gl_elems = null;
     }
@@ -204,8 +209,8 @@ class Barbs<ArrayType extends TypedArray, MapType extends MapLikeType> extends P
 
         const barb_image = {format: gl.RGBA, type: gl.UNSIGNED_BYTE, image: BARB_TEXTURE, mag_filter: gl.NEAREST};
 
-        const barb_billboards = new BillboardCollection(this.fields, this.thin_fac, map_max_zoom, barb_image, 
-            BARB_DIMS, this.color, 0.1);
+        const barb_billboards = new BillboardCollection(this.fields, this.opts.thin_fac, map_max_zoom, barb_image, 
+            BARB_DIMS, this.color_rgb, 0.1);
         await barb_billboards.setup(gl);
 
         this.gl_elems = {

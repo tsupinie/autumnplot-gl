@@ -1,11 +1,10 @@
 
 import { LineData, TypedArray, WebGLAnyRenderingContext} from './AutumnTypes';
 import { LngLat, MapLikeType } from './Map';
-import { PlotComponent, getGLFormatTypeAlignment } from './PlotComponent';
+import { PlotComponent } from './PlotComponent';
 import { RawScalarField } from './RawField';
 import { PolylineCollection } from './PolylineCollection';
 import { TextCollection, TextCollectionOptions, TextSpec } from './TextCollection';
-import { WGLTexture } from 'autumn-wgl';
 
 import { hex2rgb, normalizeOptions } from './utils';
 import { kdTree } from 'kd-tree-javascript';
@@ -30,6 +29,12 @@ interface ContourOptions {
     levels?: number[];
 }
 
+const contour_opt_defaults: Required<ContourOptions> = {
+    color: '#000000',
+    interval: 1,
+    levels: undefined
+}
+
 interface ContourGLElems<MapType extends MapLikeType> {
     gl: WebGLAnyRenderingContext;
     map: MapType;
@@ -44,9 +49,7 @@ interface ContourGLElems<MapType extends MapLikeType> {
  */
 class Contour<ArrayType extends TypedArray, MapType extends MapLikeType> extends PlotComponent<MapType> {
     private field: RawScalarField<ArrayType>;
-    public readonly color: string;
-    public readonly interval: number;
-    public readonly levels: number[];
+    public readonly opts: Required<ContourOptions>;
 
     private gl_elems: ContourGLElems<MapType> | null;
     private contours: PolylineCollection | null;
@@ -60,11 +63,7 @@ class Contour<ArrayType extends TypedArray, MapType extends MapLikeType> extends
         super();
 
         this.field = field;
-
-        this.interval = opts.interval || 1;
-        this.levels = opts.levels || [];
-
-        this.color = opts.color || '#000000';
+        this.opts = normalizeOptions(opts, contour_opt_defaults);
 
         this.gl_elems = null;
         this.contours = null;
@@ -85,12 +84,12 @@ class Contour<ArrayType extends TypedArray, MapType extends MapLikeType> extends
             return {vertices: c} as LineData;
         });
 
-        this.contours = await PolylineCollection.make(gl, line_data, {line_width: 2, color: this.color});
+        this.contours = await PolylineCollection.make(gl, line_data, {line_width: 2, color: this.opts.color});
         this.gl_elems.map.triggerRepaint();
     }
 
     public async getContours() {
-        return await this.field.getContours({interval: this.interval, levels: this.levels});
+        return await this.field.getContours({interval: this.opts.interval, levels: this.opts.levels});
     }
 
     /**

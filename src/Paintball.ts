@@ -3,7 +3,7 @@ import { TypedArray, WebGLAnyRenderingContext } from "./AutumnTypes";
 import { MapLikeType } from "./Map";
 import { PlotComponent, getGLFormatTypeAlignment } from "./PlotComponent";
 import { RawScalarField } from "./RawField";
-import { hex2rgba } from "./utils";
+import { hex2rgba, normalizeOptions } from "./utils";
 import { WGLBuffer, WGLProgram, WGLTexture } from "autumn-wgl";
 
 const paintball_vertex_shader_src = require('./glsl/paintball_vertex.glsl');
@@ -22,6 +22,11 @@ interface PaintballOptions {
     opacity?: number;
 }
 
+const paintball_opt_defaults: Required<PaintballOptions> = {
+    colors: ['#000000'],
+    opacity: 1
+}
+
 interface PaintballGLElems {
     gl: WebGLAnyRenderingContext;
     program: WGLProgram;
@@ -38,8 +43,8 @@ interface PaintballGLElems {
  */
 class Paintball<ArrayType extends TypedArray, MapType extends MapLikeType> extends PlotComponent<MapType> {
     private field: RawScalarField<ArrayType>;
-    public readonly colors: number[];
-    public readonly opacity: number;
+    public readonly opts: Required<PaintballOptions>;
+    private readonly color_components: number[];
 
     private gl_elems: PaintballGLElems | null;
     private fill_texture: WGLTexture | null;
@@ -56,11 +61,9 @@ class Paintball<ArrayType extends TypedArray, MapType extends MapLikeType> exten
 
         this.field = field;
 
-        opts = opts !== undefined ? opts : {};
-        const colors = opts.colors !== undefined ? [...opts.colors] : ['#000000'];
-        this.colors = colors.reverse().map(color => hex2rgba(color)).flat()
-        this.opacity = opts.opacity !== undefined ? opts.opacity : 1.;
-
+        this.opts = normalizeOptions(opts, paintball_opt_defaults);
+        this.color_components = [...this.opts.colors].reverse().map(color => hex2rgba(color)).flat();
+        
         this.gl_elems = null;
         this.fill_texture = null;
     }
@@ -127,7 +130,7 @@ class Paintball<ArrayType extends TypedArray, MapType extends MapLikeType> exten
         // Render to framebuffer
         gl_elems.program.use(
             {'a_pos': gl_elems.vertices, 'a_tex_coord': gl_elems.texcoords},
-            {'u_matrix': matrix, 'u_opacity': this.opacity, 'u_colors': this.colors, 'u_num_colors': this.colors.length / 4, 'u_offset': 0},
+            {'u_matrix': matrix, 'u_opacity': this.opts.opacity, 'u_colors': this.color_components, 'u_num_colors': this.opts.colors.length, 'u_offset': 0},
             {'u_fill_sampler': this.fill_texture}
         );
 

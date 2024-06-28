@@ -270,6 +270,10 @@ function makePolylinesMiter(lines) {
 */
 
 function makePolylines(lines: LineData[]) : Polyline {
+    if (lines.length == 0) {
+        return {vertices: new Float32Array([]), extrusion: new Float32Array([])};
+    }
+
     const n_points_per_vert = Object.fromEntries(Object.entries(lines[0]).map(([k, v]) => {
         let n_verts: number;
         if (typeof v === 'number') {
