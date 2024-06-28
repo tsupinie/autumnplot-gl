@@ -1,5 +1,5 @@
 
-CFLAGS=-std=c++14
+CFLAGS=-std=c++17
 
 marchingsquares: marchingsquares.cpp
 	g++ $(CFLAGS) -g -O0 -DEXECUTABLE marchingsquares.cpp -o marchingsquares

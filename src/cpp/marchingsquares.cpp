@@ -1,6 +1,7 @@
 
 #include <vector>
 #include <unordered_map>
+#include "float16_t.hpp"
 
 #ifdef EXECUTABLE
 #include <iostream>
@@ -12,6 +13,8 @@
 #ifdef WASM
 #include <emscripten/bind.h>
 #endif
+
+using numeric::float16_t;
 
 /*  8         4
  *   ┌───────┐
@@ -148,7 +151,7 @@ std::vector<Contour> makeContours(T* grid, float* xs, float* ys, int nx, int ny,
             for (unsigned int idx = val_idx_lb; idx <= val_idx_ub; idx++) {
                 float value = values[idx];
 
-                segs_idx = char(esw > value) + (char(ese > value) << 1) + (char(ene > value) << 2) + (char(enw > value) << 3);
+                segs_idx = char((float)esw > value) + (char((float)ese > value) << 1) + (char((float)ene > value) << 2) + (char((float)enw > value) << 3);
 
                 for (int iseg = 0; iseg < NSEGS; iseg++) {
                     if (MARCHING_SQUARES_SEGS[segs_idx][iseg][0][0] < 0) continue;
@@ -270,6 +273,7 @@ std::vector<Contour> makeContours(T* grid, float* xs, float* ys, int nx, int ny,
 };
 
 template std::vector<Contour> makeContours(float* grid, float* xs, float* ys, int nx, int ny, std::vector<float>& value);
+template std::vector<Contour> makeContours(float16_t* grid, float* xs, float* ys, int nx, int ny, std::vector<float>& value);
 
 template<typename T>
 std::vector<float> getContourLevels(T* grid, int nx, int ny, float interval) noexcept {
@@ -279,7 +283,7 @@ std::vector<float> getContourLevels(T* grid, int nx, int ny, float interval) noe
         maxval = MAX(maxval, grid[idx]);
     }
 
-    float lowest_contour = ceilf(minval / interval) * interval, highest_contour = floorf(maxval / interval) * interval;
+    float lowest_contour = ceilf((float)minval / interval) * interval, highest_contour = floorf((float)maxval / interval) * interval;
     int n_contours = (int)floorf((highest_contour - lowest_contour) / interval) + 1;
 
     std::vector<float> levels;
@@ -293,6 +297,7 @@ std::vector<float> getContourLevels(T* grid, int nx, int ny, float interval) noe
 };
 
 template std::vector<float> getContourLevels(float* grid, int nx, int ny, float interval);
+template std::vector<float> getContourLevels(float16_t* grid, int nx, int ny, float interval);
 
 #ifdef EXECUTABLE
 int main(int argc, char** argv) {
@@ -329,8 +334,9 @@ void checkGridSize(size_t grid_size, int nx, int ny) {
     }
 }
 
-emscripten::val makeContoursFloat32WASM(const emscripten::val& data, const emscripten::val& xs, const emscripten::val& ys, const emscripten::val& values,
-                                        const emscripten::val& grid_transformer) {
+template<typename T>
+emscripten::val makeContoursWASM(const emscripten::val& data, const emscripten::val& xs, const emscripten::val& ys, const emscripten::val& values,
+                                 const emscripten::val& grid_transformer) {
     auto memory = emscripten::val::module_property("HEAPU8")["buffer"];
 
     int nx = xs["length"].as<int>();
@@ -347,7 +353,7 @@ emscripten::val makeContoursFloat32WASM(const emscripten::val& data, const emscr
     auto ys_memview = ys["constructor"].new_(memory, reinterpret_cast<uintptr_t>(ys_ary), ny);
     ys_memview.call<void>("set", ys);
 
-    float* data_ary = new float[nx * ny];
+    T* data_ary = new T[nx * ny];
     auto data_memview = data["constructor"].new_(memory, reinterpret_cast<uintptr_t>(data_ary), nx * ny);
     data_memview.call<void>("set", data);
 
@@ -400,12 +406,13 @@ emscripten::val makeContoursFloat32WASM(const emscripten::val& data, const emscr
     return js_contours;
 }
 
-emscripten::val getContourLevelsFloat32WASM(const emscripten::val& grid, int nx, int ny, float interval) {
+template<typename T>
+emscripten::val getContourLevelsWASM(const emscripten::val& grid, int nx, int ny, float interval) {
     auto memory = emscripten::val::module_property("HEAPU8")["buffer"];
 
     checkGridSize(grid["length"].as<int>(), nx, ny);
 
-    float* grid_ary = new float[nx * ny];
+    T* grid_ary = new T[nx * ny];
     auto grid_memview = grid["constructor"].new_(memory, reinterpret_cast<uintptr_t>(grid_ary), nx * ny);
     grid_memview.call<void>("set", grid);
 
@@ -423,8 +430,10 @@ emscripten::val getContourLevelsFloat32WASM(const emscripten::val& grid, int nx,
 }
 
 EMSCRIPTEN_BINDINGS(marching_squares) {
-    emscripten::function("makeContoursFloat32", &makeContoursFloat32WASM);
-    emscripten::function("getContourLevelsFloat32", &getContourLevelsFloat32WASM);
+    emscripten::function("makeContoursFloat32", &makeContoursWASM<float>);
+    emscripten::function("makeContoursFloat16", &makeContoursWASM<float16_t>);
+    emscripten::function("getContourLevelsFloat32", &getContourLevelsWASM<float>);
+    emscripten::function("getContourLevelsFloat16", &getContourLevelsWASM<float16_t>);
 }
 
 #endif

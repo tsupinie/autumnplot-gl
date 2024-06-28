@@ -38,8 +38,11 @@ async function contourCreator<ArrayType extends TypedArray>(data: ArrayType, gri
 
     const grid_coords = grid.getGridCoords();
 
-    const levels = opts.levels === undefined ? msm.getContourLevelsFloat32(data, grid.ni, grid.nj, interval) : opts.levels;
-    const contours = msm.makeContoursFloat32(data, grid_coords.x, grid_coords.y, levels, (x: number, y: number) => grid.transform(x, y, {inverse: true}));
+    const getContourLevels = data instanceof Float32Array ? msm.getContourLevelsFloat32 : msm.getContourLevelsFloat16;
+    const makeContours = data instanceof Float32Array ? msm.makeContoursFloat32 : msm.makeContoursFloat16;
+
+    const levels = opts.levels === undefined ? getContourLevels(data, grid.ni, grid.nj, interval) : opts.levels;
+    const contours = makeContours(data, grid_coords.x, grid_coords.y, levels, (x: number, y: number) => grid.transform(x, y, {inverse: true}));
 
     return contours as ContourData;
 }
