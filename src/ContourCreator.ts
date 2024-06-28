@@ -36,18 +36,10 @@ async function contourCreator<ArrayType extends TypedArray>(data: ArrayType, gri
 
     const msm = await initMSModule();
 
-    console.time('contour');
     const grid_coords = grid.getGridCoords();
 
-    console.time('getContourLevels');
     const levels = opts.levels === undefined ? msm.getContourLevelsFloat32(data, grid.ni, grid.nj, interval) : opts.levels;
-    console.timeEnd('getContourLevels');
-
-    console.time('makeContours');
     const contours = msm.makeContoursFloat32(data, grid_coords.x, grid_coords.y, levels, (x: number, y: number) => grid.transform(x, y, {inverse: true}));
-    console.timeEnd('makeContours');
-
-    console.timeEnd('contour');
 
     return contours as ContourData;
 }
