@@ -3,12 +3,13 @@ import { LineData, TypedArray, WebGLAnyRenderingContext} from './AutumnTypes';
 import { LngLat, MapLikeType } from './Map';
 import { PlotComponent } from './PlotComponent';
 import { RawScalarField } from './RawField';
-import { PolylineCollection } from './PolylineCollection';
+import { PolylineCollection, PolylineCollectionOpts } from './PolylineCollection';
 import { TextCollection, TextCollectionOptions, TextSpec } from './TextCollection';
 import { Color } from './Color';
 
 import { normalizeOptions } from './utils';
 import { kdTree } from 'kd-tree-javascript';
+import { ColorMap } from './Colormap';
 
 interface ContourOptions {
     /** 
@@ -16,6 +17,12 @@ interface ContourOptions {
      * @default '#000000'
      */
     color?: string;
+
+    /**
+     * A color map to use to color the contours.
+     * @default null
+     */
+    cmap?: ColorMap;
 
     /** 
      * The contour interval for drawing contours at regular intervals
@@ -32,6 +39,7 @@ interface ContourOptions {
 
 const contour_opt_defaults: Required<ContourOptions> = {
     color: '#000000',
+    cmap: null,
     interval: 1,
     levels: undefined
 }
@@ -80,12 +88,28 @@ class Contour<ArrayType extends TypedArray, MapType extends MapLikeType> extends
 
         const gl = this.gl_elems.gl;
 
-        const contour_data = await this.getContours();
-        const line_data = Object.values(contour_data).flat().map(c => {
-            return {vertices: c} as LineData;
-        });
+        const plc_opts: PolylineCollectionOpts = {line_width: 2};
+        if (this.opts.cmap !== null) {
+            plc_opts.cmap = this.opts.cmap;
+        }
+        else {
+            plc_opts.color = this.opts.color;
+        }
 
-        this.contours = await PolylineCollection.make(gl, line_data, {line_width: 2, color: this.opts.color});
+        const contour_data = await this.getContours();
+        const line_data = Object.entries(contour_data).map(([cv, cd]) => {
+            const cv_ = parseFloat(cv);
+
+            return cd.map(c => {
+                const ld: LineData = {vertices: c};
+                if (this.opts.cmap !== null){
+                    ld.data = c.map(() => cv_)
+                }
+                return ld;
+            });
+        }).flat();
+
+        this.contours = await PolylineCollection.make(gl, line_data, plc_opts);
         this.gl_elems.map.triggerRepaint();
     }
 

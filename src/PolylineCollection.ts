@@ -137,3 +137,4 @@ class PolylineCollection {
 }
 
 export {PolylineCollection};
+export type {PolylineCollectionOpts};
