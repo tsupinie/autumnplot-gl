@@ -1,4 +1,5 @@
 import { isWebGL2Ctx, WebGLAnyRenderingContext } from "./AutumnTypes";
+import { Color } from "./Color";
 import { LngLat } from "./Map";
 import { Cache, normalizeOptions } from "./utils";
 
@@ -152,8 +153,8 @@ interface TextCollectionOptions {
     horizontal_align?: HorizontalAlign;
     vertical_align?: VerticalAlign;
     font_size?: number;
-    text_color?: [number, number, number];
-    halo_color?: [number, number, number];
+    text_color?: Color;
+    halo_color?: Color;
     halo?: boolean;
 }
 
@@ -161,8 +162,8 @@ const text_collection_opt_defaults: Required<TextCollectionOptions> = {
     horizontal_align: 'left',
     vertical_align: 'baseline',
     font_size: 12,
-    text_color: [0, 0, 0],
-    halo_color: [0, 0, 0],
+    text_color: new Color([0, 0, 0, 1]),
+    halo_color: new Color([0, 0, 0, 1]),
     halo: false
 }
 
@@ -279,7 +280,7 @@ class TextCollection {
     render(gl: WebGLAnyRenderingContext, matrix: number[], [map_width, map_height]: [number, number], map_zoom: number) {
         const uniforms: Record<string, any> = {
             'u_matrix': matrix, 'u_map_width': map_width, 'u_map_height': map_height, 'u_map_zoom': map_zoom, 'u_font_size': this.opts.font_size,
-            'u_text_color': this.opts.text_color, 'u_halo_color': this.opts.halo_color, 'u_offset': 0
+            'u_text_color': this.opts.text_color.toRGBATuple(), 'u_halo_color': this.opts.halo_color.toRGBATuple(), 'u_offset': 0
         }
 
         uniforms['u_is_halo'] = this.opts.halo ? 1 : 0;

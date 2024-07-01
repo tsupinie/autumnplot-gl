@@ -1,10 +1,11 @@
 
 import { PlotComponent } from "./PlotComponent";
 import { BillboardCollection } from './BillboardCollection';
-import { hex2rgb, normalizeOptions } from './utils';
+import { normalizeOptions } from './utils';
 import { RawVectorField } from "./RawField";
 import { MapLikeType } from "./Map";
 import { TypedArray, WebGLAnyRenderingContext } from "./AutumnTypes";
+import { Color } from "./Color";
 
 const BARB_DIMS = {
     BB_WIDTH: 85,
@@ -161,7 +162,7 @@ class Barbs<ArrayType extends TypedArray, MapType extends MapLikeType> extends P
     /** The vector field */
     private fields: RawVectorField<ArrayType>;
     public readonly opts: Required<BarbsOptions>;
-    private readonly color_rgb: [number, number, number];
+    private readonly color: Color;
 
     private gl_elems: BarbsGLElems<ArrayType, MapType> | null;
 
@@ -176,8 +177,7 @@ class Barbs<ArrayType extends TypedArray, MapType extends MapLikeType> extends P
         this.fields = fields;
 
         this.opts = normalizeOptions(opts, barb_opt_defaults);
-        const color_rgb = hex2rgb(this.opts.color);
-        this.color_rgb = [color_rgb[0], color_rgb[1], color_rgb[2]];
+        this.color = Color.fromHex(this.opts.color);
 
         this.gl_elems = null;
     }
@@ -210,7 +210,7 @@ class Barbs<ArrayType extends TypedArray, MapType extends MapLikeType> extends P
         const barb_image = {format: gl.RGBA, type: gl.UNSIGNED_BYTE, image: BARB_TEXTURE, mag_filter: gl.NEAREST};
 
         const barb_billboards = new BillboardCollection(this.fields, this.opts.thin_fac, map_max_zoom, barb_image, 
-            BARB_DIMS, this.color_rgb, 0.1);
+            BARB_DIMS, this.color, 0.1);
         await barb_billboards.setup(gl);
 
         this.gl_elems = {

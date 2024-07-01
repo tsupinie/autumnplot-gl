@@ -1,5 +1,6 @@
 
 import { BillboardSpec, TypedArray, WebGLAnyRenderingContext } from "./AutumnTypes";
+import { Color } from "./Color";
 import { getGLFormatTypeAlignment } from "./PlotComponent";
 import { RawVectorField } from "./RawField";
 import { WGLBuffer, WGLProgram, WGLTexture, WGLTextureSpec } from "autumn-wgl";
@@ -19,7 +20,7 @@ class BillboardCollectionGLElems {
 class BillboardCollection<ArrayType extends TypedArray> {
     private field: RawVectorField<ArrayType>;
     public readonly spec: BillboardSpec;
-    public readonly color: [number, number, number];
+    public readonly color: Color;
     public readonly size_multiplier: number;
     public readonly thin_fac: number;
     public readonly max_zoom: number;
@@ -31,7 +32,7 @@ class BillboardCollection<ArrayType extends TypedArray> {
     private show_field: boolean;
 
     constructor(field: RawVectorField<ArrayType>, thin_fac: number, max_zoom: number, 
-                billboard_image: WGLTextureSpec, billboard_spec: BillboardSpec, billboard_color: [number, number, number], billboard_size_mult: number) {
+                billboard_image: WGLTextureSpec, billboard_spec: BillboardSpec, billboard_color: Color, billboard_size_mult: number) {
 
         this.field = field;
         this.spec = billboard_spec;
@@ -108,7 +109,7 @@ class BillboardCollection<ArrayType extends TypedArray> {
             {'a_pos': gl_elems.vertices, 'a_tex_coord': gl_elems.texcoords},
             {'u_bb_size': bb_size, 'u_bb_width': bb_width, 'u_bb_height': bb_height,
              'u_bb_mag_bin_size': this.spec.BB_MAG_BIN_SIZE, 'u_bb_mag_wrap': this.spec.BB_MAG_WRAP, 'u_offset': 0,
-             'u_bb_color': this.color, 'u_matrix': matrix, 'u_map_aspect': map_height / map_width, 'u_zoom': map_zoom, 'u_map_bearing': map_bearing},
+             'u_bb_color': this.color.toRGBATuple(), 'u_matrix': matrix, 'u_map_aspect': map_height / map_width, 'u_zoom': map_zoom, 'u_map_bearing': map_bearing},
             {'u_sampler': gl_elems.texture, 'u_u_sampler': this.wind_textures.u, 'u_v_sampler': this.wind_textures.v, 'u_rot_sampler': gl_elems.proj_rot_texture}
         );
 

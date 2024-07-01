@@ -2,12 +2,13 @@
 import { PlotComponent } from "./PlotComponent";
 import { PolylineCollection } from "./PolylineCollection";
 import { BillboardCollection } from "./BillboardCollection";
-import { getMinZoom, hex2rgb, normalizeOptions } from './utils';
+import { getMinZoom, normalizeOptions } from './utils';
 import { MapLikeType } from "./Map";
 import { RawProfileField } from "./RawField";
 import { LineData, TypedArray, WebGLAnyRenderingContext } from "./AutumnTypes";
 import { Float16Array } from "@petamoriken/float16";
 import { ColorMap } from "./Colormap";
+import { Color } from "./Color";
 
 const LINE_WIDTH = 4;
 const BG_MAX_RING_MAG = 40;
@@ -173,7 +174,7 @@ class Hodographs<MapType extends MapLikeType> extends PlotComponent<MapType> {
         const bg_image = {'format': gl.RGBA, 'type': gl.UNSIGNED_BYTE, 'image': HODO_BG_TEXTURE, 'mag_filter': gl.NEAREST};
         const max_zoom = map.getMaxZoom();
 
-        const bg_billboard = new BillboardCollection(this.profile_field.getStormMotionGrid(), this.opts.thin_fac, max_zoom, bg_image, HODO_BG_DIMS, hex2rgb(this.opts.bgcolor), 
+        const bg_billboard = new BillboardCollection(this.profile_field.getStormMotionGrid(), this.opts.thin_fac, max_zoom, bg_image, HODO_BG_DIMS, Color.fromHex(this.opts.bgcolor), 
                                                      this.bg_size * 0.004);
         await bg_billboard.setup(gl);
 

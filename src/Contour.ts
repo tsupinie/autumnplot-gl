@@ -5,8 +5,9 @@ import { PlotComponent } from './PlotComponent';
 import { RawScalarField } from './RawField';
 import { PolylineCollection } from './PolylineCollection';
 import { TextCollection, TextCollectionOptions, TextSpec } from './TextCollection';
+import { Color } from './Color';
 
-import { hex2rgb, normalizeOptions } from './utils';
+import { normalizeOptions } from './utils';
 import { kdTree } from 'kd-tree-javascript';
 
 interface ContourOptions {
@@ -307,7 +308,7 @@ class ContourLabels<ArrayType extends TypedArray, MapType extends MapLikeType> e
         const tc_opts: TextCollectionOptions = {
             horizontal_align: 'center', vertical_align: 'middle', font_size: this.opts.font_size,
             halo: this.opts.halo, 
-            text_color: hex2rgb(this.opts.text_color), halo_color: hex2rgb(this.opts.halo_color),
+            text_color: Color.fromHex(this.opts.text_color), halo_color: Color.fromHex(this.opts.halo_color),
         };
 
         this.text_collection = await TextCollection.make(gl, label_pos, font_url, tc_opts);

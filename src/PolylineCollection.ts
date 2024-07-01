@@ -2,8 +2,8 @@
 import { WGLBuffer, WGLProgram, WGLTexture } from "autumn-wgl";
 import { Polyline, LineData, WebGLAnyRenderingContext } from "./AutumnTypes";
 import { ColorMap, ColorMapGPUInterface } from "./Colormap";
+import { Color } from "./Color";
 import { layer_worker } from "./PlotComponent";
-import { hex2rgba } from "./utils";
 
 const polyline_vertex_src = require('./glsl/polyline_vertex.glsl');
 const polyline_fragment_src = require('./glsl/polyline_fragment.glsl');
@@ -27,13 +27,13 @@ class PolylineCollection {
     private readonly offset: WGLBuffer | null;
     private readonly min_zoom: WGLBuffer | null;
     private readonly line_data: WGLBuffer | null;
-    private readonly color: [number, number, number, number];
+    private readonly color: Color;
     private readonly cmap_gpu: ColorMapGPUInterface | null;
 
     private constructor(gl: WebGLAnyRenderingContext, polyline: Polyline, opts: PolylineCollectionOpts) {
         opts = opts === undefined ? {} : opts;
         const color_hex = opts.color === undefined ? '#000000' : opts.color;
-        this.color = hex2rgba(color_hex);
+        this.color = Color.fromHex(color_hex);
 
         const line_width = opts.line_width === undefined ? 1 : opts.line_width;
 
@@ -111,7 +111,7 @@ class PolylineCollection {
             attributes['a_data'] = this.line_data;
         }
         else {
-            uniforms['u_color'] = this.color;
+            uniforms['u_color'] = this.color.toRGBATuple();
         }
 
         this.program.use(attributes, uniforms, textures);
