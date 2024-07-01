@@ -1,12 +1,11 @@
 
 import { PlotComponent, getGLFormatTypeAlignment } from './PlotComponent';
-import { ColorMap, makeIndexMap, makeTextureImage } from './Colormap';
+import { ColorMap, ColorMapGPUInterface} from './Colormap';
 import { WGLBuffer, WGLProgram, WGLTexture } from 'autumn-wgl';
 import { RawScalarField } from './RawField';
 import { MapLikeType } from './Map';
 import { TypedArray, WebGLAnyRenderingContext } from './AutumnTypes';
-import { Float16Array } from '@petamoriken/float16';
-import { hex2rgb, normalizeOptions } from './utils';
+import { normalizeOptions } from './utils';
 
 const contourfill_vertex_shader_src = require('./glsl/contourfill_vertex.glsl');
 const contourfill_fragment_shader_src = require('./glsl/contourfill_fragment.glsl');
@@ -52,16 +51,13 @@ interface PlotComponentFillGLElems<MapType extends MapLikeType> {
     vertices: WGLBuffer;
 
     texcoords: WGLBuffer;
-    cmap_texture: WGLTexture;
-    cmap_nonlin_texture: WGLTexture;
 }
 
 class PlotComponentFill<ArrayType extends TypedArray, MapType extends MapLikeType> extends PlotComponent<MapType> {
     private field: RawScalarField<ArrayType>;
     public readonly opts: Required<ContourFillOptions>;
 
-    private readonly cmap_image: HTMLCanvasElement;
-    private readonly index_map: Float16Array;
+    private readonly cmap_gpu: ColorMapGPUInterface;
 
     private gl_elems: PlotComponentFillGLElems<MapType> | null;
     private fill_texture: WGLTexture | null;
@@ -74,8 +70,7 @@ class PlotComponentFill<ArrayType extends TypedArray, MapType extends MapLikeTyp
         this.field = field;
         this.opts = normalizeOptions(opts, contour_fill_opt_defaults);
 
-        this.cmap_image = makeTextureImage(this.opts.cmap);
-        this.index_map = makeIndexMap(this.opts.cmap);
+        this.cmap_gpu = new ColorMapGPUInterface(this.opts.cmap);
 
         this.gl_elems = null;
         this.fill_texture = null;
@@ -116,27 +111,14 @@ class PlotComponentFill<ArrayType extends TypedArray, MapType extends MapLikeTyp
             throw `Implement magnification filtes in a subclass`;
         }
         
-        const program = new WGLProgram(gl, contourfill_vertex_shader_src, contourfill_fragment_shader_src);
+        const program = new WGLProgram(gl, contourfill_vertex_shader_src, ColorMapGPUInterface.applyShader(contourfill_fragment_shader_src));
 
-        const {vertices: verts_buf, texcoords: tex_coords_buf} = await this.field.grid.getWGLBuffers(gl);
-        const vertices = verts_buf;
-        const texcoords = tex_coords_buf;
+        const {vertices: vertices, texcoords: texcoords} = await this.field.grid.getWGLBuffers(gl);
 
-        const cmap_image = {'format': gl.RGBA, 'type': gl.UNSIGNED_BYTE, 'image': this.cmap_image, 'mag_filter': this.cmap_mag_filter};
-        const cmap_texture = new WGLTexture(gl, cmap_image);
+        this.cmap_gpu.setupShaderVariables(gl, this.cmap_mag_filter);
 
-        const {format: format_nonlin , type: type_nonlin, row_alignment: row_alignment_nonlin} = getGLFormatTypeAlignment(gl, true);
-
-        const cmap_nonlin_image = {'format': format_nonlin, 'type': type_nonlin, 
-            'width': this.index_map.length, 'height': 1,
-            'image': new Uint16Array(this.index_map.buffer), 
-            'mag_filter': gl.LINEAR, 'row_alignment': row_alignment_nonlin,
-        };
-
-        const cmap_nonlin_texture = new WGLTexture(gl, cmap_nonlin_image);
         this.gl_elems = {
-            gl: gl, map: map, program: program, vertices: vertices, texcoords: texcoords, 
-            cmap_texture: cmap_texture, cmap_nonlin_texture: cmap_nonlin_texture,
+            gl: gl, map: map, program: program, vertices: vertices, texcoords: texcoords,
         };
 
         this.updateField(this.field);
@@ -149,16 +131,13 @@ class PlotComponentFill<ArrayType extends TypedArray, MapType extends MapLikeTyp
         if (matrix instanceof Float32Array) 
             matrix = [...matrix];
 
-        const cmap = this.opts.cmap;
-        const underflow_color = cmap.underflow_color === null ? [0, 0, 0, 0] : hex2rgb(cmap.underflow_color.color).concat(cmap.underflow_color.opacity);
-        const overflow_color = cmap.overflow_color === null ? [0, 0, 0, 0] : hex2rgb(cmap.overflow_color.color).concat(cmap.overflow_color.opacity);
-
         gl_elems.program.use(
             {'a_pos': gl_elems.vertices, 'a_tex_coord': gl_elems.texcoords},
-            {'u_cmap_min': cmap.levels[0], 'u_cmap_max': cmap.levels[cmap.levels.length - 1], 'u_matrix': matrix, 'u_opacity': this.opts.opacity,
-             'u_n_index': this.index_map.length, 'u_underflow_color': underflow_color, 'u_overflow_color': overflow_color, 'u_offset': 0},
-            {'u_fill_sampler': this.fill_texture, 'u_cmap_sampler': gl_elems.cmap_texture, 'u_cmap_nonlin_sampler': gl_elems.cmap_nonlin_texture}
+            {'u_matrix': matrix, 'u_opacity': this.opts.opacity, 'u_offset': 0},
+            {'u_fill_sampler': this.fill_texture}
         );
+
+        this.cmap_gpu.bindShaderVariables(gl_elems.program);
 
         gl.enable(gl.BLEND);
         gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);

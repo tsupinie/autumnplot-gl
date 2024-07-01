@@ -34,7 +34,7 @@
     },
     "dependencies": {
         "@petamoriken/float16": "^3.8.4",
-        "autumn-wgl": "^1.4.0",
+        "autumn-wgl": "^1.4.1",
         "comlink": "^4.3.1",
         "kd-tree-javascript": "^1.0.3",
         "pbf": "^3.2.1",

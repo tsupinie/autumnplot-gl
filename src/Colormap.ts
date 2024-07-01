@@ -7,6 +7,11 @@ import t2m_colormap_data from "./json/pwt2m_colormap.json";
 import td2m_colormap_data from "./json/pwtd2m_colormap.json";
 import nws_storm_clear_refl_colormap_data from "./json/nws_storm_clear_refl_colormap.json";
 import { Float16Array } from "@petamoriken/float16";
+import { WGLProgram, WGLTexture } from "autumn-wgl";
+import { WebGLAnyRenderingContext } from "./AutumnTypes";
+import { getGLFormatTypeAlignment } from "./PlotComponent";
+
+const colormap_shader_src = require('./glsl/colormap.glsl');
 
 interface Color {
     /** The color as a hex color string */
@@ -209,6 +214,59 @@ const bluered = (level_min: number, level_max: number, n_colors: number) => {
     return ColorMap.diverging('#0000ff', '#ff0000', level_min, level_max, n_colors);
 }
 
+
+interface ColorMapGLElems {
+    cmap_texture: WGLTexture;
+    cmap_nonlin_texture: WGLTexture;
+}
+
+const N_INDEX_MAP = 101;
+
+class ColorMapGPUInterface {
+    public readonly colormap: ColorMap;
+    public gl_elems: ColorMapGLElems | null;
+
+    constructor(colormap: ColorMap) {
+        this.colormap = colormap;
+        this.gl_elems = null;
+    }
+
+    public static applyShader(shader_src: string) {
+        return colormap_shader_src + "\n" + shader_src;
+    }
+
+    public setupShaderVariables(gl: WebGLAnyRenderingContext, mag_filter: number) {
+        const index_map = makeIndexMap(this.colormap);
+        const cmap_image = makeTextureImage(this.colormap);
+
+        const {format: format_nonlin, type: type_nonlin, row_alignment: row_alignment_nonlin} = getGLFormatTypeAlignment(gl, true);
+
+        const cmap_image_spec = {'format': gl.RGBA, 'type': gl.UNSIGNED_BYTE, 'image': cmap_image, 'mag_filter': mag_filter};
+        const cmap_texture = new WGLTexture(gl, cmap_image_spec);
+
+        const cmap_nonlin_image = {'format': format_nonlin, 'type': type_nonlin, 
+            'width': index_map.length, 'height': 1,
+            'image': new Uint16Array(index_map.buffer), 
+            'mag_filter': gl.LINEAR, 'row_alignment': row_alignment_nonlin,
+        };
+
+        const cmap_nonlin_texture = new WGLTexture(gl, cmap_nonlin_image);
+        this.gl_elems = {cmap_texture: cmap_texture, cmap_nonlin_texture: cmap_nonlin_texture};
+    }
+
+    public bindShaderVariables(program: WGLProgram) {
+        if (this.gl_elems === null) return;
+
+        const cmap = this.colormap;
+        const underflow_color = cmap.underflow_color === null ? [0, 0, 0, 0] : hex2rgb(cmap.underflow_color.color).concat(cmap.underflow_color.opacity);
+        const overflow_color = cmap.overflow_color === null ? [0, 0, 0, 0] : hex2rgb(cmap.overflow_color.color).concat(cmap.overflow_color.opacity);
+
+        program.setUniforms({'u_cmap_min': cmap.levels[0], 'u_cmap_max': cmap.levels[cmap.levels.length - 1],
+                             'u_n_index': N_INDEX_MAP, 'u_underflow_color': underflow_color, 'u_overflow_color': overflow_color});
+        program.bindTextures({'u_cmap_sampler': this.gl_elems.cmap_texture, 'u_cmap_nonlin_sampler': this.gl_elems.cmap_nonlin_texture});
+    }
+}
+
 /**
  * Make a canvas image corresponding to a color map
  * @param colormap - The color map to use
@@ -236,7 +294,7 @@ function makeTextureImage(colormap: ColorMap) {
 function makeIndexMap(colormap: ColorMap) {
     // Build a texture to account for nonlinear colormaps (basically inverts the relationship between
     //  the normalized index and the normalized level)
-    const n_nonlin = 101;
+    const n_nonlin = N_INDEX_MAP;
     const map_norm = [];
     for (let i = 0; i < n_nonlin; i++) {
         map_norm.push(i / (n_nonlin - 1));
@@ -258,5 +316,5 @@ function makeIndexMap(colormap: ColorMap) {
     return new Float16Array(inv_cmap_norm);
 }
 
-export {ColorMap, bluered, redblue, pw_speed500mb, pw_speed850mb, pw_cape, pw_t2m, pw_td2m, nws_storm_clear_refl, makeTextureImage, makeIndexMap}
+export {ColorMap, ColorMapGPUInterface, bluered, redblue, pw_speed500mb, pw_speed850mb, pw_cape, pw_t2m, pw_td2m, nws_storm_clear_refl}
 export type {Color, ColorMapOptions};
