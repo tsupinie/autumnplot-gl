@@ -1,12 +1,18 @@
 
 import { BillboardSpec, TypedArray, WebGLAnyRenderingContext } from "./AutumnTypes";
 import { Color } from "./Color";
+import { ColorMap, ColorMapGPUInterface } from "./Colormap";
 import { getGLFormatTypeAlignment } from "./PlotComponent";
 import { RawVectorField } from "./RawField";
 import { WGLBuffer, WGLProgram, WGLTexture, WGLTextureSpec } from "autumn-wgl";
 
 const billboard_vertex_shader_src = require('./glsl/billboard_vertex.glsl');
 const billboard_fragment_shader_src = require('./glsl/billboard_fragment.glsl');
+
+interface BillboardCollectionOpts {
+    color?: Color;
+    cmap?: ColorMap;
+}
 
 class BillboardCollectionGLElems {
     gl: WebGLAnyRenderingContext;
@@ -15,12 +21,14 @@ class BillboardCollectionGLElems {
     texcoords: WGLBuffer;
     texture: WGLTexture;
     proj_rot_texture: WGLTexture;
+    cmap_gpu: ColorMapGPUInterface | null;
 }
 
 class BillboardCollection<ArrayType extends TypedArray> {
     private field: RawVectorField<ArrayType>;
     public readonly spec: BillboardSpec;
     public readonly color: Color;
+    public readonly cmap: ColorMap | null;
     public readonly size_multiplier: number;
     public readonly thin_fac: number;
     public readonly max_zoom: number;
@@ -32,11 +40,14 @@ class BillboardCollection<ArrayType extends TypedArray> {
     private show_field: boolean;
 
     constructor(field: RawVectorField<ArrayType>, thin_fac: number, max_zoom: number, 
-                billboard_image: WGLTextureSpec, billboard_spec: BillboardSpec, billboard_color: Color, billboard_size_mult: number) {
+                billboard_image: WGLTextureSpec, billboard_spec: BillboardSpec, billboard_size_mult: number, opts?: BillboardCollectionOpts) {
+
+        opts = opts === undefined ? {} : opts;
+        this.color = opts.color === undefined ? new Color([0, 0, 0, 1]) : opts.color;
+        this.cmap = opts.cmap === undefined ? null : opts.cmap;
 
         this.field = field;
         this.spec = billboard_spec;
-        this.color = billboard_color;
         this.size_multiplier = billboard_size_mult;
         this.thin_fac = thin_fac;
         this.max_zoom = max_zoom;
@@ -82,7 +93,6 @@ class BillboardCollection<ArrayType extends TypedArray> {
     }
 
     public async setup(gl: WebGLAnyRenderingContext) {
-        const program = new WGLProgram(gl, billboard_vertex_shader_src, billboard_fragment_shader_src);
 
         const thinned_field = this.field.getThinnedField(this.trim_inaccessible, this.trim_inaccessible);
         const {vertices, texcoords} = await thinned_field.grid.getWGLBillboardBuffers(gl, this.thin_fac / this.trim_inaccessible, this.max_zoom);
@@ -90,7 +100,21 @@ class BillboardCollection<ArrayType extends TypedArray> {
 
         const texture = new WGLTexture(gl, this.billboard_image);
 
-        this.gl_elems = {gl: gl, program: program, vertices: vertices, texcoords: texcoords, texture: texture, proj_rot_texture: proj_rotation_tex};
+        const shader_defines: string[] = [];
+        let fragment_src = billboard_fragment_shader_src;
+        let cmap_gpu = null;
+        if (this.cmap !== null) {
+            fragment_src = ColorMapGPUInterface.applyShader(fragment_src);
+
+            cmap_gpu = new ColorMapGPUInterface(this.cmap);
+            cmap_gpu.setupShaderVariables(gl, gl.NEAREST);
+
+            shader_defines.push('COLORMAP');
+        }
+
+        const program = new WGLProgram(gl, billboard_vertex_shader_src, fragment_src, {define: shader_defines});
+
+        this.gl_elems = {gl: gl, program: program, vertices: vertices, texcoords: texcoords, texture: texture, proj_rot_texture: proj_rotation_tex, cmap_gpu: cmap_gpu};
     }
 
     public render(gl: WebGLAnyRenderingContext, matrix: number[] | Float32Array, [map_width, map_height]: [number, number], map_zoom: number, map_bearing: number, map_pitch: number) {
@@ -109,9 +133,16 @@ class BillboardCollection<ArrayType extends TypedArray> {
             {'a_pos': gl_elems.vertices, 'a_tex_coord': gl_elems.texcoords},
             {'u_bb_size': bb_size, 'u_bb_width': bb_width, 'u_bb_height': bb_height,
              'u_bb_mag_bin_size': this.spec.BB_MAG_BIN_SIZE, 'u_bb_mag_wrap': this.spec.BB_MAG_WRAP, 'u_offset': 0,
-             'u_bb_color': this.color.toRGBATuple(), 'u_matrix': matrix, 'u_map_aspect': map_height / map_width, 'u_zoom': map_zoom, 'u_map_bearing': map_bearing},
+             'u_matrix': matrix, 'u_map_aspect': map_height / map_width, 'u_zoom': map_zoom, 'u_map_bearing': map_bearing},
             {'u_sampler': gl_elems.texture, 'u_u_sampler': this.wind_textures.u, 'u_v_sampler': this.wind_textures.v, 'u_rot_sampler': gl_elems.proj_rot_texture}
         );
+
+        if (gl_elems.cmap_gpu !== null) {
+            gl_elems.cmap_gpu.bindShaderVariables(gl_elems.program);
+        }
+        else {
+            gl_elems.program.setUniforms({'u_bb_color': this.color.toRGBATuple()});
+        }
 
         gl.enable(gl.BLEND);
         gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);

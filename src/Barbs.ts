@@ -6,6 +6,7 @@ import { RawVectorField } from "./RawField";
 import { MapLikeType } from "./Map";
 import { TypedArray, WebGLAnyRenderingContext } from "./AutumnTypes";
 import { Color } from "./Color";
+import { ColorMap } from "./Colormap";
 
 const BARB_DIMS = {
     BB_WIDTH: 85,
@@ -132,6 +133,8 @@ interface BarbsOptions {
      */
     color?: string;
 
+    cmap?: ColorMap;
+
     /** 
      * How much to thin the barbs at zoom level 1 on the map. This effectively means to plot every `n`th barb in the i and j directions, where `n` = 
      * `thin_fac`. `thin_fac` should be a power of 2. 
@@ -142,6 +145,7 @@ interface BarbsOptions {
 
 const barb_opt_defaults: Required<BarbsOptions> = {
     color: '#000000',
+    cmap: null,
     thin_fac: 1
 }
 
@@ -210,7 +214,7 @@ class Barbs<ArrayType extends TypedArray, MapType extends MapLikeType> extends P
         const barb_image = {format: gl.RGBA, type: gl.UNSIGNED_BYTE, image: BARB_TEXTURE, mag_filter: gl.NEAREST};
 
         const barb_billboards = new BillboardCollection(this.fields, this.opts.thin_fac, map_max_zoom, barb_image, 
-            BARB_DIMS, this.color, 0.1);
+            BARB_DIMS, 0.1, {color: this.color, cmap: this.opts.cmap});
         await barb_billboards.setup(gl);
 
         this.gl_elems = {

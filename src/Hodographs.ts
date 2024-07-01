@@ -174,8 +174,8 @@ class Hodographs<MapType extends MapLikeType> extends PlotComponent<MapType> {
         const bg_image = {'format': gl.RGBA, 'type': gl.UNSIGNED_BYTE, 'image': HODO_BG_TEXTURE, 'mag_filter': gl.NEAREST};
         const max_zoom = map.getMaxZoom();
 
-        const bg_billboard = new BillboardCollection(this.profile_field.getStormMotionGrid(), this.opts.thin_fac, max_zoom, bg_image, HODO_BG_DIMS, Color.fromHex(this.opts.bgcolor), 
-                                                     this.bg_size * 0.004);
+        const bg_billboard = new BillboardCollection(this.profile_field.getStormMotionGrid(), this.opts.thin_fac, max_zoom, bg_image, HODO_BG_DIMS, this.bg_size * 0.004,
+                                                     {color: Color.fromHex(this.opts.bgcolor)});
         await bg_billboard.setup(gl);
 
         this.gl_elems = {
