@@ -1,6 +1,6 @@
 
 import { WGLBuffer, WGLProgram, WGLTexture } from "autumn-wgl";
-import { Polyline, LineData, WebGLAnyRenderingContext } from "./AutumnTypes";
+import { Polyline, LineData, WebGLAnyRenderingContext, isWebGL2Ctx } from "./AutumnTypes";
 import { ColorMap, ColorMapGPUInterface } from "./Colormap";
 import { Color } from "./Color";
 import { layer_worker } from "./PlotComponent";
@@ -8,11 +8,36 @@ import { layer_worker } from "./PlotComponent";
 const polyline_vertex_src = require('./glsl/polyline_vertex.glsl');
 const polyline_fragment_src = require('./glsl/polyline_fragment.glsl');
 
+type LineStyle = "-" | "--" | ":" | number[];
+
 interface PolylineCollectionOpts {
     offset_scale?: number;
     color?: string;
     cmap?: ColorMap;
     line_width?: number;
+    line_style?: LineStyle | number[];
+}
+
+function makeDashTexture(gl: WebGLAnyRenderingContext, line_style: LineStyle) {
+    const dash_arrays: Record<Exclude<LineStyle, number[]>, number[]> = {
+        "-": [1],
+        "--": [1, 1, 1, 1, 0, 0],
+        ":": [1, 0],
+    }
+
+    const dash_array = Array.isArray(line_style) ? line_style : dash_arrays[line_style];
+
+    const is_webgl2 = isWebGL2Ctx(gl);
+    const format = is_webgl2 ? gl.R8 : gl.LUMINANCE;
+    const type = gl.UNSIGNED_BYTE;
+    const row_alignment = 1;
+
+    const fill_image = {'format': format, 'type': type,
+        'width': dash_array.length, 'height': 1, 'image': new Uint8Array(dash_array.map(d => d > 0 ? 255 : 0)),
+        'mag_filter': gl.NEAREST, 'row_alignment': row_alignment,
+    };
+
+    return [dash_array.length, new WGLTexture(gl, fill_image)] as [number, WGLTexture];
 }
 
 class PolylineCollection {
@@ -29,6 +54,8 @@ class PolylineCollection {
     private readonly line_data: WGLBuffer | null;
     private readonly color: Color;
     private readonly cmap_gpu: ColorMapGPUInterface | null;
+    private readonly dash_texture: WGLTexture;
+    private readonly n_dash: number;
 
     private constructor(gl: WebGLAnyRenderingContext, polyline: Polyline, opts: PolylineCollectionOpts) {
         opts = opts === undefined ? {} : opts;
@@ -36,6 +63,7 @@ class PolylineCollection {
         this.color = Color.fromHex(color_hex);
 
         const line_width = opts.line_width === undefined ? 1 : opts.line_width;
+        const line_style = opts.line_style === undefined ? '-' : opts.line_style;
 
         this.width = line_width;
 
@@ -79,6 +107,8 @@ class PolylineCollection {
             this.cmap_gpu = null;
         }
 
+        [this.n_dash, this.dash_texture] = makeDashTexture(gl, line_style);
+
         this.program = new WGLProgram(gl, polyline_vertex_src, fragment_src, {define: shader_defines});
     }
 
@@ -93,9 +123,10 @@ class PolylineCollection {
 
         const attributes: Record<string, WGLBuffer> = {'a_pos': this.vertices, 'a_extrusion': this.extrusion};
         const uniforms: Record<string, number | number[]> = {
-            'u_matrix': matrix, 'u_line_width': this.width, 'u_map_width': map_width, 'u_map_height': map_height, 'u_map_bearing': map_bearing, 'u_offset': 0
+            'u_matrix': matrix, 'u_line_width': this.width, 'u_map_width': map_width, 'u_map_height': map_height, 'u_map_bearing': map_bearing, 'u_offset': 0, 'u_zoom': map_zoom,
+            'u_dash_pattern_length': this.n_dash
         };
-        const textures: Record<string, WGLTexture> = {};
+        const textures: Record<string, WGLTexture> = {'u_dash_sampler': this.dash_texture};
 
         if (this.offset !== null) {
             attributes['a_offset'] = this.offset;
@@ -104,7 +135,6 @@ class PolylineCollection {
 
         if (this.min_zoom !== null) {
             attributes['a_min_zoom'] = this.min_zoom;
-            uniforms['u_zoom'] = map_zoom;
         }
 
         if (this.line_data !== null) {
@@ -137,4 +167,4 @@ class PolylineCollection {
 }
 
 export {PolylineCollection};
-export type {PolylineCollectionOpts};
+export type {PolylineCollectionOpts, LineStyle};

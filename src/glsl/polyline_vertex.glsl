@@ -1,7 +1,7 @@
 uniform mat4 u_matrix;
 uniform int u_offset;
 
-attribute vec2 a_pos;
+attribute vec3 a_pos;
 attribute vec2 a_extrusion;
 attribute float a_data;
 
@@ -29,6 +29,8 @@ uniform lowp float u_offset_scale;
 #ifdef DATA
 varying highp float v_data;
 #endif
+
+varying highp float v_dist;
 
 mat4 scalingMatrix(float x_scale, float y_scale, float z_scale) {
     return mat4(x_scale, 0.0,     0.0,     0.0,
@@ -61,6 +63,7 @@ void main() {
     float globe_width = 1.;
     vec2 globe_offset = vec2(globe_width * float(u_offset), 0.);
 
+    v_dist = a_pos.z;
     vec4 center_pos = u_matrix * vec4(a_pos.xy + globe_offset, 0.0, 1.0);
     vec4 offset = vec4(0.0, 0.0, 0.0, 0.0);
 
