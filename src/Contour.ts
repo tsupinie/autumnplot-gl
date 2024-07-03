@@ -37,6 +37,12 @@ interface ContourOptions {
     levels?: number[];
 
     /**
+     * The width of the line in pixels.
+     * @default 2
+     */
+    line_width?: number;
+
+    /**
      * The style to use for the line. The possible options are '-' for a solid line, '--' for a dashed line, ':' for a 
      *  dotted line, or you could pass a list of numbers (e.g., [1, 1, 1, 0, 1, 0]) to specify a custom dash scheme.
      * @default '-'
@@ -49,6 +55,7 @@ const contour_opt_defaults: Required<ContourOptions> = {
     cmap: null,
     interval: 1,
     levels: undefined,
+    line_width: 2,
     line_style: '-'
 }
 
@@ -96,7 +103,7 @@ class Contour<ArrayType extends TypedArray, MapType extends MapLikeType> extends
 
         const gl = this.gl_elems.gl;
 
-        const plc_opts: PolylineCollectionOpts = {line_width: 2, line_style: this.opts.line_style};
+        const plc_opts: PolylineCollectionOpts = {line_width: this.opts.line_width, line_style: this.opts.line_style};
         if (this.opts.cmap !== null) {
             plc_opts.cmap = this.opts.cmap;
         }
