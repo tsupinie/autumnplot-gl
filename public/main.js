@@ -123,8 +123,10 @@ async function makeHREFLayers() {
                                            -nx_href * dx_href / 2, -ny_href * dy_href / 2, nx_href * dx_href / 2, ny_href * dy_href / 2);
 
     const nh_prob_data = await fetchBinary('data/hrefv3.2023051100.f036.mxuphl5000_2000m.nh_max.086400_p99.85_0040km.bin.gz');
+    //const nh_prob_data = await fetchBinary('data/hrrr_pmsl.bin.gz');
     const nh_prob_field = new apgl.RawScalarField(grid_href, nh_prob_data);
     const nh_prob_contour = new apgl.Contour(nh_prob_field, {'levels': [0.1, 0.3, 0.5, 0.7, 0.9], 'color': '#000000'});
+    //const nh_prob_contour = new apgl.Contour(nh_prob_field, {'interval': 400, 'color': '#000000'});
     const nh_prob_layer = new apgl.PlotLayer('nh_probs', nh_prob_contour);
 
 
