@@ -9,12 +9,19 @@
 
 #include <iostream>
 #include <chrono>
+#include <cmath>
 
 #ifdef WASM
 #include <emscripten/bind.h>
 #endif
 
 using numeric::float16_t;
+
+namespace std {
+    inline bool isnan(float16_t __x) noexcept {
+        return is_nan(__x);
+    }
+}
 
 /*  8         4
  *   ┌───────┐
@@ -142,6 +149,8 @@ std::vector<Contour> makeContours(T* grid, float* xs, float* ys, int nx, int ny,
             ese = grid[(i + 1) + nx * j];
             enw = grid[i + nx * (j + 1)];
             ene = grid[(i + 1) + nx * (j + 1)];
+
+            if (std::isnan(esw) || std::isnan(ese) || std::isnan(enw) || std::isnan(ene)) continue;
 
             T min_grid_val = MIN4(esw, ese, enw, ene);
             T max_grid_val = MAX4(esw, ese, enw, ene);
@@ -279,6 +288,8 @@ template<typename T>
 std::vector<float> getContourLevels(T* grid, int nx, int ny, float interval) noexcept {
     T minval = std::numeric_limits<T>::infinity(), maxval = -std::numeric_limits<T>::infinity();
     for (int idx = 0; idx < nx * ny; idx++) {
+        if (std::isnan(grid[idx])) continue;
+
         minval = MIN(minval, grid[idx]);
         maxval = MAX(maxval, grid[idx]);
     }
