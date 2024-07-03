@@ -8,7 +8,7 @@ import { layer_worker } from "./PlotComponent";
 const polyline_vertex_src = require('./glsl/polyline_vertex.glsl');
 const polyline_fragment_src = require('./glsl/polyline_fragment.glsl');
 
-type LineStyle = "-" | "--" | ":" | number[];
+type LineStyle = "-" | "--" | ":" | "-." | number[];
 
 interface PolylineCollectionOpts {
     offset_scale?: number;
@@ -23,6 +23,7 @@ function makeDashTexture(gl: WebGLAnyRenderingContext, line_style: LineStyle) {
         "-": [1],
         "--": [1, 1, 1, 1, 0, 0],
         ":": [1, 0],
+        "-.": [1, 1, 1, 0, 1, 0],
     }
 
     const dash_array = Array.isArray(line_style) ? line_style : dash_arrays[line_style];

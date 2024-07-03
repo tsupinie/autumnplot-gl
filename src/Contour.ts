@@ -43,8 +43,9 @@ interface ContourOptions {
     line_width?: number;
 
     /**
-     * The style to use for the line. The possible options are '-' for a solid line, '--' for a dashed line, ':' for a 
-     *  dotted line, or you could pass a list of numbers (e.g., [1, 1, 1, 0, 1, 0]) to specify a custom dash scheme.
+     * The style to use for the line. The possible options are '-' for a solid line, '--' for a dashed line, ':' for a
+     *  dotted line, '-.' for a dash-dot line, or you could pass a list of numbers (e.g., [1, 1, 1, 0, 1, 0]) to
+     *  specify a custom dash scheme.
      * @default '-'
      */
     line_style?: LineStyle;
