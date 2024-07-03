@@ -124,13 +124,14 @@ class ColorMap {
 
         const color1_hsv = Color.fromHex(color1).toHSVTuple();
         const color2_hsv = Color.fromHex(color2).toHSVTuple();
+        const interp_fac_power = 1.5;
 
         for (let istop = 0; istop < n_colors; istop++) {
             const level = level_min + istop * level_step;
             let h, s, v;
             let interp_fac;
             if (level < crossover) {
-                interp_fac = (crossover - level) / (crossover - level_min);
+                interp_fac = Math.pow((crossover - level) / (crossover - level_min), interp_fac_power);
 
                 [h, s, v] = [
                     color1_hsv[0], 
@@ -138,7 +139,7 @@ class ColorMap {
                     crossover_hsv[2] + (color1_hsv[2] - crossover_hsv[2]) * interp_fac]
             }
             else if (level >= crossover) {
-                interp_fac = (level - crossover) / (level_max - crossover);
+                interp_fac = Math.pow((level - crossover) / (level_max - crossover), interp_fac_power);
                 
                 [h, s, v] = [
                     color2_hsv[0], 
