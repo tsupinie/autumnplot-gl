@@ -19,7 +19,12 @@ function makeSynthetic500mbLayers() {
         for (i = 0; i < nx; i++) {
             for (j = 0; j < ny; j++) {
                 const idx = i + j * nx;
-                hght[idx] = height_base + height_pert * (Math.cos(-key * speed + 4 * Math.PI * i / (nx - 1)) * Math.cos(2 * Math.PI * j / (ny - 1))) - height_grad * j;
+                if (i < 10 && j < 10) {
+                    hght[idx] = NaN;
+                }
+                else {
+                    hght[idx] = height_base + height_pert * (Math.cos(-key * speed + 4 * Math.PI * i / (nx - 1)) * Math.cos(2 * Math.PI * j / (ny - 1))) - height_grad * j;
+                }
             }
         }
         return new apgl.RawScalarField(grid, new arrayType(hght));
@@ -29,20 +34,26 @@ function makeSynthetic500mbLayers() {
         let u = [], v = [];
         for (i = 0; i < nx; i++) {
             for (j = 0; j < ny; j++) {
-                let v_fac = 1;
-                if (grid.type == 'latlon' || grid.type == 'latlonrot') {
-                    v_fac = Math.cos(coords.y[j] * Math.PI / 180);
-                }
-    
                 const idx = i + j * nx;
-                let u_earth = vel_pert * (Math.cos(-key * speed + 4 * Math.PI * i / (nx - 1)) * Math.sin(2 * Math.PI * j / (ny - 1)) + height_grad);
-                let v_earth = -vel_pert * Math.sin(-key * speed + 4 * Math.PI * i / (nx - 1)) * Math.cos(2 * Math.PI * j / (ny - 1));
-    
-                const mag = Math.hypot(u_earth, v_earth);
-                v_earth /= v_fac;
-    
-                u[idx] = u_earth * mag / Math.hypot(u_earth, v_earth);
-                v[idx] = v_earth * mag / Math.hypot(u_earth, v_earth);
+
+                if (i < 10 && j < 10) {
+                    u[idx] = v[idx] = NaN;
+                }
+                else {
+                    let v_fac = 1;
+                    if (grid.type == 'latlon' || grid.type == 'latlonrot') {
+                        v_fac = Math.cos(coords.y[j] * Math.PI / 180);
+                    }
+        
+                    let u_earth = vel_pert * (Math.cos(-key * speed + 4 * Math.PI * i / (nx - 1)) * Math.sin(2 * Math.PI * j / (ny - 1)) + height_grad);
+                    let v_earth = -vel_pert * Math.sin(-key * speed + 4 * Math.PI * i / (nx - 1)) * Math.cos(2 * Math.PI * j / (ny - 1));
+        
+                    const mag = Math.hypot(u_earth, v_earth);
+                    v_earth /= v_fac;
+        
+                    u[idx] = u_earth * mag / Math.hypot(u_earth, v_earth);
+                    v[idx] = v_earth * mag / Math.hypot(u_earth, v_earth);
+                }
             }
         }
 
