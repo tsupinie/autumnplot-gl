@@ -58,7 +58,7 @@ class PolylineCollection {
     private readonly dash_texture: WGLTexture;
     private readonly n_dash: number;
 
-    private constructor(gl: WebGLAnyRenderingContext, polyline: Polyline, opts: PolylineCollectionOpts) {
+    private constructor(gl: WebGLAnyRenderingContext, polyline: Polyline, opts?: PolylineCollectionOpts) {
         opts = opts === undefined ? {} : opts;
         const color_hex = opts.color === undefined ? '#000000' : opts.color;
         this.color = Color.fromHex(color_hex);
@@ -129,7 +129,7 @@ class PolylineCollection {
         };
         const textures: Record<string, WGLTexture> = {'u_dash_sampler': this.dash_texture};
 
-        if (this.offset !== null) {
+        if (this.offset !== null && this.scale !== null) {
             attributes['a_offset'] = this.offset;
             uniforms['u_offset_scale'] = this.scale * (map_height / map_width);
         }

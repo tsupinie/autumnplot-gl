@@ -331,7 +331,7 @@ function makePolylines(lines: LineData[]) : Polyline {
         });
 
         const has_offsets = line.offsets !== undefined;
-        const extrusion_verts = has_offsets ? line.offsets : verts;
+        const extrusion_verts = line.offsets !== undefined ? line.offsets : verts;
 
         let pt_prev: [number, number], pt_this = verts[0], pt_next = verts[1];
         let ept_prev: [number, number], ept_this = extrusion_verts[0], ept_next = extrusion_verts[1];
@@ -364,7 +364,7 @@ function makePolylines(lines: LineData[]) : Polyline {
         ret.vertices[ilns.vertices++] = pt_this[0]; ret.vertices[ilns.vertices++] = pt_this[1]; ret.vertices[ilns.vertices++] = len_this;
         ret.extrusion[ilns.extrusion++] = -ext_x; ret.extrusion[ilns.extrusion++] = -ext_y;
 
-        if ('offsets' in ret) {
+        if (ret.offsets !== undefined && line.offsets !== undefined) {
             const offsets = line.offsets;
             let off_prev: [number, number], off_this = offsets[0];
 
@@ -382,7 +382,7 @@ function makePolylines(lines: LineData[]) : Polyline {
             ret.offsets[ilns.offsets++] = off_this[0]; ret.offsets[ilns.offsets++] = off_this[1];
         }
 
-        if ('data' in ret) {
+        if (ret.data !== undefined && line.data !== undefined) {
             const data = line.data;
             let data_prev: number, data_this = data[0];
 
@@ -400,7 +400,7 @@ function makePolylines(lines: LineData[]) : Polyline {
             ret.data[ilns.data++] = data_this;
         }
         
-        if ('zoom' in ret) {
+        if (ret.zoom !== undefined && line.zoom !== undefined) {
             for (let ivt = 0; ivt < verts.length * 4 - 2; ivt++) {
                 ret.zoom[ilns.zoom++] = line['zoom'];
             }

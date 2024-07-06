@@ -461,7 +461,7 @@ class LambertGrid extends Grid {
 
     public transform(x: number, y: number, opts?: {inverse?: boolean}) {
         opts = opts === undefined ? {}: opts;
-        const inverse = 'inverse' in opts ? opts.inverse : false;
+        const inverse = opts.inverse === undefined ? false : opts.inverse;
 
         return this.lcc(x, y, {inverse: inverse});
     }

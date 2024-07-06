@@ -47,6 +47,9 @@ const rgb2hsv = (rgb: [number, number, number]) : [number, number, number] => {
     else if (Cmax == b) {
         H = 60 * ((r - g) / Delta + 4);
     }
+    else {
+        throw "You've messed something up in rgb2hsv()";
+    }
 
     let S = Cmax == 0 ? 0 : Delta / Cmax;
     let V = Cmax;
@@ -79,6 +82,9 @@ const hsv2rgb = (hsv: [number, number, number]) : [number, number, number] => {
     }
     else if (300 <= H && H < 360) {
         r_prime = C; g_prime = 0, b_prime = X;
+    }
+    else {
+        throw "H is out of bounds in hsv2rgb";
     }
 
     return [r_prime + m, g_prime + m, b_prime + m];

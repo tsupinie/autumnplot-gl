@@ -7,7 +7,7 @@ import { PlotComponent } from './PlotComponent';
 abstract class PlotLayerBase<MapType extends MapLikeType> {
     public readonly type: 'custom';
     public readonly id: string;
-    protected map: MapType;
+    protected map: MapType | null;
 
     constructor(id: string) {
         this.type = 'custom';

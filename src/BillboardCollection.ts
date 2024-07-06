@@ -14,7 +14,7 @@ interface BillboardCollectionOpts {
     cmap?: ColorMap;
 }
 
-class BillboardCollectionGLElems {
+interface BillboardCollectionGLElems {
     gl: WebGLAnyRenderingContext;
     program: WGLProgram;
     vertices: WGLBuffer;

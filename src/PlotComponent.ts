@@ -22,12 +22,18 @@ function getGLFormatTypeAlignment(gl: WebGLAnyRenderingContext, is_float16: bool
         const ext = gl.getExtension('OES_texture_half_float');
         const ext_lin = gl.getExtension('OES_texture_half_float_linear');
 
-        if ((!is_webgl2 && ext === null) || (!is_webgl2 && ext_lin === null)) {
-            throw "Float16 data are not supported on this hardware. Try Float32 data instead.";
+        if (is_webgl2) {
+            format = gl.R16F;
+            type = gl.HALF_FLOAT;
+        }
+        else {
+            if (ext === null || ext_lin === null)
+                throw "Float16 data are not supported on this hardware. Try Float32 data instead.";
+
+            format = gl.LUMINANCE;
+            type = ext.HALF_FLOAT_OES;
         }
 
-        format = is_webgl2 ? gl.R16F : gl.LUMINANCE;
-        type = is_webgl2 ? gl.HALF_FLOAT : ext.HALF_FLOAT_OES;
         row_alignment = 2;
     }
     else {

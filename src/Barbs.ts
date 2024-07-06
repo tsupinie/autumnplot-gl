@@ -133,7 +133,7 @@ interface BarbsOptions {
      */
     color?: string;
 
-    cmap?: ColorMap;
+    cmap?: ColorMap | null;
 
     /** 
      * How much to thin the barbs at zoom level 1 on the map. This effectively means to plot every `n`th barb in the i and j directions, where `n` = 
@@ -213,8 +213,9 @@ class Barbs<ArrayType extends TypedArray, MapType extends MapLikeType> extends P
 
         const barb_image = {format: gl.RGBA, type: gl.UNSIGNED_BYTE, image: BARB_TEXTURE, mag_filter: gl.NEAREST};
 
+        const cmap = this.opts.cmap === null ? undefined : this.opts.cmap;
         const barb_billboards = new BillboardCollection(this.fields, this.opts.thin_fac, map_max_zoom, barb_image, 
-            BARB_DIMS, 0.1, {color: this.color, cmap: this.opts.cmap});
+            BARB_DIMS, 0.1, {color: this.color, cmap: cmap});
         await barb_billboards.setup(gl);
 
         this.gl_elems = {

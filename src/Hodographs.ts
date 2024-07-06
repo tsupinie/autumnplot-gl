@@ -89,7 +89,7 @@ class Hodographs<MapType extends MapLikeType> extends PlotComponent<MapType> {
     private profile_field: RawProfileField;
     public readonly opts: Required<HodographOptions>;
 
-    private gl_elems: HodographGLElems<Float16Array, MapType>;
+    private gl_elems: HodographGLElems<Float16Array, MapType> | null;
     private line_elems: {hodo_line: PolylineCollection, sm_line: PolylineCollection} | null;
     private readonly hodo_scale;
     private readonly bg_size;

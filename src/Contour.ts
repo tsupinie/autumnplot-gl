@@ -22,7 +22,7 @@ interface ContourOptions {
      * A color map to use to color the contours.
      * @default null
      */
-    cmap?: ColorMap;
+    cmap?: ColorMap | null;
 
     /** 
      * The contour interval for drawing contours at regular intervals
@@ -34,7 +34,7 @@ interface ContourOptions {
      * A list of arbitrary levels (up to 40) to contour. This overrides the `interval` option.
      * @default Draw contours at regular intervals given by the `interval` option.
      */
-    levels?: number[];
+    levels?: number[] | null;
 
     /**
      * The width of the line in pixels.
@@ -55,7 +55,7 @@ const contour_opt_defaults: Required<ContourOptions> = {
     color: '#000000',
     cmap: null,
     interval: 1,
-    levels: undefined,
+    levels: null,
     line_width: 2,
     line_style: '-'
 }
@@ -130,7 +130,8 @@ class Contour<ArrayType extends TypedArray, MapType extends MapLikeType> extends
     }
 
     public async getContours() {
-        return await this.field.getContours({interval: this.opts.interval, levels: this.opts.levels});
+        const levels = this.opts.levels === null ? undefined : this.opts.levels;
+        return await this.field.getContours({interval: this.opts.interval, levels: levels});
     }
 
     /**
@@ -253,6 +254,9 @@ class ContourLabels<ArrayType extends TypedArray, MapType extends MapLikeType> e
         const map_style = map.getStyle();
 
         const font_url_template = this.opts.font_url_template == '' ? map_style.glyphs : this.opts.font_url_template;
+        if (font_url_template === undefined)
+            throw "The map style doesn't have any glyph information. Please pass the font_url_template option to ContourLabels";
+
         const font_url = font_url_template.replace('{range}', '0-255').replace('{fontstack}', this.opts.font_face);
 
         const label_pos: TextSpec[] = [];
@@ -263,7 +267,7 @@ class ContourLabels<ArrayType extends TypedArray, MapType extends MapLikeType> e
 
         const map_max_zoom = map.getMaxZoom();
         const contour_label_spacing = 0.01 * Math.pow(2, 7 - map_max_zoom);
-        let min_label_lat: number = null, max_label_lat: number = null, min_label_lon: number = null, max_label_lon: number = null;
+        let min_label_lat: number | null = null, max_label_lat: number | null = null, min_label_lon: number | null = null, max_label_lon: number | null = null;
 
         Object.entries(contour_data).forEach(([level, contours]) => {
             const icntr = (parseFloat(level) - contour_levels[0]);
@@ -311,6 +315,10 @@ class ContourLabels<ArrayType extends TypedArray, MapType extends MapLikeType> e
         });
 
         const tree = new kdTree(label_pos, (a, b) => Math.hypot(a.lon - b.lon, a.lat - b.lat), ['lon', 'lat']);
+
+        if (min_label_lon === null || min_label_lat === null || max_label_lon === null || max_label_lat === null) {
+            return;
+        }
 
         const {x: min_label_x, y: max_label_y} = new LngLat(min_label_lon, min_label_lat).toMercatorCoord();
         const {x: max_label_x, y: min_label_y} = new LngLat(max_label_lon, max_label_lat).toMercatorCoord();

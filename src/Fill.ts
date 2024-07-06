@@ -81,6 +81,10 @@ class PlotComponentFill<ArrayType extends TypedArray, MapType extends MapLikeTyp
     public async updateField(field: RawScalarField<ArrayType>) {
         this.field = field;
 
+        if (this.image_mag_filter === null || this.cmap_mag_filter === null) {
+            throw `Implement magnification filtes in a subclass`;
+        }
+
         if (this.gl_elems === null) return;
 
         const gl = this.gl_elems.gl;

@@ -138,7 +138,7 @@ class ColorMap {
                     crossover_hsv[1] + (color1_hsv[1] - crossover_hsv[1]) * interp_fac,
                     crossover_hsv[2] + (color1_hsv[2] - crossover_hsv[2]) * interp_fac]
             }
-            else if (level >= crossover) {
+            else {
                 interp_fac = Math.pow((level - crossover) / (level_max - crossover), interp_fac_power);
                 
                 [h, s, v] = [
