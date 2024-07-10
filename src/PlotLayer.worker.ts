@@ -335,7 +335,7 @@ function makePolylines(lines: LineData[]) : Polyline {
 
         let pt_prev: [number, number], pt_this = verts[0], pt_next = verts[1];
         let ept_prev: [number, number], ept_this = extrusion_verts[0], ept_next = extrusion_verts[1];
-        let len_prev: number, len_this = 0;
+        let len_prev: number, len_this = 0.0001;
         let [ext_x, ext_y] = compute_normal_vec(ept_this, ept_next, !has_offsets);
 
         ret.vertices[ilns.vertices++] = pt_this[0]; ret.vertices[ilns.vertices++] = pt_this[1]; ret.vertices[ilns.vertices++] = len_this;
@@ -348,10 +348,10 @@ function makePolylines(lines: LineData[]) : Polyline {
             [ext_x, ext_y] = compute_normal_vec(ept_prev, ept_this, !has_offsets);
             len_prev = len_this; len_this += Math.hypot(verts[ivt - 1][0] - verts[ivt][0], verts[ivt - 1][1] - verts[ivt][1]);
 
-            ret.vertices[ilns.vertices++] = pt_prev[0]; ret.vertices[ilns.vertices++] = pt_prev[1]; ret.vertices[ilns.vertices++] = len_prev;
+            ret.vertices[ilns.vertices++] = pt_prev[0]; ret.vertices[ilns.vertices++] = pt_prev[1]; ret.vertices[ilns.vertices++] = -len_prev;
             ret.vertices[ilns.vertices++] = pt_prev[0]; ret.vertices[ilns.vertices++] = pt_prev[1]; ret.vertices[ilns.vertices++] = len_prev;
 
-            ret.vertices[ilns.vertices++] = pt_this[0]; ret.vertices[ilns.vertices++] = pt_this[1]; ret.vertices[ilns.vertices++] = len_this;
+            ret.vertices[ilns.vertices++] = pt_this[0]; ret.vertices[ilns.vertices++] = pt_this[1]; ret.vertices[ilns.vertices++] = -len_this;
             ret.vertices[ilns.vertices++] = pt_this[0]; ret.vertices[ilns.vertices++] = pt_this[1]; ret.vertices[ilns.vertices++] = len_this;
 
             ret.extrusion[ilns.extrusion++] =  ext_x; ret.extrusion[ilns.extrusion++] =  ext_y;

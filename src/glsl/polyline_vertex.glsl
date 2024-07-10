@@ -31,6 +31,7 @@ varying highp float v_data;
 #endif
 
 varying highp float v_dist;
+varying lowp float v_cross;
 
 mat4 scalingMatrix(float x_scale, float y_scale, float z_scale) {
     return mat4(x_scale, 0.0,     0.0,     0.0,
@@ -63,7 +64,8 @@ void main() {
     float globe_width = 1.;
     vec2 globe_offset = vec2(globe_width * float(u_offset), 0.);
 
-    v_dist = a_pos.z;
+    v_dist = abs(a_pos.z);
+    v_cross = sign(a_pos.z);
     vec4 center_pos = u_matrix * vec4(a_pos.xy + globe_offset, 0.0, 1.0);
     vec4 offset = vec4(0.0, 0.0, 0.0, 0.0);
 
@@ -71,7 +73,7 @@ void main() {
     if (u_zoom >= a_min_zoom) {
 #endif
 
-        vec2 offset_ext = u_line_width * 1.5 * a_extrusion;
+        vec2 offset_ext = u_line_width * 2. * a_extrusion;
 
         mat4 map_stretch_matrix = scalingMatrix(u_map_height / u_map_width, 1., 1.);
         mat4 rotation_matrix = rotationZMatrix(radians(u_map_bearing));  
