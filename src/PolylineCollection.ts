@@ -10,6 +10,17 @@ const polyline_fragment_src = require('./glsl/polyline_fragment.glsl');
 
 type LineStyle = "-" | "--" | ":" | "-." | number[];
 
+const dash_arrays: Record<Exclude<LineStyle, number[]>, number[]> = {
+    "-": [1],
+    "--": [1, 1, 1, 1, 0, 0],
+    ":": [1, 0],
+    "-.": [1, 1, 1, 0, 1, 0],
+}
+
+function isLineStyle(obj: any) : obj is LineStyle {
+    return obj in dash_arrays || Array.isArray(obj) && obj.length > 0 && obj.map(e => typeof e === 'number').reduce((a, b) => a && b, true);
+}
+
 interface PolylineCollectionOpts {
     offset_scale?: number;
     color?: string;
@@ -19,12 +30,6 @@ interface PolylineCollectionOpts {
 }
 
 function makeDashTexture(gl: WebGLAnyRenderingContext, line_style: LineStyle) {
-    const dash_arrays: Record<Exclude<LineStyle, number[]>, number[]> = {
-        "-": [1],
-        "--": [1, 1, 1, 1, 0, 0],
-        ":": [1, 0],
-        "-.": [1, 1, 1, 0, 1, 0],
-    }
 
     const dash_array = Array.isArray(line_style) ? line_style : dash_arrays[line_style];
 
@@ -167,5 +172,5 @@ class PolylineCollection {
     }
 }
 
-export {PolylineCollection};
+export {PolylineCollection, isLineStyle};
 export type {PolylineCollectionOpts, LineStyle};

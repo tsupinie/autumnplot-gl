@@ -3,7 +3,7 @@ import { LineData, TypedArray, WebGLAnyRenderingContext} from './AutumnTypes';
 import { LngLat, MapLikeType } from './Map';
 import { PlotComponent } from './PlotComponent';
 import { RawScalarField } from './RawField';
-import { LineStyle, PolylineCollection, PolylineCollectionOpts } from './PolylineCollection';
+import { LineStyle, PolylineCollection, PolylineCollectionOpts, isLineStyle } from './PolylineCollection';
 import { TextCollection, TextCollectionOptions, TextSpec } from './TextCollection';
 import { Color } from './Color';
 
@@ -40,7 +40,7 @@ interface ContourOptions {
      * The width of the line in pixels.
      * @default 2
      */
-    line_width?: number;
+    line_width?: number | ((level: number) => number);
 
     /**
      * The style to use for the line. The possible options are '-' for a solid line, '--' for a dashed line, ':' for a
@@ -48,7 +48,7 @@ interface ContourOptions {
      *  specify a custom dash scheme.
      * @default '-'
      */
-    line_style?: LineStyle;
+    line_style?: LineStyle | ((level: number) => LineStyle);
 }
 
 const contour_opt_defaults: Required<ContourOptions> = {
@@ -77,7 +77,7 @@ class Contour<ArrayType extends TypedArray, MapType extends MapLikeType> extends
     public readonly opts: Required<ContourOptions>;
 
     private gl_elems: ContourGLElems<MapType> | null;
-    private contours: PolylineCollection | null;
+    private contours: PolylineCollection[] | null;
 
     /**
      * Create a contoured field
@@ -104,29 +104,57 @@ class Contour<ArrayType extends TypedArray, MapType extends MapLikeType> extends
 
         const gl = this.gl_elems.gl;
 
-        const plc_opts: PolylineCollectionOpts = {line_width: this.opts.line_width, line_style: this.opts.line_style};
-        if (this.opts.cmap !== null) {
-            plc_opts.cmap = this.opts.cmap;
-        }
-        else {
-            plc_opts.color = this.opts.color;
-        }
-
         const contour_data = await this.getContours();
-        const line_data = Object.entries(contour_data).map(([cv, cd]) => {
-            const cv_ = parseFloat(cv);
 
-            return cd.map(c => {
+        type LineDataStyleWidth = {data: LineData[], line_width: number, line_style: LineStyle};
+        const line_data: LineDataStyleWidth[] = [];
+
+        // Make contour data and sort them by line width and line style
+        Object.entries(contour_data).forEach(([cv, cd]) => {
+            const cv_ = parseFloat(cv);
+            const contour_style = isLineStyle(this.opts.line_style) ? this.opts.line_style : this.opts.line_style(cv_);
+            const contour_width = typeof this.opts.line_width === 'number' ? this.opts.line_width : this.opts.line_width(cv_);
+
+            const polyline_data = cd.map(c => {
                 const ld: LineData = {vertices: c};
                 if (this.opts.cmap !== null){
                     ld.data = c.map(() => cv_)
                 }
                 return ld;
             });
-        }).flat();
 
-        this.contours = await PolylineCollection.make(gl, line_data, plc_opts);
-        this.gl_elems.map.triggerRepaint();
+            const line_data_filtered = line_data.filter(ld => ld.line_style == contour_style && ld.line_width == contour_width);
+            let contour_line_data: LineDataStyleWidth;
+            if (line_data_filtered.length == 0) {
+                contour_line_data = {data: [], line_width: contour_width, line_style: contour_style};
+                line_data.push(contour_line_data);
+            }
+            else {
+                contour_line_data = line_data_filtered[0];
+            }
+
+            contour_line_data.data = contour_line_data.data.concat(polyline_data);
+        });
+
+        // Make one PolylineCollection for each combination of line width and line style
+        const promises = line_data.map(async ld => {
+            const plc_opts: PolylineCollectionOpts = {line_width: ld.line_width, line_style: ld.line_style};
+            if (this.opts.cmap !== null) {
+                plc_opts.cmap = this.opts.cmap;
+            }
+            else {
+                plc_opts.color = this.opts.color;
+            }
+
+            return await PolylineCollection.make(gl, ld.data, plc_opts);
+        });
+
+        Promise.all(promises).then(values => {
+            if (this.gl_elems === null) return;
+
+            this.contours = values;
+            this.gl_elems.map.triggerRepaint();
+        });
     }
 
     public async getContours() {
@@ -164,7 +192,7 @@ class Contour<ArrayType extends TypedArray, MapType extends MapLikeType> extends
         const bearing = gl_elems.map.getBearing();
         const pitch = gl_elems.map.getPitch();
 
-        this.contours.render(gl, matrix, [map_width, map_height], zoom, bearing, pitch);
+        this.contours.forEach(cnt => cnt.render(gl, matrix, [map_width, map_height], zoom, bearing, pitch));
     }
 }
 
