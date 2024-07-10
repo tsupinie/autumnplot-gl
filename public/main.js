@@ -77,7 +77,7 @@ function makeSynthetic500mbLayers() {
     const raw_wind_field = makeWinds(0);
     const raw_ws_field = makeWindSpeed(0);
 
-    const cntr = new apgl.Contour(raw_hght_field, {interval: 1, color: '#000000', line_width: 2, line_style: '-'});
+    const cntr = new apgl.Contour(raw_hght_field, {interval: 1, color: '#000000', line_width: lev => lev < 565 ? 2 : 4, line_style: lev => lev < 555 ? '--' : '-'});
     const filled = new apgl.ContourFill(raw_ws_field, {'cmap': colormap, 'opacity': 0.8});
     const barbs = new apgl.Barbs(raw_wind_field, {color: '#000000', thin_fac: 16});
 
