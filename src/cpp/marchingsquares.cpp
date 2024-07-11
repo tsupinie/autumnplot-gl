@@ -162,6 +162,13 @@ std::vector<Contour> makeContours(T* grid, float* xs, float* ys, int nx, int ny,
 
                 segs_idx = char((float)esw > value) + (char((float)ese > value) << 1) + (char((float)ene > value) << 2) + (char((float)enw > value) << 3);
 
+                if (segs_idx == 5 && abs((float)(esw + ene) * 0.5 - value) > abs((float)(ese + enw) * 0.5 - value)) {
+                    segs_idx = 10;
+                }
+                else if (segs_idx == 10 && abs((float)(esw + ene) * 0.5 - value) < abs((float)(ese + enw) * 0.5 - value)) {
+                    segs_idx = 5;
+                }
+
                 for (int iseg = 0; iseg < NSEGS; iseg++) {
                     if (MARCHING_SQUARES_SEGS[segs_idx][iseg][0][0] < 0) continue;
 
