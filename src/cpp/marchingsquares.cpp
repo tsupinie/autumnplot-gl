@@ -161,21 +161,26 @@ std::vector<Contour> makeContours(T* grid, float* xs, float* ys, int nx, int ny,
                 float value = values[idx];
 
                 segs_idx = char((float)esw > value) + (char((float)ese > value) << 1) + (char((float)ene > value) << 2) + (char((float)enw > value) << 3);
+                bool reverse_segs = false;
 
                 if (segs_idx == 5 && abs((float)(esw + ene) * 0.5 - value) > abs((float)(ese + enw) * 0.5 - value)) {
                     segs_idx = 10;
+                    reverse_segs = true;
                 }
                 else if (segs_idx == 10 && abs((float)(esw + ene) * 0.5 - value) < abs((float)(ese + enw) * 0.5 - value)) {
                     segs_idx = 5;
+                    reverse_segs = true;
                 }
 
                 for (int iseg = 0; iseg < NSEGS; iseg++) {
                     if (MARCHING_SQUARES_SEGS[segs_idx][iseg][0][0] < 0) continue;
 
-                    const float* start_seg_pt = MARCHING_SQUARES_SEGS[segs_idx][iseg][0];
+                    int start_idx = reverse_segs ? 1 : 0;
+                    const float* start_seg_pt = MARCHING_SQUARES_SEGS[segs_idx][iseg][start_idx];
                     Point start_pt = Point(start_seg_pt[0] + i, start_seg_pt[1] + j);
 
-                    const float* end_seg_pt = MARCHING_SQUARES_SEGS[segs_idx][iseg][1];
+                    int end_idx = reverse_segs ? 0 : 1;
+                    const float* end_seg_pt = MARCHING_SQUARES_SEGS[segs_idx][iseg][end_idx];
                     Point end_pt = Point(end_seg_pt[0] + i, end_seg_pt[1] + j);
 
                     bool start_seen = contour_frags_by_end[value].find(start_pt) != contour_frags_by_end[value].end();
