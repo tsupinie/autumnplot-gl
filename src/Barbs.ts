@@ -4,11 +4,11 @@ import { BillboardCollection } from './BillboardCollection';
 import { normalizeOptions } from './utils';
 import { RawVectorField } from "./RawField";
 import { MapLikeType } from "./Map";
-import { TypedArray, WebGLAnyRenderingContext } from "./AutumnTypes";
+import { BillboardSpec, TypedArray, WebGLAnyRenderingContext } from "./AutumnTypes";
 import { Color } from "./Color";
 import { ColorMap } from "./Colormap";
 
-const BARB_DIMS = {
+const BASE_BARB_DIMS: BillboardSpec = {
     BB_WIDTH: 85,
     BB_HEIGHT: 256,
     BB_TEX_WIDTH: 1024,
@@ -18,14 +18,16 @@ const BARB_DIMS = {
     BB_MAG_BIN_SIZE: 5,
 }
 
-function _createBarbTexture() : HTMLCanvasElement {
+const LINE_WIDTH_MULTIPLIER = 4;
+
+function createBarbTexture(dimensions: BillboardSpec, line_width: number) : HTMLCanvasElement {
     let canvas = document.createElement('canvas');
 
-    canvas.width = BARB_DIMS.BB_TEX_WIDTH;
-    canvas.height = BARB_DIMS.BB_TEX_HEIGHT;
+    canvas.width = dimensions.BB_TEX_WIDTH;
+    canvas.height = dimensions.BB_TEX_HEIGHT;
     
     function drawWindBarb(ctx: CanvasRenderingContext2D, tipx: number, tipy: number, mag: number) : void {
-        const elem_full_size = BARB_DIMS.BB_WIDTH / 2 - 4;
+        const elem_full_size = dimensions.BB_WIDTH / 2 - 4;
         const elem_spacing = elem_full_size / 2;
         
         if (mag < 2.5) {
@@ -112,19 +114,17 @@ function _createBarbTexture() : HTMLCanvasElement {
         throw "Could not get rendering context for the wind barb canvas";
     }
 
-    ctx.lineWidth = 8;
+    ctx.lineWidth = line_width;
     ctx.miterLimit = 4;
     
-    for (let ibarb = 0; ibarb <= BARB_DIMS.BB_MAG_MAX; ibarb += BARB_DIMS.BB_MAG_BIN_SIZE) {
-        const x_pos = (ibarb % BARB_DIMS.BB_MAG_WRAP) / BARB_DIMS.BB_MAG_BIN_SIZE * BARB_DIMS.BB_WIDTH + BARB_DIMS.BB_WIDTH / 2;
-        const y_pos = Math.floor(ibarb / BARB_DIMS.BB_MAG_WRAP) * BARB_DIMS.BB_HEIGHT + BARB_DIMS.BB_WIDTH / 2;
+    for (let ibarb = 0; ibarb <= dimensions.BB_MAG_MAX; ibarb += dimensions.BB_MAG_BIN_SIZE) {
+        const x_pos = (ibarb % dimensions.BB_MAG_WRAP) / dimensions.BB_MAG_BIN_SIZE * dimensions.BB_WIDTH + dimensions.BB_WIDTH / 2;
+        const y_pos = Math.floor(ibarb / dimensions.BB_MAG_WRAP) * dimensions.BB_HEIGHT + dimensions.BB_WIDTH / 2;
         drawWindBarb(ctx, x_pos, y_pos, ibarb);
     }
 
     return canvas;
 }
-
-let BARB_TEXTURE: HTMLCanvasElement | null = null;
 
 interface BarbsOptions {
     /** 
@@ -134,6 +134,10 @@ interface BarbsOptions {
     color?: string;
 
     cmap?: ColorMap | null;
+
+    line_width?: number;
+
+    barb_size_multiplier?: number;
 
     /** 
      * How much to thin the barbs at zoom level 1 on the map. This effectively means to plot every `n`th barb in the i and j directions, where `n` = 
@@ -146,6 +150,8 @@ interface BarbsOptions {
 const barb_opt_defaults: Required<BarbsOptions> = {
     color: '#000000',
     cmap: null,
+    line_width: 2,
+    barb_size_multiplier: 1, 
     thin_fac: 1
 }
 
@@ -169,6 +175,7 @@ class Barbs<ArrayType extends TypedArray, MapType extends MapLikeType> extends P
     private readonly color: Color;
 
     private gl_elems: BarbsGLElems<ArrayType, MapType> | null;
+    private barb_texture: HTMLCanvasElement;
 
     /**
      * Create a field of wind barbs
@@ -182,6 +189,7 @@ class Barbs<ArrayType extends TypedArray, MapType extends MapLikeType> extends P
 
         this.opts = normalizeOptions(opts, barb_opt_defaults);
         this.color = Color.fromHex(this.opts.color);
+        this.barb_texture = createBarbTexture(BASE_BARB_DIMS, this.opts.line_width / this.opts.barb_size_multiplier * LINE_WIDTH_MULTIPLIER);
 
         this.gl_elems = null;
     }
@@ -207,15 +215,11 @@ class Barbs<ArrayType extends TypedArray, MapType extends MapLikeType> extends P
         
         const map_max_zoom = map.getMaxZoom();
 
-        if (BARB_TEXTURE === null) {
-            BARB_TEXTURE = _createBarbTexture();
-        }
-
-        const barb_image = {format: gl.RGBA, type: gl.UNSIGNED_BYTE, image: BARB_TEXTURE, mag_filter: gl.NEAREST};
+        const barb_image = {format: gl.RGBA, type: gl.UNSIGNED_BYTE, image: this.barb_texture, mag_filter: gl.NEAREST};
 
         const cmap = this.opts.cmap === null ? undefined : this.opts.cmap;
         const barb_billboards = new BillboardCollection(this.fields, this.opts.thin_fac, map_max_zoom, barb_image, 
-            BARB_DIMS, 0.1, {color: this.color, cmap: cmap});
+            BASE_BARB_DIMS, 0.1 * this.opts.barb_size_multiplier, {color: this.color, cmap: cmap});
         await barb_billboards.setup(gl);
 
         this.gl_elems = {
