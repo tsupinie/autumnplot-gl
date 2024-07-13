@@ -133,10 +133,21 @@ interface BarbsOptions {
      */
     color?: string;
 
+    /**
+     * A color map to use to color the barbs by magnitude. Specifying cmap overrides the color argument.
+     */
     cmap?: ColorMap | null;
 
+    /**
+     * The width of the lines to use for the barbs
+     * @default 2
+     */
     line_width?: number;
 
+    /**
+     * A multiplier for the barb size
+     * @default 1
+     */
     barb_size_multiplier?: number;
 
     /** 
