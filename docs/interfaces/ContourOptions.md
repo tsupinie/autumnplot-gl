@@ -22,7 +22,7 @@ null
 
 #### Source
 
-[Contour.ts:25](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Contour.ts#L25)
+[Contour.ts:25](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/Contour.ts#L25)
 
 ***
 
@@ -40,7 +40,7 @@ The color of the contours as a hex color string
 
 #### Source
 
-[Contour.ts:19](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Contour.ts#L19)
+[Contour.ts:19](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/Contour.ts#L19)
 
 ***
 
@@ -58,7 +58,7 @@ The contour interval for drawing contours at regular intervals
 
 #### Source
 
-[Contour.ts:31](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Contour.ts#L31)
+[Contour.ts:31](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/Contour.ts#L31)
 
 ***
 
@@ -76,7 +76,7 @@ null
 
 #### Source
 
-[Contour.ts:37](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Contour.ts#L37)
+[Contour.ts:37](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/Contour.ts#L37)
 
 ***
 
@@ -101,7 +101,7 @@ level => level < 0 ? '--' : '-'
 
 #### Source
 
-[Contour.ts:53](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Contour.ts#L53)
+[Contour.ts:53](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/Contour.ts#L53)
 
 ***
 
@@ -126,4 +126,4 @@ level => level >= 100 ? 3 : 1.5
 
 #### Source
 
-[Contour.ts:45](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Contour.ts#L45)
+[Contour.ts:45](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/Contour.ts#L45)

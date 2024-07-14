@@ -52,7 +52,7 @@ Options for creating the paintball plot
 
 #### Source
 
-[Paintball.ts:60](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Paintball.ts#L60)
+[Paintball.ts:60](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/Paintball.ts#L60)
 
 ## Properties
 
@@ -62,7 +62,7 @@ Options for creating the paintball plot
 
 #### Source
 
-[Paintball.ts:47](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Paintball.ts#L47)
+[Paintball.ts:47](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/Paintball.ts#L47)
 
 ## Methods
 
@@ -84,4 +84,4 @@ The new field to display as a paintball plot
 
 #### Source
 
-[Paintball.ts:76](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Paintball.ts#L76)
+[Paintball.ts:76](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/Paintball.ts#L76)

@@ -88,4 +88,4 @@ a Colormap object
 
 ## Source
 
-[index.ts:21](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/index.ts#L21)
+[index.ts:21](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/index.ts#L21)

@@ -32,7 +32,7 @@ The wind profiles themselves, which should be given as a 1D array in row-major o
 
 #### Source
 
-[RawField.ts:164](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/RawField.ts#L164)
+[RawField.ts:164](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/RawField.ts#L164)
 
 ## Properties
 
@@ -42,7 +42,7 @@ The wind profiles themselves, which should be given as a 1D array in row-major o
 
 #### Source
 
-[RawField.ts:157](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/RawField.ts#L157)
+[RawField.ts:157](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/RawField.ts#L157)
 
 ***
 
@@ -52,7 +52,7 @@ The wind profiles themselves, which should be given as a 1D array in row-major o
 
 #### Source
 
-[RawField.ts:156](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/RawField.ts#L156)
+[RawField.ts:156](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/RawField.ts#L156)
 
 ## Methods
 
@@ -68,4 +68,4 @@ Get the gridded storm motion vector field (internal method)
 
 #### Source
 
-[RawField.ts:170](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/RawField.ts#L170)
+[RawField.ts:170](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/RawField.ts#L170)

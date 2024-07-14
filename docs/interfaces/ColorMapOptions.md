@@ -16,7 +16,7 @@ The color to use for areas where the value is above the highest value in the col
 
 #### Source
 
-[Colormap.ts:18](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Colormap.ts#L18)
+[Colormap.ts:18](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/Colormap.ts#L18)
 
 ***
 
@@ -28,4 +28,4 @@ The color to use for areas where the value is below the lowest value in the colo
 
 #### Source
 
-[Colormap.ts:21](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Colormap.ts#L21)
+[Colormap.ts:21](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/Colormap.ts#L21)

@@ -36,7 +36,7 @@ The data, which should be given as a 1D array in row-major order, with the first
 
 #### Source
 
-[RawField.ts:26](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/RawField.ts#L26)
+[RawField.ts:26](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/RawField.ts#L26)
 
 ## Properties
 
@@ -46,7 +46,7 @@ The data, which should be given as a 1D array in row-major order, with the first
 
 #### Source
 
-[RawField.ts:17](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/RawField.ts#L17)
+[RawField.ts:17](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/RawField.ts#L17)
 
 ***
 
@@ -56,7 +56,7 @@ The data, which should be given as a 1D array in row-major order, with the first
 
 #### Source
 
-[RawField.ts:16](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/RawField.ts#L16)
+[RawField.ts:16](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/RawField.ts#L16)
 
 ## Methods
 
@@ -74,7 +74,7 @@ The data, which should be given as a 1D array in row-major order, with the first
 
 #### Source
 
-[RawField.ts:54](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/RawField.ts#L54)
+[RawField.ts:54](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/RawField.ts#L54)
 
 ***
 
@@ -113,4 +113,4 @@ wind_speed_field = RawScalarField.aggreateFields(Math.hypot, u_field, v_field);
 
 #### Source
 
-[RawField.ts:67](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/RawField.ts#L67)
+[RawField.ts:67](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/RawField.ts#L67)

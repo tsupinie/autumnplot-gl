@@ -55,7 +55,7 @@ A unique id for this layer
 
 #### Source
 
-[PlotLayer.ts:92](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/PlotLayer.ts#L92)
+[PlotLayer.ts:92](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/PlotLayer.ts#L92)
 
 ## Properties
 
@@ -69,7 +69,7 @@ A unique id for this layer
 
 #### Source
 
-[PlotLayer.ts:9](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/PlotLayer.ts#L9)
+[PlotLayer.ts:9](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/PlotLayer.ts#L9)
 
 ***
 
@@ -83,7 +83,7 @@ A unique id for this layer
 
 #### Source
 
-[PlotLayer.ts:10](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/PlotLayer.ts#L10)
+[PlotLayer.ts:10](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/PlotLayer.ts#L10)
 
 ***
 
@@ -97,7 +97,7 @@ A unique id for this layer
 
 #### Source
 
-[PlotLayer.ts:8](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/PlotLayer.ts#L8)
+[PlotLayer.ts:8](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/PlotLayer.ts#L8)
 
 ## Methods
 
@@ -123,7 +123,7 @@ The key to associate with the field
 
 #### Source
 
-[PlotLayer.ts:153](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/PlotLayer.ts#L153)
+[PlotLayer.ts:153](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/PlotLayer.ts#L153)
 
 ***
 
@@ -141,7 +141,7 @@ An array of dates/times
 
 #### Source
 
-[PlotLayer.ts:144](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/PlotLayer.ts#L144)
+[PlotLayer.ts:144](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/PlotLayer.ts#L144)
 
 ***
 
@@ -159,7 +159,7 @@ An array of dates/times
 
 #### Source
 
-[PlotLayer.ts:21](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/PlotLayer.ts#L21)
+[PlotLayer.ts:21](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/PlotLayer.ts#L21)
 
 ***
 
@@ -181,4 +181,4 @@ The new key. The field with that key is plotted immediately.
 
 #### Source
 
-[PlotLayer.ts:133](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/PlotLayer.ts#L133)
+[PlotLayer.ts:133](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/PlotLayer.ts#L133)

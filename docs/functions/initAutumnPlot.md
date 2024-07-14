@@ -17,4 +17,4 @@ first, you can prevent races when you contour a bunch of fields at once.
 
 ## Source
 
-[index.ts:36](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/index.ts#L36)
+[index.ts:36](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/index.ts#L36)

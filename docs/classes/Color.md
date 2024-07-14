@@ -26,7 +26,7 @@ An RGBA tuple of floats between 0 and 1
 
 #### Source
 
-[Color.ts:100](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Color.ts#L100)
+[Color.ts:100](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/Color.ts#L100)
 
 ## Accessors
 
@@ -42,7 +42,7 @@ The alpha component (opacity) of the color as a float value between 0 and 1
 
 #### Source
 
-[Color.ts:128](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Color.ts#L128)
+[Color.ts:128](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/Color.ts#L128)
 
 ***
 
@@ -58,7 +58,7 @@ The blue component of the color as a float value between 0 and 1
 
 #### Source
 
-[Color.ts:121](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Color.ts#L121)
+[Color.ts:121](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/Color.ts#L121)
 
 ***
 
@@ -74,7 +74,7 @@ The green component of the color as a float value between 0 and 1
 
 #### Source
 
-[Color.ts:114](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Color.ts#L114)
+[Color.ts:114](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/Color.ts#L114)
 
 ***
 
@@ -90,7 +90,7 @@ The red component of the color as a float value between 0 and 1
 
 #### Source
 
-[Color.ts:107](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Color.ts#L107)
+[Color.ts:107](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/Color.ts#L107)
 
 ## Methods
 
@@ -106,7 +106,7 @@ The color as a tuple of HSV values
 
 #### Source
 
-[Color.ts:164](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Color.ts#L164)
+[Color.ts:164](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/Color.ts#L164)
 
 ***
 
@@ -122,7 +122,7 @@ The color as an RGBA hex string (e.g., '#dedbefff')
 
 #### Source
 
-[Color.ts:150](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Color.ts#L150)
+[Color.ts:150](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/Color.ts#L150)
 
 ***
 
@@ -138,7 +138,7 @@ The color as an RGBA float tuple
 
 #### Source
 
-[Color.ts:157](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Color.ts#L157)
+[Color.ts:157](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/Color.ts#L157)
 
 ***
 
@@ -154,7 +154,7 @@ The color as an RGB hex string (e.g., '#dedbef')
 
 #### Source
 
-[Color.ts:143](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Color.ts#L143)
+[Color.ts:143](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/Color.ts#L143)
 
 ***
 
@@ -176,7 +176,7 @@ A new color with the alpha component set to opacity.
 
 #### Source
 
-[Color.ts:136](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Color.ts#L136)
+[Color.ts:136](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/Color.ts#L136)
 
 ***
 
@@ -198,7 +198,7 @@ a new Color object
 
 #### Source
 
-[Color.ts:180](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Color.ts#L180)
+[Color.ts:180](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/Color.ts#L180)
 
 ***
 
@@ -220,4 +220,4 @@ a new Color object
 
 #### Source
 
-[Color.ts:172](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Color.ts#L172)
+[Color.ts:172](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/Color.ts#L172)

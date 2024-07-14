@@ -44,7 +44,7 @@ Various options to use when creating the hodographs
 
 #### Source
 
-[Hodographs.ts:103](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Hodographs.ts#L103)
+[Hodographs.ts:122](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/Hodographs.ts#L122)
 
 ## Properties
 
@@ -54,7 +54,7 @@ Various options to use when creating the hodographs
 
 #### Source
 
-[Hodographs.ts:91](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Hodographs.ts#L91)
+[Hodographs.ts:109](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/Hodographs.ts#L109)
 
 ## Methods
 
@@ -76,4 +76,4 @@ The new profiles to display as hodographs
 
 #### Source
 
-[Hodographs.ts:120](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Hodographs.ts#L120)
+[Hodographs.ts:140](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/Hodographs.ts#L140)

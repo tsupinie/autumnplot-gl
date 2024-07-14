@@ -22,7 +22,7 @@ A font face to use for the label and tick values.
 
 #### Source
 
-[ColorBar.ts:273](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/ColorBar.ts#L273)
+[ColorBar.ts:273](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/ColorBar.ts#L273)
 
 ***
 
@@ -40,4 +40,4 @@ The number of columns of entries in the key
 
 #### Source
 
-[ColorBar.ts:267](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/ColorBar.ts#L267)
+[ColorBar.ts:267](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/ColorBar.ts#L267)

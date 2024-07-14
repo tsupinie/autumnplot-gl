@@ -36,7 +36,7 @@ Options for the color map
 
 #### Source
 
-[Colormap.ts:37](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Colormap.ts#L37)
+[Colormap.ts:37](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/Colormap.ts#L37)
 
 ## Properties
 
@@ -46,7 +46,7 @@ Options for the color map
 
 #### Source
 
-[Colormap.ts:27](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Colormap.ts#L27)
+[Colormap.ts:27](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/Colormap.ts#L27)
 
 ***
 
@@ -56,7 +56,7 @@ Options for the color map
 
 #### Source
 
-[Colormap.ts:26](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Colormap.ts#L26)
+[Colormap.ts:26](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/Colormap.ts#L26)
 
 ***
 
@@ -66,7 +66,7 @@ Options for the color map
 
 #### Source
 
-[Colormap.ts:28](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Colormap.ts#L28)
+[Colormap.ts:28](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/Colormap.ts#L28)
 
 ***
 
@@ -76,7 +76,7 @@ Options for the color map
 
 #### Source
 
-[Colormap.ts:29](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Colormap.ts#L29)
+[Colormap.ts:29](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/Colormap.ts#L29)
 
 ## Methods
 
@@ -92,7 +92,7 @@ an array of hex color strings
 
 #### Source
 
-[Colormap.ts:55](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Colormap.ts#L55)
+[Colormap.ts:55](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/Colormap.ts#L55)
 
 ***
 
@@ -108,7 +108,7 @@ an array of opacities, one for each color in the color map
 
 #### Source
 
-[Colormap.ts:62](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Colormap.ts#L62)
+[Colormap.ts:62](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/Colormap.ts#L62)
 
 ***
 
@@ -132,7 +132,7 @@ A new color map
 
 #### Source
 
-[Colormap.ts:71](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Colormap.ts#L71)
+[Colormap.ts:71](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/Colormap.ts#L71)
 
 ***
 
@@ -172,4 +172,4 @@ a Colormap object
 
 #### Source
 
-[Colormap.ts:117](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Colormap.ts#L117)
+[Colormap.ts:117](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/Colormap.ts#L117)

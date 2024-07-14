@@ -38,7 +38,7 @@
 
 #### Source
 
-[Contour.ts:265](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Contour.ts#L265)
+[Contour.ts:265](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/Contour.ts#L265)
 
 ## Methods
 
@@ -54,4 +54,4 @@ Update contour labels when the field for the associated Contour object has been 
 
 #### Source
 
-[Contour.ts:278](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Contour.ts#L278)
+[Contour.ts:278](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/Contour.ts#L278)

@@ -55,7 +55,7 @@ Options for creating the wind barbs
 
 #### Source
 
-[Barbs.ts:196](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Barbs.ts#L196)
+[Barbs.ts:196](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/Barbs.ts#L196)
 
 ## Properties
 
@@ -65,7 +65,7 @@ Options for creating the wind barbs
 
 #### Source
 
-[Barbs.ts:185](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Barbs.ts#L185)
+[Barbs.ts:185](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/Barbs.ts#L185)
 
 ## Methods
 
@@ -87,4 +87,4 @@ The new field to display as barbs
 
 #### Source
 
-[Barbs.ts:212](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Barbs.ts#L212)
+[Barbs.ts:212](https://github.com/tsupinie/autumnplot-gl/blob/f3c7a419dbb9b291dc2fc3e12d17fe6bae8ddba4/src/Barbs.ts#L212)
