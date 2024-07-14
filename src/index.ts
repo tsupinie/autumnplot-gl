@@ -9,8 +9,10 @@ import Hodographs, {HodographOptions} from './Hodographs';
 import { PlotLayer, MultiPlotLayer } from './PlotLayer';
 import { WindProfile, WebGLAnyRenderingContext, TypedArray, ContourData } from "./AutumnTypes";
 import { MapLikeType } from "./Map";
-import { ColorMap, ColorMapOptions, bluered, redblue, pw_speed500mb, pw_speed850mb, pw_cape, pw_t2m, pw_td2m, Color, nws_storm_clear_refl } from './Colormap';
+import { ColorMap, ColorMapOptions, bluered, redblue, pw_speed500mb, pw_speed850mb, pw_cape, pw_t2m, pw_td2m, nws_storm_clear_refl } from './Colormap';
+import { Color } from "./Color";
 import { makeColorBar, makePaintballKey, ColorbarOrientation, ColorbarTickDirection, ColorBarOptions, PaintballKeyOptions } from "./ColorBar";
+import { LineStyle } from "./PolylineCollection";
 import { RawScalarField, RawVectorField, RawProfileField, VectorRelativeTo, RawVectorFieldOptions} from "./RawField";
 import { Grid, GridType, PlateCarreeGrid, PlateCarreeRotatedGrid, LambertGrid } from './Grid'
 
@@ -42,7 +44,7 @@ export {PlotComponent,
         Paintball, PaintballOptions,
         Hodographs, HodographOptions, WindProfile,
         PlotLayer, MultiPlotLayer, 
-        MapLikeType,
+        MapLikeType, LineStyle,
         ColorMap, ColorMapOptions, colormaps, makeColorBar, makePaintballKey, Color, ColorbarOrientation, ColorbarTickDirection, ColorBarOptions, PaintballKeyOptions,
         RawScalarField, RawVectorField, RawProfileField,
         Grid, GridType, VectorRelativeTo, RawVectorFieldOptions, PlateCarreeGrid, PlateCarreeRotatedGrid, LambertGrid,

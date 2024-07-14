@@ -1,30 +1,34 @@
-#ifdef DATA
-varying highp float v_data;
 
-uniform sampler2D u_cmap_sampler;
-uniform sampler2D u_cmap_nonlin_sampler;
-uniform highp float u_cmap_min;
-uniform highp float u_cmap_max;
-uniform int u_n_index;
-#else
+uniform sampler2D u_dash_sampler;
+
+#ifndef DATA
 uniform lowp vec4 u_color;
 #endif
 
+uniform lowp float u_line_width;
+uniform lowp float u_zoom;
+uniform int u_dash_pattern_length;
+
+#ifdef DATA
+varying highp float v_data;
+#endif
+
+varying highp float v_dist;
+varying lowp float v_cross;
+
 void main() {
+    lowp float dash_x = fract(v_dist * 2e2 * pow(2., floor(u_zoom)) / float(u_dash_pattern_length));
+    lowp float dash = texture2D(u_dash_sampler, vec2(dash_x, 0.5)).r;
+
     lowp vec4 color;
 #ifdef DATA
-    lowp float index_buffer = 1. / (2. * float(u_n_index));
-    lowp float normed_val = (v_data - u_cmap_min) / (u_cmap_max - u_cmap_min);
-
-    if (normed_val < 0.0 || normed_val > 1.0) {
-        discard;
-    }
-
-    normed_val = index_buffer + normed_val * (1. - 2. * index_buffer); // Chop off the half pixels on either end of the texture
-    highp float nonlin_val = texture2D(u_cmap_nonlin_sampler, vec2(normed_val, 0.5)).r;
-    color = texture2D(u_cmap_sampler, vec2(nonlin_val, 0.5));
+    color = apply_colormap(v_data);
 #else
     color = u_color;
 #endif
+
+    lowp float feather = clamp((1. - abs(v_cross)) * u_line_width, 0., 1.);
+    color.a *= (dash >= 1. ? 1. : 0.) * feather;
+
     gl_FragColor = color;
 }

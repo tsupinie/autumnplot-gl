@@ -436,6 +436,15 @@ class LambertGrid extends Grid {
         });
     }
 
+    public static fromLLCornerLonLat(ni: number, nj: number, lon_0: number, lat_0: number, lat_std: [number, number], 
+                                     ll_lon: number, ll_lat: number, dx: number, dy: number) {
+
+        const lcc = lambertConformalConic({lon_0: lon_0, lat_0: lat_0, lat_std: lat_std});
+        const [ll_x, ll_y] = lcc(ll_lon, ll_lat);
+
+        return new LambertGrid(ni, nj, lon_0, lat_0, lat_std, ll_x, ll_y, ll_x + ni * dx, ll_y + nj * dy);
+    }
+
     public copy(opts?: {ni?: number, nj?: number, ll_x?: number, ll_y?: number, ur_x?: number, ur_y?: number}) {
         opts = opts !== undefined ? opts : {};
         const ni = opts.ni !== undefined ? opts.ni : this.ni;
@@ -461,7 +470,7 @@ class LambertGrid extends Grid {
 
     public transform(x: number, y: number, opts?: {inverse?: boolean}) {
         opts = opts === undefined ? {}: opts;
-        const inverse = 'inverse' in opts ? opts.inverse : false;
+        const inverse = opts.inverse === undefined ? false : opts.inverse;
 
         return this.lcc(x, y, {inverse: inverse});
     }

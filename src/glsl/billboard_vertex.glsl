@@ -18,6 +18,9 @@ uniform sampler2D u_v_sampler;
 uniform sampler2D u_rot_sampler;
 
 varying highp vec2 v_tex_coord;
+#ifdef COLORMAP
+varying highp float v_mag;
+#endif
 
 mat4 scalingMatrix(float x_scale, float y_scale, float z_scale) {
     return mat4(x_scale, 0.0,     0.0,     0.0,
@@ -62,6 +65,9 @@ void main() {
     lowp float bb_aspect = u_bb_width / u_bb_height;
     lowp float ang = (abs(u) < 1e-6 && abs(v) < 1e-6) ? 0. : atan(v, u) - 3.141592654 / 2.0;
     highp float mag = length(vec2(u, v));
+#ifdef COLORMAP
+    v_mag = mag;
+#endif
     mag = floor(mag / u_bb_mag_bin_size + 0.5) * u_bb_mag_bin_size;
 
     vec4 offset = vec4(0.0, 0.0, 0.0, 0.0);

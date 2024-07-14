@@ -1,5 +1,6 @@
 
-import { Color, ColorMap } from "./Colormap";
+import { ColorMap } from "./Colormap";
+import { Color } from "./Color";
 
 type ColorbarOrientation = 'horizontal' | 'vertical';
 type ColorbarTickDirection = 'top' | 'bottom' | 'left' | 'right';
@@ -159,7 +160,7 @@ function makeColorBar(colormap: ColorMap, opts: ColorBarOptions) {
             attrs = {x: bar_left + bar_width * icolor / n_colors, y: bar_top, width: bar_width / n_colors, height: bar_height};
         }
 
-        createElement('rect', {...attrs, fill: color.color, opacity: color.opacity}, gbar);
+        createElement('rect', {...attrs, fill: color.toRGBHex(), opacity: color.a}, gbar);
     });
 
     // Make the overflow and underflow triangles
@@ -172,7 +173,7 @@ function makeColorBar(colormap: ColorMap, opts: ColorBarOptions) {
             point_list = `${bar_left} ${bar_bottom}, ${bar_low_arrow} ${bar_middle}, ${bar_left} ${bar_top}, ${bar_left} ${bar_bottom}`;
         }
 
-        const underflow_attrs = {points: point_list, fill: colormap.underflow_color.color, opacity: colormap.underflow_color.opacity};
+        const underflow_attrs = {points: point_list, fill: colormap.underflow_color.toRGBHex(), opacity: colormap.underflow_color.a};
         createElement('polygon', underflow_attrs, gbar);
     }
 
@@ -185,7 +186,7 @@ function makeColorBar(colormap: ColorMap, opts: ColorBarOptions) {
             point_list = `${bar_right} ${bar_top}, ${bar_high_arrow} ${bar_middle}, ${bar_right} ${bar_bottom}, ${bar_right} ${bar_top}`;
         }
 
-        const overflow_attrs = {points: point_list, fill: colormap.overflow_color.color, opacity: colormap.overflow_color.opacity};
+        const overflow_attrs = {points: point_list, fill: colormap.overflow_color.toRGBHex(), opacity: colormap.overflow_color.a};
         createElement('polygon', overflow_attrs, gbar);
     }
 
@@ -319,8 +320,8 @@ function makePaintballKey(colors: (Color | string)[], labels: string[], opts?: P
 
         let opacity = 1.;
         if (typeof color != 'string') {
-            opacity = color.opacity;
-            color = color.color;
+            opacity = color.a;
+            color = color.toRGBHex();
         }
 
         const x = swatch_width_pad + icol * (swatch_width + swatch_text_pad + swatch_text_space + swatch_width_pad);

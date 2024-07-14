@@ -1,4 +1,3 @@
-import { hex2rgb, hsv2rgb, rgb2hex, rgb2hsv } from "./utils";
 
 import spd500_colormap_data from "./json/pw500speed_colormap.json";
 import spd850_colormap_data from "./json/pw850speed_colormap.json";
@@ -7,24 +6,18 @@ import t2m_colormap_data from "./json/pwt2m_colormap.json";
 import td2m_colormap_data from "./json/pwtd2m_colormap.json";
 import nws_storm_clear_refl_colormap_data from "./json/nws_storm_clear_refl_colormap.json";
 import { Float16Array } from "@petamoriken/float16";
+import { WGLProgram, WGLTexture } from "autumn-wgl";
+import { WebGLAnyRenderingContext } from "./AutumnTypes";
+import { getGLFormatTypeAlignment } from "./PlotComponent";
+import { Color } from "./Color";
 
-interface Color {
-    /** The color as a hex color string */
-    color: string;
-
-    /** The opacity as a number from 0 to 1 */
-    opacity: number;
-}
-
-function isColor(obj: any): obj is Color {
-    return (typeof obj == 'object') && 'color' in obj && 'opacity' in obj;
-}
+const colormap_shader_src = require('./glsl/colormap.glsl');
 
 interface ColorMapOptions {
-    /** The color to use for areas where the value is below the lowest value in the color map */
+    /** The color to use for areas where the value is above the highest value in the color map */
     overflow_color?: Color | string;
 
-    /** The color to use for areas where the value is above the highest value in the color map */
+    /** The color to use for areas where the value is below the lowest value in the color map */
     underflow_color?: Color | string;
 }
 
@@ -46,7 +39,7 @@ class ColorMap {
             throw `Mismatch between number of levels (${levels.length}) and number of colors (${colors.length}; expected ${levels.length - 1})`;
         }
 
-        const normalizeColor = (c: Color | string) => isColor(c) ? c : {'color': c, 'opacity': 1.};
+        const normalizeColor = (c: Color | string) => c instanceof Color ? c : Color.fromHex(c);
 
         this.levels = levels;
         this.colors = colors.map(c => normalizeColor(c));
@@ -60,14 +53,14 @@ class ColorMap {
      * @returns an array of hex color strings
      */
     public getColors() : string[] {
-        return this.colors.map(s => s['color']);
+        return this.colors.map(s => s.toRGBHex());
     }
 
     /**
      * @returns an array of opacities, one for each color in the color map
      */
     public getOpacities() : number[] {
-        return this.colors.map(s => s['opacity']);
+        return this.colors.map(s => s.a);
     }
 
     /**
@@ -86,7 +79,7 @@ class ColorMap {
             const level_upper = this.levels[ic + 1];
 
             const new_opacity = func(level_lower, level_upper)
-            const new_color = {color: color.color, opacity: new_opacity};
+            const new_color = color.withOpacity(new_opacity);
             if (new_opacity > 0) {
                 if (new_levels[new_levels.length - 1] != level_lower)
                     new_levels.push(level_lower)
@@ -98,14 +91,14 @@ class ColorMap {
         if (this.underflow_color !== null) {
             const underflow_opacity = func(this.levels[0], this.levels[0]);
             if (underflow_opacity > 0) {
-                opts.underflow_color = {color: this.underflow_color.color, opacity: underflow_opacity};
+                opts.underflow_color = this.underflow_color.withOpacity(underflow_opacity);
             }
         }
 
         if (this.overflow_color !== null) {
             const overflow_opacity = func(this.levels[this.levels.length - 1], this.levels[this.levels.length - 1]);
             if (overflow_opacity > 0) {
-                opts.overflow_color = {color: this.overflow_color.color, opacity: overflow_opacity};
+                opts.overflow_color = this.overflow_color.withOpacity(overflow_opacity);
             }
         }
         
@@ -129,31 +122,32 @@ class ColorMap {
         const crossover = (level_max + level_min) / 2;
         const crossover_hsv: [number, number, number] = [0, 0, 0.9];
 
-        const color1_hsv = rgb2hsv(hex2rgb(color1));
-        const color2_hsv = rgb2hsv(hex2rgb(color2));
+        const color1_hsv = Color.fromHex(color1).toHSVTuple();
+        const color2_hsv = Color.fromHex(color2).toHSVTuple();
+        const interp_fac_power = 1.5;
 
         for (let istop = 0; istop < n_colors; istop++) {
             const level = level_min + istop * level_step;
             let h, s, v;
             let interp_fac;
             if (level < crossover) {
-                interp_fac = (crossover - level) / (crossover - level_min);
+                interp_fac = Math.pow((crossover - level) / (crossover - level_min), interp_fac_power);
 
                 [h, s, v] = [
                     color1_hsv[0], 
                     crossover_hsv[1] + (color1_hsv[1] - crossover_hsv[1]) * interp_fac,
                     crossover_hsv[2] + (color1_hsv[2] - crossover_hsv[2]) * interp_fac]
             }
-            else if (level >= crossover) {
-                interp_fac = (level - crossover) / (level_max - crossover);
+            else {
+                interp_fac = Math.pow((level - crossover) / (level_max - crossover), interp_fac_power);
                 
                 [h, s, v] = [
                     color2_hsv[0], 
                     crossover_hsv[1] + (color2_hsv[1] - crossover_hsv[1]) * interp_fac,
                     crossover_hsv[2] + (color2_hsv[2] - crossover_hsv[2]) * interp_fac]
             }
-            const color = rgb2hex(hsv2rgb([h, s, v]));
-            stops.push({'color': color, 'opacity': Math.min(2 * interp_fac, 1)});
+
+            stops.push(Color.fromHSVTuple([h, s, v]).withOpacity(Math.min(2 * interp_fac, 1)));
         }
 
         for (let ilev = 0; ilev <= n_colors; ilev++) {
@@ -209,6 +203,59 @@ const bluered = (level_min: number, level_max: number, n_colors: number) => {
     return ColorMap.diverging('#0000ff', '#ff0000', level_min, level_max, n_colors);
 }
 
+
+interface ColorMapGLElems {
+    cmap_texture: WGLTexture;
+    cmap_nonlin_texture: WGLTexture;
+}
+
+const N_INDEX_MAP = 101;
+
+class ColorMapGPUInterface {
+    public readonly colormap: ColorMap;
+    public gl_elems: ColorMapGLElems | null;
+
+    constructor(colormap: ColorMap) {
+        this.colormap = colormap;
+        this.gl_elems = null;
+    }
+
+    public static applyShader(shader_src: string) {
+        return colormap_shader_src + "\n" + shader_src;
+    }
+
+    public setupShaderVariables(gl: WebGLAnyRenderingContext, mag_filter: number) {
+        const index_map = makeIndexMap(this.colormap);
+        const cmap_image = makeTextureImage(this.colormap);
+
+        const {format: format_nonlin, type: type_nonlin, row_alignment: row_alignment_nonlin} = getGLFormatTypeAlignment(gl, true);
+
+        const cmap_image_spec = {'format': gl.RGBA, 'type': gl.UNSIGNED_BYTE, 'image': cmap_image, 'mag_filter': mag_filter};
+        const cmap_texture = new WGLTexture(gl, cmap_image_spec);
+
+        const cmap_nonlin_image = {'format': format_nonlin, 'type': type_nonlin, 
+            'width': index_map.length, 'height': 1,
+            'image': new Uint16Array(index_map.buffer), 
+            'mag_filter': gl.LINEAR, 'row_alignment': row_alignment_nonlin,
+        };
+
+        const cmap_nonlin_texture = new WGLTexture(gl, cmap_nonlin_image);
+        this.gl_elems = {cmap_texture: cmap_texture, cmap_nonlin_texture: cmap_nonlin_texture};
+    }
+
+    public bindShaderVariables(program: WGLProgram) {
+        if (this.gl_elems === null) return;
+
+        const cmap = this.colormap;
+        const underflow_color = cmap.underflow_color === null ? [0, 0, 0, 0] : cmap.underflow_color.toRGBATuple();
+        const overflow_color = cmap.overflow_color === null ? [0, 0, 0, 0] : cmap.overflow_color.toRGBATuple();
+
+        program.setUniforms({'u_cmap_min': cmap.levels[0], 'u_cmap_max': cmap.levels[cmap.levels.length - 1],
+                             'u_n_index': N_INDEX_MAP, 'u_underflow_color': underflow_color, 'u_overflow_color': overflow_color});
+        program.bindTextures({'u_cmap_sampler': this.gl_elems.cmap_texture, 'u_cmap_nonlin_sampler': this.gl_elems.cmap_nonlin_texture});
+    }
+}
+
 /**
  * Make a canvas image corresponding to a color map
  * @param colormap - The color map to use
@@ -226,7 +273,7 @@ function makeTextureImage(colormap: ColorMap) {
             throw "Could not get rendering context for colormap image canvas";
         }
 
-        ctx.fillStyle = stop['color'] + Math.round(stop['opacity'] * 255).toString(16);
+        ctx.fillStyle = stop.toRGBAHex();
         ctx.fillRect(istop, 0, 1, 1);
     });
 
@@ -236,7 +283,7 @@ function makeTextureImage(colormap: ColorMap) {
 function makeIndexMap(colormap: ColorMap) {
     // Build a texture to account for nonlinear colormaps (basically inverts the relationship between
     //  the normalized index and the normalized level)
-    const n_nonlin = 101;
+    const n_nonlin = N_INDEX_MAP;
     const map_norm = [];
     for (let i = 0; i < n_nonlin; i++) {
         map_norm.push(i / (n_nonlin - 1));
@@ -258,5 +305,5 @@ function makeIndexMap(colormap: ColorMap) {
     return new Float16Array(inv_cmap_norm);
 }
 
-export {ColorMap, bluered, redblue, pw_speed500mb, pw_speed850mb, pw_cape, pw_t2m, pw_td2m, nws_storm_clear_refl, makeTextureImage, makeIndexMap}
-export type {Color, ColorMapOptions};
+export {ColorMap, ColorMapGPUInterface, bluered, redblue, pw_speed500mb, pw_speed850mb, pw_cape, pw_t2m, pw_td2m, nws_storm_clear_refl}
+export type {ColorMapOptions};

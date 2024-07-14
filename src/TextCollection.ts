@@ -1,4 +1,5 @@
 import { isWebGL2Ctx, WebGLAnyRenderingContext } from "./AutumnTypes";
+import { Color } from "./Color";
 import { LngLat } from "./Map";
 import { Cache, normalizeOptions } from "./utils";
 
@@ -35,7 +36,10 @@ interface Glyph {
 }
 
 function parseFontPBF(data: Uint8Array) {
-    const readGlyph = (tag: number, glyph: any, pbf: Protobuf) => {
+    const readGlyph = (tag: number, glyph: any, pbf?: Protobuf) => {
+        if (pbf === undefined)
+            return;
+
         switch (tag) {
             case 1:
                 glyph.id = pbf.readVarint();
@@ -61,14 +65,20 @@ function parseFontPBF(data: Uint8Array) {
         }
     }
 
-    const readFontStack = (tag: number, glyphs: PBFGlyph[], pbf: Protobuf) => {
+    const readFontStack = (tag: number, glyphs?: PBFGlyph[], pbf?: Protobuf) => {
+        if (glyphs === undefined || pbf === undefined)
+            return;
+        
         if (tag == 3) {
-            const glyph = pbf.readMessage(readGlyph, {});
+            const glyph = pbf.readMessage(readGlyph, {} as PBFGlyph);
             glyphs.push(glyph);
         }
     }
 
-    const readFontStacks = (tag: number, glyphs: PBFGlyph[], pbf: Protobuf) => {
+    const readFontStacks = (tag: number, glyphs?: PBFGlyph[], pbf?: Protobuf) => {
+        if (pbf === undefined) 
+            return;
+
         if (tag == 1) {
             pbf.readMessage(readFontStack, glyphs);
         }
@@ -104,6 +114,9 @@ function createAtlas(pbf_glyphs: PBFGlyph[]): FontAtlas {
     const glyphs: Record<number, Glyph> = {}
     glyph_bins.forEach(glyph_bin => {
         const {bin, glyph} = glyph_bin;
+
+        if (bin.x === undefined || bin.y === undefined)
+            throw `Potpack couldn't pack this pot, I guess?`;
 
         glyphs[glyph.id] = {
             id: glyph.id, width: glyph.width, height: glyph.height, left: glyph.left, top: glyph.top,
@@ -152,8 +165,8 @@ interface TextCollectionOptions {
     horizontal_align?: HorizontalAlign;
     vertical_align?: VerticalAlign;
     font_size?: number;
-    text_color?: [number, number, number];
-    halo_color?: [number, number, number];
+    text_color?: Color;
+    halo_color?: Color;
     halo?: boolean;
 }
 
@@ -161,8 +174,8 @@ const text_collection_opt_defaults: Required<TextCollectionOptions> = {
     horizontal_align: 'left',
     vertical_align: 'baseline',
     font_size: 12,
-    text_color: [0, 0, 0],
-    halo_color: [0, 0, 0],
+    text_color: new Color([0, 0, 0, 1]),
+    halo_color: new Color([0, 0, 0, 1]),
     halo: false
 }
 
@@ -243,23 +256,23 @@ class TextCollection {
                 x_offset += glyph_info.advance - glyph_info.left;
             }
 
-            if (opts.horizontal_align == 'center') {
+            if (this.opts.horizontal_align == 'center') {
                 for (let i = init_i_off; i < init_i_off + text.length * 12; i += 2) {
                     offset_data[i] -= x_offset / 2;
                 }
             }
-            else if (opts.horizontal_align == 'right') {
+            else if (this.opts.horizontal_align == 'right') {
                 for (let i = init_i_off; i < init_i_off + text.length * 12; i += 2) {
                     offset_data[i] -= x_offset;
                 }
             }
 
-            if (opts.vertical_align == 'top') {
+            if (this.opts.vertical_align == 'top') {
                 for (let i = init_i_off + 1; i < init_i_off + text.length * 12; i += 2) {
                     offset_data[i] -= (font_atlas.baseline - font_atlas.top);
                 }
             }
-            else if (opts.vertical_align == 'middle') {
+            else if (this.opts.vertical_align == 'middle') {
                 for (let i = init_i_off + 1; i < init_i_off + text.length * 12; i += 2) {
                     offset_data[i] -= (font_atlas.baseline - font_atlas.top) / 2;
                 }
@@ -279,7 +292,7 @@ class TextCollection {
     render(gl: WebGLAnyRenderingContext, matrix: number[], [map_width, map_height]: [number, number], map_zoom: number) {
         const uniforms: Record<string, any> = {
             'u_matrix': matrix, 'u_map_width': map_width, 'u_map_height': map_height, 'u_map_zoom': map_zoom, 'u_font_size': this.opts.font_size,
-            'u_text_color': this.opts.text_color, 'u_halo_color': this.opts.halo_color, 'u_offset': 0
+            'u_text_color': this.opts.text_color.toRGBATuple(), 'u_halo_color': this.opts.halo_color.toRGBATuple(), 'u_offset': 0
         }
 
         uniforms['u_is_halo'] = this.opts.halo ? 1 : 0;

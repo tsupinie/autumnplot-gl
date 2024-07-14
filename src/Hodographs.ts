@@ -2,14 +2,15 @@
 import { PlotComponent } from "./PlotComponent";
 import { PolylineCollection } from "./PolylineCollection";
 import { BillboardCollection } from "./BillboardCollection";
-import { getMinZoom, hex2rgb, normalizeOptions } from './utils';
+import { getMinZoom, normalizeOptions } from './utils';
 import { MapLikeType } from "./Map";
 import { RawProfileField } from "./RawField";
 import { LineData, TypedArray, WebGLAnyRenderingContext } from "./AutumnTypes";
 import { Float16Array } from "@petamoriken/float16";
 import { ColorMap } from "./Colormap";
+import { Color } from "./Color";
 
-const LINE_WIDTH = 4;
+const LINE_WIDTH_MULTIPLIER = 2.5;
 const BG_MAX_RING_MAG = 40;
 
 const HODO_BG_DIMS = {
@@ -22,7 +23,7 @@ const HODO_BG_DIMS = {
     BB_MAG_BIN_SIZE: 1000,
 }
 
-function _createHodoBackgroundTexture() {
+function _createHodoBackgroundTexture(line_width: number) {
     let canvas = document.createElement('canvas');
 
     canvas.width = HODO_BG_DIMS.BB_TEX_WIDTH;
@@ -34,11 +35,11 @@ function _createHodoBackgroundTexture() {
         throw "Could not get rendering context for the hodograph background canvas";
     }
 
-    ctx.lineWidth = LINE_WIDTH;
+    ctx.lineWidth = line_width;
 
     for (let irng = HODO_BG_DIMS.BB_TEX_WIDTH / 4; irng <= HODO_BG_DIMS.BB_TEX_WIDTH / 2; irng += HODO_BG_DIMS.BB_TEX_WIDTH / 4) {
         ctx.beginPath();
-        ctx.arc(HODO_BG_DIMS.BB_TEX_WIDTH / 2, HODO_BG_DIMS.BB_TEX_WIDTH / 2, irng - LINE_WIDTH / 2, 0, 2 * Math.PI);
+        ctx.arc(HODO_BG_DIMS.BB_TEX_WIDTH / 2, HODO_BG_DIMS.BB_TEX_WIDTH / 2, irng - line_width / 2, 0, 2 * Math.PI);
         ctx.stroke();
     }
 
@@ -54,13 +55,12 @@ function _createHodoBackgroundTexture() {
     return canvas;
 };
 
-let HODO_BG_TEXTURE: HTMLCanvasElement | null = null;
-
 const HODO_CMAP = new ColorMap([0, 1, 3, 6, 9], ['#ffffcc', '#a1dab4', '#41b6c4', '#225ea8']);
 
 interface HodographOptions {
     /** 
      * The color of the hodograph plot background as a hex string
+     * @default '#000000'
      */
     bgcolor?: string;
 
@@ -70,11 +70,31 @@ interface HodographOptions {
      * @default 1
      */
     thin_fac?: number;
+
+    /**
+     * The width of the hodograph line in pixels
+     * @default 2.5
+     */
+    hodo_line_width: number;
+
+    /**
+     * The width of the lines on the background in pixels
+     * @default 1.5
+     */
+    background_line_width: number;
+
+    /**
+     * The colormap to use for the heights on the hodograph. Default is a yellow-blue colormap.
+     */
+    height_cmap: ColorMap;
 }
 
 const hodograph_opt_defaults: Required<HodographOptions> = {
     bgcolor: '#000000',
-    thin_fac: 1
+    thin_fac: 1,
+    hodo_line_width: 2.5,
+    background_line_width: 1.5,
+    height_cmap: HODO_CMAP
 }
 
 interface HodographGLElems<ArrayType extends TypedArray, MapType extends MapLikeType> {
@@ -83,13 +103,14 @@ interface HodographGLElems<ArrayType extends TypedArray, MapType extends MapLike
     bg_billboard: BillboardCollection<ArrayType>;
 }
 
-/** A class representing a a field of hodograph plots */
+/** A class representing a field of hodograph plots */
 class Hodographs<MapType extends MapLikeType> extends PlotComponent<MapType> {
     private profile_field: RawProfileField;
     public readonly opts: Required<HodographOptions>;
 
-    private gl_elems: HodographGLElems<Float16Array, MapType>;
+    private gl_elems: HodographGLElems<Float16Array, MapType> | null;
     private line_elems: {hodo_line: PolylineCollection, sm_line: PolylineCollection} | null;
+    private hodo_bg_texture: HTMLCanvasElement;
     private readonly hodo_scale;
     private readonly bg_size;
 
@@ -104,7 +125,8 @@ class Hodographs<MapType extends MapLikeType> extends PlotComponent<MapType> {
         this.profile_field = profile_field;
         this.opts = normalizeOptions(opts, hodograph_opt_defaults);
 
-        this.hodo_scale = (HODO_BG_DIMS.BB_TEX_WIDTH - LINE_WIDTH / 2) / (HODO_BG_DIMS.BB_TEX_WIDTH * BG_MAX_RING_MAG);
+        this.hodo_bg_texture = _createHodoBackgroundTexture(this.opts.background_line_width * LINE_WIDTH_MULTIPLIER);
+        this.hodo_scale = (HODO_BG_DIMS.BB_TEX_WIDTH - this.opts.background_line_width / 2) / (HODO_BG_DIMS.BB_TEX_WIDTH * BG_MAX_RING_MAG);
         this.bg_size = 140;
 
         this.gl_elems = null;
@@ -137,7 +159,7 @@ class Hodographs<MapType extends MapLikeType> extends PlotComponent<MapType> {
             } as LineData;
         });
 
-        const hodo_line = await PolylineCollection.make(gl, hodo_polyline, {line_width: 2.5, cmap: HODO_CMAP, offset_scale: this.hodo_scale * this.bg_size});
+        const hodo_line = await PolylineCollection.make(gl, hodo_polyline, {line_width: this.opts.hodo_line_width, cmap: this.opts.height_cmap, offset_scale: this.hodo_scale * this.bg_size});
 
         const sm_polyline = profiles.map(prof => {
             const zoom = getMinZoom(prof['jlat'], prof['ilon'], this.opts.thin_fac);
@@ -154,7 +176,7 @@ class Hodographs<MapType extends MapLikeType> extends PlotComponent<MapType> {
             } as LineData;
         });
 
-        const sm_line = await PolylineCollection.make(gl, sm_polyline, {line_width: 1.5, color: this.opts.bgcolor, offset_scale: this.hodo_scale * this.bg_size});
+        const sm_line = await PolylineCollection.make(gl, sm_polyline, {line_width: this.opts.background_line_width, color: this.opts.bgcolor, offset_scale: this.hodo_scale * this.bg_size});
 
         this.line_elems = {
             hodo_line: hodo_line, sm_line: sm_line
@@ -166,15 +188,11 @@ class Hodographs<MapType extends MapLikeType> extends PlotComponent<MapType> {
      * Add the hodographs to a map
      */
     public async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
-        if (HODO_BG_TEXTURE === null) {
-            HODO_BG_TEXTURE = _createHodoBackgroundTexture();
-        }
-
-        const bg_image = {'format': gl.RGBA, 'type': gl.UNSIGNED_BYTE, 'image': HODO_BG_TEXTURE, 'mag_filter': gl.NEAREST};
+        const bg_image = {'format': gl.RGBA, 'type': gl.UNSIGNED_BYTE, 'image': this.hodo_bg_texture, 'mag_filter': gl.NEAREST};
         const max_zoom = map.getMaxZoom();
 
-        const bg_billboard = new BillboardCollection(this.profile_field.getStormMotionGrid(), this.opts.thin_fac, max_zoom, bg_image, HODO_BG_DIMS, hex2rgb(this.opts.bgcolor), 
-                                                     this.bg_size * 0.004);
+        const bg_billboard = new BillboardCollection(this.profile_field.getStormMotionGrid(), this.opts.thin_fac, max_zoom, bg_image, HODO_BG_DIMS, this.bg_size * 0.004,
+                                                     {color: Color.fromHex(this.opts.bgcolor)});
         await bg_billboard.setup(gl);
 
         this.gl_elems = {

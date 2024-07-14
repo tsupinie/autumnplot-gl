@@ -3,11 +3,13 @@ import { LineData, TypedArray, WebGLAnyRenderingContext} from './AutumnTypes';
 import { LngLat, MapLikeType } from './Map';
 import { PlotComponent } from './PlotComponent';
 import { RawScalarField } from './RawField';
-import { PolylineCollection } from './PolylineCollection';
+import { LineStyle, PolylineCollection, PolylineCollectionOpts, isLineStyle } from './PolylineCollection';
 import { TextCollection, TextCollectionOptions, TextSpec } from './TextCollection';
+import { Color } from './Color';
 
-import { hex2rgb, normalizeOptions } from './utils';
+import { normalizeOptions } from './utils';
 import { kdTree } from 'kd-tree-javascript';
+import { ColorMap } from './Colormap';
 
 interface ContourOptions {
     /** 
@@ -16,6 +18,12 @@ interface ContourOptions {
      */
     color?: string;
 
+    /**
+     * A color map to use to color the contours. Specifying a colormap overrides the color option.
+     * @default null
+     */
+    cmap?: ColorMap | null;
+
     /** 
      * The contour interval for drawing contours at regular intervals
      * @default 1
@@ -23,16 +31,35 @@ interface ContourOptions {
     interval?: number;
 
     /**
-     * A list of arbitrary levels (up to 40) to contour. This overrides the `interval` option.
-     * @default Draw contours at regular intervals given by the `interval` option.
+     * A list of arbitrary levels to contour. This overrides the `interval` option.
+     * @default null
      */
-    levels?: number[];
+    levels?: number[] | null;
+
+    /**
+     * The width of the line in pixels. This could be either a number or a function that takes a contour level as a number and returns a line width. This
+     *  can be used to vary the width of the contours by value.
+     * @example level => level >= 100 ? 3 : 1.5
+     * @default 2
+     */
+    line_width?: number | ((level: number) => number);
+
+    /**
+     * The style to use for the line. This can be either a LineStyle or a function that takes a contour level as a number and returns a LineStyle. This 
+     *  can be used to vary the contours by value.
+     * @example level => level < 0 ? '--' : '-'
+     * @default '-'
+     */
+    line_style?: LineStyle | ((level: number) => LineStyle);
 }
 
 const contour_opt_defaults: Required<ContourOptions> = {
     color: '#000000',
+    cmap: null,
     interval: 1,
-    levels: undefined
+    levels: null,
+    line_width: 2,
+    line_style: '-'
 }
 
 interface ContourGLElems<MapType extends MapLikeType> {
@@ -52,7 +79,7 @@ class Contour<ArrayType extends TypedArray, MapType extends MapLikeType> extends
     public readonly opts: Required<ContourOptions>;
 
     private gl_elems: ContourGLElems<MapType> | null;
-    private contours: PolylineCollection | null;
+    private contours: PolylineCollection[] | null;
 
     /**
      * Create a contoured field
@@ -80,16 +107,61 @@ class Contour<ArrayType extends TypedArray, MapType extends MapLikeType> extends
         const gl = this.gl_elems.gl;
 
         const contour_data = await this.getContours();
-        const line_data = Object.values(contour_data).flat().map(c => {
-            return {vertices: c} as LineData;
+
+        type LineDataStyleWidth = {data: LineData[], line_width: number, line_style: LineStyle};
+        const line_data: LineDataStyleWidth[] = [];
+
+        // Make contour data and sort them by line width and line style
+        Object.entries(contour_data).forEach(([cv, cd]) => {
+            const cv_ = parseFloat(cv);
+            const contour_style = isLineStyle(this.opts.line_style) ? this.opts.line_style : this.opts.line_style(cv_);
+            const contour_width = typeof this.opts.line_width === 'number' ? this.opts.line_width : this.opts.line_width(cv_);
+
+            const polyline_data = cd.map(c => {
+                const ld: LineData = {vertices: c};
+                if (this.opts.cmap !== null){
+                    ld.data = c.map(() => cv_)
+                }
+                return ld;
+            });
+
+            const line_data_filtered = line_data.filter(ld => ld.line_style == contour_style && ld.line_width == contour_width);
+            let contour_line_data: LineDataStyleWidth;
+            if (line_data_filtered.length == 0) {
+                contour_line_data = {data: [], line_width: contour_width, line_style: contour_style};
+                line_data.push(contour_line_data);
+            }
+            else {
+                contour_line_data = line_data_filtered[0];
+            }
+
+            contour_line_data.data = contour_line_data.data.concat(polyline_data);
         });
 
-        this.contours = await PolylineCollection.make(gl, line_data, {line_width: 2, color: this.opts.color});
-        this.gl_elems.map.triggerRepaint();
+        // Make one PolylineCollection for each combination of line width and line style
+        const promises = line_data.map(async ld => {
+            const plc_opts: PolylineCollectionOpts = {line_width: ld.line_width, line_style: ld.line_style};
+            if (this.opts.cmap !== null) {
+                plc_opts.cmap = this.opts.cmap;
+            }
+            else {
+                plc_opts.color = this.opts.color;
+            }
+
+            return await PolylineCollection.make(gl, ld.data, plc_opts);
+        });
+
+        Promise.all(promises).then(values => {
+            if (this.gl_elems === null) return;
+
+            this.contours = values;
+            this.gl_elems.map.triggerRepaint();
+        });
     }
 
     public async getContours() {
-        return await this.field.getContours({interval: this.opts.interval, levels: this.opts.levels});
+        const levels = this.opts.levels === null ? undefined : this.opts.levels;
+        return await this.field.getContours({interval: this.opts.interval, levels: levels});
     }
 
     /**
@@ -122,7 +194,7 @@ class Contour<ArrayType extends TypedArray, MapType extends MapLikeType> extends
         const bearing = gl_elems.map.getBearing();
         const pitch = gl_elems.map.getPitch();
 
-        this.contours.render(gl, matrix, [map_width, map_height], zoom, bearing, pitch);
+        this.contours.forEach(cnt => cnt.render(gl, matrix, [map_width, map_height], zoom, bearing, pitch));
     }
 }
 
@@ -212,6 +284,9 @@ class ContourLabels<ArrayType extends TypedArray, MapType extends MapLikeType> e
         const map_style = map.getStyle();
 
         const font_url_template = this.opts.font_url_template == '' ? map_style.glyphs : this.opts.font_url_template;
+        if (font_url_template === undefined)
+            throw "The map style doesn't have any glyph information. Please pass the font_url_template option to ContourLabels";
+
         const font_url = font_url_template.replace('{range}', '0-255').replace('{fontstack}', this.opts.font_face);
 
         const label_pos: TextSpec[] = [];
@@ -222,7 +297,7 @@ class ContourLabels<ArrayType extends TypedArray, MapType extends MapLikeType> e
 
         const map_max_zoom = map.getMaxZoom();
         const contour_label_spacing = 0.01 * Math.pow(2, 7 - map_max_zoom);
-        let min_label_lat: number = null, max_label_lat: number = null, min_label_lon: number = null, max_label_lon: number = null;
+        let min_label_lat: number | null = null, max_label_lat: number | null = null, min_label_lon: number | null = null, max_label_lon: number | null = null;
 
         Object.entries(contour_data).forEach(([level, contours]) => {
             const icntr = (parseFloat(level) - contour_levels[0]);
@@ -271,6 +346,10 @@ class ContourLabels<ArrayType extends TypedArray, MapType extends MapLikeType> e
 
         const tree = new kdTree(label_pos, (a, b) => Math.hypot(a.lon - b.lon, a.lat - b.lat), ['lon', 'lat']);
 
+        if (min_label_lon === null || min_label_lat === null || max_label_lon === null || max_label_lat === null) {
+            return;
+        }
+
         const {x: min_label_x, y: max_label_y} = new LngLat(min_label_lon, min_label_lat).toMercatorCoord();
         const {x: max_label_x, y: min_label_y} = new LngLat(max_label_lon, max_label_lat).toMercatorCoord();
         const thin_grid_width = max_label_x - min_label_x;
@@ -307,7 +386,7 @@ class ContourLabels<ArrayType extends TypedArray, MapType extends MapLikeType> e
         const tc_opts: TextCollectionOptions = {
             horizontal_align: 'center', vertical_align: 'middle', font_size: this.opts.font_size,
             halo: this.opts.halo, 
-            text_color: hex2rgb(this.opts.text_color), halo_color: hex2rgb(this.opts.halo_color),
+            text_color: Color.fromHex(this.opts.text_color), halo_color: Color.fromHex(this.opts.halo_color),
         };
 
         this.text_collection = await TextCollection.make(gl, label_pos, font_url, tc_opts);

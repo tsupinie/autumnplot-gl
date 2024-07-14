@@ -1,9 +1,10 @@
 
 import { TypedArray, WebGLAnyRenderingContext } from "./AutumnTypes";
+import { Color } from "./Color";
 import { MapLikeType } from "./Map";
 import { PlotComponent, getGLFormatTypeAlignment } from "./PlotComponent";
 import { RawScalarField } from "./RawField";
-import { hex2rgba, normalizeOptions } from "./utils";
+import { normalizeOptions } from "./utils";
 import { WGLBuffer, WGLProgram, WGLTexture } from "autumn-wgl";
 
 const paintball_vertex_shader_src = require('./glsl/paintball_vertex.glsl');
@@ -62,7 +63,7 @@ class Paintball<ArrayType extends TypedArray, MapType extends MapLikeType> exten
         this.field = field;
 
         this.opts = normalizeOptions(opts, paintball_opt_defaults);
-        this.color_components = [...this.opts.colors].reverse().map(color => hex2rgba(color)).flat();
+        this.color_components = [...this.opts.colors].reverse().map(color => Color.fromHex(color).toRGBATuple()).flat();
         
         this.gl_elems = null;
         this.fill_texture = null;

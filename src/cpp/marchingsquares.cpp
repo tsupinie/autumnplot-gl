@@ -9,12 +9,19 @@
 
 #include <iostream>
 #include <chrono>
+#include <cmath>
 
 #ifdef WASM
 #include <emscripten/bind.h>
 #endif
 
 using numeric::float16_t;
+
+namespace std {
+    constexpr inline bool isnan(float16_t __x) noexcept {
+        return is_nan(__x);
+    }
+}
 
 /*  8         4
  *   ┌───────┐
@@ -143,6 +150,8 @@ std::vector<Contour> makeContours(T* grid, float* xs, float* ys, int nx, int ny,
             enw = grid[i + nx * (j + 1)];
             ene = grid[(i + 1) + nx * (j + 1)];
 
+            if (std::isnan(esw) || std::isnan(ese) || std::isnan(enw) || std::isnan(ene)) continue;
+
             T min_grid_val = MIN4(esw, ese, enw, ene);
             T max_grid_val = MAX4(esw, ese, enw, ene);
             unsigned int val_idx_lb, val_idx_ub;
@@ -152,14 +161,26 @@ std::vector<Contour> makeContours(T* grid, float* xs, float* ys, int nx, int ny,
                 float value = values[idx];
 
                 segs_idx = char((float)esw > value) + (char((float)ese > value) << 1) + (char((float)ene > value) << 2) + (char((float)enw > value) << 3);
+                bool reverse_segs = false;
+
+                if (segs_idx == 5 && abs((float)(esw + ene) * 0.5 - value) > abs((float)(ese + enw) * 0.5 - value)) {
+                    segs_idx = 10;
+                    reverse_segs = true;
+                }
+                else if (segs_idx == 10 && abs((float)(esw + ene) * 0.5 - value) < abs((float)(ese + enw) * 0.5 - value)) {
+                    segs_idx = 5;
+                    reverse_segs = true;
+                }
 
                 for (int iseg = 0; iseg < NSEGS; iseg++) {
                     if (MARCHING_SQUARES_SEGS[segs_idx][iseg][0][0] < 0) continue;
 
-                    const float* start_seg_pt = MARCHING_SQUARES_SEGS[segs_idx][iseg][0];
+                    int start_idx = reverse_segs ? 1 : 0;
+                    const float* start_seg_pt = MARCHING_SQUARES_SEGS[segs_idx][iseg][start_idx];
                     Point start_pt = Point(start_seg_pt[0] + i, start_seg_pt[1] + j);
 
-                    const float* end_seg_pt = MARCHING_SQUARES_SEGS[segs_idx][iseg][1];
+                    int end_idx = reverse_segs ? 0 : 1;
+                    const float* end_seg_pt = MARCHING_SQUARES_SEGS[segs_idx][iseg][end_idx];
                     Point end_pt = Point(end_seg_pt[0] + i, end_seg_pt[1] + j);
 
                     bool start_seen = contour_frags_by_end[value].find(start_pt) != contour_frags_by_end[value].end();
@@ -279,6 +300,8 @@ template<typename T>
 std::vector<float> getContourLevels(T* grid, int nx, int ny, float interval) noexcept {
     T minval = std::numeric_limits<T>::infinity(), maxval = -std::numeric_limits<T>::infinity();
     for (int idx = 0; idx < nx * ny; idx++) {
+        if (std::isnan(grid[idx])) continue;
+
         minval = MIN(minval, grid[idx]);
         maxval = MAX(maxval, grid[idx]);
     }

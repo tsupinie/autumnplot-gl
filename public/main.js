@@ -19,7 +19,12 @@ function makeSynthetic500mbLayers() {
         for (i = 0; i < nx; i++) {
             for (j = 0; j < ny; j++) {
                 const idx = i + j * nx;
-                hght[idx] = height_base + height_pert * (Math.cos(-key * speed + 4 * Math.PI * i / (nx - 1)) * Math.cos(2 * Math.PI * j / (ny - 1))) - height_grad * j;
+                if (i < 10 && j < 10) {
+                    hght[idx] = NaN;
+                }
+                else {
+                    hght[idx] = height_base + height_pert * (Math.cos(-key * speed + 4 * Math.PI * i / (nx - 1)) * Math.cos(2 * Math.PI * j / (ny - 1))) - height_grad * j;
+                }
             }
         }
         return new apgl.RawScalarField(grid, new arrayType(hght));
@@ -29,20 +34,26 @@ function makeSynthetic500mbLayers() {
         let u = [], v = [];
         for (i = 0; i < nx; i++) {
             for (j = 0; j < ny; j++) {
-                let v_fac = 1;
-                if (grid.type == 'latlon' || grid.type == 'latlonrot') {
-                    v_fac = Math.cos(coords.y[j] * Math.PI / 180);
-                }
-    
                 const idx = i + j * nx;
-                let u_earth = vel_pert * (Math.cos(-key * speed + 4 * Math.PI * i / (nx - 1)) * Math.sin(2 * Math.PI * j / (ny - 1)) + height_grad);
-                let v_earth = -vel_pert * Math.sin(-key * speed + 4 * Math.PI * i / (nx - 1)) * Math.cos(2 * Math.PI * j / (ny - 1));
-    
-                const mag = Math.hypot(u_earth, v_earth);
-                v_earth /= v_fac;
-    
-                u[idx] = u_earth * mag / Math.hypot(u_earth, v_earth);
-                v[idx] = v_earth * mag / Math.hypot(u_earth, v_earth);
+
+                if (i < 10 && j < 10) {
+                    u[idx] = v[idx] = NaN;
+                }
+                else {
+                    let v_fac = 1;
+                    if (grid.type == 'latlon' || grid.type == 'latlonrot') {
+                        v_fac = Math.cos(coords.y[j] * Math.PI / 180);
+                    }
+        
+                    let u_earth = vel_pert * (Math.cos(-key * speed + 4 * Math.PI * i / (nx - 1)) * Math.sin(2 * Math.PI * j / (ny - 1)) + height_grad);
+                    let v_earth = -vel_pert * Math.sin(-key * speed + 4 * Math.PI * i / (nx - 1)) * Math.cos(2 * Math.PI * j / (ny - 1));
+        
+                    const mag = Math.hypot(u_earth, v_earth);
+                    v_earth /= v_fac;
+        
+                    u[idx] = u_earth * mag / Math.hypot(u_earth, v_earth);
+                    v[idx] = v_earth * mag / Math.hypot(u_earth, v_earth);
+                }
             }
         }
 
@@ -66,7 +77,7 @@ function makeSynthetic500mbLayers() {
     const raw_wind_field = makeWinds(0);
     const raw_ws_field = makeWindSpeed(0);
 
-    const cntr = new apgl.Contour(raw_hght_field, {interval: 1, color: '#000000', thinner: zoom => zoom < 5 ? 2 : 1});
+    const cntr = new apgl.Contour(raw_hght_field, {interval: 1, color: '#000000', line_width: lev => lev < 565 ? 2 : 4, line_style: lev => lev < 555 ? '--' : '-'});
     const filled = new apgl.ContourFill(raw_ws_field, {'cmap': colormap, 'opacity': 0.8});
     const barbs = new apgl.Barbs(raw_wind_field, {color: '#000000', thin_fac: 16});
 
@@ -112,8 +123,10 @@ async function makeHREFLayers() {
                                            -nx_href * dx_href / 2, -ny_href * dy_href / 2, nx_href * dx_href / 2, ny_href * dy_href / 2);
 
     const nh_prob_data = await fetchBinary('data/hrefv3.2023051100.f036.mxuphl5000_2000m.nh_max.086400_p99.85_0040km.bin.gz');
+    //const nh_prob_data = await fetchBinary('data/hrrr_pmsl.bin.gz');
     const nh_prob_field = new apgl.RawScalarField(grid_href, nh_prob_data);
     const nh_prob_contour = new apgl.Contour(nh_prob_field, {'levels': [0.1, 0.3, 0.5, 0.7, 0.9], 'color': '#000000'});
+    //const nh_prob_contour = new apgl.Contour(nh_prob_field, {'interval': 400, 'color': '#000000'});
     const nh_prob_layer = new apgl.PlotLayer('nh_probs', nh_prob_contour);
 
 
