@@ -22,7 +22,7 @@ Font face to use for the contour labels
 
 #### Source
 
-[Contour.ts:146](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Contour.ts#L146)
+[Contour.ts:217](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Contour.ts#L217)
 
 ***
 
@@ -40,7 +40,7 @@ Font size in points to use for the contour labels
 
 #### Source
 
-[Contour.ts:152](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Contour.ts#L152)
+[Contour.ts:223](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Contour.ts#L223)
 
 ***
 
@@ -52,7 +52,7 @@ URL template to use in retrieving the font data for the labels. The default is t
 
 #### Source
 
-[Contour.ts:157](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Contour.ts#L157)
+[Contour.ts:228](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Contour.ts#L228)
 
 ***
 
@@ -70,7 +70,7 @@ false
 
 #### Source
 
-[Contour.ts:175](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Contour.ts#L175)
+[Contour.ts:246](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Contour.ts#L246)
 
 ***
 
@@ -88,7 +88,7 @@ Halo (outline) color for the contour labels
 
 #### Source
 
-[Contour.ts:169](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Contour.ts#L169)
+[Contour.ts:240](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Contour.ts#L240)
 
 ***
 
@@ -106,7 +106,7 @@ Number of decimal places to use in the contour labels
 
 #### Source
 
-[Contour.ts:140](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Contour.ts#L140)
+[Contour.ts:211](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Contour.ts#L211)
 
 ***
 
@@ -124,4 +124,4 @@ Text color for the contour labels
 
 #### Source
 
-[Contour.ts:163](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Contour.ts#L163)
+[Contour.ts:234](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Contour.ts#L234)

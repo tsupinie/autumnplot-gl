@@ -16,7 +16,7 @@ The color map to use when creating the fills
 
 #### Source
 
-[Fill.ts:16](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Fill.ts#L16)
+[Fill.ts:15](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Fill.ts#L15)
 
 ***
 
@@ -34,4 +34,4 @@ The opacity for the filled contours
 
 #### Source
 
-[Fill.ts:22](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Fill.ts#L22)
+[Fill.ts:21](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Fill.ts#L21)

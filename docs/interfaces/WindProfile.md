@@ -14,7 +14,7 @@
 
 #### Source
 
-[AutumnTypes.ts:8](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/AutumnTypes.ts#L8)
+[AutumnTypes.ts:8](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/AutumnTypes.ts#L8)
 
 ***
 
@@ -24,7 +24,7 @@
 
 #### Source
 
-[AutumnTypes.ts:7](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/AutumnTypes.ts#L7)
+[AutumnTypes.ts:7](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/AutumnTypes.ts#L7)
 
 ***
 
@@ -34,7 +34,7 @@
 
 #### Source
 
-[AutumnTypes.ts:5](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/AutumnTypes.ts#L5)
+[AutumnTypes.ts:5](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/AutumnTypes.ts#L5)
 
 ***
 
@@ -44,7 +44,7 @@
 
 #### Source
 
-[AutumnTypes.ts:6](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/AutumnTypes.ts#L6)
+[AutumnTypes.ts:6](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/AutumnTypes.ts#L6)
 
 ***
 
@@ -54,7 +54,7 @@
 
 #### Source
 
-[AutumnTypes.ts:9](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/AutumnTypes.ts#L9)
+[AutumnTypes.ts:9](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/AutumnTypes.ts#L9)
 
 ***
 
@@ -64,7 +64,7 @@
 
 #### Source
 
-[AutumnTypes.ts:10](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/AutumnTypes.ts#L10)
+[AutumnTypes.ts:10](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/AutumnTypes.ts#L10)
 
 ***
 
@@ -74,7 +74,7 @@
 
 #### Source
 
-[AutumnTypes.ts:11](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/AutumnTypes.ts#L11)
+[AutumnTypes.ts:11](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/AutumnTypes.ts#L11)
 
 ***
 
@@ -84,7 +84,7 @@
 
 #### Source
 
-[AutumnTypes.ts:12](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/AutumnTypes.ts#L12)
+[AutumnTypes.ts:12](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/AutumnTypes.ts#L12)
 
 ***
 
@@ -94,4 +94,4 @@
 
 #### Source
 
-[AutumnTypes.ts:13](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/AutumnTypes.ts#L13)
+[AutumnTypes.ts:13](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/AutumnTypes.ts#L13)

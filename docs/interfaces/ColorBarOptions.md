@@ -22,7 +22,7 @@ A font face to use for the label and tick values.
 
 #### Source
 
-[ColorBar.ts:33](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/ColorBar.ts#L33)
+[ColorBar.ts:34](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/ColorBar.ts#L34)
 
 ***
 
@@ -34,7 +34,7 @@ The label to place along the color bar
 
 #### Source
 
-[ColorBar.ts:8](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/ColorBar.ts#L8)
+[ColorBar.ts:9](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/ColorBar.ts#L9)
 
 ***
 
@@ -52,7 +52,7 @@ The orientation for the color bar. Valid values are 'horizontal' and 'vertical'.
 
 #### Source
 
-[ColorBar.ts:27](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/ColorBar.ts#L27)
+[ColorBar.ts:28](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/ColorBar.ts#L28)
 
 ***
 
@@ -71,7 +71,7 @@ The direction the ticks should face. Valid values are 'left' and 'right' if orie
 
 #### Source
 
-[ColorBar.ts:21](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/ColorBar.ts#L21)
+[ColorBar.ts:22](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/ColorBar.ts#L22)
 
 ***
 
@@ -89,7 +89,7 @@ The font size (in points) to use for the tick labels
 
 #### Source
 
-[ColorBar.ts:39](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/ColorBar.ts#L39)
+[ColorBar.ts:40](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/ColorBar.ts#L40)
 
 ***
 
@@ -107,4 +107,4 @@ Use all the levels in the color map provided to {@link makeColorBar}.
 
 #### Source
 
-[ColorBar.ts:14](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/ColorBar.ts#L14)
+[ColorBar.ts:15](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/ColorBar.ts#L15)

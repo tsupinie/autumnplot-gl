@@ -8,6 +8,36 @@
 
 ## Properties
 
+### barb\_size\_multiplier?
+
+> `optional` **barb\_size\_multiplier**: `number`
+
+A multiplier for the barb size
+
+#### Default
+
+```ts
+1
+```
+
+#### Source
+
+[Barbs.ts:151](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Barbs.ts#L151)
+
+***
+
+### cmap?
+
+> `optional` **cmap**: `null` \| [`ColorMap`](../classes/ColorMap.md)
+
+A color map to use to color the barbs by magnitude. Specifying cmap overrides the color argument.
+
+#### Source
+
+[Barbs.ts:139](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Barbs.ts#L139)
+
+***
+
 ### color?
 
 > `optional` **color**: `string`
@@ -22,7 +52,25 @@ The color to use for the barbs as a hex color string;.
 
 #### Source
 
-[Barbs.ts:132](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Barbs.ts#L132)
+[Barbs.ts:134](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Barbs.ts#L134)
+
+***
+
+### line\_width?
+
+> `optional` **line\_width**: `number`
+
+The width of the lines to use for the barbs
+
+#### Default
+
+```ts
+2
+```
+
+#### Source
+
+[Barbs.ts:145](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Barbs.ts#L145)
 
 ***
 
@@ -41,4 +89,4 @@ How much to thin the barbs at zoom level 1 on the map. This effectively means to
 
 #### Source
 
-[Barbs.ts:139](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Barbs.ts#L139)
+[Barbs.ts:158](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Barbs.ts#L158)

@@ -6,7 +6,7 @@
 
 # Class: Hodographs\<MapType\>
 
-A class representing a a field of hodograph plots
+A class representing a field of hodograph plots
 
 ## Extends
 
@@ -44,27 +44,17 @@ Various options to use when creating the hodographs
 
 #### Source
 
-[Hodographs.ts:97](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Hodographs.ts#L97)
+[Hodographs.ts:103](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Hodographs.ts#L103)
 
 ## Properties
 
-### bgcolor
+### opts
 
-> `readonly` **bgcolor**: `string`
-
-#### Source
-
-[Hodographs.ts:84](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Hodographs.ts#L84)
-
-***
-
-### thin\_fac
-
-> `readonly` **thin\_fac**: `number`
+> `readonly` **opts**: `Required`\<[`HodographOptions`](../interfaces/HodographOptions.md)\>
 
 #### Source
 
-[Hodographs.ts:85](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Hodographs.ts#L85)
+[Hodographs.ts:91](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Hodographs.ts#L91)
 
 ## Methods
 
@@ -86,4 +76,4 @@ The new profiles to display as hodographs
 
 #### Source
 
-[Hodographs.ts:118](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Hodographs.ts#L118)
+[Hodographs.ts:120](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Hodographs.ts#L120)

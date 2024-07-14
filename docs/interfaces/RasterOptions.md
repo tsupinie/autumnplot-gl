@@ -16,7 +16,7 @@ The color map to use when creating the raster plot
 
 #### Source
 
-[Fill.ts:27](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Fill.ts#L27)
+[Fill.ts:33](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Fill.ts#L33)
 
 ***
 
@@ -34,4 +34,4 @@ The opacity for the raster plot
 
 #### Source
 
-[Fill.ts:33](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Fill.ts#L33)
+[Fill.ts:39](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Fill.ts#L39)

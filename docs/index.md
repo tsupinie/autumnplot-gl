@@ -192,9 +192,9 @@ height_layer.setActiveKey('20230112_1200');
 
 ### Typescript Considerations
 
-autumnplot-gl is written in Tyescript to facilitate type info in large projects. Typescript isn't necessary to use autumnplot-gl, but if you want to use it, there are some considerations. 
+autumnplot-gl is written in Typescript to facilitate type info in large projects. Typescript isn't necessary to use autumnplot-gl, but if you want to use it, there are some considerations. 
 
-Many of the plot component classes have generic types. The typescript compiler can generally figure out the generic type parameters, but if you're declaring a variable to be a plot component, you'll probably need to specify those ahead of time. The first type parameter is the array type (either Float32Array or Float16Array), and the second is the type of the Map you're using.
+Many of the plot component classes have generic types. The Typescript compiler can generally figure out the generic type parameters, but if you're declaring a variable to be a plot component, you'll probably need to specify those ahead of time. The first type parameter is the array type (either Float32Array or Float16Array), and the second is the type of the Map you're using.
 
 ```typescript
 // Import the map from maplibre-gl, if that's what you're using. Mapbox should be similar.

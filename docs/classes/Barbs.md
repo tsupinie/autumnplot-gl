@@ -55,27 +55,17 @@ Options for creating the wind barbs
 
 #### Source
 
-[Barbs.ts:168](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Barbs.ts#L168)
+[Barbs.ts:196](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Barbs.ts#L196)
 
 ## Properties
 
-### color
+### opts
 
-> `readonly` **color**: [`number`, `number`, `number`]
-
-#### Source
-
-[Barbs.ts:158](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Barbs.ts#L158)
-
-***
-
-### thin\_fac
-
-> `readonly` **thin\_fac**: `number`
+> `readonly` **opts**: `Required`\<[`BarbsOptions`](../interfaces/BarbsOptions.md)\>
 
 #### Source
 
-[Barbs.ts:159](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Barbs.ts#L159)
+[Barbs.ts:185](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Barbs.ts#L185)
 
 ## Methods
 
@@ -97,4 +87,4 @@ The new field to display as barbs
 
 #### Source
 
-[Barbs.ts:184](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Barbs.ts#L184)
+[Barbs.ts:212](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Barbs.ts#L212)

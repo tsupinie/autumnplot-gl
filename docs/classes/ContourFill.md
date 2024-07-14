@@ -53,27 +53,13 @@ Options for creating the filled contours
 
 #### Source
 
-[Fill.ts:225](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Fill.ts#L225)
+[Fill.ts:219](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Fill.ts#L219)
 
 ## Properties
 
-### cmap
-
-> `readonly` **cmap**: [`ColorMap`](ColorMap.md)
-
-#### Inherited from
-
-`PlotComponentFill.cmap`
-
-#### Source
-
-[Fill.ts:49](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Fill.ts#L49)
-
-***
-
 ### cmap\_mag\_filter
 
-> `protected` **cmap\_mag\_filter**: `number`
+> `protected` **cmap\_mag\_filter**: `null` \| `number`
 
 #### Inherited from
 
@@ -81,13 +67,13 @@ Options for creating the filled contours
 
 #### Source
 
-[Fill.ts:58](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Fill.ts#L58)
+[Fill.ts:65](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Fill.ts#L65)
 
 ***
 
 ### image\_mag\_filter
 
-> `protected` **image\_mag\_filter**: `number`
+> `protected` **image\_mag\_filter**: `null` \| `number`
 
 #### Inherited from
 
@@ -95,21 +81,21 @@ Options for creating the filled contours
 
 #### Source
 
-[Fill.ts:57](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Fill.ts#L57)
+[Fill.ts:64](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Fill.ts#L64)
 
 ***
 
-### opacity
+### opts
 
-> `readonly` **opacity**: `number`
+> `readonly` **opts**: `Required`\<[`ContourFillOptions`](../interfaces/ContourFillOptions.md)\>
 
 #### Inherited from
 
-`PlotComponentFill.opacity`
+`PlotComponentFill.opts`
 
 #### Source
 
-[Fill.ts:50](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Fill.ts#L50)
+[Fill.ts:58](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Fill.ts#L58)
 
 ## Methods
 
@@ -135,4 +121,4 @@ The new field to display as filled contours
 
 #### Source
 
-[Fill.ts:233](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Fill.ts#L233)
+[Fill.ts:227](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Fill.ts#L227)

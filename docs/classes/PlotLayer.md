@@ -54,7 +54,7 @@ The field to plot in this layer
 
 #### Source
 
-[PlotLayer.ts:45](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/PlotLayer.ts#L45)
+[PlotLayer.ts:45](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/PlotLayer.ts#L45)
 
 ## Properties
 
@@ -68,13 +68,13 @@ The field to plot in this layer
 
 #### Source
 
-[PlotLayer.ts:9](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/PlotLayer.ts#L9)
+[PlotLayer.ts:9](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/PlotLayer.ts#L9)
 
 ***
 
 ### map
 
-> `protected` **map**: `MapType`
+> `protected` **map**: `null` \| `MapType`
 
 #### Inherited from
 
@@ -82,7 +82,7 @@ The field to plot in this layer
 
 #### Source
 
-[PlotLayer.ts:10](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/PlotLayer.ts#L10)
+[PlotLayer.ts:10](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/PlotLayer.ts#L10)
 
 ***
 
@@ -96,7 +96,7 @@ The field to plot in this layer
 
 #### Source
 
-[PlotLayer.ts:8](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/PlotLayer.ts#L8)
+[PlotLayer.ts:8](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/PlotLayer.ts#L8)
 
 ## Methods
 
@@ -114,4 +114,4 @@ The field to plot in this layer
 
 #### Source
 
-[PlotLayer.ts:21](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/PlotLayer.ts#L21)
+[PlotLayer.ts:21](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/PlotLayer.ts#L21)

@@ -54,37 +54,17 @@ Options for creating the contours
 
 #### Source
 
-[Contour.ts:59](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Contour.ts#L59)
+[Contour.ts:89](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Contour.ts#L89)
 
 ## Properties
 
-### color
+### opts
 
-> `readonly` **color**: `string`
-
-#### Source
-
-[Contour.ts:47](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Contour.ts#L47)
-
-***
-
-### interval
-
-> `readonly` **interval**: `number`
+> `readonly` **opts**: `Required`\<[`ContourOptions`](../interfaces/ContourOptions.md)\>
 
 #### Source
 
-[Contour.ts:48](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Contour.ts#L48)
-
-***
-
-### levels
-
-> `readonly` **levels**: `number`[]
-
-#### Source
-
-[Contour.ts:49](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Contour.ts#L49)
+[Contour.ts:79](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Contour.ts#L79)
 
 ## Methods
 
@@ -98,7 +78,7 @@ Options for creating the contours
 
 #### Source
 
-[Contour.ts:92](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Contour.ts#L92)
+[Contour.ts:162](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Contour.ts#L162)
 
 ***
 
@@ -120,4 +100,4 @@ The new field to contour
 
 #### Source
 
-[Contour.ts:77](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Contour.ts#L77)
+[Contour.ts:103](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Contour.ts#L103)

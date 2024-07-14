@@ -7,6 +7,7 @@
 ## Classes
 
 - [Barbs](classes/Barbs.md)
+- [Color](classes/Color.md)
 - [ColorMap](classes/ColorMap.md)
 - [Contour](classes/Contour.md)
 - [ContourFill](classes/ContourFill.md)
@@ -28,7 +29,6 @@
 ## Interfaces
 
 - [BarbsOptions](interfaces/BarbsOptions.md)
-- [Color](interfaces/Color.md)
 - [ColorBarOptions](interfaces/ColorBarOptions.md)
 - [ColorMapOptions](interfaces/ColorMapOptions.md)
 - [ContourFillOptions](interfaces/ContourFillOptions.md)
@@ -48,6 +48,7 @@
 - [ColorbarTickDirection](type-aliases/ColorbarTickDirection.md)
 - [ContourData](type-aliases/ContourData.md)
 - [GridType](type-aliases/GridType.md)
+- [LineStyle](type-aliases/LineStyle.md)
 - [MapLikeType](type-aliases/MapLikeType.md)
 - [TypedArray](type-aliases/TypedArray.md)
 - [VectorRelativeTo](type-aliases/VectorRelativeTo.md)

@@ -8,6 +8,24 @@
 
 ## Properties
 
+### cmap?
+
+> `optional` **cmap**: `null` \| [`ColorMap`](../classes/ColorMap.md)
+
+A color map to use to color the contours. Specifying a colormap overrides the color option.
+
+#### Default
+
+```ts
+null
+```
+
+#### Source
+
+[Contour.ts:25](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Contour.ts#L25)
+
+***
+
 ### color?
 
 > `optional` **color**: `string`
@@ -22,7 +40,7 @@ The color of the contours as a hex color string
 
 #### Source
 
-[Contour.ts:18](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Contour.ts#L18)
+[Contour.ts:19](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Contour.ts#L19)
 
 ***
 
@@ -40,20 +58,72 @@ The contour interval for drawing contours at regular intervals
 
 #### Source
 
-[Contour.ts:24](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Contour.ts#L24)
+[Contour.ts:31](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Contour.ts#L31)
 
 ***
 
 ### levels?
 
-> `optional` **levels**: `number`[]
+> `optional` **levels**: `null` \| `number`[]
 
-A list of arbitrary levels (up to 40) to contour. This overrides the `interval` option.
+A list of arbitrary levels to contour. This overrides the `interval` option.
 
 #### Default
 
-Draw contours at regular intervals given by the `interval` option.
+```ts
+null
+```
 
 #### Source
 
-[Contour.ts:30](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/Contour.ts#L30)
+[Contour.ts:37](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Contour.ts#L37)
+
+***
+
+### line\_style?
+
+> `optional` **line\_style**: [`LineStyle`](../type-aliases/LineStyle.md) \| (`level`) => [`LineStyle`](../type-aliases/LineStyle.md)
+
+The style to use for the line. This can be either a LineStyle or a function that takes a contour level as a number and returns a LineStyle. This 
+ can be used to vary the contours by value.
+
+#### Example
+
+```ts
+level => level < 0 ? '--' : '-'
+```
+
+#### Default
+
+```ts
+'-'
+```
+
+#### Source
+
+[Contour.ts:53](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Contour.ts#L53)
+
+***
+
+### line\_width?
+
+> `optional` **line\_width**: `number` \| (`level`) => `number`
+
+The width of the line in pixels. This could be either a number or a function that takes a contour level as a number and returns a line width. This
+ can be used to vary the width of the contours by value.
+
+#### Example
+
+```ts
+level => level >= 100 ? 3 : 1.5
+```
+
+#### Default
+
+```ts
+2
+```
+
+#### Source
+
+[Contour.ts:45](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/Contour.ts#L45)

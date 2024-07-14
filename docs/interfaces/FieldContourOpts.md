@@ -16,7 +16,7 @@ The interval at which to create contours. The field will be contoured at this in
 
 #### Source
 
-[ContourCreator.ts:23](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/ContourCreator.ts#L23)
+[ContourCreator.ts:22](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/ContourCreator.ts#L22)
 
 ***
 
@@ -28,4 +28,4 @@ Contour the field at these specific levels.
 
 #### Source
 
-[ContourCreator.ts:28](https://github.com/tsupinie/autumnplot-gl/blob/da83b636ef88a1d3337f3a9820a0b90f5b249286/src/ContourCreator.ts#L28)
+[ContourCreator.ts:27](https://github.com/tsupinie/autumnplot-gl/blob/0e257a0170331d21c88041ead5493447b81541cc/src/ContourCreator.ts#L27)
