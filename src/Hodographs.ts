@@ -62,6 +62,7 @@ const HODO_CMAP = new ColorMap([0, 1, 3, 6, 9], ['#ffffcc', '#a1dab4', '#41b6c4'
 interface HodographOptions {
     /** 
      * The color of the hodograph plot background as a hex string
+     * @default '#000000'
      */
     bgcolor?: string;
 
@@ -84,7 +85,7 @@ interface HodographGLElems<ArrayType extends TypedArray, MapType extends MapLike
     bg_billboard: BillboardCollection<ArrayType>;
 }
 
-/** A class representing a a field of hodograph plots */
+/** A class representing a field of hodograph plots */
 class Hodographs<MapType extends MapLikeType> extends PlotComponent<MapType> {
     private profile_field: RawProfileField;
     public readonly opts: Required<HodographOptions>;

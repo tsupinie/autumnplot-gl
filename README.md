@@ -26,7 +26,7 @@ Unfortunately, you may have to modify your build tool configuration to include t
                 test: /\.wasm$/,
                 type: "asset/resource",
                 generator: {
-                    filename: "static/js/[name].wasm"
+                    filename: "[name].wasm"
                 }
             }
         ]
@@ -52,7 +52,7 @@ Next, create a RawScalarField with the data. autumnplot-gl doesn't care about ho
 const height_field = new RawScalarField(grid, height_data);
 ```
 
-Next, to contour the field, create a Contour object and pass it some options. At this time, a somewhat limited set of options is supported, but I do plan to expand this.
+Next, to contour the field, create a Contour object and pass it some options. See [here](https://tsupinie.github.io/autumnplot-gl/interfaces/ContourOptions.html) for a full list of options.
 
 ```javascript
 // Contour the data
@@ -119,7 +119,7 @@ Plotting filled contours is also similar to plotting regular contours, but there
 ```javascript
 // colormaps is imported via `import {colormaps} from 'autumnplot-gl'`
 const colormap = colormaps.bluered(-10, 10, 20);
-const fills = new ContourFilled(height, {cmap: colormap});
+const fills = new ContourFilled(height, {cmap: colormap, opacity: 0.6});
 const height_fill_layer = new PlotLayer('height-fill', fills);
 
 map.on('load', () => {
@@ -130,7 +130,7 @@ map.on('load', () => {
 Making a raster plot is very similar (the two classes support the same options):
 
 ```javascript
-const raster = new Raster(height, {cmap: colormap});
+const raster = new Raster(height, {cmap: colormap, opacity: 0.6});
 ```
 
 Normally, when you have a color fill, you have a color bar on the plot. To create an SVG color bar:
@@ -188,9 +188,9 @@ height_layer.setActiveKey('20230112_1200');
 
 ### Typescript Considerations
 
-autumnplot-gl is written in Tyescript to facilitate type info in large projects. Typescript isn't necessary to use autumnplot-gl, but if you want to use it, there are some considerations. 
+autumnplot-gl is written in Typescript to facilitate type info in large projects. Typescript isn't necessary to use autumnplot-gl, but if you want to use it, there are some considerations. 
 
-Many of the plot component classes have generic types. The typescript compiler can generally figure out the generic type parameters, but if you're declaring a variable to be a plot component, you'll probably need to specify those ahead of time. The first type parameter is the array type (either Float32Array or Float16Array), and the second is the type of the Map you're using.
+Many of the plot component classes have generic types. The Typescript compiler can generally figure out the generic type parameters, but if you're declaring a variable to be a plot component, you'll probably need to specify those ahead of time. The first type parameter is the array type (either Float32Array or Float16Array), and the second is the type of the Map you're using.
 
 ```typescript
 // Import the map from maplibre-gl, if that's what you're using. Mapbox should be similar.
@@ -216,11 +216,6 @@ Here are all the colormaps available:
 The above exmple uses map tiles from [Maptiler](https://www.maptiler.com/). Map tiles from Maptiler or Mapbox or others are free up to a (reasonably generous) limit, but the pricing can be a tad steep after reaching the limit. The tiles from these services are extremely detailed, and really what you're paying for there is the hardware to store, process, and serve that data. While these tiles are very nice, the detail is way overkill for a lot of uses in meteorology. 
 
 So, I've created some [less-detailed map tiles](https://tsupinie.github.io/autumnplot-gl/tiles/) that are small enough that they can be hosted without dedicated hardware. However the tradeoff is that they're only useful down to zoom level 8 or 9 on the map, such that the viewport is somewhere between half a US state and a few counties in size. If that's good enough for you, then these tiles could be useful.
-
-## Conspicuous absences
-A few capabilities are missing from this library as of v3.0.
-* Helper functions for reading from specific data formats. For instance, I'd like to add support for reading from a zarr file.
-* A whole bunch of little things that ought to be fairly straightforward like tweaking the size of the wind barbs and contour thicknesses.
 
 ## Closing thoughts
 Even though autumnplot-gl is currently an extremely new package with relatively limited capability, I hope folks see potential and find it useful. Any contributions to fill out some missing features are welcome.

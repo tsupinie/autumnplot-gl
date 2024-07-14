@@ -19,7 +19,7 @@ interface ContourOptions {
     color?: string;
 
     /**
-     * A color map to use to color the contours.
+     * A color map to use to color the contours. Specifying a colormap overrides the color option.
      * @default null
      */
     cmap?: ColorMap | null;
@@ -31,21 +31,23 @@ interface ContourOptions {
     interval?: number;
 
     /**
-     * A list of arbitrary levels (up to 40) to contour. This overrides the `interval` option.
-     * @default Draw contours at regular intervals given by the `interval` option.
+     * A list of arbitrary levels to contour. This overrides the `interval` option.
+     * @default null
      */
     levels?: number[] | null;
 
     /**
-     * The width of the line in pixels.
+     * The width of the line in pixels. This could be either a number or a function that takes a contour level as a number and returns a line width. This
+     *  can be used to vary the width of the contours by value.
+     * @example level => level >= 100 ? 3 : 1.5
      * @default 2
      */
     line_width?: number | ((level: number) => number);
 
     /**
-     * The style to use for the line. The possible options are '-' for a solid line, '--' for a dashed line, ':' for a
-     *  dotted line, '-.' for a dash-dot line, or you could pass a list of numbers (e.g., [1, 1, 1, 0, 1, 0]) to
-     *  specify a custom dash scheme.
+     * The style to use for the line. This can be either a LineStyle or a function that takes a contour level as a number and returns a LineStyle. This 
+     *  can be used to vary the contours by value.
+     * @example level => level < 0 ? '--' : '-'
      * @default '-'
      */
     line_style?: LineStyle | ((level: number) => LineStyle);

@@ -93,50 +93,90 @@ const hsv2rgb = (hsv: [number, number, number]) : [number, number, number] => {
 class Color {
     private rgba: [number, number, number, number];
 
+    /**
+     * Create a new color object
+     * @param rgba - An RGBA tuple of floats between 0 and 1
+     */
     constructor(rgba: [number, number, number, number]) {
         this.rgba = rgba;
     }
 
+    /**
+     * The red component of the color as a float value between 0 and 1
+     */
     get r() {
         return this.rgba[0];
     }
 
+    /**
+     * The green component of the color as a float value between 0 and 1
+     */
     get g() {
         return this.rgba[1];
     }
 
+    /**
+     * The blue component of the color as a float value between 0 and 1
+     */
     get b() {
         return this.rgba[2];
     }
 
+    /**
+     * The alpha component (opacity) of the color as a float value between 0 and 1
+     */
     get a() {
         return this.rgba[3];
     }
 
+    /**
+     * @param opacity - The new alpha component (opacity)
+     * @returns A new color with the alpha component set to opacity.
+     */
     withOpacity(opacity: number) {
         return new Color([this.r, this.g, this.b, opacity]);
     }
 
+    /**
+     * @returns The color as an RGB hex string (e.g., '#dedbef')
+     */
     toRGBHex() {
         return this.toRGBAHex().slice(0, -2);
     }
 
+    /**
+     * @returns The color as an RGBA hex string (e.g., '#dedbefff')
+     */
     toRGBAHex() {
         return rgba2hex(this.rgba);
     }
 
+    /**
+     * @returns The color as an RGBA float tuple
+     */
     toRGBATuple() {
         return this.rgba;
     }
 
+    /**
+     * @returns The color as a tuple of HSV values
+     */
     toHSVTuple() {
         return rgb2hsv([this.r, this.g, this.b]);
     }
 
+    /**
+     * @param hex - An RGB or RGBA hex string to parse
+     * @returns a new Color object
+     */
     static fromHex(hex: string) {
         return new Color(hex2rgba(hex));
     }
 
+    /**
+     * @param hsv - A tuple of HSV values
+     * @returns a new Color object
+     */
     static fromHSVTuple(hsv: [number, number, number]) {
         const rgb = hsv2rgb(hsv);
         return new Color([rgb[0], rgb[1], rgb[2], 1]);

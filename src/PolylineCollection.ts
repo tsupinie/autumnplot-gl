@@ -8,6 +8,11 @@ import { layer_worker } from "./PlotComponent";
 const polyline_vertex_src = require('./glsl/polyline_vertex.glsl');
 const polyline_fragment_src = require('./glsl/polyline_fragment.glsl');
 
+/**
+ * A style to use to draw lines. The possible options are '-' for a solid line, '--' for a dashed line, ':' for a
+ *  dotted line, '-.' for a dash-dot line, or you could pass a list of numbers (e.g., [1, 1, 1, 0, 1, 0]) to
+ *  specify a custom dash scheme.
+ */
 type LineStyle = "-" | "--" | ":" | "-." | number[];
 
 const dash_arrays: Record<Exclude<LineStyle, number[]>, number[]> = {
