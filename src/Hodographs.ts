@@ -75,18 +75,18 @@ interface HodographOptions {
      * The width of the hodograph line in pixels
      * @default 2.5
      */
-    hodo_line_width: number;
+    hodo_line_width?: number;
 
     /**
      * The width of the lines on the background in pixels
      * @default 1.5
      */
-    background_line_width: number;
+    background_line_width?: number;
 
     /**
      * The colormap to use for the heights on the hodograph. Default is a yellow-blue colormap.
      */
-    height_cmap: ColorMap;
+    height_cmap?: ColorMap;
 }
 
 const hodograph_opt_defaults: Required<HodographOptions> = {
