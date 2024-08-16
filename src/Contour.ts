@@ -10,7 +10,7 @@ import { Color } from './Color';
 import { normalizeOptions } from './utils';
 import { kdTree } from 'kd-tree-javascript';
 import { ColorMap } from './Colormap';
-import { StructuredGrid } from './Grid';
+import { StructuredGrid, UnstructuredGrid } from './Grid';
 
 interface ContourOptions {
     /** 
@@ -245,6 +245,12 @@ interface ContourLabelOptions {
      * @default false
      */
     halo?: boolean;
+
+    /**
+     * Label density. 2 makes the labels twice as dense, 0.5 makes them half as dense.
+     * @default 1
+     */
+    density?: number;
 }
 
 const contour_label_opt_defaults: Required<ContourLabelOptions> = {
@@ -254,7 +260,8 @@ const contour_label_opt_defaults: Required<ContourLabelOptions> = {
     font_url_template: '',
     text_color: '#000000',
     halo_color: '#000000',
-    halo: false
+    halo: false,
+    density: 1
 }
 
 class ContourLabels<ArrayType extends TypedArray, GridType extends StructuredGrid, MapType extends MapLikeType> extends PlotComponent<MapType> {
@@ -301,7 +308,7 @@ class ContourLabels<ArrayType extends TypedArray, GridType extends StructuredGri
         contour_levels.sort((a, b) => a - b);
 
         const map_max_zoom = map.getMaxZoom();
-        const contour_label_spacing = 0.01 * Math.pow(2, 7 - map_max_zoom);
+        const contour_label_spacing = 0.006 / this.opts.density * Math.pow(2, 7 - map_max_zoom);
 
         Object.entries(contour_data).forEach(([level, contours]) => {
             const icntr = (parseFloat(level) - contour_levels[0]);
