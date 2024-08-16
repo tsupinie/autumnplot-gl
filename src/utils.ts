@@ -1,3 +1,4 @@
+import { TypedArray } from "./AutumnTypes";
 
 function getMinZoom(jlat: number, ilon: number, thin_fac_base: number) {
     const zoom_base = 1;
@@ -86,4 +87,8 @@ function normalizeOptions<Type extends Record<string, any>>(opts: Type | undefin
     return ret;
 }
 
-export {zip, getMinZoom, getOS, Cache, normalizeOptions};
+function getArrayConstructor<ArrayType extends TypedArray>(ary: ArrayType) : new(...args: any[]) => ArrayType {
+    return ary.constructor as new(...args: any[]) => ArrayType;
+}
+
+export {zip, getMinZoom, getOS, Cache, normalizeOptions, getArrayConstructor};

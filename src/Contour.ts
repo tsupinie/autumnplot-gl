@@ -10,6 +10,7 @@ import { Color } from './Color';
 import { normalizeOptions } from './utils';
 import { kdTree } from 'kd-tree-javascript';
 import { ColorMap } from './Colormap';
+import { StructuredGrid } from './Grid';
 
 interface ContourOptions {
     /** 
@@ -74,8 +75,8 @@ interface ContourGLElems<MapType extends MapLikeType> {
  * // meters).
  * const contours = new Contour(height_field, {color: '#000000', interval: 30});
  */
-class Contour<ArrayType extends TypedArray, MapType extends MapLikeType> extends PlotComponent<MapType> {
-    private field: RawScalarField<ArrayType>;
+class Contour<ArrayType extends TypedArray, GridType extends StructuredGrid, MapType extends MapLikeType> extends PlotComponent<MapType> {
+    private field: RawScalarField<ArrayType, GridType>;
     public readonly opts: Required<ContourOptions>;
 
     private gl_elems: ContourGLElems<MapType> | null;
@@ -86,7 +87,7 @@ class Contour<ArrayType extends TypedArray, MapType extends MapLikeType> extends
      * @param field - The field to contour
      * @param opts  - Options for creating the contours
      */
-    constructor(field: RawScalarField<ArrayType>, opts: ContourOptions) {
+    constructor(field: RawScalarField<ArrayType, GridType>, opts: ContourOptions) {
         super();
 
         this.field = field;
@@ -100,7 +101,7 @@ class Contour<ArrayType extends TypedArray, MapType extends MapLikeType> extends
      * Update the data displayed as contours
      * @param field - The new field to contour
      */
-    public async updateField(field: RawScalarField<ArrayType>) {
+    public async updateField(field: RawScalarField<ArrayType, GridType>) {
         this.field = field;
         if (this.gl_elems === null) return;
 
@@ -256,13 +257,13 @@ const contour_label_opt_defaults: Required<ContourLabelOptions> = {
     halo: false
 }
 
-class ContourLabels<ArrayType extends TypedArray, MapType extends MapLikeType> extends PlotComponent<MapType> {
-    private readonly contours: Contour<ArrayType, MapType>;
+class ContourLabels<ArrayType extends TypedArray, GridType extends StructuredGrid, MapType extends MapLikeType> extends PlotComponent<MapType> {
+    private readonly contours: Contour<ArrayType, GridType, MapType>;
     private gl_elems: ContourLabelGLElems<MapType> | null;
     private text_collection: TextCollection | null;
     private readonly opts: Required<ContourLabelOptions>;
 
-    constructor(contours: Contour<ArrayType, MapType>, opts?: ContourLabelOptions) {
+    constructor(contours: Contour<ArrayType, GridType, MapType>, opts?: ContourLabelOptions) {
         super();
 
         this.opts = normalizeOptions(opts, contour_label_opt_defaults);

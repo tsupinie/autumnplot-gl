@@ -6,6 +6,7 @@ import { RawScalarField } from './RawField';
 import { MapLikeType } from './Map';
 import { TypedArray, WebGLAnyRenderingContext } from './AutumnTypes';
 import { normalizeOptions } from './utils';
+import { Grid, StructuredGrid } from './Grid';
 
 const contourfill_vertex_shader_src = require('./glsl/contourfill_vertex.glsl');
 const contourfill_fragment_shader_src = require('./glsl/contourfill_fragment.glsl');
@@ -53,8 +54,8 @@ interface PlotComponentFillGLElems<MapType extends MapLikeType> {
     texcoords: WGLBuffer;
 }
 
-class PlotComponentFill<ArrayType extends TypedArray, MapType extends MapLikeType> extends PlotComponent<MapType> {
-    private field: RawScalarField<ArrayType>;
+class PlotComponentFill<ArrayType extends TypedArray, GridType extends StructuredGrid, MapType extends MapLikeType> extends PlotComponent<MapType> {
+    private field: RawScalarField<ArrayType, GridType>;
     public readonly opts: Required<ContourFillOptions>;
 
     private readonly cmap_gpu: ColorMapGPUInterface;
@@ -64,7 +65,7 @@ class PlotComponentFill<ArrayType extends TypedArray, MapType extends MapLikeTyp
     protected image_mag_filter: number | null;
     protected cmap_mag_filter: number | null;
 
-    constructor(field: RawScalarField<ArrayType>, opts: ContourFillOptions) {
+    constructor(field: RawScalarField<ArrayType, GridType>, opts: ContourFillOptions) {
         super();
 
         this.field = field;
@@ -78,7 +79,7 @@ class PlotComponentFill<ArrayType extends TypedArray, MapType extends MapLikeTyp
         this.cmap_mag_filter = null;
     }
 
-    public async updateField(field: RawScalarField<ArrayType>) {
+    public async updateField(field: RawScalarField<ArrayType, GridType>) {
         this.field = field;
 
         if (this.image_mag_filter === null || this.cmap_mag_filter === null) {
@@ -165,14 +166,14 @@ class PlotComponentFill<ArrayType extends TypedArray, MapType extends MapLikeTyp
  * // Create a raster plot with the provided color map
  * const raster = new Raster(wind_speed_field, {cmap: color_map});
  */
-class Raster<ArrayType extends TypedArray, MapType extends MapLikeType> extends PlotComponentFill<ArrayType, MapType> {
+class Raster<ArrayType extends TypedArray, GridType extends StructuredGrid, MapType extends MapLikeType> extends PlotComponentFill<ArrayType, GridType, MapType> {
 
     /**
      * Create a raster plot
      * @param field - The field to create the raster plot from
      * @param opts  - Options for creating the raster plot
      */
-    constructor(field: RawScalarField<ArrayType>, opts: RasterOptions) {
+    constructor(field: RawScalarField<ArrayType, GridType>, opts: RasterOptions) {
         super(field, opts);
     }
 
@@ -180,7 +181,7 @@ class Raster<ArrayType extends TypedArray, MapType extends MapLikeType> extends 
      * Update the data displayed as a raster plot
      * @param field - The new field to display as a raster plot
      */
-    public async updateField(field: RawScalarField<ArrayType>) {
+    public async updateField(field: RawScalarField<ArrayType, GridType>) {
         await super.updateField(field);
     }
 
@@ -209,14 +210,14 @@ class Raster<ArrayType extends TypedArray, MapType extends MapLikeType> extends 
  * // Create a field of filled contours with the provided color map
  * const fill = new ContourFill(wind_speed_field, {cmap: color_map});
  */
-class ContourFill<ArrayType extends TypedArray, MapType extends MapLikeType> extends PlotComponentFill<ArrayType, MapType> {
+class ContourFill<ArrayType extends TypedArray, GridType extends StructuredGrid, MapType extends MapLikeType> extends PlotComponentFill<ArrayType, GridType, MapType> {
 
     /**
      * Create a filled contoured field
      * @param field - The field to create filled contours from
      * @param opts  - Options for creating the filled contours
      */
-    constructor(field: RawScalarField<ArrayType>, opts: ContourFillOptions) {
+    constructor(field: RawScalarField<ArrayType, GridType>, opts: ContourFillOptions) {
         super(field, opts);
     }
 
@@ -224,7 +225,7 @@ class ContourFill<ArrayType extends TypedArray, MapType extends MapLikeType> ext
      * Update the data displayed as filled contours
      * @param field - The new field to display as filled contours
      */
-    public async updateField(field: RawScalarField<ArrayType>) {
+    public async updateField(field: RawScalarField<ArrayType, GridType>) {
         await super.updateField(field);
     }
 

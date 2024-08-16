@@ -5,22 +5,15 @@ import { LineData, Polyline } from "./AutumnTypes";
 import * as Comlink from 'comlink';
 import { LngLat } from "./Map";
 
-function makeBBElements(field_lats: Float32Array, field_lons: Float32Array, field_ni: number, field_nj: number,
-    thin_fac_base: number, max_zoom: number) {
+function makeBBElements(field_lats: Float32Array, field_lons: Float32Array, min_zoom: Uint8Array, field_ni: number, field_nj: number, map_max_zoom: number) {
         
     const n_pts_per_poly = 6;
     const n_coords_per_pt_pts = 3;
     const n_coords_per_pt_tc = 2;
 
-    const n_density_tiers = Math.log2(thin_fac_base);
-    const n_inaccessible_tiers = Math.max(n_density_tiers + 1 - max_zoom, 0);
-    const trim_inaccessible = Math.pow(2, n_inaccessible_tiers);
-
-    const field_ni_access = Math.floor((field_ni - 1) / trim_inaccessible) + 1;
-    const field_nj_access = Math.floor((field_nj - 1) / trim_inaccessible) + 1;
-
-    const n_elems_pts = field_ni_access * field_nj_access * n_pts_per_poly * n_coords_per_pt_pts;
-    const n_elems_tc = field_ni_access * field_nj_access * n_pts_per_poly * n_coords_per_pt_tc;
+    const field_n_access = min_zoom.filter(mz => mz <= map_max_zoom).length;
+    const n_elems_pts = field_n_access * n_pts_per_poly * n_coords_per_pt_pts;
+    const n_elems_tc = field_n_access * n_pts_per_poly * n_coords_per_pt_tc;
 
     let pts = new Float32Array(n_elems_pts);
     let tex_coords = new Float32Array(n_elems_tc);
@@ -33,10 +26,9 @@ function makeBBElements(field_lats: Float32Array, field_lons: Float32Array, fiel
             const idx = ilat * field_ni + ilon;
             const lat = field_lats[idx];
             const lon = field_lons[idx];
+            const zoom = min_zoom[idx];
 
-            const zoom = getMinZoom(ilat, ilon, thin_fac_base);
-
-            if (zoom > max_zoom) continue;
+            if (zoom > map_max_zoom) continue;
 
             const pt_ll = new LngLat(lon, lat).toMercatorCoord();
 

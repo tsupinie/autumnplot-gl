@@ -9,6 +9,7 @@ import { LineData, TypedArray, WebGLAnyRenderingContext } from "./AutumnTypes";
 import { Float16Array } from "@petamoriken/float16";
 import { ColorMap } from "./Colormap";
 import { Color } from "./Color";
+import { Grid } from "./Grid";
 
 const LINE_WIDTH_MULTIPLIER = 2.5;
 const BG_MAX_RING_MAG = 40;
@@ -97,18 +98,18 @@ const hodograph_opt_defaults: Required<HodographOptions> = {
     height_cmap: HODO_CMAP
 }
 
-interface HodographGLElems<ArrayType extends TypedArray, MapType extends MapLikeType> {
+interface HodographGLElems<ArrayType extends TypedArray, GridType extends Grid, MapType extends MapLikeType> {
     gl: WebGLAnyRenderingContext;
     map: MapType;
-    bg_billboard: BillboardCollection<ArrayType>;
+    bg_billboard: BillboardCollection<ArrayType, GridType>;
 }
 
 /** A class representing a field of hodograph plots */
-class Hodographs<MapType extends MapLikeType> extends PlotComponent<MapType> {
-    private profile_field: RawProfileField;
+class Hodographs<GridType extends Grid, MapType extends MapLikeType> extends PlotComponent<MapType> {
+    private profile_field: RawProfileField<GridType>;
     public readonly opts: Required<HodographOptions>;
 
-    private gl_elems: HodographGLElems<Float16Array, MapType> | null;
+    private gl_elems: HodographGLElems<Float16Array, GridType, MapType> | null;
     private line_elems: {hodo_line: PolylineCollection, sm_line: PolylineCollection} | null;
     private hodo_bg_texture: HTMLCanvasElement;
     private readonly hodo_scale;
@@ -119,7 +120,7 @@ class Hodographs<MapType extends MapLikeType> extends PlotComponent<MapType> {
      * @param profile_field - The grid of profiles to plot
      * @param opts          - Various options to use when creating the hodographs 
      */
-    constructor(profile_field: RawProfileField, opts?: HodographOptions) {
+    constructor(profile_field: RawProfileField<GridType>, opts?: HodographOptions) {
         super();
         
         this.profile_field = profile_field;
@@ -137,7 +138,7 @@ class Hodographs<MapType extends MapLikeType> extends PlotComponent<MapType> {
      * Update the profiles displayed
      * @param field - The new profiles to display as hodographs
      */
-    public async updateField(field: RawProfileField) {
+    public async updateField(field: RawProfileField<GridType>) {
         this.profile_field = field;
 
         if (this.gl_elems === null) return;

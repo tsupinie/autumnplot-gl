@@ -2,6 +2,7 @@
 import { BillboardSpec, TypedArray, WebGLAnyRenderingContext } from "./AutumnTypes";
 import { Color } from "./Color";
 import { ColorMap, ColorMapGPUInterface } from "./Colormap";
+import { Grid } from "./Grid";
 import { getGLFormatTypeAlignment } from "./PlotComponent";
 import { RawVectorField } from "./RawField";
 import { WGLBuffer, WGLProgram, WGLTexture, WGLTextureSpec } from "autumn-wgl";
@@ -24,8 +25,8 @@ interface BillboardCollectionGLElems {
     cmap_gpu: ColorMapGPUInterface | null;
 }
 
-class BillboardCollection<ArrayType extends TypedArray> {
-    private field: RawVectorField<ArrayType>;
+class BillboardCollection<ArrayType extends TypedArray, GridType extends Grid> {
+    private field: RawVectorField<ArrayType, GridType>;
     public readonly spec: BillboardSpec;
     public readonly color: Color;
     public readonly cmap: ColorMap | null;
@@ -36,10 +37,9 @@ class BillboardCollection<ArrayType extends TypedArray> {
 
     private gl_elems: BillboardCollectionGLElems | null;
     private wind_textures: {u: WGLTexture, v: WGLTexture} | null;
-    private readonly trim_inaccessible: number;
     private show_field: boolean;
 
-    constructor(field: RawVectorField<ArrayType>, thin_fac: number, max_zoom: number, 
+    constructor(field: RawVectorField<ArrayType, GridType>, thin_fac: number, max_zoom: number, 
                 billboard_image: WGLTextureSpec, billboard_spec: BillboardSpec, billboard_size_mult: number, opts?: BillboardCollectionOpts) {
 
         opts = opts === undefined ? {} : opts;
@@ -55,19 +55,16 @@ class BillboardCollection<ArrayType extends TypedArray> {
         this.gl_elems = null;
         this.wind_textures = null;
 
-        const n_density_tiers = Math.log2(thin_fac);
-        const n_inaccessible_tiers = Math.max(n_density_tiers + 1 - max_zoom, 0);
-        this.trim_inaccessible = Math.pow(2, n_inaccessible_tiers);
         this.show_field = true;
     }
 
-    public updateField(field: RawVectorField<ArrayType>) {
+    public updateField(field: RawVectorField<ArrayType, GridType>) {
         this.field = field;
 
         if (this.gl_elems === null) return;
 
         const gl = this.gl_elems.gl;
-        const data = this.field.getThinnedField(this.trim_inaccessible, this.trim_inaccessible);
+        const data = this.field.getThinnedField(this.thin_fac, this.max_zoom);
 
         const {u: u_thin, v: v_thin} = data.getTextureData();
         this.show_field = u_thin !== null;
@@ -93,10 +90,9 @@ class BillboardCollection<ArrayType extends TypedArray> {
     }
 
     public async setup(gl: WebGLAnyRenderingContext) {
-
-        const thinned_field = this.field.getThinnedField(this.trim_inaccessible, this.trim_inaccessible);
-        const {vertices, texcoords} = await thinned_field.grid.getWGLBillboardBuffers(gl, this.thin_fac / this.trim_inaccessible, this.max_zoom);
-        const {rotation: proj_rotation_tex} = thinned_field.grid.getVectorRotationTexture(gl);
+        const thinned_grid = this.field.grid.getThinnedGrid(this.thin_fac, this.max_zoom);
+        const {vertices, texcoords} = await thinned_grid.getWGLBillboardBuffers(gl, this.thin_fac, this.max_zoom);
+        const {rotation: proj_rotation_tex} = thinned_grid.getVectorRotationTexture(gl);
 
         const texture = new WGLTexture(gl, this.billboard_image);
 

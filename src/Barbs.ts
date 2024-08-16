@@ -7,6 +7,7 @@ import { MapLikeType } from "./Map";
 import { BillboardSpec, TypedArray, WebGLAnyRenderingContext } from "./AutumnTypes";
 import { Color } from "./Color";
 import { ColorMap } from "./Colormap";
+import { Grid } from "./Grid";
 
 const BASE_BARB_DIMS: BillboardSpec = {
     BB_WIDTH: 85,
@@ -166,9 +167,9 @@ const barb_opt_defaults: Required<BarbsOptions> = {
     thin_fac: 1
 }
 
-interface BarbsGLElems<ArrayType extends TypedArray, MapType extends MapLikeType> {
+interface BarbsGLElems<ArrayType extends TypedArray, GridType extends Grid, MapType extends MapLikeType> {
     map: MapType;
-    barb_billboards: BillboardCollection<ArrayType>;
+    barb_billboards: BillboardCollection<ArrayType, GridType>;
 }
 
 /** 
@@ -179,13 +180,13 @@ interface BarbsGLElems<ArrayType extends TypedArray, MapType extends MapLikeType
  * const vector_field = new RawVectorField(grid, u_data, v_data);
  * const barbs = new Barbs(vector_field, {color: '#000000', thin_fac: 16});
  */
-class Barbs<ArrayType extends TypedArray, MapType extends MapLikeType> extends PlotComponent<MapType> {
+class Barbs<ArrayType extends TypedArray, GridType extends Grid, MapType extends MapLikeType> extends PlotComponent<MapType> {
     /** The vector field */
-    private fields: RawVectorField<ArrayType>;
+    private fields: RawVectorField<ArrayType, GridType>;
     public readonly opts: Required<BarbsOptions>;
     private readonly color: Color;
 
-    private gl_elems: BarbsGLElems<ArrayType, MapType> | null;
+    private gl_elems: BarbsGLElems<ArrayType, GridType, MapType> | null;
     private barb_texture: HTMLCanvasElement;
 
     /**
@@ -193,7 +194,7 @@ class Barbs<ArrayType extends TypedArray, MapType extends MapLikeType> extends P
      * @param fields - The vector field to plot as barbs
      * @param opts   - Options for creating the wind barbs
      */
-    constructor(fields: RawVectorField<ArrayType>, opts: BarbsOptions) {
+    constructor(fields: RawVectorField<ArrayType, GridType>, opts: BarbsOptions) {
         super();
 
         this.fields = fields;
@@ -209,7 +210,7 @@ class Barbs<ArrayType extends TypedArray, MapType extends MapLikeType> extends P
      * Update the field displayed as barbs
      * @param fields - The new field to display as barbs
      */
-    public async updateField(fields: RawVectorField<ArrayType>) {
+    public async updateField(fields: RawVectorField<ArrayType, GridType>) {
         this.fields = fields;
         if (this.gl_elems === null) return;
         this.gl_elems.barb_billboards.updateField(fields);

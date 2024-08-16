@@ -1,6 +1,7 @@
 
 import { TypedArray, WebGLAnyRenderingContext } from "./AutumnTypes";
 import { Color } from "./Color";
+import { StructuredGrid } from "./Grid";
 import { MapLikeType } from "./Map";
 import { PlotComponent, getGLFormatTypeAlignment } from "./PlotComponent";
 import { RawScalarField } from "./RawField";
@@ -42,8 +43,8 @@ interface PaintballGLElems {
  * of single-precision floats, this works for up to 24 members. (Technically speaking, I don't need the quotes around "bits", as they're bits of the 
  * significand of an IEEE 754 float.)
  */
-class Paintball<ArrayType extends TypedArray, MapType extends MapLikeType> extends PlotComponent<MapType> {
-    private field: RawScalarField<ArrayType>;
+class Paintball<ArrayType extends TypedArray, GridType extends StructuredGrid, MapType extends MapLikeType> extends PlotComponent<MapType> {
+    private field: RawScalarField<ArrayType, GridType>;
     public readonly opts: Required<PaintballOptions>;
     private readonly color_components: number[];
 
@@ -57,7 +58,7 @@ class Paintball<ArrayType extends TypedArray, MapType extends MapLikeType> exten
      *               `M2` is the same thing for member 2, and `M3` and `M4` and up to `Mn` are the same thing for the rest of the members.
      * @param opts  - Options for creating the paintball plot
      */
-    constructor(field: RawScalarField<ArrayType>, opts?: PaintballOptions) {
+    constructor(field: RawScalarField<ArrayType, GridType>, opts?: PaintballOptions) {
         super();
 
         this.field = field;
@@ -73,7 +74,7 @@ class Paintball<ArrayType extends TypedArray, MapType extends MapLikeType> exten
      * Update the field displayed as a paintball plot
      * @param field - The new field to display as a paintball plot
      */
-    public async updateField(field: RawScalarField<ArrayType>) {
+    public async updateField(field: RawScalarField<ArrayType, GridType>) {
         this.field = field;
 
         if (this.gl_elems === null) return;

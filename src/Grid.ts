@@ -1,9 +1,10 @@
 import { Float16Array } from "@petamoriken/float16";
 import { WGLBuffer, WGLTexture, WGLTextureSpec } from "autumn-wgl";
-import { WebGLAnyRenderingContext } from "./AutumnTypes";
-import { lambertConformalConic, rotateSphere } from "./Map";
+import { TypedArray, WebGLAnyRenderingContext } from "./AutumnTypes";
+import { LngLat, lambertConformalConic, rotateSphere } from "./Map";
 import { getGLFormatTypeAlignment, layer_worker } from "./PlotComponent";
-import { Cache } from "./utils";
+import { Cache, getArrayConstructor, getMinZoom } from "./utils";
+import { kdTree } from "kd-tree-javascript";
 
 interface EarthCoords {
     lons: Float32Array;
@@ -37,9 +38,10 @@ async function makeWGLDomainBuffers(gl: WebGLAnyRenderingContext, grid: Grid, na
     return {'vertices': vertices, 'texcoords': texcoords, 'cellsize': grid_cell_size};
 }
 
-async function makeWGLBillboardBuffers(gl: WebGLAnyRenderingContext, grid: Grid, thin_fac: number, max_zoom: number) {
+async function makeWGLBillboardBuffers(gl: WebGLAnyRenderingContext, grid: Grid, thin_fac: number, map_max_zoom: number) {
     const {lats: field_lats, lons: field_lons} = grid.getEarthCoords();
-    const bb_elements = await layer_worker.makeBBElements(field_lats, field_lons, grid.ni, grid.nj, thin_fac, max_zoom);
+    const min_zoom = grid.getMinVisibleZoom(thin_fac, map_max_zoom);
+    const bb_elements = await layer_worker.makeBBElements(field_lats, field_lons, min_zoom, grid.ni, grid.nj, map_max_zoom);
 
     const vertices = new WGLBuffer(gl, bb_elements['pts'], 3, gl.TRIANGLE_STRIP);
     const texcoords = new WGLBuffer(gl, bb_elements['tex_coords'], 2, gl.TRIANGLE_STRIP);
@@ -77,7 +79,7 @@ function makeVectorRotationTexture(gl: WebGLAnyRenderingContext, grid: Grid) {
     return {'rotation': rot_tex};
 }
 
-type GridType = 'latlon' | 'latlonrot' | 'lcc';
+type GridType = 'latlon' | 'latlonrot' | 'lcc' | 'unstructured';
 
 abstract class Grid {
     public readonly type: GridType;
@@ -85,7 +87,6 @@ abstract class Grid {
     public readonly nj: number;
     public readonly is_conformal: boolean;
 
-    private readonly buffer_cache: Cache<[WebGLAnyRenderingContext], Promise<{'vertices': WGLBuffer, 'texcoords': WGLBuffer, 'cellsize': WGLBuffer}>>;
     private readonly billboard_buffer_cache: Cache<[WebGLAnyRenderingContext, number, number], Promise<{'vertices': WGLBuffer, 'texcoords': WGLBuffer}>>;
     private readonly vector_rotation_cache: Cache<[WebGLAnyRenderingContext], {'rotation': WGLTexture}>
 
@@ -94,12 +95,6 @@ abstract class Grid {
         this.is_conformal = is_conformal;
         this.ni = ni;
         this.nj = nj;
-
-        this.buffer_cache = new Cache((gl: WebGLAnyRenderingContext) => {
-            const new_ni = Math.max(Math.floor(this.ni / 50), 20);
-            const new_nj = Math.max(Math.floor(this.nj / 50), 20);
-            return makeWGLDomainBuffers(gl, this.copy({ni: new_ni, nj: new_nj}), this);
-        });
 
         this.billboard_buffer_cache = new Cache((gl: WebGLAnyRenderingContext, thin_fac: number, max_zoom: number) => {
             return makeWGLBillboardBuffers(gl, this, thin_fac, max_zoom);
@@ -110,16 +105,12 @@ abstract class Grid {
         })
     }
 
-    public abstract copy(opts?: {ni?: number, nj?: number}): Grid;
-
     public abstract getEarthCoords(): EarthCoords;
     public abstract getGridCoords(): GridCoords;
     public abstract transform(x: number, y: number, opts?: {inverse?: boolean}): [number, number];
-    abstract getThinnedGrid(thin_x: number, thin_y: number): Grid;
-    
-    public async getWGLBuffers(gl: WebGLAnyRenderingContext) {
-        return await this.buffer_cache.getValue(gl);
-    }
+    public abstract getThinnedGrid(thin_fac: number, map_max_zoom: number): Grid;
+    public abstract thinDataArray<ArrayType extends TypedArray>(original_grid: Grid, ary: ArrayType): ArrayType;
+    public abstract getMinVisibleZoom(thin_fac: number, map_max_zoom: number): Uint8Array;
 
     public async getWGLBillboardBuffers(gl: WebGLAnyRenderingContext, thin_fac: number, max_zoom: number) {
         return await this.billboard_buffer_cache.getValue(gl, thin_fac, max_zoom);
@@ -130,8 +121,69 @@ abstract class Grid {
     }
 }
 
+abstract class StructuredGrid extends Grid {
+    private readonly buffer_cache: Cache<[WebGLAnyRenderingContext], Promise<{'vertices': WGLBuffer, 'texcoords': WGLBuffer, 'cellsize': WGLBuffer}>>;
+    protected readonly thin_x: number;
+    protected readonly thin_y: number;
+
+    constructor(type: GridType, is_conformal: boolean, ni: number, nj: number, thin_x?: number, thin_y?: number) {
+        super(type, is_conformal, ni, nj);
+
+        this.thin_x = thin_x === undefined ? 1 : thin_x;
+        this.thin_y = thin_y === undefined ? 1 : thin_y;
+
+        this.buffer_cache = new Cache((gl: WebGLAnyRenderingContext) => {
+            const new_ni = Math.max(Math.floor(this.ni / 50), 20);
+            const new_nj = Math.max(Math.floor(this.nj / 50), 20);
+            return makeWGLDomainBuffers(gl, this.copy({ni: new_ni, nj: new_nj}), this);
+        });
+    }
+
+    protected xyThinFromMaxZoom(thin_fac: number, map_max_zoom: number) {
+        const n_density_tiers = Math.log2(thin_fac);
+        const n_inaccessible_tiers = Math.max(n_density_tiers + 1 - map_max_zoom, 0);
+        const xy_thin = Math.pow(2, n_inaccessible_tiers);
+
+        return [xy_thin, xy_thin] as [number, number];
+    }
+
+    public getMinVisibleZoom(thin_fac: number, map_max_zoom: number) {
+        const min_zoom = new Uint8Array(this.ni * this.nj);
+        for (let ilat = 0; ilat < this.nj * this.thin_y; ilat += this.thin_y) {
+            for (let ilon = 0; ilon < this.ni * this.thin_x; ilon += this.thin_x) {
+                const idx = ilat * this.ni + ilon;
+                min_zoom[idx] = getMinZoom(ilat, ilon, thin_fac);
+            }
+        }
+
+        return min_zoom;
+    }
+
+    public thinDataArray<ArrayType extends TypedArray>(original_grid: StructuredGrid, ary: ArrayType) {
+        const arrayType = getArrayConstructor(ary);
+        const new_data = new arrayType(this.ni * this.nj);
+
+        for (let i = 0; i < this.ni; i++) {
+            for (let j = 0 ; j < this.nj; j++) {
+                const idx_old = i * this.thin_x + original_grid.ni * j * this.thin_y;
+                const idx = i + this.ni * j;
+
+                new_data[idx] = ary[idx_old];
+            }
+        }
+
+        return new_data;
+    }
+
+    public abstract copy(opts?: {ni?: number, nj?: number}): Grid;
+
+    public async getWGLBuffers(gl: WebGLAnyRenderingContext) {
+        return await this.buffer_cache.getValue(gl);
+    }
+}
+
 /** A plate carree (a.k.a. lat/lon) grid with uniform grid spacing */
-class PlateCarreeGrid extends Grid {
+class PlateCarreeGrid extends StructuredGrid {
     public readonly ll_lon: number;
     public readonly ll_lat: number;
     public readonly ur_lon: number;
@@ -149,8 +201,8 @@ class PlateCarreeGrid extends Grid {
      * @param ur_lon - The longitude of the upper right corner of the grid
      * @param ur_lat - The latitude of the upper right corner of the grid
      */
-    constructor(ni: number, nj: number, ll_lon: number, ll_lat: number, ur_lon: number, ur_lat: number) {
-        super('latlon', true, ni, nj);
+    constructor(ni: number, nj: number, ll_lon: number, ll_lat: number, ur_lon: number, ur_lat: number, thin_x?: number, thin_y?: number) {
+        super('latlon', true, ni, nj, thin_x, thin_y);
 
         this.ll_lon = ll_lon;
         this.ll_lat = ll_lat;
@@ -219,7 +271,9 @@ class PlateCarreeGrid extends Grid {
         return [x, y] as [number, number];
     }
 
-    public getThinnedGrid(thin_x: number, thin_y: number) {
+    public getThinnedGrid(thin_fac: number, map_max_zoom: number) {
+        const [thin_x, thin_y] = this.xyThinFromMaxZoom(thin_fac, map_max_zoom);
+
         const dlon = (this.ur_lon - this.ll_lon) / this.ni;
         const dlat = (this.ur_lat - this.ll_lat) / this.nj;
 
@@ -232,12 +286,12 @@ class PlateCarreeGrid extends Grid {
         const ur_lon = this.ur_lon - ni_remove * dlon;
         const ur_lat = this.ur_lat - nj_remove * dlat;
 
-        return new PlateCarreeGrid(ni, nj, ll_lon, ll_lat, ur_lon, ur_lat);
+        return new PlateCarreeGrid(ni, nj, ll_lon, ll_lat, ur_lon, ur_lat, this.thin_x * thin_x, this.thin_y * thin_y);
     }
 }
 
 /** A rotated lat-lon (plate carree) grid with uniform grid spacing */
-class PlateCarreeRotatedGrid extends Grid {
+class PlateCarreeRotatedGrid extends StructuredGrid {
     public readonly np_lon: number;
     public readonly np_lat: number;
     public readonly lon_shift: number;
@@ -262,8 +316,8 @@ class PlateCarreeRotatedGrid extends Grid {
      * @param ur_lon    - The longitude of the upper right corner of the grid (on the rotated earth)
      * @param ur_lat    - The latitude of the upper right corner of the grid (on the rotated earth)
      */
-    constructor(ni: number, nj: number, np_lon: number, np_lat: number, lon_shift: number, ll_lon: number, ll_lat: number, ur_lon: number, ur_lat: number) {
-        super('latlonrot', true, ni, nj);
+    constructor(ni: number, nj: number, np_lon: number, np_lat: number, lon_shift: number, ll_lon: number, ll_lat: number, ur_lon: number, ur_lat: number, thin_x?: number, thin_y?: number) {
+        super('latlonrot', true, ni, nj, thin_x, thin_y);
 
         this.np_lon = np_lon;
         this.np_lat = np_lat;
@@ -342,7 +396,9 @@ class PlateCarreeRotatedGrid extends Grid {
         return this.llrot(x, y, {inverse: !inverse});
     }
 
-    public getThinnedGrid(thin_x: number, thin_y: number) {
+    public getThinnedGrid(thin_fac: number, map_max_zoom: number) {
+        const [thin_x, thin_y] = this.xyThinFromMaxZoom(thin_fac, map_max_zoom);
+
         const dlon = (this.ur_lon - this.ll_lon) / this.ni;
         const dlat = (this.ur_lat - this.ll_lat) / this.nj;
 
@@ -355,12 +411,12 @@ class PlateCarreeRotatedGrid extends Grid {
         const ur_lon = this.ur_lon - ni_remove * dlon;
         const ur_lat = this.ur_lat - nj_remove * dlat;
 
-        return new PlateCarreeRotatedGrid(ni, nj, this.np_lon, this.np_lat, this.lon_shift, ll_lon, ll_lat, ur_lon, ur_lat);
+        return new PlateCarreeRotatedGrid(ni, nj, this.np_lon, this.np_lat, this.lon_shift, ll_lon, ll_lat, ur_lon, ur_lat, this.thin_x * thin_x, this.thin_y * thin_y);
     }
 }
 
 /** A Lambert conformal conic grid with uniform grid spacing */
-class LambertGrid extends Grid {
+class LambertGrid extends StructuredGrid {
     public readonly lon_0: number;
     public readonly lat_0: number;
     public readonly lat_std: [number, number];
@@ -386,8 +442,8 @@ class LambertGrid extends Grid {
      * @param ur_y    - The y coordinate in projection space of the upper-right corner of the grid
      */
     constructor(ni: number, nj: number, lon_0: number, lat_0: number, lat_std: [number, number], 
-                ll_x: number, ll_y: number, ur_x: number, ur_y: number) {
-        super('lcc', true, ni, nj);
+                ll_x: number, ll_y: number, ur_x: number, ur_y: number, thin_x?: number, thin_y?: number) {
+        super('lcc', true, ni, nj, thin_x, thin_y);
 
         this.lon_0 = lon_0;
         this.lat_0 = lat_0;
@@ -475,7 +531,9 @@ class LambertGrid extends Grid {
         return this.lcc(x, y, {inverse: inverse});
     }
 
-    public getThinnedGrid(thin_x: number, thin_y: number) {
+    public getThinnedGrid(thin_fac: number, map_max_zoom: number) {
+        const [thin_x, thin_y] = this.xyThinFromMaxZoom(thin_fac, map_max_zoom);
+
         const dx = (this.ur_x - this.ll_x) / this.ni;
         const dy = (this.ur_y - this.ll_y) / this.nj;
 
@@ -488,9 +546,111 @@ class LambertGrid extends Grid {
         const ur_x = this.ur_x - ni_remove * dx;
         const ur_y = this.ur_y - nj_remove * dy;
 
-        return new LambertGrid(ni, nj, this.lon_0, this.lat_0, this.lat_std, ll_x, ll_y, ur_x, ur_y);
+        return new LambertGrid(ni, nj, this.lon_0, this.lat_0, this.lat_std, ll_x, ll_y, ur_x, ur_y, this.thin_x * thin_x, this.thin_y * thin_y);
     }
 }
 
-export {Grid, PlateCarreeGrid, PlateCarreeRotatedGrid, LambertGrid};
+class UnstructuredGrid extends Grid {
+    public readonly coords: LngLat[];
+    private readonly zoom_cache: Cache<[number, number], Uint8Array>
+
+    constructor(coords: LngLat[]) {
+        super('unstructured', true, coords.length, 1);
+        this.coords = coords;
+
+        this.zoom_cache = new Cache((thin_fac: number, map_max_zoom: number) => {
+            let min_label_lon: number | null = null, min_label_lat: number | null = null, max_label_lon: number | null = null, max_label_lat: number | null = null;
+
+            this.coords.forEach(coord => {
+                if (min_label_lon === null || coord.lng < min_label_lon) min_label_lon = coord.lng;
+                if (max_label_lon === null || coord.lng > max_label_lon) max_label_lon = coord.lng;
+                if (min_label_lat === null || coord.lat < min_label_lat) min_label_lat = coord.lat;
+                if (max_label_lat === null || coord.lat > max_label_lat) max_label_lat = coord.lat;
+            });
+    
+            if (min_label_lon === null || min_label_lat === null || max_label_lon === null || max_label_lat === null)
+                return new Uint8Array([]);
+    
+            interface kdNode {
+                lng: number;
+                lat: number;
+                min_zoom: number;
+            }
+    
+            const kd_nodes = this.coords.map(c => ({lng: c.lng, lat: c.lat, min_zoom: map_max_zoom} as kdNode));
+            const tree = new kdTree(kd_nodes, (a, b) => Math.hypot(a.lng - b.lng, a.lat - b.lat), ['lng', 'lat']);
+    
+            const {x: min_label_x, y: max_label_y} = new LngLat(min_label_lon, min_label_lat).toMercatorCoord();
+            const {x: max_label_x, y: min_label_y} = new LngLat(max_label_lon, max_label_lat).toMercatorCoord();
+            const thin_grid_width = max_label_x - min_label_x;
+            const thin_grid_height = max_label_y - min_label_y;
+            const ni_thin_grid = Math.round(thin_grid_width * thin_fac); // thin_fac was 4 / contour_label_spacing for the contour labels
+            const nj_thin_grid = Math.round(thin_grid_height * thin_fac);
+            const thin_grid_xs = [];
+            const thin_grid_ys = [];
+    
+            for (let idx = 0; idx < ni_thin_grid; idx++) {
+                thin_grid_xs.push(min_label_x + (idx / ni_thin_grid) * thin_grid_width);
+            }
+    
+            for (let jdy = 0; jdy < nj_thin_grid; jdy++) {
+                thin_grid_ys.push(min_label_y + (jdy / nj_thin_grid) * thin_grid_height);
+            }
+         
+            for (let idx = 0; idx < ni_thin_grid; idx++) {
+                for (let jdy = 0; jdy < nj_thin_grid; jdy++) {
+                    const zoom = getMinZoom(jdy, idx, Math.pow(2, map_max_zoom));
+    
+                    const grid_x = thin_grid_xs[idx];
+                    const grid_y = thin_grid_ys[jdy];
+                    const ll = LngLat.fromMercatorCoord(grid_x, grid_y);
+    
+                    const [label, dist] = tree.nearest({lng: ll.lng, lat: ll.lat, min_zoom: 0}, 1)[0];
+                    label.min_zoom = zoom;
+                }
+            }
+    
+            return new Uint8Array(kd_nodes.map(n => n.min_zoom));
+        });
+    }
+
+    public getEarthCoords() {
+        return {lons: new Float32Array(this.coords.map(c => c.lng)), lats: new Float32Array(this.coords.map(c => c.lat))};
+    }
+
+    public getGridCoords() {
+        const {lons, lats} = this.getEarthCoords();
+        return {x: lons, y: lats} as GridCoords;
+    }
+
+    public transform(x: number, y: number, opts?: {inverse?: boolean}) {
+        return [x, y] as [number, number];
+    }
+
+    public getMinVisibleZoom(thin_fac: number, map_max_zoom: number) {
+        return this.zoom_cache.getValue(thin_fac, map_max_zoom);
+    }
+
+    public getThinnedGrid(thin_fac: number, map_max_zoom: number) {
+        const min_zoom = this.getMinVisibleZoom(thin_fac, map_max_zoom);
+        return new UnstructuredGrid(this.coords.filter((ll, ill) => min_zoom[ill] <= map_max_zoom))
+    }
+
+    public thinDataArray<ArrayType extends TypedArray>(original_grid: UnstructuredGrid, ary: ArrayType) {
+        let i_new = 0;
+        
+        const arrayType = getArrayConstructor(ary);
+        const new_data = new arrayType(this.ni * this.nj);
+
+        for (let i = 0; i < original_grid.coords.length; i++) {
+            if (this.coords[i_new].lat == original_grid.coords[i].lat && this.coords[i_new].lng == original_grid.coords[i].lng) {
+                new_data[++i_new] = ary[i];
+            }
+        }
+
+        return new_data;
+    }
+}
+
+export {Grid, StructuredGrid, PlateCarreeGrid, PlateCarreeRotatedGrid, LambertGrid, UnstructuredGrid};
 export type {GridType};

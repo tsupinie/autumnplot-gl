@@ -3,17 +3,13 @@ import { Float16Array } from "@petamoriken/float16";
 import { ContourData, TypedArray, WindProfile } from "./AutumnTypes";
 import { contourCreator, FieldContourOpts } from "./ContourCreator";
 import { Grid } from "./Grid";
-import { Cache, zip } from "./utils";
+import { Cache, getArrayConstructor, zip } from "./utils";
 
 type TextureDataType<ArrayType> = ArrayType extends Float32Array ? Float32Array : Uint16Array;
 
-function getArrayConstructor<ArrayType extends TypedArray>(ary: ArrayType) : new(...args: any[]) => ArrayType {
-    return ary.constructor as new(...args: any[]) => ArrayType;
-}
-
 /** A class representing a raw 2D field of gridded data, such as height or u wind. */
-class RawScalarField<ArrayType extends TypedArray> {
-    public readonly grid: Grid;
+class RawScalarField<ArrayType extends TypedArray, GridType extends Grid> {
+    public readonly grid: GridType;
     public readonly data: ArrayType;
 
     private readonly contour_cache: Cache<[FieldContourOpts], Promise<ContourData>>;
@@ -23,7 +19,7 @@ class RawScalarField<ArrayType extends TypedArray> {
      * @param grid - The grid on which the data are defined
      * @param data - The data, which should be given as a 1D array in row-major order, with the first element being at the lower-left corner of the grid.
      */
-    constructor(grid: Grid, data: ArrayType) {
+    constructor(grid: GridType, data: ArrayType) {
         this.grid = grid;
         this.data = data;
 
@@ -64,7 +60,7 @@ class RawScalarField<ArrayType extends TypedArray> {
      * // Compute wind speed from u and v
      * wind_speed_field = RawScalarField.aggreateFields(Math.hypot, u_field, v_field);
      */
-    public static aggregateFields<ArrayType extends TypedArray>(func: (...args: number[]) => number, ...args: RawScalarField<ArrayType>[]) {
+    public static aggregateFields<ArrayType extends TypedArray, GridType extends Grid>(func: (...args: number[]) => number, ...args: RawScalarField<ArrayType, GridType>[]) {
         function* mapGenerator<T, U>(gen: Generator<T>, func: (arg: T) => U) {
             for (const elem of gen) {
                 yield func(elem);
@@ -90,9 +86,9 @@ interface RawVectorFieldOptions {
 }
 
 /** A class representing a 2D gridded field of vectors */
-class RawVectorField<ArrayType extends TypedArray> {
-    public readonly u: RawScalarField<ArrayType>;
-    public readonly v: RawScalarField<ArrayType>;
+class RawVectorField<ArrayType extends TypedArray, GridType extends Grid> {
+    public readonly u: RawScalarField<ArrayType, GridType>;
+    public readonly v: RawScalarField<ArrayType, GridType>;
     public readonly relative_to: VectorRelativeTo;
 
     /**
@@ -102,7 +98,7 @@ class RawVectorField<ArrayType extends TypedArray> {
      * @param v    - The v (north/south) component of the vectors, which should be given as a 1D array in row-major order, with the first element being at the lower-left corner of the grid
      * @param opts - Options for creating the vector field.
      */
-    constructor(grid: Grid, u: ArrayType, v: ArrayType, opts?: RawVectorFieldOptions) {
+    constructor(grid: GridType, u: ArrayType, v: ArrayType, opts?: RawVectorFieldOptions) {
         opts = opts === undefined ? {}: opts;
 
         this.u = new RawScalarField(grid, u);
@@ -121,27 +117,11 @@ class RawVectorField<ArrayType extends TypedArray> {
         return {u: u as TextureDataType<ArrayType>, v: v as TextureDataType<ArrayType>};
     }
 
-    public getThinnedField(thin_x: number, thin_y: number) {
-        const new_grid = this.grid.getThinnedGrid(thin_x, thin_y);
+    public getThinnedField(thin_fac: number, map_max_zoom: number) {
+        const new_grid = this.grid.getThinnedGrid(thin_fac, map_max_zoom);
 
-        const thinGrid = (data: ArrayType) => {
-            const arrayType = getArrayConstructor(data);
-            const new_data = new arrayType(new_grid.ni * new_grid.nj);
-    
-            for (let i = 0; i < new_grid.ni; i++) {
-                for (let j = 0 ; j < new_grid.nj; j++) {
-                    const idx_old = i * thin_x + this.grid.ni * j * thin_y;
-                    const idx = i + new_grid.ni * j;
-    
-                    new_data[idx] = data[idx_old];
-                }
-            }
-
-            return new_data;
-        }
-
-        const thin_u = thinGrid(this.u.data);
-        const thin_v = thinGrid(this.v.data);
+        const thin_u = new_grid.thinDataArray(this.grid, this.u.data);
+        const thin_v = new_grid.thinDataArray(this.grid, this.v.data);
 
         return new RawVectorField(new_grid, thin_u, thin_v, {relative_to: this.relative_to});
     }
@@ -152,16 +132,16 @@ class RawVectorField<ArrayType extends TypedArray> {
 }
 
 /** A class grid of wind profiles */
-class RawProfileField {
+class RawProfileField<GridType extends Grid> {
     public readonly profiles: WindProfile[];
-    public readonly grid: Grid;
+    public readonly grid: GridType;
 
     /**
      * Create a grid of wind profiles
      * @param grid     - The grid on which the profiles are defined
      * @param profiles - The wind profiles themselves, which should be given as a 1D array in row-major order, with the first profile being at the lower-left corner of the grid
      */
-    constructor(grid: Grid, profiles: WindProfile[]) {
+    constructor(grid: GridType, profiles: WindProfile[]) {
         this.profiles = profiles;
         this.grid = grid;
     }
