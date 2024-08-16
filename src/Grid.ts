@@ -40,7 +40,7 @@ async function makeWGLDomainBuffers(gl: WebGLAnyRenderingContext, grid: Grid, na
 
 async function makeWGLBillboardBuffers(gl: WebGLAnyRenderingContext, grid: Grid, thin_fac: number, map_max_zoom: number) {
     const {lats: field_lats, lons: field_lons} = grid.getEarthCoords();
-    const min_zoom = grid.getMinVisibleZoom(thin_fac, map_max_zoom);
+    const min_zoom = grid.getMinVisibleZoom(thin_fac);
     const bb_elements = await layer_worker.makeBBElements(field_lats, field_lons, min_zoom, grid.ni, grid.nj, map_max_zoom);
 
     const vertices = new WGLBuffer(gl, bb_elements['pts'], 3, gl.TRIANGLE_STRIP);
@@ -110,7 +110,7 @@ abstract class Grid {
     public abstract transform(x: number, y: number, opts?: {inverse?: boolean}): [number, number];
     public abstract getThinnedGrid(thin_fac: number, map_max_zoom: number): Grid;
     public abstract thinDataArray<ArrayType extends TypedArray>(original_grid: Grid, ary: ArrayType): ArrayType;
-    public abstract getMinVisibleZoom(thin_fac: number, map_max_zoom: number): Uint8Array;
+    public abstract getMinVisibleZoom(thin_fac: number): Uint8Array;
 
     public async getWGLBillboardBuffers(gl: WebGLAnyRenderingContext, thin_fac: number, max_zoom: number) {
         return await this.billboard_buffer_cache.getValue(gl, thin_fac, max_zoom);
@@ -147,7 +147,7 @@ abstract class StructuredGrid extends Grid {
         return [xy_thin, xy_thin] as [number, number];
     }
 
-    public getMinVisibleZoom(thin_fac: number, map_max_zoom: number) {
+    public getMinVisibleZoom(thin_fac: number) {
         const min_zoom = new Uint8Array(this.ni * this.nj);
         for (let ilat = 0; ilat < this.nj * this.thin_y; ilat += this.thin_y) {
             for (let ilon = 0; ilon < this.ni * this.thin_x; ilon += this.thin_x) {
@@ -552,61 +552,62 @@ class LambertGrid extends StructuredGrid {
 
 class UnstructuredGrid extends Grid {
     public readonly coords: LngLat[];
-    private readonly zoom_cache: Cache<[number, number], Uint8Array>
+    private readonly zoom_cache: Cache<[number], Uint8Array>
 
     constructor(coords: LngLat[]) {
         super('unstructured', true, coords.length, 1);
         this.coords = coords;
 
-        this.zoom_cache = new Cache((thin_fac: number, map_max_zoom: number) => {
-            let min_label_lon: number | null = null, min_label_lat: number | null = null, max_label_lon: number | null = null, max_label_lat: number | null = null;
-
-            this.coords.forEach(coord => {
-                if (min_label_lon === null || coord.lng < min_label_lon) min_label_lon = coord.lng;
-                if (max_label_lon === null || coord.lng > max_label_lon) max_label_lon = coord.lng;
-                if (min_label_lat === null || coord.lat < min_label_lat) min_label_lat = coord.lat;
-                if (max_label_lat === null || coord.lat > max_label_lat) max_label_lat = coord.lat;
-            });
-    
-            if (min_label_lon === null || min_label_lat === null || max_label_lon === null || max_label_lat === null)
-                return new Uint8Array([]);
-    
+        this.zoom_cache = new Cache((thin_fac: number) => {
             interface kdNode {
-                lng: number;
-                lat: number;
+                x: number;
+                y: number;
                 min_zoom: number;
             }
     
-            const kd_nodes = this.coords.map(c => ({lng: c.lng, lat: c.lat, min_zoom: map_max_zoom} as kdNode));
-            const tree = new kdTree(kd_nodes, (a, b) => Math.hypot(a.lng - b.lng, a.lat - b.lat), ['lng', 'lat']);
+            const zoom_max = Math.log2(thin_fac) + 2;
+            const kd_nodes = this.coords.map(c => ({...c.toMercatorCoord(), min_zoom: zoom_max} as kdNode));
+
+            let min_label_x: number | null = null, min_label_y: number | null = null, max_label_x: number | null = null, max_label_y: number | null = null;
+            kd_nodes.forEach(node => {
+                if (min_label_x === null || node.x < min_label_x) min_label_x = node.x;
+                if (max_label_x === null || node.x > max_label_x) max_label_x = node.x;
+                if (min_label_y === null || node.y < min_label_y) min_label_y = node.y;
+                if (max_label_y === null || node.y > max_label_y) max_label_y = node.y;
+            });
     
-            const {x: min_label_x, y: max_label_y} = new LngLat(min_label_lon, min_label_lat).toMercatorCoord();
-            const {x: max_label_x, y: min_label_y} = new LngLat(max_label_lon, max_label_lat).toMercatorCoord();
+            if (min_label_x === null || min_label_y === null || max_label_x === null || max_label_y === null)
+                return new Uint8Array([]);
+
+            const tree = new kdTree([...kd_nodes], (a, b) => Math.hypot(a.x - b.x, a.y - b.y), ['x', 'y']);
+    
             const thin_grid_width = max_label_x - min_label_x;
             const thin_grid_height = max_label_y - min_label_y;
-            const ni_thin_grid = Math.round(thin_grid_width * thin_fac); // thin_fac was 4 / contour_label_spacing for the contour labels
-            const nj_thin_grid = Math.round(thin_grid_height * thin_fac);
+            const mean_point_spacing = Math.sqrt(thin_grid_width * thin_grid_height / this.coords.length); // -ish
+            const ni_thin_grid = Math.round(thin_grid_width / mean_point_spacing);
+            const nj_thin_grid = Math.round(thin_grid_height / mean_point_spacing);
             const thin_grid_xs = [];
             const thin_grid_ys = [];
     
             for (let idx = 0; idx < ni_thin_grid; idx++) {
-                thin_grid_xs.push(min_label_x + (idx / ni_thin_grid) * thin_grid_width);
+                thin_grid_xs.push(min_label_x + (idx / (ni_thin_grid - 1)) * thin_grid_width);
             }
     
             for (let jdy = 0; jdy < nj_thin_grid; jdy++) {
-                thin_grid_ys.push(min_label_y + (jdy / nj_thin_grid) * thin_grid_height);
+                thin_grid_ys.push(min_label_y + (jdy / (nj_thin_grid - 1)) * thin_grid_height);
             }
-         
+
             for (let idx = 0; idx < ni_thin_grid; idx++) {
                 for (let jdy = 0; jdy < nj_thin_grid; jdy++) {
-                    const zoom = getMinZoom(jdy, idx, Math.pow(2, map_max_zoom));
+                    const zoom = getMinZoom(jdy, idx, thin_fac);
     
                     const grid_x = thin_grid_xs[idx];
                     const grid_y = thin_grid_ys[jdy];
-                    const ll = LngLat.fromMercatorCoord(grid_x, grid_y);
     
-                    const [label, dist] = tree.nearest({lng: ll.lng, lat: ll.lat, min_zoom: 0}, 1)[0];
-                    label.min_zoom = zoom;
+                    const [label, dist] = tree.nearest({x: grid_x, y: grid_y, min_zoom: 0}, 1)[0];
+                    if (dist < mean_point_spacing * 1.414) {
+                        label.min_zoom = Math.min(zoom, label.min_zoom);
+                    }
                 }
             }
     
@@ -627,12 +628,12 @@ class UnstructuredGrid extends Grid {
         return [x, y] as [number, number];
     }
 
-    public getMinVisibleZoom(thin_fac: number, map_max_zoom: number) {
-        return this.zoom_cache.getValue(thin_fac, map_max_zoom);
+    public getMinVisibleZoom(thin_fac: number) {
+        return this.zoom_cache.getValue(thin_fac);
     }
 
     public getThinnedGrid(thin_fac: number, map_max_zoom: number) {
-        const min_zoom = this.getMinVisibleZoom(thin_fac, map_max_zoom);
+        const min_zoom = this.getMinVisibleZoom(thin_fac);
         return new UnstructuredGrid(this.coords.filter((ll, ill) => min_zoom[ill] <= map_max_zoom))
     }
 

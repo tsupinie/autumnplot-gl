@@ -290,7 +290,11 @@ class ContourLabels<ArrayType extends TypedArray, GridType extends StructuredGri
 
         const font_url = font_url_template.replace('{range}', '0-255').replace('{fontstack}', this.opts.font_face);
 
-        const label_pos: TextSpec[] = [];
+        interface ContourLabelPlacement {
+            coord: LngLat;
+            text: string;
+        }
+        const label_pos: ContourLabelPlacement[] = [];
 
         const contour_data = await this.contours.getContours();
         const contour_levels = Object.keys(contour_data).map(parseFloat);
@@ -298,7 +302,6 @@ class ContourLabels<ArrayType extends TypedArray, GridType extends StructuredGri
 
         const map_max_zoom = map.getMaxZoom();
         const contour_label_spacing = 0.01 * Math.pow(2, 7 - map_max_zoom);
-        let min_label_lat: number | null = null, max_label_lat: number | null = null, min_label_lon: number | null = null, max_label_lon: number | null = null;
 
         Object.entries(contour_data).forEach(([level, contours]) => {
             const icntr = (parseFloat(level) - contour_levels[0]);
@@ -333,56 +336,16 @@ class ContourLabels<ArrayType extends TypedArray, GridType extends StructuredGri
                         const pt_lon = (1 - alpha) * pt1[0] + alpha * pt2[0];
                         const pt_lat = (1 - alpha) * pt1[1] + alpha * pt2[1];
 
-                        if (min_label_lon === null || pt_lon < min_label_lon) min_label_lon = pt_lon;
-                        if (max_label_lon === null || pt_lon > max_label_lon) max_label_lon = pt_lon;
-                        if (min_label_lat === null || pt_lat < min_label_lat) min_label_lat = pt_lat;
-                        if (max_label_lat === null || pt_lat > max_label_lat) max_label_lat = pt_lat;
-
-                        label_pos.push({lon: pt_lon, lat: pt_lat, min_zoom: map_max_zoom, text: level_str});
+                        label_pos.push({coord: new LngLat(pt_lon, pt_lat), text: level_str});
                         n_labels_placed++;
                     }
                 }
             });
         });
 
-        const tree = new kdTree(label_pos, (a, b) => Math.hypot(a.lon - b.lon, a.lat - b.lat), ['lon', 'lat']);
-
-        if (min_label_lon === null || min_label_lat === null || max_label_lon === null || max_label_lat === null) {
-            return;
-        }
-
-        const {x: min_label_x, y: max_label_y} = new LngLat(min_label_lon, min_label_lat).toMercatorCoord();
-        const {x: max_label_x, y: min_label_y} = new LngLat(max_label_lon, max_label_lat).toMercatorCoord();
-        const thin_grid_width = max_label_x - min_label_x;
-        const thin_grid_height = max_label_y - min_label_y;
-        const ni_thin_grid = Math.round(4 * thin_grid_width / contour_label_spacing);
-        const nj_thin_grid = Math.round(4 * thin_grid_height / contour_label_spacing);
-        const thin_grid_xs = [];
-        const thin_grid_ys = [];
-
-        for (let idx = 0; idx < ni_thin_grid; idx++) {
-            thin_grid_xs.push(min_label_x + (idx / ni_thin_grid) * thin_grid_width);
-        }
-
-        for (let jdy = 0; jdy < nj_thin_grid; jdy++) {
-            thin_grid_ys.push(min_label_y + (jdy / nj_thin_grid) * thin_grid_height);
-        }
-
-        let skip = 1;
-        for (let zoom = map_max_zoom - 1; zoom >= 0; zoom--) {        
-            for (let idx = 0; idx < ni_thin_grid; idx += skip) {
-                for (let jdy = 0; jdy < nj_thin_grid; jdy += skip) {
-                    const grid_x = thin_grid_xs[idx];
-                    const grid_y = thin_grid_ys[jdy];
-                    const ll = LngLat.fromMercatorCoord(grid_x, grid_y);
-
-                    const [label, dist] = tree.nearest({lon: ll.lng, lat: ll.lat, min_zoom: 0, text: ""}, 1)[0];
-                    label.min_zoom = zoom;
-                }
-            }
-
-            skip *= 2;
-        }
+        const label_grid = new UnstructuredGrid(label_pos.map(lp => lp.coord));
+        const min_zoom = label_grid.getMinVisibleZoom(Math.pow(2, map_max_zoom - 2));
+        const text_specs: TextSpec[] = label_pos.map((lp, ilp) => ({lat: lp.coord.lat, lon: lp.coord.lng, min_zoom: min_zoom[ilp], text: lp.text}));
 
         const tc_opts: TextCollectionOptions = {
             horizontal_align: 'center', vertical_align: 'middle', font_size: this.opts.font_size,
@@ -390,7 +353,7 @@ class ContourLabels<ArrayType extends TypedArray, GridType extends StructuredGri
             text_color: Color.fromHex(this.opts.text_color), halo_color: Color.fromHex(this.opts.halo_color),
         };
 
-        this.text_collection = await TextCollection.make(gl, label_pos, font_url, tc_opts);
+        this.text_collection = await TextCollection.make(gl, text_specs, font_url, tc_opts);
         map.triggerRepaint();
     }
 
