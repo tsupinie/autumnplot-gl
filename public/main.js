@@ -189,6 +189,24 @@ function makeHodoLayers() {
     return {layers: [hodo_layer]};
 }
 
+async function makeObsLayers() {
+    const resp = await fetch('data/okmeso.json');
+    const obs = await resp.json();
+
+    const obs_grid = new apgl.UnstructuredGrid(obs.map(o => o.coord));
+    const obs_field = new apgl.RawObsField(obs_grid, obs.map(o => o.data));
+
+    const station_plot_locs = {
+        tmpf: {type: 'text', pos: 'ul', color: '#cc0000'}, 
+        dwpf: {type: 'text', pos: 'll', color: '#00aa00'}, 
+        wind: {type: 'barb', pos: 'c'}
+    };
+    const station_plot = new apgl.StationPlot(obs_field, station_plot_locs, {thin_fac: 32, font_size: 14});
+    const station_plot_layer = new apgl.PlotLayer('station-plots', station_plot);
+
+    return {layers: [station_plot_layer]};
+}
+
 async function makeMRMSLayer() {
     const grid_mrms = new apgl.PlateCarreeGrid(7000, 3500, -129.995, 20.005, -60.005, 54.995);
     const data = await fetchBinary('data/mrms.202112152259.cref.bin.gz');
@@ -224,6 +242,11 @@ const views = {
         makeLayers: makeHodoLayers,
         maxZoom: 7,
     },
+    'obs': {
+        name: "Observations",
+        makeLayers: makeObsLayers,
+        maxZoom: 8.5,
+    },
     'mrms': {
         name: "MRMS",
         makeLayers: makeMRMSLayer,
@@ -256,7 +279,7 @@ window.addEventListener('load', () => {
         });
 
         layers.forEach(lyr => {
-            map.addLayer(lyr, 'coastline');
+            map.addLayer(lyr, /*'coastline'*/);
         });
 
         const colorbar_container = document.querySelector('#colorbar');

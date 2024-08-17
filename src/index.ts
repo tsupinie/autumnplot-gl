@@ -5,6 +5,7 @@ import {ContourFill, Raster, ContourFillOptions, RasterOptions} from "./Fill";
 import Barbs, {BarbsOptions} from "./Barbs";
 import Paintball, {PaintballOptions} from "./Paintball";
 import Hodographs, {HodographOptions} from './Hodographs';
+import StationPlot, {StationPlotOptions} from "./StationPlot";
 
 import { PlotLayer, MultiPlotLayer } from './PlotLayer';
 import { WindProfile, WebGLAnyRenderingContext, TypedArray, ContourData } from "./AutumnTypes";
@@ -13,8 +14,8 @@ import { ColorMap, ColorMapOptions, bluered, redblue, pw_speed500mb, pw_speed850
 import { Color } from "./Color";
 import { makeColorBar, makePaintballKey, ColorbarOrientation, ColorbarTickDirection, ColorBarOptions, PaintballKeyOptions } from "./ColorBar";
 import { LineStyle } from "./PolylineCollection";
-import { RawScalarField, RawVectorField, RawProfileField, VectorRelativeTo, RawVectorFieldOptions} from "./RawField";
-import { Grid, GridType, PlateCarreeGrid, PlateCarreeRotatedGrid, LambertGrid } from './Grid'
+import { RawScalarField, RawVectorField, RawProfileField, VectorRelativeTo, RawVectorFieldOptions, RawObsField} from "./RawField";
+import { Grid, GridType, PlateCarreeGrid, PlateCarreeRotatedGrid, LambertGrid, UnstructuredGrid } from './Grid'
 
 import { initMSModule, FieldContourOpts } from './ContourCreator';
 
@@ -43,10 +44,11 @@ export {PlotComponent,
         ContourFill, Raster, ContourFillOptions, RasterOptions,
         Paintball, PaintballOptions,
         Hodographs, HodographOptions, WindProfile,
+        StationPlot, StationPlotOptions,
         PlotLayer, MultiPlotLayer, 
         MapLikeType, LineStyle,
         ColorMap, ColorMapOptions, colormaps, makeColorBar, makePaintballKey, Color, ColorbarOrientation, ColorbarTickDirection, ColorBarOptions, PaintballKeyOptions,
-        RawScalarField, RawVectorField, RawProfileField,
-        Grid, GridType, VectorRelativeTo, RawVectorFieldOptions, PlateCarreeGrid, PlateCarreeRotatedGrid, LambertGrid,
+        RawScalarField, RawVectorField, RawProfileField, RawObsField,
+        Grid, GridType, VectorRelativeTo, RawVectorFieldOptions, PlateCarreeGrid, PlateCarreeRotatedGrid, LambertGrid, UnstructuredGrid,
         WebGLAnyRenderingContext, TypedArray, ContourData,
         initAutumnPlot, FieldContourOpts};

@@ -345,4 +345,4 @@ class TextCollection {
 }
 
 export {TextCollection};
-export type {TextSpec, TextCollectionOptions};
+export type {TextSpec, TextCollectionOptions, HorizontalAlign, VerticalAlign};

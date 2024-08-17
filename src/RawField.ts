@@ -162,5 +162,54 @@ class RawProfileField<GridType extends Grid> {
     }
 }
 
-export {RawScalarField, RawVectorField, RawProfileField};
+type ObsRawData<ObsFieldName extends string> = Record<ObsFieldName, string | number | [number, number] | null>;
+
+class RawObsField<GridType extends Grid, ObsFieldName extends string> {
+    public readonly grid: GridType;
+    public readonly data: ObsRawData<ObsFieldName>[];
+
+    constructor(grid: GridType, data: ObsRawData<ObsFieldName>[]) {
+        this.grid = grid;
+        this.data = data;
+    }
+
+    getObsFieldNames() {
+        return Object.keys(this.data[0]) as ObsFieldName[];
+    }
+
+    getScalar(key: ObsFieldName) {
+        const field_data = this.data.map(d => d[key]);
+        if (typeof field_data[0] != 'string' && typeof field_data[0] != 'number')
+            throw `It doesn't look like ${key} contains scalar data`;
+
+        return field_data.map(v => v === null ? (typeof v == 'number' ? parseFloat('nan') : '') : v) as string[] | number[];
+    }
+
+    getVector(key: ObsFieldName) {
+        const field_data = this.data.map(d => d[key]);
+        if (!Array.isArray(field_data[0])) 
+            throw `It doesn't look like ${key} contains vector data`;
+
+        const vector_field_data = field_data as [number, number][];
+
+        const vec2comp = (wspd: number, wdir: number) => {
+            const u = -wspd * Math.sin(wdir * Math.PI / 180);
+            const v = -wspd * Math.cos(wdir * Math.PI / 180);
+            return [u, v];
+        }
+
+        const u_data = new Float16Array(vector_field_data.length);
+        const v_data = new Float16Array(vector_field_data.length);
+
+        vector_field_data.forEach(([wspd, wdir], idat) => {
+            const [u, v] = vec2comp(wspd, wdir);
+            u_data[idat] = u;
+            v_data[idat] = v;
+        });
+
+        return new RawVectorField(this.grid, u_data, v_data, {relative_to: 'earth'});
+    }
+}
+
+export {RawScalarField, RawVectorField, RawProfileField, RawObsField};
 export type {RawVectorFieldOptions, VectorRelativeTo, TextureDataType};
