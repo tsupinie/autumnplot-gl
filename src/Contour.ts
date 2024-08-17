@@ -298,7 +298,7 @@ class ContourLabels<ArrayType extends TypedArray, GridType extends StructuredGri
         const font_url = font_url_template.replace('{range}', '0-255').replace('{fontstack}', this.opts.font_face);
 
         interface ContourLabelPlacement {
-            coord: LngLat;
+            coord: {lon: number, lat: number};
             text: string;
         }
         const label_pos: ContourLabelPlacement[] = [];
@@ -343,7 +343,7 @@ class ContourLabels<ArrayType extends TypedArray, GridType extends StructuredGri
                         const pt_lon = (1 - alpha) * pt1[0] + alpha * pt2[0];
                         const pt_lat = (1 - alpha) * pt1[1] + alpha * pt2[1];
 
-                        label_pos.push({coord: new LngLat(pt_lon, pt_lat), text: level_str});
+                        label_pos.push({coord: {lon: pt_lon, lat: pt_lat}, text: level_str});
                         n_labels_placed++;
                     }
                 }
@@ -352,7 +352,7 @@ class ContourLabels<ArrayType extends TypedArray, GridType extends StructuredGri
 
         const label_grid = new UnstructuredGrid(label_pos.map(lp => lp.coord));
         const min_zoom = label_grid.getMinVisibleZoom(Math.pow(2, map_max_zoom - 2));
-        const text_specs: TextSpec[] = label_pos.map((lp, ilp) => ({lat: lp.coord.lat, lon: lp.coord.lng, min_zoom: min_zoom[ilp], text: lp.text}));
+        const text_specs: TextSpec[] = label_pos.map((lp, ilp) => ({...lp.coord, min_zoom: min_zoom[ilp], text: lp.text}));
 
         const tc_opts: TextCollectionOptions = {
             horizontal_align: 'center', vertical_align: 'middle', font_size: this.opts.font_size,

@@ -551,10 +551,10 @@ class LambertGrid extends StructuredGrid {
 }
 
 class UnstructuredGrid extends Grid {
-    public readonly coords: LngLat[];
+    public readonly coords: {lon: number, lat: number}[];
     private readonly zoom_cache: Cache<[number], Uint8Array>
 
-    constructor(coords: LngLat[]) {
+    constructor(coords: {lon: number, lat: number}[]) {
         super('unstructured', true, coords.length, 1);
         this.coords = coords;
 
@@ -566,7 +566,7 @@ class UnstructuredGrid extends Grid {
             }
     
             const zoom_max = Math.log2(thin_fac) + 2;
-            const kd_nodes = this.coords.map(c => ({...c.toMercatorCoord(), min_zoom: zoom_max} as kdNode));
+            const kd_nodes = this.coords.map(c => ({...new LngLat(c.lon, c.lat).toMercatorCoord(), min_zoom: zoom_max} as kdNode));
 
             let min_label_x: number | null = null, min_label_y: number | null = null, max_label_x: number | null = null, max_label_y: number | null = null;
             kd_nodes.forEach(node => {
@@ -616,7 +616,7 @@ class UnstructuredGrid extends Grid {
     }
 
     public getEarthCoords() {
-        return {lons: new Float32Array(this.coords.map(c => c.lng)), lats: new Float32Array(this.coords.map(c => c.lat))};
+        return {lons: new Float32Array(this.coords.map(c => c.lon)), lats: new Float32Array(this.coords.map(c => c.lat))};
     }
 
     public getGridCoords() {
@@ -644,8 +644,8 @@ class UnstructuredGrid extends Grid {
         const new_data = new arrayType(this.ni * this.nj);
 
         for (let i = 0; i < original_grid.coords.length; i++) {
-            if (this.coords[i_new].lat == original_grid.coords[i].lat && this.coords[i_new].lng == original_grid.coords[i].lng) {
-                new_data[++i_new] = ary[i];
+            if (this.coords[i_new].lat == original_grid.coords[i].lat && this.coords[i_new].lon == original_grid.coords[i].lon) {
+                new_data[i_new++] = ary[i];
             }
         }
 
