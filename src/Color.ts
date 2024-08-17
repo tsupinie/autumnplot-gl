@@ -181,6 +181,10 @@ class Color {
         const rgb = hsv2rgb(hsv);
         return new Color([rgb[0], rgb[1], rgb[2], 1]);
     }
+
+    static normalizeColor(color: Color | string) {
+        return color instanceof Color ? color : Color.fromHex(color);
+    }
 }
 
 export {Color};
