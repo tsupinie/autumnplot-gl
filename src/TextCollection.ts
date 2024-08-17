@@ -168,6 +168,8 @@ interface TextCollectionOptions {
     text_color?: Color;
     halo_color?: Color;
     halo?: boolean;
+    offset_x?: number;
+    offset_y?: number;
 }
 
 const text_collection_opt_defaults: Required<TextCollectionOptions> = {
@@ -176,7 +178,9 @@ const text_collection_opt_defaults: Required<TextCollectionOptions> = {
     font_size: 12,
     text_color: new Color([0, 0, 0, 1]),
     halo_color: new Color([0, 0, 0, 1]),
-    halo: false
+    halo: false,
+    offset_x: 0,
+    offset_y: 0
 }
 
 class TextCollection {
@@ -218,7 +222,8 @@ class TextCollection {
             const min_zoom = loc.min_zoom === undefined ? 0 : loc.min_zoom;
             const {x: anchor_x, y: anchor_y} = new LngLat(lon, lat).toMercatorCoord();
             
-            let x_offset = 0;
+            let x_offset = this.opts.offset_x;
+            let y_offset = this.opts.offset_y;
             const init_i_off = i_off;
 
             for (let i = 0; i < text.length; i++) {
@@ -239,12 +244,12 @@ class TextCollection {
                 anchor_data[i_anch++] = anchor_x; anchor_data[i_anch++] = anchor_y; anchor_data[i_anch++] = min_zoom;
                 anchor_data[i_anch++] = anchor_x; anchor_data[i_anch++] = anchor_y; anchor_data[i_anch++] = min_zoom;
                 
-                offset_data[i_off++] = x_offset;                    offset_data[i_off++] = font_atlas.baseline + glyph_info.top - glyph_info.height;
-                offset_data[i_off++] = x_offset;                    offset_data[i_off++] = font_atlas.baseline + glyph_info.top - glyph_info.height;
-                offset_data[i_off++] = x_offset + glyph_info.width; offset_data[i_off++] = font_atlas.baseline + glyph_info.top - glyph_info.height;
-                offset_data[i_off++] = x_offset;                    offset_data[i_off++] = font_atlas.baseline + glyph_info.top;
-                offset_data[i_off++] = x_offset + glyph_info.width; offset_data[i_off++] = font_atlas.baseline + glyph_info.top;
-                offset_data[i_off++] = x_offset + glyph_info.width; offset_data[i_off++] = font_atlas.baseline + glyph_info.top;
+                offset_data[i_off++] = x_offset;                    offset_data[i_off++] = y_offset + font_atlas.baseline + glyph_info.top - glyph_info.height;
+                offset_data[i_off++] = x_offset;                    offset_data[i_off++] = y_offset + font_atlas.baseline + glyph_info.top - glyph_info.height;
+                offset_data[i_off++] = x_offset + glyph_info.width; offset_data[i_off++] = y_offset + font_atlas.baseline + glyph_info.top - glyph_info.height;
+                offset_data[i_off++] = x_offset;                    offset_data[i_off++] = y_offset + font_atlas.baseline + glyph_info.top;
+                offset_data[i_off++] = x_offset + glyph_info.width; offset_data[i_off++] = y_offset + font_atlas.baseline + glyph_info.top;
+                offset_data[i_off++] = x_offset + glyph_info.width; offset_data[i_off++] = y_offset + font_atlas.baseline + glyph_info.top;
                 
                 tc_data[i_tc++] = glyph_info.atlas_i / font_atlas.atlas_width;                      tc_data[i_tc++] = (glyph_info.atlas_j + glyph_info.height) / font_atlas.atlas_height;
                 tc_data[i_tc++] = glyph_info.atlas_i / font_atlas.atlas_width;                      tc_data[i_tc++] = (glyph_info.atlas_j + glyph_info.height) / font_atlas.atlas_height;
@@ -258,12 +263,12 @@ class TextCollection {
 
             if (this.opts.horizontal_align == 'center') {
                 for (let i = init_i_off; i < init_i_off + text.length * 12; i += 2) {
-                    offset_data[i] -= x_offset / 2;
+                    offset_data[i] -= (x_offset - this.opts.offset_x) / 2;
                 }
             }
             else if (this.opts.horizontal_align == 'right') {
                 for (let i = init_i_off; i < init_i_off + text.length * 12; i += 2) {
-                    offset_data[i] -= x_offset;
+                    offset_data[i] -= (x_offset - this.opts.offset_x);
                 }
             }
 
