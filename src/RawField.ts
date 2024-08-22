@@ -173,16 +173,20 @@ class RawObsField<GridType extends Grid, ObsFieldName extends string> {
         this.data = data;
     }
 
-    getObsFieldNames() {
-        return Object.keys(this.data[0]) as ObsFieldName[];
-    }
-
     getScalar(key: ObsFieldName) {
         const field_data = this.data.map(d => d[key]);
-        if (typeof field_data[0] != 'string' && typeof field_data[0] != 'number')
-            throw `It doesn't look like ${key} contains scalar data`;
+        if (typeof field_data[0] != 'number')
+            throw `It doesn't look like ${key} contains scalar numerical data`;
 
-        return field_data.map(v => v === null ? (typeof v == 'number' ? parseFloat('nan') : '') : v) as string[] | number[];
+        return field_data as (number | null)[];
+    }
+
+    getStrings(key: ObsFieldName) {
+        const field_data = this.data.map(d => d[key]);
+        if (typeof field_data[0] != 'string')
+            throw `It doesn't look like ${key} contains string data`;
+
+        return field_data as string[];
     }
 
     getVector(key: ObsFieldName) {
@@ -190,7 +194,7 @@ class RawObsField<GridType extends Grid, ObsFieldName extends string> {
         if (!Array.isArray(field_data[0])) 
             throw `It doesn't look like ${key} contains vector data`;
 
-        const vector_field_data = field_data as [number, number][];
+        const vector_field_data = field_data as [number | null, number | null][];
 
         const vec2comp = (wspd: number, wdir: number) => {
             const u = -wspd * Math.sin(wdir * Math.PI / 180);

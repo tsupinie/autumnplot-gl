@@ -197,8 +197,8 @@ async function makeObsLayers() {
     const obs_field = new apgl.RawObsField(obs_grid, obs.map(o => o.data));
 
     const station_plot_locs = {
-        tmpf: {type: 'text', pos: 'ul', color: '#cc0000'}, 
-        dwpf: {type: 'text', pos: 'll', color: '#00aa00'}, 
+        tmpf: {type: 'number', pos: 'ul', color: '#cc0000', formatter: val => val === null ? '' : val.toFixed(0)},
+        dwpf: {type: 'number', pos: 'll', color: '#00aa00', formatter: val => val === null ? '' : val.toFixed(0)}, 
         wind: {type: 'barb', pos: 'c'}
     };
     const station_plot = new apgl.StationPlot(obs_field, station_plot_locs, {thin_fac: 32, font_size: 14});

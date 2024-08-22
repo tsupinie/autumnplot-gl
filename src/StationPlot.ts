@@ -17,9 +17,13 @@ interface SPConfigBase {
     color?: string;
 }
 
-interface SPTextConfig extends SPConfigBase {
-    type: 'text';
-    n_decimal_places?: number;
+interface SPNumberConfig extends SPConfigBase {
+    type: 'number';
+    formatter?: (val: number | null) => string;
+}
+
+interface SPStringConfig extends SPConfigBase {
+    type: 'string';
 }
 
 interface SPBarbConfig extends SPConfigBase {
@@ -31,7 +35,7 @@ interface SPSymbolConfig extends SPConfigBase {
     type: 'symbol';
 }
 
-type SPConfig = SPTextConfig | SPBarbConfig; // | SPSymbolConfig;
+type SPConfig = SPNumberConfig | SPStringConfig | SPBarbConfig; // | SPSymbolConfig;
 type SPDataPosition<ObsFieldName extends string> = Record<ObsFieldName, SPConfig>;
 
 interface StationPlotOptions {
@@ -69,8 +73,6 @@ class StationPlot<GridType extends Grid, MapType extends MapLikeType, ObsFieldNa
     }
 
     public async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
-        const keys = this.field.getObsFieldNames();
-
         const map_style = map.getStyle();
 
         const font_url_template = this.opts.font_url_template == '' ? map_style.glyphs : this.opts.font_url_template;
@@ -82,19 +84,25 @@ class StationPlot<GridType extends Grid, MapType extends MapLikeType, ObsFieldNa
         const sub_component_promises = Object.entries<SPConfig>(this.config).map(async ([k_, config]) => {
             const k = k_ as ObsFieldName;
 
-            if (config.type === 'text') {
-                const comp = this.field.getScalar(k);
-
+            if (config.type == 'number' || config.type == 'string') {
                 const pos = config.pos;
                 const color_opt = config.color;
                 const color = color_opt === undefined ? Color.fromHex('#000000') : Color.normalizeColor(color_opt);
-                const n_decimal_places = config.n_decimal_places === undefined ? 0 : config.n_decimal_places;
-                const pow = Math.pow(10, n_decimal_places);
 
                 const coords = this.field.grid.getEarthCoords();
                 const zoom = this.field.grid.getMinVisibleZoom(this.opts.thin_fac);
-                const text_specs: TextSpec[] = comp.map((v, i) => ({text: typeof v == 'number' ? (Math.round(v * pow) / pow).toString() : v.toString(), 
-                                                                    lat: coords.lats[i], lon: coords.lons[i], min_zoom: zoom[i]}));
+
+                let text_specs: TextSpec[];
+                if (config.type == 'number') {
+                    const comp = this.field.getScalar(k);
+                    const formatter = config.formatter === undefined ? (val: number | null) => val === null ? 'null' : val.toString() : config.formatter;
+    
+                    text_specs = comp.map((v, i) => ({text: formatter(v), lat: coords.lats[i], lon: coords.lons[i], min_zoom: zoom[i]}));
+                }
+                else {
+                    const comp = this.field.getStrings(k);
+                    text_specs = comp.map((v, i) => ({text: v, lat: coords.lats[i], lon: coords.lons[i], min_zoom: zoom[i]}));
+                }
 
                 let ha: HorizontalAlign, va: VerticalAlign;
                 let xoff: number, yoff: number;
