@@ -143,13 +143,17 @@ function createAtlas(pbf_glyphs: PBFGlyph[]): FontAtlas {
     return {atlas: atlas_data, atlas_width: img_width, atlas_height: img_height, baseline: baseline, top: top, glyph_info: glyphs};
 }
 
-async function getFontAtlas(url: string) {
-    const resp = await fetch(url);
-    const blob = await resp.blob();
-    const data_buffer = await blob.arrayBuffer();
+async function getFontAtlas(urls: string[]) {
+    const promises = urls.map(async url => {
+        const resp = await fetch(url);
+        const blob = await resp.blob();
+        const data_buffer = await blob.arrayBuffer();
+    
+        // Parse the PBF and get the glyph data
+        return parseFontPBF(new Uint8Array(data_buffer));
+    });
 
-    // Parse the PBF and get the glyph data
-    const glyphs = parseFontPBF(new Uint8Array(data_buffer));
+    const glyphs = (await Promise.all(promises)).flat();
 
     // Create an atlas for the glyphs
     return createAtlas(glyphs);
@@ -298,9 +302,22 @@ class TextCollection {
         this.texcoords = new WGLBuffer(gl, tc_data, 2, gl.TRIANGLE_STRIP);
     }
 
-    static async make(gl: WebGLAnyRenderingContext, text_locs: TextSpec[], fontstack_url: string, opts?: TextCollectionOptions) {
-        const atlas = await getFontAtlas(fontstack_url);
-        if (atlas.atlas_height == 0 || atlas.atlas_width == 0 || atlas.atlas.length == 0) console.warn(`No font data from '${fontstack_url}'`);
+    static async make(gl: WebGLAnyRenderingContext, text_locs: TextSpec[], fontstack_url_template: string, opts?: TextCollectionOptions) {
+        const FONT_GROUP_SIZE = 256;
+        const characters = text_locs.map(tl => [...tl.text]).flat().map(c => c.charCodeAt(0)).filter((c, i, ary) => ary.indexOf(c) == i);
+        const char_code_min = Math.min(...characters);
+        const char_code_max = Math.max(...characters);
+
+        const stack_start = Math.floor(char_code_min / FONT_GROUP_SIZE) * FONT_GROUP_SIZE;
+        const stack_end = Math.floor(char_code_max / FONT_GROUP_SIZE) * FONT_GROUP_SIZE;
+
+        const fontstack_urls = [];
+        for (let istack = stack_start; istack <= stack_end; istack += FONT_GROUP_SIZE) {
+            fontstack_urls.push(fontstack_url_template.replace('{range}', `${istack}-${istack + FONT_GROUP_SIZE - 1}`));
+        }
+
+        const atlas = await getFontAtlas(fontstack_urls);
+        if (atlas.atlas_height == 0 || atlas.atlas_width == 0 || atlas.atlas.length == 0) console.warn(`No font data from '${fontstack_url_template}'`);
 
         return new TextCollection(gl, text_locs, atlas, opts);
     }

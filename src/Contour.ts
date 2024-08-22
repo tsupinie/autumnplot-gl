@@ -295,7 +295,7 @@ class ContourLabels<ArrayType extends TypedArray, GridType extends StructuredGri
         if (font_url_template === undefined)
             throw "The map style doesn't have any glyph information. Please pass the font_url_template option to ContourLabels";
 
-        const font_url = font_url_template.replace('{range}', '0-255').replace('{fontstack}', this.opts.font_face);
+        const font_url = font_url_template.replace('{fontstack}', this.opts.font_face);
 
         interface ContourLabelPlacement {
             coord: {lon: number, lat: number};

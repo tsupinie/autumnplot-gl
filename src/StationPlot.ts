@@ -154,7 +154,7 @@ class StationPlot<GridType extends Grid, MapType extends MapLikeType, ObsFieldNa
         if (font_url_template === undefined)
             throw "The map style doesn't have any glyph information. Please pass the font_url_template option to StationPlot";
 
-        const font_url = font_url_template.replace('{range}', '0-255').replace('{fontstack}', this.opts.font_face);
+        const font_url = font_url_template.replace('{fontstack}', this.opts.font_face);
 
         const sub_component_promises = Object.entries<SPConfig>(this.config).map(async ([k_, config]) => {
             const k = k_ as ObsFieldName;
@@ -205,7 +205,7 @@ class StationPlot<GridType extends Grid, MapType extends MapLikeType, ObsFieldNa
                 const coords = this.field.grid.getEarthCoords();
                 const zoom = this.field.grid.getMinVisibleZoom(this.opts.thin_fac);
 
-                const wxsym_font_url = font_url_template.replace('{range}', '59648-59903').replace('{fontstack}', 'wx_symbols');
+                const wxsym_font_url = font_url_template.replace('{fontstack}', 'wx_symbols');
                 const text_specs: TextSpec[] = comp.map((v, i) => ({text: v === null ? '' : String.fromCharCode(SYMBOLS[v]), 
                                                                     lat: coords.lats[i], lon: coords.lons[i], min_zoom: zoom[i]}));
                 
