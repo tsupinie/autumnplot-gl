@@ -301,7 +301,7 @@ class TextCollection {
     static async make(gl: WebGLAnyRenderingContext, text_locs: TextSpec[], fontstack_url: string, opts?: TextCollectionOptions) {
         const atlas = await getFontAtlas(fontstack_url);
         if (atlas.atlas_height == 0 || atlas.atlas_width == 0 || atlas.atlas.length == 0) console.warn(`No font data from '${fontstack_url}'`);
-        
+
         return new TextCollection(gl, text_locs, atlas, opts);
     }
 

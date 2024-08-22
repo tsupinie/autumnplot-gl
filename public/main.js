@@ -190,16 +190,36 @@ function makeHodoLayers() {
 }
 
 async function makeObsLayers() {
+    const skyc_choices = ['0/8', '1/8', '2/8', '3/8', '4/8', '5/8', '6/8', '7/8', '8/8', 'obsc', null];
+    const preswx_choices = ['fu', 'hz', 'du', 'bldu', 'po', 'vcds',
+                            'br', 'bc', 'mifg', 'vcts', 'virga', 'vcsh', 'ts', 
+                            'sq', 'fc', 'ds', '+ds', 'drsn', '+drsn', '-blsn', '+blsn',
+                            'vcfg', 'bcfg', 'prfg', 'fg', 'fzfg', 
+                            '-vctsdz', '-dz', '-dzbr', 'vctsdz', 'dz', '+vctsdz', '+dz', '-fzdz', 'fzdz', '-dzra', '+dzra', 
+                            '-ra', 'ra', '+ra', '-fzra',  'fzra',  '-rasn', 'rasn', '-sn', 'sn', '+sn', 'ic',  'pl',
+                            '-sh', 'sh', '-shsnra', '+shrabr', '-shsn', 'shsn', '-gs', '-sngs', '-gr', 'gr', 
+                            'tsrasn', 'tsra',  'tspl',  'tsgr', '+tsfzrapl', '+tsra', '+tssn', 'tssa', '+tsgr', 
+                            '-up', '+up', '-fzup', '+fzup']
+
     const resp = await fetch('data/okmeso.json');
     const obs = await resp.json();
+
+    obs.forEach((ob, iob) => {
+        ob.data.skyc = skyc_choices[iob % skyc_choices.length];
+        ob.data.preswx = preswx_choices[iob % preswx_choices.length];
+    });
 
     const obs_grid = new apgl.UnstructuredGrid(obs.map(o => o.coord));
     const obs_field = new apgl.RawObsField(obs_grid, obs.map(o => o.data));
 
+    // Should missing be NaN or null? Also, the function formatter isn't transferrable to JSON. Is that easy enough to fix?
     const station_plot_locs = {
+        id: {type: 'string', pos: 'lr'},
         tmpf: {type: 'number', pos: 'ul', color: '#cc0000', formatter: val => val === null ? '' : val.toFixed(0)},
         dwpf: {type: 'number', pos: 'll', color: '#00aa00', formatter: val => val === null ? '' : val.toFixed(0)}, 
-        wind: {type: 'barb', pos: 'c'}
+        wind: {type: 'barb', pos: 'c'},
+        preswx: {type: 'symbol', pos: 'cl', color: '#ff00ff'},
+        skyc: {type: 'symbol', pos: 'c'},
     };
     const station_plot = new apgl.StationPlot(obs_field, station_plot_locs, {thin_fac: 32, font_size: 14});
     const station_plot_layer = new apgl.PlotLayer('station-plots', station_plot);
@@ -222,6 +242,11 @@ async function makeMRMSLayer() {
 }
 
 const views = {
+    'obs': {
+        name: "Observations",
+        makeLayers: makeObsLayers,
+        maxZoom: 8.5,
+    },
     'default': {
         name: "Synthetic 500mb",
         makeLayers: makeSynthetic500mbLayers,
@@ -241,11 +266,6 @@ const views = {
         name: "Hodographs",
         makeLayers: makeHodoLayers,
         maxZoom: 7,
-    },
-    'obs': {
-        name: "Observations",
-        makeLayers: makeObsLayers,
-        maxZoom: 8.5,
     },
     'mrms': {
         name: "MRMS",
