@@ -202,6 +202,11 @@ class RawObsField<GridType extends Grid, ObsFieldName extends string> {
         const v_data = new Float16Array(vector_field_data.length);
 
         vector_field_data.forEach(([wspd, wdir], idat) => {
+            if (wspd === null || wdir === null) {
+                u_data[idat] = v_data[idat] = parseFloat('nan');
+                return;
+            }
+
             const [u, v] = vec2comp(wspd, wdir);
             u_data[idat] = u;
             v_data[idat] = v;
