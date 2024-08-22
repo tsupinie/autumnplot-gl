@@ -186,7 +186,7 @@ class RawObsField<GridType extends Grid, ObsFieldName extends string> {
         if (typeof field_data[0] != 'string')
             throw `It doesn't look like ${key} contains string data`;
 
-        return field_data as string[];
+        return field_data as (string | null)[];
     }
 
     getVector(key: ObsFieldName) {

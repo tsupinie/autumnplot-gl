@@ -101,7 +101,7 @@ class StationPlot<GridType extends Grid, MapType extends MapLikeType, ObsFieldNa
                 }
                 else {
                     const comp = this.field.getStrings(k);
-                    text_specs = comp.map((v, i) => ({text: v, lat: coords.lats[i], lon: coords.lons[i], min_zoom: zoom[i]}));
+                    text_specs = comp.map((v, i) => ({text: v === null ? '' : v, lat: coords.lats[i], lon: coords.lons[i], min_zoom: zoom[i]}));
                 }
 
                 let ha: HorizontalAlign, va: VerticalAlign;
