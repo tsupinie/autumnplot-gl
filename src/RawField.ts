@@ -221,4 +221,4 @@ class RawObsField<GridType extends Grid, ObsFieldName extends string> {
 }
 
 export {RawScalarField, RawVectorField, RawProfileField, RawObsField};
-export type {RawVectorFieldOptions, VectorRelativeTo, TextureDataType};
+export type {RawVectorFieldOptions, VectorRelativeTo, TextureDataType, ObsRawData};

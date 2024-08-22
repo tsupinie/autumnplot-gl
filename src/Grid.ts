@@ -554,6 +554,10 @@ class UnstructuredGrid extends Grid {
     public readonly coords: {lon: number, lat: number}[];
     private readonly zoom_cache: Cache<[number], Uint8Array>
 
+    /**
+     * Create an unstructured grid
+     * @param coords - The coordinates of the grid points
+     */
     constructor(coords: {lon: number, lat: number}[]) {
         super('unstructured', true, coords.length, 1);
         this.coords = coords;

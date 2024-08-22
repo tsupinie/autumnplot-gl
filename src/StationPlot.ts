@@ -10,24 +10,71 @@ import { Float16Array } from "@petamoriken/float16";
 import { Color } from "./Color";
 import Barbs from "./Barbs";
 
+/**
+ * Positions around the station plot at which to draw the various elements
+ *  'cl' -> center-left
+ *  'll' -> lower-left
+ *  'lc' -> lower-center
+ *  'lr' -> lower-right
+ *  'cr' -> center-right
+ *  'ur' -> upper-right
+ *  'uc' -> upper-center
+ *  'ul' -> upper-left
+ *  'c' -> center
+ */
 type SPPosition = 'cl' | 'll' | 'lc' | 'lr' | 'cr' | 'ur' | 'uc' | 'ul' | 'c';
 
-interface SPConfigBase {
-    pos: SPPosition;
-    color?: string;
-}
-
-interface SPNumberConfig extends SPConfigBase {
+interface SPNumberConfig {
     type: 'number';
+
+    /**
+     * The position on the station plot at which to place the number
+     */
+    pos: SPPosition;
+
+    /**
+     * The color to use to draw the number
+     * @default #000000
+     */
+    color?: string;
+
+    /**
+     * A function that properly formats the number for display
+     * @example (val) => val === null ? '' : val.toFixed(0)
+     * @param val - The number to format
+     * @returns A string containing the formatted nubmer
+     */
     formatter?: (val: number | null) => string;
 }
 
-interface SPStringConfig extends SPConfigBase {
+interface SPStringConfig {
     type: 'string';
+
+    /**
+     * The position on the station plot at which to place the number
+     */
+    pos: SPPosition;
+
+    /**
+     * The color to use to draw the number
+     * @default #000000
+     */
+    color?: string;
 }
 
-interface SPBarbConfig extends SPConfigBase {
+interface SPBarbConfig {
     type: 'barb';
+
+    /**
+     * The color to use to draw the number
+     * @default #000000
+     */
+    color?: string;
+
+    /**
+     * A multiplier for the barb size
+     * @default 1
+     */
     barb_size_multipler?: number;
 }
 
@@ -89,17 +136,46 @@ const SYMBOLS: Record<Symbol, number> = {
     '-up': 59750, 'up': 59750, '+up': 59751, '-fzup': 59756, 'fzup': 59756, '+fzup': 59757,
 }
 
-interface SPSymbolConfig extends SPConfigBase {
+interface SPSymbolConfig {
     type: 'symbol';
+
+    /**
+     * The position on the station plot at which to place the number
+     */
+    pos: SPPosition;
+
+    /**
+     * The color to use to draw the number
+     * @default #000000
+     */
+    color?: string;
 }
 
 type SPConfig = SPNumberConfig | SPStringConfig | SPBarbConfig | SPSymbolConfig;
-type SPDataPosition<ObsFieldName extends string> = Record<ObsFieldName, SPConfig>;
+type SPDataConfig<ObsFieldName extends string> = Record<ObsFieldName, SPConfig>;
 
 interface StationPlotOptions {
+    /**
+     * Thin factor at zoom level 1 for the station plots. Should be a power of 2.
+     * @default 1
+     */
     thin_fac?: number;
+
+    /**
+     * Font face to use for plotting text
+     * @default 'Trebuchet MS'
+     */
     font_face?: string;
+    
+    /**
+     * Size of the font to use for the text
+     * @default 12
+     */
     font_size?: number;
+
+    /**
+     * URL template to use in retrieving the font data for the text. The default is to use the template from the map style.
+     */
     font_url_template?: string;
 }
 
@@ -134,11 +210,11 @@ function positionToAlignmentAndOffset(pos: SPPosition, off_size?: number) {
 
 class StationPlot<GridType extends Grid, MapType extends MapLikeType, ObsFieldName extends string> extends PlotComponent<MapType> {
     public readonly field: RawObsField<GridType, ObsFieldName>;
-    public readonly config: SPDataPosition<ObsFieldName>;
+    public readonly config: SPDataConfig<ObsFieldName>;
     public readonly opts: Required<StationPlotOptions>;
     private gl_elems: StationPlotGLElems<GridType, MapType> | null;
 
-    constructor(field: RawObsField<GridType, ObsFieldName>, config: SPDataPosition<ObsFieldName>, opts: StationPlotOptions) {
+    constructor(field: RawObsField<GridType, ObsFieldName>, config: SPDataConfig<ObsFieldName>, opts: StationPlotOptions) {
         super();
 
         this.field = field;
@@ -250,4 +326,4 @@ class StationPlot<GridType extends Grid, MapType extends MapLikeType, ObsFieldNa
 }
 
 export default StationPlot;
-export type {StationPlotOptions};
+export type {StationPlotOptions, SPPosition, SPNumberConfig, SPStringConfig, SPBarbConfig, SPSymbolConfig, SPConfig, SPDataConfig};

@@ -5,7 +5,7 @@ import {ContourFill, Raster, ContourFillOptions, RasterOptions} from "./Fill";
 import Barbs, {BarbsOptions} from "./Barbs";
 import Paintball, {PaintballOptions} from "./Paintball";
 import Hodographs, {HodographOptions} from './Hodographs';
-import StationPlot, {StationPlotOptions} from "./StationPlot";
+import StationPlot, {StationPlotOptions, SPPosition, SPNumberConfig, SPStringConfig, SPBarbConfig, SPSymbolConfig, SPConfig, SPDataConfig} from "./StationPlot";
 
 import { PlotLayer, MultiPlotLayer } from './PlotLayer';
 import { WindProfile, WebGLAnyRenderingContext, TypedArray, ContourData } from "./AutumnTypes";
@@ -44,7 +44,7 @@ export {PlotComponent,
         ContourFill, Raster, ContourFillOptions, RasterOptions,
         Paintball, PaintballOptions,
         Hodographs, HodographOptions, WindProfile,
-        StationPlot, StationPlotOptions,
+        StationPlot, StationPlotOptions, SPPosition, SPNumberConfig, SPStringConfig, SPBarbConfig, SPSymbolConfig, SPConfig, SPDataConfig,
         PlotLayer, MultiPlotLayer, 
         MapLikeType, LineStyle,
         ColorMap, ColorMapOptions, colormaps, makeColorBar, makePaintballKey, Color, ColorbarOrientation, ColorbarTickDirection, ColorBarOptions, PaintballKeyOptions,
