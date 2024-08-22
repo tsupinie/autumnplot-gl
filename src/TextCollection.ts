@@ -112,6 +112,8 @@ function createAtlas(pbf_glyphs: PBFGlyph[]): FontAtlas {
 
     const atlas_data = new Uint8Array(img_width * img_height);
     const glyphs: Record<number, Glyph> = {}
+    let max_glyph_height = 0;
+
     glyph_bins.forEach(glyph_bin => {
         const {bin, glyph} = glyph_bin;
 
@@ -123,6 +125,8 @@ function createAtlas(pbf_glyphs: PBFGlyph[]): FontAtlas {
             atlas_i: bin.x, atlas_j: bin.y, advance: glyph.advance
         };
 
+        max_glyph_height = Math.max(max_glyph_height, glyph.height);
+
         for (let i = 0; i < glyph.width; i++) {
             for (let j = 0; j < glyph.height; j++) {
                 const glyph_idx = i + glyph.width * j;
@@ -133,8 +137,8 @@ function createAtlas(pbf_glyphs: PBFGlyph[]): FontAtlas {
     });
 
     const glyph_M = glyphs['M'.charCodeAt(0)];
-    const baseline = glyph_M.height - glyph_M.top;
-    const top = -glyph_M.top;
+    const baseline = glyph_M === undefined ? max_glyph_height : glyph_M.height - glyph_M.top;
+    const top = glyph_M === undefined ? 0 : -glyph_M.top;
 
     return {atlas: atlas_data, atlas_width: img_width, atlas_height: img_height, baseline: baseline, top: top, glyph_info: glyphs};
 }
@@ -202,9 +206,14 @@ class TextCollection {
         const type = gl.UNSIGNED_BYTE;
         const row_alignment = 1;
 
+        const empty_atlas = font_atlas.atlas_width == 0 || font_atlas.atlas_height == 0 || font_atlas.atlas.length == 0;
+        const atlas_width = empty_atlas ? 1 : font_atlas.atlas_width;
+        const atlas_height = empty_atlas ? 1 : font_atlas.atlas_height
+        const atlas_data = empty_atlas ? new Uint8Array([0, 0, 0, 0]) : font_atlas.atlas;
+
         const image = {
-            'format': format, 'type': type, 'width': font_atlas.atlas_width, 'height': font_atlas.atlas_height, 
-            'image': font_atlas.atlas, 'row_alignment': row_alignment, 'mag_filter': gl.LINEAR
+            'format': format, 'type': type, 'width': atlas_width, 'height': atlas_height, 
+            'image': atlas_data, 'row_alignment': row_alignment, 'mag_filter': gl.LINEAR
         };
 
         this.texture = new WGLTexture(gl, image);
@@ -291,6 +300,8 @@ class TextCollection {
 
     static async make(gl: WebGLAnyRenderingContext, text_locs: TextSpec[], fontstack_url: string, opts?: TextCollectionOptions) {
         const atlas = await getFontAtlas(fontstack_url);
+        if (atlas.atlas_height == 0 || atlas.atlas_width == 0 || atlas.atlas.length == 0) console.warn(`No font data from '${fontstack_url}'`);
+        
         return new TextCollection(gl, text_locs, atlas, opts);
     }
 
