@@ -154,7 +154,8 @@ interface SPSymbolConfig {
 type SPConfig = SPNumberConfig | SPStringConfig | SPBarbConfig | SPSymbolConfig;
 type SPDataConfig<ObsFieldName extends string> = Record<ObsFieldName, SPConfig>;
 
-interface StationPlotOptions {
+interface StationPlotOptions<ObsFieldName extends string> {
+    config: SPDataConfig<ObsFieldName>, 
     /**
      * Thin factor at zoom level 1 for the station plots. Should be a power of 2.
      * @default 1
@@ -179,7 +180,8 @@ interface StationPlotOptions {
     font_url_template?: string;
 }
 
-const station_plot_opts_defaults: Required<StationPlotOptions> = {
+const station_plot_opts_defaults: Required<StationPlotOptions<never>> = {
+    config: {},
     thin_fac: 1,
     font_face: 'Trebuchet MS',
     font_size: 12,
@@ -210,16 +212,14 @@ function positionToAlignmentAndOffset(pos: SPPosition, off_size?: number) {
 
 class StationPlot<GridType extends Grid, MapType extends MapLikeType, ObsFieldName extends string> extends PlotComponent<MapType> {
     public readonly field: RawObsField<GridType, ObsFieldName>;
-    public readonly config: SPDataConfig<ObsFieldName>;
-    public readonly opts: Required<StationPlotOptions>;
+    public readonly opts: Required<StationPlotOptions<ObsFieldName>>;
     private gl_elems: StationPlotGLElems<GridType, MapType> | null;
 
-    constructor(field: RawObsField<GridType, ObsFieldName>, config: SPDataConfig<ObsFieldName>, opts: StationPlotOptions) {
+    constructor(field: RawObsField<GridType, ObsFieldName>, opts: StationPlotOptions<ObsFieldName>) {
         super();
 
         this.field = field;
-        this.config = config;
-        this.opts = normalizeOptions(opts, station_plot_opts_defaults);
+        this.opts = normalizeOptions(opts, station_plot_opts_defaults as Required<StationPlotOptions<ObsFieldName>>); // Is there a way to do this without invoking `as`?
         this.gl_elems = null;
     }
 
@@ -232,7 +232,7 @@ class StationPlot<GridType extends Grid, MapType extends MapLikeType, ObsFieldNa
 
         const font_url = font_url_template.replace('{fontstack}', this.opts.font_face);
 
-        const sub_component_promises = Object.entries<SPConfig>(this.config).map(async ([k_, config]) => {
+        const sub_component_promises = Object.entries<SPConfig>(this.opts.config).map(async ([k_, config]) => {
             const k = k_ as ObsFieldName;
 
             if (config.type == 'number' || config.type == 'string') {
