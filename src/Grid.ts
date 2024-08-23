@@ -57,7 +57,7 @@ function makeVectorRotationTexture(gl: WebGLAnyRenderingContext, grid: Grid) {
         console.warn('Vector rotations for non-conformal projections are not supported. The output may look incorrect.')
     }
 
-    const rot_vals = new Float16Array(coords.lats.length);
+    const rot_vals = new Float16Array(grid.ni * grid.nj).fill(parseFloat('nan'));
 
     for (let icd = 0; icd < coords.lats.length; icd++) {
         const lon = coords.lons[icd];
@@ -559,7 +559,9 @@ class UnstructuredGrid extends Grid {
      * @param coords - The coordinates of the grid points
      */
     constructor(coords: {lon: number, lat: number}[]) {
-        super('unstructured', true, coords.length, 1);
+        const MAX_DIM = 4096;
+
+        super('unstructured', true, Math.min(coords.length, MAX_DIM), Math.floor(coords.length / MAX_DIM) + 1);
         this.coords = coords;
 
         this.zoom_cache = new Cache((thin_fac: number) => {

@@ -202,12 +202,11 @@ class RawObsField<GridType extends Grid, ObsFieldName extends string> {
             return [u, v];
         }
 
-        const u_data = new Float16Array(vector_field_data.length);
-        const v_data = new Float16Array(vector_field_data.length);
+        const u_data = new Float16Array(this.grid.ni * this.grid.nj).fill(parseFloat('nan'));
+        const v_data = new Float16Array(this.grid.ni * this.grid.nj).fill(parseFloat('nan'));
 
         vector_field_data.forEach(([wspd, wdir], idat) => {
             if (wspd === null || wdir === null) {
-                u_data[idat] = v_data[idat] = parseFloat('nan');
                 return;
             }
 

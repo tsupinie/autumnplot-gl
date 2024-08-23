@@ -28,7 +28,7 @@ function makeBBElements(field_lats: Float32Array, field_lons: Float32Array, min_
             const lon = field_lons[idx];
             const zoom = min_zoom[idx];
 
-            if (zoom > map_max_zoom) continue;
+            if (zoom > map_max_zoom || lon === undefined || lat === undefined) continue; // TAS: Adding the checks for lat/lon here may be a bug waiting to happen? Not sure.
 
             const pt_ll = new LngLat(lon, lat).toMercatorCoord();
 
