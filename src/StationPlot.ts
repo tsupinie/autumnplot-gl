@@ -310,6 +310,7 @@ class StationPlot<GridType extends Grid, MapType extends MapLikeType, ObsFieldNa
         });
 
         this.text_components = (await Promise.all(sub_component_promises)).filter((c: TextCollection | undefined) : c is TextCollection => c !== undefined);
+        map.triggerRepaint();
     }
 
     public async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
