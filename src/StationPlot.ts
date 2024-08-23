@@ -190,7 +190,8 @@ const station_plot_opts_defaults: Required<StationPlotOptions<never>> = {
 
 interface StationPlotGLElems<GridType extends Grid, MapType extends MapLikeType> {
     map: MapType;
-    components: (TextCollection | Barbs<Float16Array, GridType, MapType>)[];
+    gl: WebGLAnyRenderingContext;
+    barb_components: Barbs<Float16Array, GridType, MapType>[];
 }
 
 function positionToAlignmentAndOffset(pos: SPPosition, off_size?: number) {
@@ -211,9 +212,10 @@ function positionToAlignmentAndOffset(pos: SPPosition, off_size?: number) {
 }
 
 class StationPlot<GridType extends Grid, MapType extends MapLikeType, ObsFieldName extends string> extends PlotComponent<MapType> {
-    public readonly field: RawObsField<GridType, ObsFieldName>;
+    private field: RawObsField<GridType, ObsFieldName>;
     public readonly opts: Required<StationPlotOptions<ObsFieldName>>;
     private gl_elems: StationPlotGLElems<GridType, MapType> | null;
+    private text_components: TextCollection[] | null;
 
     constructor(field: RawObsField<GridType, ObsFieldName>, opts: StationPlotOptions<ObsFieldName>) {
         super();
@@ -221,9 +223,18 @@ class StationPlot<GridType extends Grid, MapType extends MapLikeType, ObsFieldNa
         this.field = field;
         this.opts = normalizeOptions(opts, station_plot_opts_defaults as Required<StationPlotOptions<ObsFieldName>>); // Is there a way to do this without invoking `as`?
         this.gl_elems = null;
+        this.text_components = null;
     }
 
-    public async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
+    public async updateField(field: RawObsField<GridType, ObsFieldName>) {
+        this.field = field;
+
+        if (this.gl_elems === null) return;
+
+        const map = this.gl_elems.map;
+        const gl = this.gl_elems.gl;
+        const barb_components = this.gl_elems.barb_components;
+
         const map_style = map.getStyle();
 
         const font_url_template = this.opts.font_url_template == '' ? map_style.glyphs : this.opts.font_url_template;
@@ -231,6 +242,8 @@ class StationPlot<GridType extends Grid, MapType extends MapLikeType, ObsFieldNa
             throw "The map style doesn't have any glyph information. Please pass the font_url_template option to StationPlot";
 
         const font_url = font_url_template.replace('{fontstack}', this.opts.font_face);
+
+        let ibarb = 0;
 
         const sub_component_promises = Object.entries<SPConfig>(this.opts.config).map(async ([k_, config]) => {
             const k = k_ as ObsFieldName;
@@ -265,12 +278,8 @@ class StationPlot<GridType extends Grid, MapType extends MapLikeType, ObsFieldNa
             }
             else if (config.type == 'barb') {
                 const comp = this.field.getVector(k);
-
-                const color = config.color === undefined ? '#000000' : config.color;
-                const barb_size = config.barb_size_multipler === undefined ? 1 : config.barb_size_multipler;
-                const barb_comp = new Barbs<Float16Array, GridType, MapType>(comp, {thin_fac: this.opts.thin_fac, color: color, barb_size_multiplier: barb_size});
-                await barb_comp.onAdd(map, gl);
-                return barb_comp;
+                const barb_comp = barb_components[ibarb++];
+                barb_comp.updateField(comp);
             }
             else if (config.type == 'symbol') {
                 const pos = config.pos;
@@ -300,28 +309,57 @@ class StationPlot<GridType extends Grid, MapType extends MapLikeType, ObsFieldNa
             }
         });
 
-        const sub_components = await Promise.all(sub_component_promises);
+        this.text_components = (await Promise.all(sub_component_promises)).filter((c: TextCollection | undefined) : c is TextCollection => c !== undefined);
+    }
+
+    public async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
+        const barb_promises = Object.entries<SPConfig>(this.opts.config).map(async ([k_, config]) => {
+            const k = k_ as ObsFieldName;
+            if (config.type == 'barb') {
+                const comp = this.field.getVector(k);
+
+                const color = config.color === undefined ? '#000000' : config.color;
+                const barb_size = config.barb_size_multipler === undefined ? 1 : config.barb_size_multipler;
+                const barb_comp = new Barbs<Float16Array, GridType, MapType>(comp, {thin_fac: this.opts.thin_fac, color: color, barb_size_multiplier: barb_size});
+                await barb_comp.onAdd(map, gl);
+                return barb_comp;
+            }
+        });
+
+        type BarbComponent = Barbs<Float16Array, GridType, MapType>;
+        const barb_components = (await Promise.all(barb_promises)).filter((c: BarbComponent | undefined) : c is BarbComponent => c !== undefined);
 
         this.gl_elems = {
-            map: map, components: sub_components
+            map: map, gl: gl, barb_components: barb_components
         }
+
+        this.updateField(this.field);
     }
 
     public render(gl: WebGLAnyRenderingContext, matrix: Float32Array | number[]) {
-        if (this.gl_elems === null) return;
+        if (this.gl_elems === null || this.text_components === null) return;
 
         if (matrix instanceof Float32Array)
             matrix = [...matrix];
 
         const gl_elems = this.gl_elems;
 
+        const text_components = this.text_components;
+        const barb_components = this.gl_elems.barb_components;
+
         const map_width = gl_elems.map.getCanvas().width;
         const map_height = gl_elems.map.getCanvas().height;
         const map_zoom = gl_elems.map.getZoom();
 
-        gl_elems.components.forEach(comp => {
-            comp.render(gl, matrix, [map_width, map_height], map_zoom);
-        })
+        let itext = 0, ibarb = 0;
+        Object.values<SPConfig>(this.opts.config).forEach(comp => {
+            if (comp.type == 'barb') {
+                barb_components[ibarb++].render(gl, matrix);
+            }
+            else {
+                text_components[itext++].render(gl, matrix, [map_width, map_height], map_zoom);
+            }
+        });
     }
 }
 
