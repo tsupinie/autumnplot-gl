@@ -351,7 +351,7 @@ class ContourLabels<ArrayType extends TypedArray, GridType extends StructuredGri
         });
 
         const label_grid = new UnstructuredGrid(label_pos.map(lp => lp.coord));
-        const min_zoom = label_grid.getMinVisibleZoom(Math.pow(2, map_max_zoom - 2));
+        const min_zoom = label_grid.getMinVisibleZoom(4);
         const text_specs: TextSpec[] = label_pos.map((lp, ilp) => ({...lp.coord, min_zoom: min_zoom[ilp], text: lp.text}));
 
         const tc_opts: TextCollectionOptions = {

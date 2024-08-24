@@ -571,52 +571,32 @@ class UnstructuredGrid extends Grid {
                 min_zoom: number;
             }
     
-            const zoom_max = Math.log2(thin_fac) + 2;
-            const kd_nodes = this.coords.map(c => ({...new LngLat(c.lon, c.lat).toMercatorCoord(), min_zoom: zoom_max} as kdNode));
+            const MAP_MAX_ZOOM = 24;
+            const offset = Math.log2(thin_fac);
+            const kd_nodes = this.coords.map(c => ({...new LngLat(c.lon, c.lat).toMercatorCoord(), min_zoom: MAP_MAX_ZOOM} as kdNode));
+            const tree = new kdTree([...kd_nodes], (a, b) => Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y)), ['x', 'y']);
+    
+            const recursiveThin = (x: number, y: number, depth: number) => {
+                const size = Math.pow(0.5, depth + 1);
+                const nodes = tree.nearest({x: x, y: y, min_zoom: 0}, 2, size);
 
-            let min_label_x: number | null = null, min_label_y: number | null = null, max_label_x: number | null = null, max_label_y: number | null = null;
-            kd_nodes.forEach(node => {
-                if (min_label_x === null || node.x < min_label_x) min_label_x = node.x;
-                if (max_label_x === null || node.x > max_label_x) max_label_x = node.x;
-                if (min_label_y === null || node.y < min_label_y) min_label_y = node.y;
-                if (max_label_y === null || node.y > max_label_y) max_label_y = node.y;
-            });
-    
-            if (min_label_x === null || min_label_y === null || max_label_x === null || max_label_y === null)
-                return new Uint8Array([]);
-
-            const tree = new kdTree([...kd_nodes], (a, b) => Math.hypot(a.x - b.x, a.y - b.y), ['x', 'y']);
-    
-            const thin_grid_width = max_label_x - min_label_x;
-            const thin_grid_height = max_label_y - min_label_y;
-            const mean_point_spacing = Math.sqrt(thin_grid_width * thin_grid_height / this.coords.length); // -ish
-            const ni_thin_grid = Math.round(thin_grid_width / mean_point_spacing);
-            const nj_thin_grid = Math.round(thin_grid_height / mean_point_spacing);
-            const thin_grid_xs = [];
-            const thin_grid_ys = [];
-    
-            for (let idx = 0; idx < ni_thin_grid; idx++) {
-                thin_grid_xs.push(min_label_x + (idx / (ni_thin_grid - 1)) * thin_grid_width);
-            }
-    
-            for (let jdy = 0; jdy < nj_thin_grid; jdy++) {
-                thin_grid_ys.push(min_label_y + (jdy / (nj_thin_grid - 1)) * thin_grid_height);
-            }
-
-            for (let idx = 0; idx < ni_thin_grid; idx++) {
-                for (let jdy = 0; jdy < nj_thin_grid; jdy++) {
-                    const zoom = getMinZoom(jdy, idx, thin_fac);
-    
-                    const grid_x = thin_grid_xs[idx];
-                    const grid_y = thin_grid_ys[jdy];
-    
-                    const [label, dist] = tree.nearest({x: grid_x, y: grid_y, min_zoom: 0}, 1)[0];
-                    if (dist < mean_point_spacing * 1.414) {
-                        label.min_zoom = Math.min(zoom, label.min_zoom);
+                if (nodes.length > 0) {
+                    const [node, dist] = nodes.sort((a, b) => a[1] - b[1])[0];
+                    if (node.min_zoom == MAP_MAX_ZOOM) {
+                        node.min_zoom = Math.max(depth - offset, 0);
                     }
                 }
+
+                if (nodes.length > 1 && depth < MAP_MAX_ZOOM + offset) {
+                    recursiveThin(x - size / 2, y - size / 2, depth + 1);
+                    recursiveThin(x + size / 2, y - size / 2, depth + 1);
+                    recursiveThin(x - size / 2, y + size / 2, depth + 1);
+                    recursiveThin(x + size / 2, y + size / 2, depth + 1);
+                }
             }
-    
+
+            recursiveThin(0.5, 0.5, 0);
+
             return new Uint8Array(kd_nodes.map(n => n.min_zoom));
         });
     }
