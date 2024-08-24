@@ -632,6 +632,8 @@ class UnstructuredGrid extends Grid {
         for (let i = 0; i < original_grid.coords.length; i++) {
             if (this.coords[i_new].lat == original_grid.coords[i].lat && this.coords[i_new].lon == original_grid.coords[i].lon) {
                 new_data[i_new++] = ary[i];
+
+                if (i_new >= new_data.length) break;
             }
         }
 
