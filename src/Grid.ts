@@ -553,16 +553,18 @@ class LambertGrid extends StructuredGrid {
 class UnstructuredGrid extends Grid {
     public readonly coords: {lon: number, lat: number}[];
     private readonly zoom_cache: Cache<[number], Uint8Array>
+    private readonly zoom_arg: Uint8Array | null;
 
     /**
      * Create an unstructured grid
      * @param coords - The coordinates of the grid points
      */
-    constructor(coords: {lon: number, lat: number}[]) {
+    constructor(coords: {lon: number, lat: number}[], zoom?: Uint8Array) {
         const MAX_DIM = 4096;
 
         super('unstructured', true, Math.min(coords.length, MAX_DIM), Math.floor(coords.length / MAX_DIM) + 1);
         this.coords = coords;
+        this.zoom_arg = zoom === undefined ? null : zoom;
 
         this.zoom_cache = new Cache((thin_fac: number) => {
             interface kdNode {
@@ -615,12 +617,14 @@ class UnstructuredGrid extends Grid {
     }
 
     public getMinVisibleZoom(thin_fac: number) {
+        if (this.zoom_arg !== null) 
+            return this.zoom_arg;
         return this.zoom_cache.getValue(thin_fac);
     }
 
     public getThinnedGrid(thin_fac: number, map_max_zoom: number) {
         const min_zoom = this.getMinVisibleZoom(thin_fac);
-        return new UnstructuredGrid(this.coords.filter((ll, ill) => min_zoom[ill] <= map_max_zoom))
+        return new UnstructuredGrid(this.coords.filter((ll, ill) => min_zoom[ill] <= map_max_zoom), min_zoom.filter(ll => ll <= map_max_zoom))
     }
 
     public thinDataArray<ArrayType extends TypedArray>(original_grid: UnstructuredGrid, ary: ArrayType) {
