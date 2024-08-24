@@ -221,7 +221,7 @@ async function makeObsLayers() {
         preswx: {type: 'symbol', pos: 'cl', color: '#ff00ff'},
         skyc: {type: 'symbol', pos: 'c'},
     };
-    const station_plot = new apgl.StationPlot(obs_field, {config: station_plot_locs, thin_fac: 32, font_size: 14});
+    const station_plot = new apgl.StationPlot(obs_field, {config: station_plot_locs, thin_fac: 8, font_size: 14});
     const station_plot_layer = new apgl.PlotLayer('station-plots', station_plot);
 
     return {layers: [station_plot_layer]};
