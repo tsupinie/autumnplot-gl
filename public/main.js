@@ -201,7 +201,8 @@ async function makeObsLayers() {
                             'tsrasn', 'tsra',  'tspl',  'tsgr', '+tsfzrapl', '+tsra', '+tssn', 'tssa', '+tsgr', 
                             '-up', '+up', '-fzup', '+fzup']
 
-    const resp = await fetch('data/okmeso.json');
+    //const resp = await fetch('data/okmeso.json');
+    const resp = await fetch('data/surface_20240823_1500.json');
     const obs = await resp.json();
 
     obs.forEach((ob, iob) => {
@@ -214,7 +215,7 @@ async function makeObsLayers() {
 
     // Should missing be NaN or null? Also, the function formatter isn't transferrable to JSON. Is that easy enough to fix?
     const station_plot_locs = {
-        id: {type: 'string', pos: 'lr'},
+        //id: {type: 'string', pos: 'lr'},
         tmpf: {type: 'number', pos: 'ul', color: '#cc0000', formatter: val => val === null ? '' : val.toFixed(0)},
         dwpf: {type: 'number', pos: 'll', color: '#00aa00', formatter: val => val === null ? '' : val.toFixed(0)}, 
         wind: {type: 'barb', pos: 'c'},
@@ -242,11 +243,6 @@ async function makeMRMSLayer() {
 }
 
 const views = {
-    'obs': {
-        name: "Observations",
-        makeLayers: makeObsLayers,
-        maxZoom: 8.5,
-    },
     'default': {
         name: "Synthetic 500mb",
         makeLayers: makeSynthetic500mbLayers,
@@ -266,6 +262,11 @@ const views = {
         name: "Hodographs",
         makeLayers: makeHodoLayers,
         maxZoom: 7,
+    },
+    'obs': {
+        name: "Observations",
+        makeLayers: makeObsLayers,
+        maxZoom: 8.5,
     },
     'mrms': {
         name: "MRMS",
