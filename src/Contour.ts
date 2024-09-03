@@ -52,6 +52,12 @@ interface ContourOptions {
      * @default '-'
      */
     line_style?: LineStyle | ((level: number) => LineStyle);
+
+
+    /**
+     * 
+     */
+    quad_as_tri?: boolean;
 }
 
 const contour_opt_defaults: Required<ContourOptions> = {
@@ -60,7 +66,8 @@ const contour_opt_defaults: Required<ContourOptions> = {
     interval: 1,
     levels: null,
     line_width: 2,
-    line_style: '-'
+    line_style: '-',
+    quad_as_tri: false
 }
 
 interface ContourGLElems<MapType extends MapLikeType> {
@@ -162,7 +169,7 @@ class Contour<ArrayType extends TypedArray, GridType extends StructuredGrid, Map
 
     public async getContours() {
         const levels = this.opts.levels === null ? undefined : this.opts.levels;
-        return await this.field.getContours({interval: this.opts.interval, levels: levels});
+        return await this.field.getContours({interval: this.opts.interval, levels: levels, quad_as_tri: this.opts.quad_as_tri});
     }
 
     /**

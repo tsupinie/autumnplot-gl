@@ -25,6 +25,11 @@ interface FieldContourOpts {
      * Contour the field at these specific levels.
      */
     levels?: number[];
+
+    /**
+     * Add triangles in the contouring, which takes longer and generates more detailed contours
+     */
+    quad_as_tri?: boolean;
 }
 
 async function contourCreator<ArrayType extends TypedArray>(data: ArrayType, grid: Grid, opts: FieldContourOpts) {
@@ -33,6 +38,7 @@ async function contourCreator<ArrayType extends TypedArray>(data: ArrayType, gri
     }
 
     const interval = opts.interval === undefined ? 0 : opts.interval;
+    const quad_as_tri = opts.quad_as_tri === undefined ? false : opts.quad_as_tri;
 
     const msm = await initMSModule();
 
@@ -42,7 +48,7 @@ async function contourCreator<ArrayType extends TypedArray>(data: ArrayType, gri
     const makeContours = data instanceof Float32Array ? msm.makeContoursFloat32 : msm.makeContoursFloat16;
 
     const levels = opts.levels === undefined ? getContourLevels(data, grid.ni, grid.nj, interval) : opts.levels;
-    const contours = makeContours(data, grid_coords.x, grid_coords.y, levels, (x: number, y: number) => grid.transform(x, y, {inverse: true}));
+    const contours = makeContours(data, grid_coords.x, grid_coords.y, levels, (x: number, y: number) => grid.transform(x, y, {inverse: true}), quad_as_tri);
 
     return contours as ContourData;
 }
