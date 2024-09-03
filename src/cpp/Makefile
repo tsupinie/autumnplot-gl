@@ -14,4 +14,4 @@ exe: marchingsquares.exe
 lib: marchingsquares.js
 all: lib
 clean:
-	rm marchingsquares marchingsquares_embind.d.ts marchingsquares.o marchingsquares.wasm
+	rm marchingsquares.exe marchingsquares_embind.d.ts marchingsquares.o marchingsquares.wasm
