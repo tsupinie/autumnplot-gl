@@ -88,27 +88,23 @@ class Contour {
 
 class MarchingSquaresSegmentList {
     std::vector<Point> points;
-    std::vector<int> n_points;
-    std::vector<int> n_segs;
+    std::vector<uint8_t> ipoints;
+    std::vector<uint8_t> isegs;
 
     public:
-        MarchingSquaresSegmentList(const std::vector<Point>& points, const std::vector<int>& n_points, const std::vector<int>& n_segs) : points(points), n_points(n_points), n_segs(n_segs) {}
+        MarchingSquaresSegmentList(const std::vector<Point>& points, const std::vector<uint8_t>& ipoints, const std::vector<uint8_t>& isegs) 
+                                   : points(points), ipoints(ipoints), isegs(isegs) {}
 
         int getNumberOfSegments(const int iposs) const {
-            return this->n_segs[iposs];
+            return this->isegs[iposs + 1] - this->isegs[iposs];
         }
 
         std::vector<Point> getPointList(const int iposs, const int iseg, const bool reverse) const {
-            int n_segs = iseg, n_pts = 0;
-            for (auto it = this->n_segs.begin(); it != this->n_segs.begin() + iposs; ++it) {
-                n_segs += *it;
-            }
+            const uint8_t isegs = iseg + this->isegs[iposs];
+            const uint8_t ipts_begin = this->ipoints[isegs];
+            const uint8_t ipts_end = this->ipoints[isegs + 1];
 
-            for (auto ptit = this->n_points.begin(); ptit != this->n_points.begin() + n_segs; ++ptit) {
-                n_pts += *ptit;
-            }
-
-            std::vector<Point> pt_list(this->points.begin() + n_pts, this->points.begin() + n_pts + this->n_points[n_segs]);
+            std::vector<Point> pt_list(this->points.begin() + ipts_begin, this->points.begin() + ipts_end);
 
             if (reverse) {
                 return std::vector<Point>(pt_list.rbegin(), pt_list.rend());
@@ -118,24 +114,39 @@ class MarchingSquaresSegmentList {
         }
 
         template <std::size_t LP, std::size_t LS, std::size_t LT>
-        static MarchingSquaresSegmentList* make(const Point points[LP], const int n_points[LS], const int n_segs[LT]) {
+        static MarchingSquaresSegmentList* make(const Point points[LP], const uint8_t n_points[LS], const uint8_t n_segs[LT]) {
             std::vector<Point> points_vec;
-            std::vector<int> n_points_vec(LS);
-            std::vector<int> n_segs_vec(LT);
+            std::vector<uint8_t> ipoints(LS + 1);
+            std::vector<uint8_t> isegs(LT + 1);
 
-            for (int ipt = 0; ipt < LP; ipt++) { points_vec.push_back(points[ipt]); }
-            for (int isg = 0; isg < LS; isg++) { n_points_vec[isg] = n_points[isg]; }
-            for (int itb = 0; itb < LT; itb++) { n_segs_vec[itb] = n_segs[itb]; }
+            for (int ipt = 0; ipt < LP; ipt++) { 
+                points_vec.push_back(points[ipt]); 
+            }
 
-            return new MarchingSquaresSegmentList(points_vec, n_points_vec, n_segs_vec);
+            uint8_t agg = 0;
+
+            for (int isg = 0; isg < LS; isg++) { 
+                ipoints[isg] = agg;
+                agg += n_points[isg];
+            }
+            ipoints[LS] = agg;
+
+            agg = 0;
+            for (int itb = 0; itb < LT; itb++) { 
+                isegs[itb] = agg;
+                agg += n_segs[itb];
+            }
+            isegs[LT] = agg;
+
+            return new MarchingSquaresSegmentList(points_vec, ipoints, isegs);
         }
 };
 
 #define NNSEGS_QUAD 16
 #define NNPTS_QUAD 16
 #define NPTS_QUAD 32
-const int MARCHING_SQUARES_NSEGS_QUAD[NNSEGS_QUAD] = {0, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 0};
-const int MARCHING_SQUARES_NPOINTS_QUAD[NNPTS_QUAD] = {2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2};
+const uint8_t MARCHING_SQUARES_NSEGS_QUAD[NNSEGS_QUAD] = {0, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 0};
+const uint8_t MARCHING_SQUARES_NPOINTS_QUAD[NNPTS_QUAD] = {2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2};
 const Point MARCHING_SQUARES_POINTS_QUAD[NPTS_QUAD] = {
                                                  // 0
     {0.5, 0.}, {0., 0.5},                        // 1
@@ -158,8 +169,8 @@ const Point MARCHING_SQUARES_POINTS_QUAD[NPTS_QUAD] = {
 #define NNSEGS_TRI 32
 #define NNPTS_TRI 32
 #define NPTS_TRI 120
-const int MARCHING_SQUARES_NSEGS_TRI[NNSEGS_TRI] = {0, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 0};
-const int MARCHING_SQUARES_NPOINTS_TRI[NNPTS_TRI] = {3, 3, 4, 3, 3, 3, 4, 5, 3, 4, 3, 3, 5, 4, 5, 5, 5, 5, 4, 5, 3, 3, 4, 3, 5, 4, 3, 3, 3, 4, 3, 3};
+const uint8_t MARCHING_SQUARES_NSEGS_TRI[NNSEGS_TRI] = {0, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 0};
+const uint8_t MARCHING_SQUARES_NPOINTS_TRI[NNPTS_TRI] = {3, 3, 4, 3, 3, 3, 4, 5, 3, 4, 3, 3, 5, 4, 5, 5, 5, 5, 4, 5, 3, 3, 4, 3, 5, 4, 3, 3, 3, 4, 3, 3};
 const Point MARCHING_SQUARES_POINTS_TRI[NPTS_TRI] = {
     // Center point below threshold
                                                                                                            // 0
@@ -477,7 +488,6 @@ template std::vector<float> getContourLevels(float16_t* grid, int nx, int ny, fl
 
 #ifdef EXECUTABLE
 int main(int argc, char** argv) {
-    /*
     const int nx = 8;
     const int ny = 6;
     float grid[nx * ny] = {
@@ -492,8 +502,8 @@ int main(int argc, char** argv) {
     float x_grid[nx] = {0, 10, 20, 30, 40, 50, 60, 70};
     float y_grid[ny] = {0, 10, 20, 30, 40, 50};
     std::vector<float> contour_vals(1, {0.5});
-    */
 
+    /*
     const int nx = 2, ny = 2;
     float grid[nx * ny] = {
         0, 0,
@@ -503,6 +513,7 @@ int main(int argc, char** argv) {
     float x_grid[nx] = {0, 1};
     float y_grid[ny] = {0, 1};
     std::vector<float> contour_vals(1, {0.8});
+    */
 
     std::vector<Contour> contours = makeContours(grid, x_grid, y_grid, nx, ny, contour_vals, true);
 
