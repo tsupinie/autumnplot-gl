@@ -116,6 +116,8 @@ abstract class Grid {
         return await this.billboard_buffer_cache.getValue(gl, thin_fac, max_zoom);
     }
 
+    public abstract copy(): Grid;
+
     public getVectorRotationTexture(gl: WebGLAnyRenderingContext) {
         return this.vector_rotation_cache.getValue(gl);
     }
@@ -601,6 +603,10 @@ class UnstructuredGrid extends Grid {
 
             return new Uint8Array(kd_nodes.map(n => n.min_zoom));
         });
+    }
+
+    public copy() {
+        return new UnstructuredGrid(this.coords);
     }
 
     public getEarthCoords() {
