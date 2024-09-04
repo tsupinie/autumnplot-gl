@@ -218,7 +218,7 @@ const Point MARCHING_SQUARES_POINTS_TRI[NPTS_TRI] = {
  *  1          2
  */
 
-void searchInterval(std::vector<float>& vec, float val_lb, float val_ub, unsigned int& index_lb, unsigned int& index_ub) {
+void searchInterval(const std::vector<float>& vec, const float val_lb, const float val_ub, unsigned int& index_lb, unsigned int& index_ub) {
     unsigned int index = 0; 
 
     index_lb = 0;
@@ -235,7 +235,7 @@ void searchInterval(std::vector<float>& vec, float val_lb, float val_ub, unsigne
     }
 }
 
-MarchingSquaresSegmentList* selectSegmentList(bool quad_as_tri) {
+MarchingSquaresSegmentList* selectSegmentList(const bool quad_as_tri) {
     if (quad_as_tri)
         return MarchingSquaresSegmentList::make<NPTS_TRI, NNPTS_TRI, NNSEGS_TRI>(MARCHING_SQUARES_POINTS_TRI, MARCHING_SQUARES_NPOINTS_TRI, MARCHING_SQUARES_NSEGS_TRI);
     return MarchingSquaresSegmentList::make<NPTS_QUAD, NNPTS_QUAD, NNSEGS_QUAD>(MARCHING_SQUARES_POINTS_QUAD, MARCHING_SQUARES_NPOINTS_QUAD, MARCHING_SQUARES_NSEGS_QUAD);
@@ -247,7 +247,7 @@ MarchingSquaresSegmentList* selectSegmentList(bool quad_as_tri) {
 #define MAX4(a, b, c, d) (MAX(MAX(a, b), MAX(c, d)))
 
 template<typename T>
-std::vector<Contour> makeContours(T* grid, float* xs, float* ys, int nx, int ny, std::vector<float>& values, bool quad_as_tri) {
+std::vector<Contour> makeContours(const T* grid, const float* xs, const float* ys, const int nx, const int ny, const std::vector<float>& values, const bool quad_as_tri) {
     T esw, ese, enw, ene;
     float c;
     char segs_idx;
@@ -457,8 +457,8 @@ std::vector<Contour> makeContours(T* grid, float* xs, float* ys, int nx, int ny,
     return contours;
 };
 
-template std::vector<Contour> makeContours(float* grid, float* xs, float* ys, int nx, int ny, std::vector<float>& value, bool quad_as_tri);
-template std::vector<Contour> makeContours(float16_t* grid, float* xs, float* ys, int nx, int ny, std::vector<float>& value, bool quad_as_tri);
+template std::vector<Contour> makeContours(const float* grid, const float* xs, const float* ys, const int nx, const int ny, const std::vector<float>& value, const bool quad_as_tri);
+template std::vector<Contour> makeContours(const float16_t* grid, const float* xs, const float* ys, const int nx, const int ny, const std::vector<float>& value, const bool quad_as_tri);
 
 template<typename T>
 std::vector<float> getContourLevels(T* grid, int nx, int ny, float interval) noexcept {
