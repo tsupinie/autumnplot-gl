@@ -10,7 +10,6 @@ import potpack, {PotpackBox} from "potpack";
 
 const text_vertex_shader_src = require('./glsl/text_vertex.glsl');
 const text_fragment_shader_src = require('./glsl/text_fragment.glsl');
-const program_cache = new Cache((gl: WebGLAnyRenderingContext) => new WGLProgram(gl, text_vertex_shader_src, text_fragment_shader_src));
 
 const PADDING = 3
 
@@ -201,7 +200,7 @@ class TextCollection {
     readonly opts: Required<TextCollectionOptions>;
 
     private constructor(gl: WebGLAnyRenderingContext, text_locs: TextSpec[], font_atlas: FontAtlas, opts?: TextCollectionOptions) {
-        this.program = program_cache.getValue(gl);
+        this.program = new WGLProgram(gl, text_vertex_shader_src, text_fragment_shader_src);
 
         this.opts = normalizeOptions(opts, text_collection_opt_defaults);
         
