@@ -6,10 +6,7 @@
 #include <cmath>
 
 #include "float16_t.hpp"
-
-#ifdef WASM
-#include <emscripten/bind.h>
-#endif
+#include "marchingsquares.hpp"
 
 using numeric::float16_t;
 
@@ -18,63 +15,6 @@ namespace std {
         return is_nan(__x);
     }
 }
-
-class Point {
-    public:
-        float x;
-        float y;
-
-        Point(float x, float y) : x(x), y(y) {}
-        Point(const Point& other) : x(other.x), y(other.y) {}
-
-        bool operator==(const Point& other) const noexcept {
-            return this->x == other.x && this->y == other.y;
-        }
-
-#ifdef EXECUTABLE
-        friend std::ostream& operator<<(std::ostream& stream, const Point& point) {
-            stream << "{" << point.x << ", " << point.y << "}";
-            return stream;
-        }
-#endif
-};
-
-template<>
-struct std::hash<Point> {
-    std::size_t operator()(const Point& pt) const noexcept {
-        std::size_t h1 = std::hash<float>{}(pt.x);
-        std::size_t h2 = std::hash<float>{}(pt.y);
-        return h1 ^ (h2 << 1);
-    }
-};
-
-class Contour {
-    public:
-        std::vector<Point> point_list;
-        float value;
-
-        Contour(const std::vector<Point>& point_list, const float value) noexcept : point_list(point_list), value(value) {};
-
-        Contour& operator=(const Contour& other) noexcept {
-            this->point_list = other.point_list;
-            return *this;
-        }
-
-#ifdef EXECUTABLE
-        friend std::ostream& operator<<(std::ostream& stream, const Contour& frag) {
-            stream << "Contour: ";
-            auto it = frag.point_list.begin();
-
-            stream << *it;
-            ++it;
-
-            for (; it != frag.point_list.end(); ++it) {
-                stream << ", " << *it;
-            }
-            return stream;
-        }
-#endif
-};
 
 /*  8          4
  *   ┌────────┐
@@ -153,7 +93,7 @@ const Point MARCHING_SQUARES_POINTS_QUAD[NPTS_QUAD] = {
     {1., 0.5}, {0.5, 0.},                        // 2
     {1., 0.5}, {0., 0.5},                        // 3
     {0.5, 1.}, {1., 0.5},                        // 4
-    {0.5, 0.}, {0., 0.5},  {0.5, 1.}, {1., 0.5}, // 5
+    {0.5, 1.}, {1., 0.5},  {0.5, 0.}, {0., 0.5}, // 5
     {0.5, 1.}, {0.5, 0.},                        // 6
     {0.5, 1.}, {0., 0.5},                        // 7
     {0., 0.5}, {0.5, 1.},                        // 8
@@ -178,7 +118,7 @@ const Point MARCHING_SQUARES_POINTS_TRI[NPTS_TRI] = {
     {1., 0.5}, {0.75, 0.25}, {0.5, 0.},                                                                    // 2
     {1., 0.5}, {0.75, 0.25}, {0.25, 0.25}, {0., 0.5},                                                      // 3
     {0.5, 1.}, {0.75, 0.75}, {1., 0.5},                                                                    // 4
-    {0.5, 0.}, {0.25, 0.25}, {0., 0.5},                               {0.5, 1.},  {0.75, 0.75}, {1., 0.5}, // 5
+    {0.5, 1.},  {0.75, 0.75}, {1., 0.5},                              {0.5, 0.}, {0.25, 0.25}, {0., 0.5},  // 5
     {0.5, 1.}, {0.75, 0.75}, {0.75, 0.25}, {0.5, 0.},                                                      // 6
     {0.5, 1.}, {0.75, 0.75}, {0.75, 0.25}, {0.25, 0.25}, {0., 0.5},                                        // 7
     {0., 0.5}, {0.25, 0.75}, {0.5, 1.},                                                                    // 8
@@ -196,12 +136,12 @@ const Point MARCHING_SQUARES_POINTS_TRI[NPTS_TRI] = {
     {1., 0.5}, {0.75, 0.75}, {0.25, 0.75}, {0.25, 0.25}, {0.5, 0.},                                        // 18
     {1., 0.5}, {0.75, 0.75}, {0.25, 0.75}, {0., 0.5},                                                      // 19
     {0.5, 1.}, {0.25, 0.75}, {0.25, 0.25}, {0.75, 0.25}, {1., 0.5},                                        // 20
-    {0.5, 0.}, {0.75, 0.25}, {1., 0.5},                               {0.5, 1},   {0.25, 0.75}, {0., 0.5}, // 21
+    {0.5, 1},   {0.25, 0.75}, {0., 0.5},                              {0.5, 0.}, {0.75, 0.25}, {1., 0.5},  // 21
     {0.5, 1.}, {0.25, 0.75}, {0.25, 0.25}, {0.5, 0.},                                                      // 22
     {0.5, 1.}, {0.25, 0.75}, {0., 0.5},                                                                    // 23
     {0., 0.5}, {0.25, 0.25}, {0.75, 0.25}, {0.75, 0.75}, {0.5, 1.},                                        // 24
     {0.5, 0.}, {0.75, 0.25}, {0.75, 0.75}, {0.5, 1.},                                                      // 25
-    {0., 0.5}, {0.25, 0.25}, {0.5, 0.},                               {1., 0.5},  {0.75, 0.75}, {0.5, 1.}, // 26
+    {1., 0.5},  {0.75, 0.75}, {0.5, 1.},                              {0., 0.5}, {0.25, 0.25}, {0.5, 0.},  // 26
     {1., 0.5}, {0.75, 0.75}, {0.5, 1.},                                                                    // 27
     {0., 0.5}, {0.25, 0.25}, {0.75, 0.25}, {1., 0.5},                                                      // 28
     {0.5, 0.}, {0.75, 0.25}, {1., 0.5},                                                                    // 29
@@ -223,6 +163,11 @@ void searchInterval(const std::vector<float>& vec, const float val_lb, const flo
 
     index_lb = 0;
     index_ub = vec.size() - 1;
+
+    if (vec.size() == 1 && (vec[0] < val_lb || val_ub < vec[0])) {
+        index_lb++;
+        return;
+    }
 
     for (auto it = vec.begin(); it != (vec.end() - 1); ++it) {
         if (*it < val_lb && *(it + 1) > val_lb) index_lb = index + 1;
@@ -485,157 +430,3 @@ std::vector<float> getContourLevels(T* grid, int nx, int ny, float interval) noe
 
 template std::vector<float> getContourLevels(float* grid, int nx, int ny, float interval);
 template std::vector<float> getContourLevels(float16_t* grid, int nx, int ny, float interval);
-
-#ifdef EXECUTABLE
-int main(int argc, char** argv) {
-    const int nx = 8;
-    const int ny = 6;
-    float grid[nx * ny] = {
-        0, 0, 0, 0, 0, 0, 0, 0,
-        0, 2, 1, 1, 1, 1, 0, 0,
-        0, 1, 0, 1, 0, 1, 0, 0,
-        0, 1, 1, 0, 1, 1, 0, 0,
-        0, 1, 1, 1, 1, 1, 0, 0,
-        0, 0, 0, 0, 1, 0, 0, 0
-    };
-
-    float x_grid[nx] = {0, 10, 20, 30, 40, 50, 60, 70};
-    float y_grid[ny] = {0, 10, 20, 30, 40, 50};
-    std::vector<float> contour_vals(1, {0.5});
-
-    /*
-    const int nx = 2, ny = 2;
-    float grid[nx * ny] = {
-        0, 0,
-        0, 4,
-    };
-
-    float x_grid[nx] = {0, 1};
-    float y_grid[ny] = {0, 1};
-    std::vector<float> contour_vals(1, {0.8});
-    */
-
-    std::vector<Contour> contours = makeContours(grid, x_grid, y_grid, nx, ny, contour_vals, true);
-
-    for (auto it = contours.begin(); it != contours.end(); ++it) {
-        std::cout << *it << '\n';
-    }
-
-    return 0;
-}
-#endif
-
-#ifdef WASM
-
-void checkGridSize(size_t grid_size, int nx, int ny) {
-    if (nx * ny != grid_size) {
-        std::string error = "Mismatch between the length of the vector and nx and ny";
-        throw std::invalid_argument(error);
-    }
-}
-
-template<typename T>
-emscripten::val makeContoursWASM(const emscripten::val& data, const emscripten::val& xs, const emscripten::val& ys, const emscripten::val& values,
-                                 const emscripten::val& grid_transformer, const emscripten::val& quad_as_tri_) {
-    auto memory = emscripten::val::module_property("HEAPU8")["buffer"];
-
-    int nx = xs["length"].as<int>();
-    int ny = ys["length"].as<int>();
-
-    checkGridSize(data["length"].as<int>(), nx, ny);
-
-    auto t0 = std::chrono::steady_clock::now();
-    float* xs_ary = new float[nx];
-    auto xs_memview = xs["constructor"].new_(memory, reinterpret_cast<uintptr_t>(xs_ary), nx);
-    xs_memview.call<void>("set", xs);
-
-    float* ys_ary = new float[ny];
-    auto ys_memview = ys["constructor"].new_(memory, reinterpret_cast<uintptr_t>(ys_ary), ny);
-    ys_memview.call<void>("set", ys);
-
-    T* data_ary = new T[nx * ny];
-    auto data_memview = data["constructor"].new_(memory, reinterpret_cast<uintptr_t>(data_ary), nx * ny);
-    data_memview.call<void>("set", data);
-
-    int n_levels = values["length"].as<int>();
-    std::vector<float> levels(n_levels, 0);
-    for (int ilev = 0; ilev < n_levels; ilev++) {
-        levels[ilev] = values[ilev].as<float>();
-    }
-
-    bool quad_as_tri = quad_as_tri_.as<bool>();
-
-    auto t1 = std::chrono::steady_clock::now();
-
-    std::vector<Contour> contours = makeContours(data_ary, xs_ary, ys_ary, nx, ny, levels, quad_as_tri);
-
-    auto t2 = std::chrono::steady_clock::now();
- 
-    delete[] xs_ary;
-    delete[] ys_ary;
-    delete[] data_ary;
-
-    auto t3 = std::chrono::steady_clock::now();
-
-    emscripten::val js_contours = emscripten::val::object();
-    std::unordered_map<float, int> js_contours_added;
-
-    for (auto it = contours.begin(); it != contours.end(); ++it) {
-        float value = it->value;
-
-        if (js_contours_added.find(value) == js_contours_added.end()) {
-            js_contours.set(value, emscripten::val::array());
-            js_contours_added[value] = 0;
-        }
-
-        int contour_index = js_contours_added[value]++;
-        js_contours[value].call<void>("push", emscripten::val::array());
-
-        for (auto plit = it->point_list.begin(); plit != it->point_list.end(); ++plit) {
-            auto pt_trans = grid_transformer(plit->x, plit->y);
-            js_contours[value][contour_index].call<void>("push", pt_trans);
-        }
-    }
-    auto t4 = std::chrono::steady_clock::now();
-
-#ifdef PROFILE
-    std::cout << "Time to Unpack: " << std::chrono::duration_cast<std::chrono::microseconds>(t1 - t0).count() / 1000. << " ms" << std::endl;
-    std::cout << "Time to Contour: " << std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count() / 1000. << " ms" << std::endl;
-    std::cout << "Time to Delete: " << std::chrono::duration_cast<std::chrono::microseconds>(t3 - t2).count() / 1000. << " ms" << std::endl;
-    std::cout << "Time to Pack: " << std::chrono::duration_cast<std::chrono::microseconds>(t4 - t3).count() / 1000. << " ms" << std::endl;
-#endif
-
-    return js_contours;
-}
-
-template<typename T>
-emscripten::val getContourLevelsWASM(const emscripten::val& grid, int nx, int ny, float interval) {
-    auto memory = emscripten::val::module_property("HEAPU8")["buffer"];
-
-    checkGridSize(grid["length"].as<int>(), nx, ny);
-
-    T* grid_ary = new T[nx * ny];
-    auto grid_memview = grid["constructor"].new_(memory, reinterpret_cast<uintptr_t>(grid_ary), nx * ny);
-    grid_memview.call<void>("set", grid);
-
-    std::vector<float> levels = getContourLevels(grid_ary, nx, ny, interval);
-
-    delete[] grid_ary;
-
-    emscripten::val js_levels = emscripten::val::array();
-
-    for (auto lit = levels.begin(); lit != levels.end(); ++lit) {
-        js_levels.call<void>("push", *lit);
-    }
-
-    return js_levels;
-}
-
-EMSCRIPTEN_BINDINGS(marching_squares) {
-    emscripten::function("makeContoursFloat32", &makeContoursWASM<float>);
-    emscripten::function("makeContoursFloat16", &makeContoursWASM<float16_t>);
-    emscripten::function("getContourLevelsFloat32", &getContourLevelsWASM<float>);
-    emscripten::function("getContourLevelsFloat16", &getContourLevelsWASM<float16_t>);
-}
-
-#endif
