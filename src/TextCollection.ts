@@ -142,7 +142,7 @@ function createAtlas(pbf_glyphs: PBFGlyph[]): FontAtlas {
     return {atlas: atlas_data, atlas_width: img_width, atlas_height: img_height, baseline: baseline, top: top, glyph_info: glyphs};
 }
 
-async function getFontAtlas(urls: string[]) {
+const FONT_ATLAS_CACHE = new Cache(async (urls: string[]) => {
     const promises = urls.map(async url => {
         const resp = await fetch(url);
         const blob = await resp.blob();
@@ -156,7 +156,7 @@ async function getFontAtlas(urls: string[]) {
 
     // Create an atlas for the glyphs
     return createAtlas(glyphs);
-}
+});
 
 interface TextSpec {
     lat: number;
@@ -315,7 +315,7 @@ class TextCollection {
             fontstack_urls.push(fontstack_url_template.replace('{range}', `${istack}-${istack + FONT_GROUP_SIZE - 1}`));
         }
 
-        const atlas = await getFontAtlas(fontstack_urls);
+        const atlas = await FONT_ATLAS_CACHE.getValue(fontstack_urls);
         if (atlas.atlas_height == 0 || atlas.atlas_width == 0 || atlas.atlas.length == 0) console.warn(`No font data from '${fontstack_url_template}'`);
 
         return new TextCollection(gl, text_locs, atlas, opts);
