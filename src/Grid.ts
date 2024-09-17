@@ -151,10 +151,11 @@ abstract class StructuredGrid extends Grid {
 
     public getMinVisibleZoom(thin_fac: number) {
         const min_zoom = new Uint8Array(this.ni * this.nj);
-        for (let ilat = 0; ilat < this.nj * this.thin_y; ilat += this.thin_y) {
-            for (let ilon = 0; ilon < this.ni * this.thin_x; ilon += this.thin_x) {
+        const zoom_thin_fac = thin_fac / Math.max(this.thin_x, this.thin_y);
+        for (let ilat = 0; ilat < this.nj * this.thin_y; ilat++) {
+            for (let ilon = 0; ilon < this.ni * this.thin_x; ilon++) {
                 const idx = ilat * this.ni + ilon;
-                min_zoom[idx] = getMinZoom(ilat, ilon, thin_fac);
+                min_zoom[idx] = getMinZoom(ilat, ilon, zoom_thin_fac);
             }
         }
 
