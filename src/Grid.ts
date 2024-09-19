@@ -33,9 +33,8 @@ async function makeWGLDomainBuffers(gl: WebGLAnyRenderingContext, grid: Grid, na
 
     const vertices = new WGLBuffer(gl, domain_coords['vertices'], 2, gl.TRIANGLE_STRIP);
     const texcoords = new WGLBuffer(gl, domain_coords['tex_coords'], 2, gl.TRIANGLE_STRIP);
-    const grid_cell_size = new WGLBuffer(gl, domain_coords['grid_cell_size'], 1, gl.TRIANGLE_STRIP);
 
-    return {'vertices': vertices, 'texcoords': texcoords, 'cellsize': grid_cell_size};
+    return {'vertices': vertices, 'texcoords': texcoords};
 }
 
 async function makeWGLBillboardBuffers(gl: WebGLAnyRenderingContext, grid: Grid, thin_fac: number, map_max_zoom: number) {
@@ -124,7 +123,7 @@ abstract class Grid {
 }
 
 abstract class StructuredGrid extends Grid {
-    private readonly buffer_cache: Cache<[WebGLAnyRenderingContext], Promise<{'vertices': WGLBuffer, 'texcoords': WGLBuffer, 'cellsize': WGLBuffer}>>;
+    private readonly buffer_cache: Cache<[WebGLAnyRenderingContext], Promise<{'vertices': WGLBuffer, 'texcoords': WGLBuffer}>>;
     protected readonly thin_x: number;
     protected readonly thin_y: number;
 
