@@ -175,7 +175,7 @@ class RawObsField<GridType extends Grid, ObsFieldName extends string> {
 
     getScalar(key: ObsFieldName) {
         const field_data = this.data.map(d => d[key]);
-        if (typeof field_data[0] != 'number')
+        if (!field_data.map(d => typeof d == 'number' || d === null).reduce((a, b) => a && b, true))
             throw `It doesn't look like ${key} contains scalar numerical data`;
 
         return field_data as (number | null)[];
@@ -183,7 +183,7 @@ class RawObsField<GridType extends Grid, ObsFieldName extends string> {
 
     getStrings(key: ObsFieldName) {
         const field_data = this.data.map(d => d[key]);
-        if (typeof field_data[0] != 'string')
+        if (!field_data.map(d => typeof d == 'string' || d === null).reduce((a, b) => a && b, true))
             throw `It doesn't look like ${key} contains string data`;
 
         return field_data as (string | null)[];
@@ -191,7 +191,7 @@ class RawObsField<GridType extends Grid, ObsFieldName extends string> {
 
     getVector(key: ObsFieldName) {
         const field_data = this.data.map(d => d[key]);
-        if (!Array.isArray(field_data[0])) 
+        if (!field_data.map(d => Array.isArray(d)).reduce((a, b) => a && b, true))
             throw `It doesn't look like ${key} contains vector data`;
 
         const vector_field_data = field_data as [number | null, number | null][];
