@@ -141,11 +141,24 @@ async function makeHREFLayers() {
 }
 
 async function makeGFSLayers() {
-    const grid_gfs = new apgl.PlateCarreeGrid(1440, 721, 0, -90, 360, 90);
+    const grid_gfs = new apgl.PlateCarreeGrid(1441, 721, 0, -90, 360, 90);
 
     const colormap = apgl.colormaps.pw_t2m
     const t2m_data = await fetchBinary('data/gfs.bin.gz');
-    const t2m_field = new apgl.RawScalarField(grid_gfs, t2m_data);
+
+    const t2m_data_pad = new float16.Float16Array(grid_gfs.ni * grid_gfs.nj);
+
+    for (let j = 0; j < grid_gfs.nj; j++) {
+        const idx_start = (grid_gfs.ni - 1) * j;
+        const idx_end = (grid_gfs.ni - 1) * (j + 1);
+        const idx_pad_start = grid_gfs.ni * j;
+        const idx_pad_end = grid_gfs.ni * (j + 1);
+
+        t2m_data_pad.set(t2m_data.subarray(idx_start, idx_end), idx_pad_start);
+        t2m_data_pad[idx_pad_end - 1] = t2m_data[idx_start];
+    }
+
+    const t2m_field = new apgl.RawScalarField(grid_gfs, t2m_data_pad);
     const t2m_contour = new apgl.ContourFill(t2m_field, {'cmap': colormap});
     const t2m_layer = new apgl.PlotLayer('nh_probs', t2m_contour);
 
