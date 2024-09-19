@@ -16,20 +16,12 @@ interface GridCoords {
     y: Float32Array;
 }
 
-async function makeWGLDomainBuffers(gl: WebGLAnyRenderingContext, grid: Grid, native_grid?: Grid) {
-    native_grid = native_grid !== undefined ? native_grid: grid;
+async function makeWGLDomainBuffers(gl: WebGLAnyRenderingContext, grid: StructuredGrid, simplify_ni: number, simplify_nj: number) {
+    const texcoord_margin_r = 1 / (2 * grid.ni);
+    const texcoord_margin_s = 1 / (2 * grid.nj);
 
-    const texcoord_margin_r = 1 / (2 * native_grid.ni);
-    const texcoord_margin_s = 1 / (2 * native_grid.nj);
-
-    const grid_cell_size_multiplier = (grid.ni * grid.nj) / (native_grid.ni * native_grid.nj);
-
-    const {lats: field_lats, lons: field_lons} = grid.getEarthCoords();
-    const domain_coords = await layer_worker.makeDomainVerticesAndTexCoords(field_lats, field_lons, grid.ni, grid.nj, texcoord_margin_r, texcoord_margin_s);
-
-    for (let icd = 0; icd < domain_coords['grid_cell_size'].length; icd++) {
-        domain_coords['grid_cell_size'][icd] *= grid_cell_size_multiplier;
-    }
+    const {lats: field_lats, lons: field_lons} = grid.getEarthCoords(simplify_ni, simplify_nj);
+    const domain_coords = await layer_worker.makeDomainVerticesAndTexCoords(field_lats, field_lons, simplify_ni, simplify_nj, texcoord_margin_r, texcoord_margin_s);
 
     const vertices = new WGLBuffer(gl, domain_coords['vertices'], 2, gl.TRIANGLE_STRIP);
     const texcoords = new WGLBuffer(gl, domain_coords['tex_coords'], 2, gl.TRIANGLE_STRIP);
@@ -136,9 +128,11 @@ abstract class StructuredGrid extends Grid {
         this.buffer_cache = new Cache((gl: WebGLAnyRenderingContext) => {
             const new_ni = Math.max(Math.floor(this.ni / 50), 20);
             const new_nj = Math.max(Math.floor(this.nj / 50), 20);
-            return makeWGLDomainBuffers(gl, this.copy({ni: new_ni, nj: new_nj}), this);
+            return makeWGLDomainBuffers(gl, this, new_ni, new_nj);
         });
     }
+
+    public abstract getEarthCoords(ni?: number, nj?: number): EarthCoords;
 
     protected xyThinFromMaxZoom(thin_fac: number, map_max_zoom: number) {
         const n_density_tiers = Math.log2(thin_fac);
@@ -191,7 +185,7 @@ class PlateCarreeGrid extends StructuredGrid {
     public readonly ur_lon: number;
     public readonly ur_lat: number;
 
-    private readonly ll_cache: Cache<[], EarthCoords>;
+    private readonly ll_cache: Cache<[number, number], EarthCoords>;
     private readonly gc_cache: Cache<[], GridCoords>;
 
     /**
@@ -214,16 +208,19 @@ class PlateCarreeGrid extends StructuredGrid {
         const dlon = (this.ur_lon - this.ll_lon) / (this.ni - 1);
         const dlat = (this.ur_lat - this.ll_lat) / (this.nj - 1);
 
-        this.ll_cache = new Cache(() => {
-            const lons = new Float32Array(this.ni * this.nj);
-            const lats = new Float32Array(this.ni * this.nj);
+        this.ll_cache = new Cache((ni: number, nj: number) => {
+            const lons = new Float32Array(ni * nj);
+            const lats = new Float32Array(ni * nj);
 
-            for (let i = 0; i < this.ni; i++) {
-                for (let j = 0; j < this.nj; j++) {
-                    const idx = i + j * this.ni;
+            const dlon_req = (this.ni - 1) / (ni - 1) * dlon;
+            const dlat_req = (this.nj - 1) / (nj - 1) * dlat;
 
-                    lons[idx] = this.ll_lon + i * dlon;
-                    lats[idx] = this.ll_lat + j * dlat;
+            for (let i = 0; i < ni; i++) {
+                for (let j = 0; j < nj; j++) {
+                    const idx = i + j * ni;
+
+                    lons[idx] = this.ll_lon + i * dlon_req;
+                    lats[idx] = this.ll_lat + j * dlat_req;
                 }
             }
 
@@ -261,8 +258,11 @@ class PlateCarreeGrid extends StructuredGrid {
     /**
      * Get a list of longitudes and latitudes on the grid (internal method)
      */
-    public getEarthCoords() {
-        return this.ll_cache.getValue();
+    public getEarthCoords(ni?: number, nj?: number) {
+        ni = ni === undefined ? this.ni : ni;
+        nj = nj === undefined ? this.nj : nj;
+
+        return this.ll_cache.getValue(ni, nj);
     }
 
     public getGridCoords() {
@@ -303,7 +303,7 @@ class PlateCarreeRotatedGrid extends StructuredGrid {
     public readonly ur_lat: number;
 
     private readonly llrot: (a: number, b: number, opts?: {inverse: boolean}) => [number, number];
-    private readonly ll_cache: Cache<[], EarthCoords>;
+    private readonly ll_cache: Cache<[number, number], EarthCoords>;
     private readonly gc_cache: Cache<[], GridCoords>;
 
     /**
@@ -333,17 +333,20 @@ class PlateCarreeRotatedGrid extends StructuredGrid {
         const dlon = (this.ur_lon - this.ll_lon) / (this.ni - 1);
         const dlat = (this.ur_lat - this.ll_lat) / (this.nj - 1);
 
-        this.ll_cache = new Cache(() => {
-            const lons = new Float32Array(this.ni * this.nj);
-            const lats = new Float32Array(this.ni * this.nj);
+        this.ll_cache = new Cache((ni: number, nj: number) => {
+            const lons = new Float32Array(ni * nj);
+            const lats = new Float32Array(ni * nj);
 
-            for (let i = 0; i < this.ni; i++) {
-                const lon_p = this.ll_lon + i * dlon;
-                for (let j = 0; j < this.nj; j++) {
-                    const lat_p = this.ll_lat + j * dlat;
+            const dlon_req = (this.ni - 1) / (ni - 1) * dlon;
+            const dlat_req = (this.nj - 1) / (nj - 1) * dlat;
+
+            for (let i = 0; i < ni; i++) {
+                const lon_p = this.ll_lon + i * dlon_req;
+                for (let j = 0; j < nj; j++) {
+                    const lat_p = this.ll_lat + j * dlat_req;
 
                     const [lon, lat] = this.llrot(lon_p, lat_p);
-                    const idx = i + j * this.ni;
+                    const idx = i + j * ni;
                     lons[idx] = lon;
                     lats[idx] = lat;
                 }
@@ -383,8 +386,11 @@ class PlateCarreeRotatedGrid extends StructuredGrid {
     /**
      * Get a list of longitudes and latitudes on the grid (internal method)
      */
-    public getEarthCoords() {
-        return this.ll_cache.getValue();
+    public getEarthCoords(ni?: number, nj?: number) {
+        ni = ni === undefined ? this.ni : ni;
+        nj = nj === undefined ? this.nj : nj;
+
+        return this.ll_cache.getValue(ni, nj);
     }
 
     public getGridCoords() {
@@ -428,7 +434,7 @@ class LambertGrid extends StructuredGrid {
     public readonly ur_y: number;
 
     private readonly lcc: (a: number, b: number, opts?: {inverse: boolean}) => [number, number];
-    private readonly ll_cache: Cache<[], EarthCoords>;
+    private readonly ll_cache: Cache<[number, number], EarthCoords>;
     private readonly gc_cache: Cache<[], GridCoords>;
 
     /**
@@ -456,20 +462,23 @@ class LambertGrid extends StructuredGrid {
         this.ur_y = ur_y;
         this.lcc = lambertConformalConic({lon_0: lon_0, lat_0: lat_0, lat_std: lat_std});
 
-        const dx = (this.ur_x - this.ll_x) / (this.ni - 1);
-        const dy = (this.ur_y - this.ll_y) / (this.nj - 1);
+        const dx = (this.ur_x - this.ll_x) / this.ni;
+        const dy = (this.ur_y - this.ll_y) / this.nj;
 
-        this.ll_cache = new Cache(() => {
-            const lons = new Float32Array(this.ni * this.nj);
-            const lats = new Float32Array(this.ni * this.nj);
+        this.ll_cache = new Cache((ni: number, nj: number) => {
+            const lons = new Float32Array(ni * nj);
+            const lats = new Float32Array(ni * nj);
 
-            for (let i = 0; i < this.ni; i++) {
-                const x = this.ll_x + i * dx;
-                for (let j = 0; j < this.nj; j++) {
-                    const y = this.ll_y + j * dy;
+            const dx_req = (this.ni - 1) / (ni - 1) * dx;
+            const dy_req = (this.nj - 1) / (nj - 1) * dy;
+
+            for (let i = 0; i < ni; i++) {
+                const x = this.ll_x + i * dx_req;
+                for (let j = 0; j < nj; j++) {
+                    const y = this.ll_y + j * dy_req;
 
                     const [lon, lat] = this.lcc(x, y, {inverse: true});
-                    const idx = i + j * this.ni;
+                    const idx = i + j * ni;
                     lons[idx] = lon;
                     lats[idx] = lat;
                 }
@@ -518,8 +527,11 @@ class LambertGrid extends StructuredGrid {
     /**
      * Get a list of longitudes and latitudes on the grid (internal method)
      */
-    public getEarthCoords() {
-        return this.ll_cache.getValue();
+    public getEarthCoords(ni?: number, nj?: number) {
+        ni = ni === undefined ? this.ni : ni;
+        nj = nj === undefined ? this.nj : nj;
+
+        return this.ll_cache.getValue(ni, nj);
     }
 
     public getGridCoords() {
