@@ -115,12 +115,7 @@ async function fetchBinary(fname) {
 }
 
 async function makeHREFLayers() {
-    const nx_href = 1799;
-    const ny_href = 1059;
-    const dx_href = 3000;
-    const dy_href = 3000;
-    const grid_href = new apgl.LambertGrid(nx_href, ny_href, -97.5, 38.5, [38.5, 38.5], 
-                                           -nx_href * dx_href / 2, -ny_href * dy_href / 2, nx_href * dx_href / 2, ny_href * dy_href / 2);
+    const grid_href = new apgl.LambertGrid.fromLLCornerLonLat(1799, 1059, -97.5, 38.5, [38.5, 38.5], -122.719528, 21.138123, 3000, 3000);
 
     const nh_prob_data = await fetchBinary('data/hrefv3.2023051100.f036.mxuphl5000_2000m.nh_max.086400_p99.85_0040km.bin.gz');
     //const nh_prob_data = await fetchBinary('data/hrrr_pmsl.bin.gz');
