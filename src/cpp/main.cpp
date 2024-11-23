@@ -1,13 +1,106 @@
 
 #include <chrono>
 #include <iostream>
+#include <cmath>
 
 #include <emscripten/bind.h>
 
 #include "float16_t.hpp"
 #include "marchingsquares.hpp"
+#include "map.hpp"
 
 using numeric::float16_t;
+
+template<typename P, typename T>
+class StructuredGrid {
+    unsigned int ni, nj;
+    T ll_crnr, ur_crnr;
+    P projection;
+
+    public:
+    StructuredGrid(unsigned int ni, unsigned int nj, const T& ll_crnr, const T& ur_crnr, const P& projection) : ni(ni), nj(nj), ll_crnr(ll_crnr), ur_crnr(ur_crnr), projection(projection) {}
+    StructuredGrid(const StructuredGrid& other) : ni(other.ni), nj(other.nj), ll_crnr(other.ll_crnr), ur_crnr(other.ur_crnr), projection(other.projection) {}
+    
+    T getGridCoord(unsigned int i, unsigned int j) const {
+        if constexpr (is_earth_point<T>) {
+            const float dlon = (this->ur_crnr.lon - this->ll_crnr.lon) / (this->ni - 1);
+            const float dlat = (this->ur_crnr.lat - this->ll_crnr.lat) / (this->nj - 1);
+
+            return T(this->ll_crnr.lon + i * dlon, this->ll_crnr.dlat + j * dlat);
+        }
+        else {
+            const float dx = (this->ur_crnr.x - this->ll_crnr.x) / this->ni;
+            const float dy = (this->ur_crnr.y - this->ll_crnr.y) / this->nj;
+
+            return T(this->ll_crnr.x + i * dx, this->ll_crnr.y + j * dy);
+        }
+    }
+
+    emscripten::val getMapCoords(const emscripten::val& simplify_ni_, const emscripten::val& simplify_nj_) const {
+        const unsigned int simplify_ni = simplify_ni_.as<unsigned int>();
+        const unsigned int simplify_nj = simplify_nj_.as<unsigned int>();
+
+        WebMercator map_crs;
+
+        std::vector<float> xs(this->ni * this->nj);
+        std::vector<float> ys(this->ni * this->nj);
+
+        for (int i = 0; i < this->ni; i++) {
+            for (int j = 0; j < this->nj; j++) {
+                const int idx = i + ni * j;
+                T grid_coord = this->getGridCoord(i, j);
+                EarthPoint earth_coord = this->projection.transform_inverse(grid_coord);
+                GridPoint map_coord = map_crs.transform(earth_coord);
+
+                xs[idx] = map_coord.x;
+                ys[idx] = map_coord.y;
+            }
+        }
+
+        auto memory = emscripten::val::module_property("HEAPU8")["buffer"];
+        auto xs_ary = emscripten::val::global("Float32Array").new_(memory, reinterpret_cast<uintptr_t>(xs.data()), xs.size());
+        auto ys_ary = emscripten::val::global("Float32Array").new_(memory, reinterpret_cast<uintptr_t>(ys.data()), ys.size());
+
+        auto coords_obj = emscripten::val::object();
+        coords_obj.set("x", xs_ary);
+        coords_obj.set("y", ys_ary);
+
+        return coords_obj;
+    }
+
+    emscripten::val getVectorRotation() const {
+        std::vector<float> rot_vals(this->ni * this->nj);
+
+        for (int i = 0; i < this->ni; i++) {
+            for (int j = 0; j < this->nj; j++) {
+                const int idx = i + ni * j;
+
+                T grid_coord = this->getGridCoord(i, j);
+                EarthPoint earth_coord = this->projection.transform_inverse(grid_coord);
+                T grid_coord_pert = this->projection.transform(EarthPoint(earth_coord.lon + 0.01f, earth_coord.lat));
+
+                if constexpr (is_earth_point<T>) {
+                    rot_vals[idx] = atan2(grid_coord_pert.lat - grid_coord.lat, grid_coord_pert.lon - grid_coord.lon);
+                }
+                else {
+                    rot_vals[idx] = atan2(grid_coord_pert.y - grid_coord.y, grid_coord_pert.x - grid_coord.x);
+                }
+            }
+        }
+
+        auto memory = emscripten::val::module_property("HEAPU8")["buffer"];
+        auto ary = emscripten::val::global("Float32Array").new_(memory, reinterpret_cast<uintptr_t>(rot_vals.data()), rot_vals.size());
+
+        return ary;
+    }
+};
+
+class LambertGrid : public StructuredGrid<LambertConformalConic, GridPoint> {
+    public:
+    LambertGrid(unsigned int ni, unsigned int nj, float lon_0, float lat_0, float lat_std_1, float lat_std_2,
+                float ll_x, float ll_y, float ur_x, float ur_y) : StructuredGrid(ni, nj, GridPoint(ll_x, ll_y), GridPoint(ur_x, ur_y),
+                                                                                 LambertConformalConic(lon_0, lat_0, lat_std_1, lat_std_2)) {}
+};
 
 void checkGridSize(size_t grid_size, int nx, int ny) {
     if (nx * ny != grid_size) {
@@ -118,4 +211,9 @@ EMSCRIPTEN_BINDINGS(marching_squares) {
     emscripten::function("makeContoursFloat16", &makeContoursWASM<float16_t>);
     emscripten::function("getContourLevelsFloat32", &getContourLevelsWASM<float>);
     emscripten::function("getContourLevelsFloat16", &getContourLevelsWASM<float16_t>);
+    emscripten::class_<LambertGrid>("CppLambertGrid")
+        .constructor<unsigned int, unsigned int, float, float, float, float, float, float, float, float>()
+        .function("getMapCoords", &LambertGrid::getMapCoords)
+        .function("getVectorRotation", &LambertGrid::getVectorRotation);
+    emscripten::class_<StructuredGrid<LambertConformalConic, GridPoint>>("CppLambertGridBase");
 }

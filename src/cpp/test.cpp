@@ -5,6 +5,7 @@
 #include <string>
 
 #include "marchingsquares.hpp"
+#include "map.hpp"
 
 struct ContourTestCase {
     const char* name;
@@ -123,6 +124,20 @@ int main(int argc, char** argv) {
     for (auto it = test_cases.begin() ; it != test_cases.end() ; ++it) {
         testContour(*it);
     }
+
+    LambertConformalConic lcc(-97.5, 38.5, 38.5, 38.5);
+    EarthPoint pt(-97.44, 35.18);
+
+    std::cout << lcc.transform(pt) << std::endl;
+    std::cout << lcc.transform_inverse(lcc.transform(pt)) << std::endl;
+
+    RotateSphere rs(180, 60, 0);
+    std::cout << rs.transform(pt) << std::endl;
+    std::cout << rs.transform_inverse(rs.transform(pt)) << std::endl;
+
+    WebMercator wm;
+    std::cout << wm.transform(pt) << std::endl;
+    std::cout << wm.transform_inverse(wm.transform(pt)) << std::endl;
 
     return 0;
 }
