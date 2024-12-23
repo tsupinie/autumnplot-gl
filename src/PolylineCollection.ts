@@ -1,6 +1,6 @@
 
 import { WGLBuffer, WGLProgram, WGLTexture } from "autumn-wgl";
-import { Polyline, LineData, WebGLAnyRenderingContext, isWebGL2Ctx } from "./AutumnTypes";
+import { Polyline, LineData, WebGLAnyRenderingContext, isWebGL2Ctx, RenderMethodArg, getModelViewMatrix } from "./AutumnTypes";
 import { ColorMap, ColorMapGPUInterface } from "./Colormap";
 import { Color } from "./Color";
 import { layer_worker } from "./PlotComponent";
@@ -128,9 +128,8 @@ class PolylineCollection {
         return new PolylineCollection(gl, polylines, opts);
     }
 
-    public render(gl: WebGLAnyRenderingContext, matrix: number[] | Float32Array, [map_width, map_height]: [number, number], map_zoom: number, map_bearing: number, map_pitch: number) {
-        if (matrix instanceof Float32Array)
-            matrix = [...matrix];
+    public render(gl: WebGLAnyRenderingContext, arg: RenderMethodArg, [map_width, map_height]: [number, number], map_zoom: number, map_bearing: number, map_pitch: number) {
+        const matrix = getModelViewMatrix(arg);
 
         const attributes: Record<string, WGLBuffer> = {'a_pos': this.vertices, 'a_extrusion': this.extrusion};
         const uniforms: Record<string, number | number[]> = {

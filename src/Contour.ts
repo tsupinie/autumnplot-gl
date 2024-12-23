@@ -1,5 +1,5 @@
 
-import { LineData, TypedArray, WebGLAnyRenderingContext} from './AutumnTypes';
+import { LineData, RenderMethodArg, TypedArray, WebGLAnyRenderingContext, getModelViewMatrix} from './AutumnTypes';
 import { LngLat, MapLikeType } from './Map';
 import { PlotComponent } from './PlotComponent';
 import { RawScalarField } from './RawField';
@@ -189,12 +189,11 @@ class Contour<ArrayType extends TypedArray, GridType extends StructuredGrid, Map
      * @internal
      * Render the contours
      */
-    public render(gl: WebGLAnyRenderingContext, matrix: number[] | Float32Array) {
+    public render(gl: WebGLAnyRenderingContext, arg: RenderMethodArg) {
         if (this.gl_elems === null || this.contours === null) return;
         const gl_elems = this.gl_elems;
 
-        if (matrix instanceof Float32Array)
-            matrix = [...matrix];
+        const matrix = getModelViewMatrix(arg);
 
         const zoom = gl_elems.map.getZoom();
         const map_width = gl_elems.map.getCanvas().width;
@@ -387,9 +386,11 @@ class ContourLabels<ArrayType extends TypedArray, GridType extends StructuredGri
      * @internal 
      * Render the contour labels
      */
-    public render(gl: WebGLAnyRenderingContext, matrix: number[]) {
+    public render(gl: WebGLAnyRenderingContext, arg: RenderMethodArg) {
         if (this.gl_elems === null || this.text_collection === null) return;
         const gl_elems = this.gl_elems;
+
+        const matrix = getModelViewMatrix(arg);
 
         const map_width = gl_elems.map.getCanvas().width;
         const map_height = gl_elems.map.getCanvas().height;
