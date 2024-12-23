@@ -4,7 +4,7 @@ import { ColorMap, ColorMapGPUInterface} from './Colormap';
 import { WGLBuffer, WGLProgram, WGLTexture } from 'autumn-wgl';
 import { RawScalarField } from './RawField';
 import { MapLikeType } from './Map';
-import { TypedArray, WebGLAnyRenderingContext } from './AutumnTypes';
+import { RenderMethodArg, TypedArray, WebGLAnyRenderingContext, getModelViewMatrix } from './AutumnTypes';
 import { normalizeOptions } from './utils';
 import { Grid, StructuredGrid } from './Grid';
 
@@ -129,12 +129,11 @@ class PlotComponentFill<ArrayType extends TypedArray, GridType extends Structure
         this.updateField(this.field);
     }
 
-    public render(gl: WebGLAnyRenderingContext, matrix: number[] | Float32Array) {
+    public render(gl: WebGLAnyRenderingContext, arg: RenderMethodArg) {
         if (this.gl_elems === null || this.fill_texture === null) return;
         const gl_elems = this.gl_elems;
 
-        if (matrix instanceof Float32Array) 
-            matrix = [...matrix];
+        const matrix = getModelViewMatrix(arg);
 
         gl_elems.program.use(
             {'a_pos': gl_elems.vertices, 'a_tex_coord': gl_elems.texcoords},

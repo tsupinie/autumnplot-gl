@@ -1,5 +1,5 @@
 
-import { TypedArray, WebGLAnyRenderingContext } from "./AutumnTypes";
+import { RenderMethodArg, TypedArray, WebGLAnyRenderingContext, getModelViewMatrix } from "./AutumnTypes";
 import { Color } from "./Color";
 import { StructuredGrid } from "./Grid";
 import { MapLikeType } from "./Map";
@@ -122,12 +122,11 @@ class Paintball<ArrayType extends TypedArray, GridType extends StructuredGrid, M
      * @internal
      * Render the paintball plot
      */
-    public render(gl: WebGLAnyRenderingContext, matrix: number[] | Float32Array) {
+    public render(gl: WebGLAnyRenderingContext, arg: RenderMethodArg) {
         if (this.gl_elems === null || this.fill_texture === null) return;
         const gl_elems = this.gl_elems;
 
-        if (matrix instanceof Float32Array)
-            matrix = [...matrix];
+        const matrix = getModelViewMatrix(arg);
 
         // Render to framebuffer
         gl_elems.program.use(

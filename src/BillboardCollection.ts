@@ -1,5 +1,5 @@
 
-import { BillboardSpec, TypedArray, WebGLAnyRenderingContext } from "./AutumnTypes";
+import { BillboardSpec, RenderMethodArg, TypedArray, WebGLAnyRenderingContext, getModelViewMatrix } from "./AutumnTypes";
 import { Color } from "./Color";
 import { ColorMap, ColorMapGPUInterface } from "./Colormap";
 import { Grid } from "./Grid";
@@ -113,11 +113,10 @@ class BillboardCollection<ArrayType extends TypedArray, GridType extends Grid> {
         this.gl_elems = {gl: gl, program: program, vertices: vertices, texcoords: texcoords, texture: texture, proj_rot_texture: proj_rotation_tex, cmap_gpu: cmap_gpu};
     }
 
-    public render(gl: WebGLAnyRenderingContext, matrix: number[] | Float32Array, [map_width, map_height]: [number, number], map_zoom: number, map_bearing: number, map_pitch: number) {
+    public render(gl: WebGLAnyRenderingContext, arg: RenderMethodArg, [map_width, map_height]: [number, number], map_zoom: number, map_bearing: number, map_pitch: number) {
         if (this.gl_elems === null || this.wind_textures === null || !this.show_field) return;
-
-        if (matrix instanceof Float32Array)
-            matrix = [...matrix];
+        
+        const matrix = getModelViewMatrix(arg);
 
         const gl_elems = this.gl_elems;
 

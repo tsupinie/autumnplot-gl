@@ -5,7 +5,7 @@ import { BillboardCollection } from "./BillboardCollection";
 import { getMinZoom, normalizeOptions } from './utils';
 import { MapLikeType } from "./Map";
 import { RawProfileField } from "./RawField";
-import { LineData, TypedArray, WebGLAnyRenderingContext } from "./AutumnTypes";
+import { LineData, RenderMethodArg, TypedArray, WebGLAnyRenderingContext } from "./AutumnTypes";
 import { Float16Array } from "@petamoriken/float16";
 import { ColorMap } from "./Colormap";
 import { Color } from "./Color";
@@ -207,7 +207,7 @@ class Hodographs<GridType extends Grid, MapType extends MapLikeType> extends Plo
      * @internal
      * Render the hodographs
      */
-    public render(gl: WebGLAnyRenderingContext, matrix: number[] | Float32Array) {
+    public render(gl: WebGLAnyRenderingContext, arg: RenderMethodArg) {
         if (this.gl_elems === null || this.line_elems === null) return;
         const gl_elems = this.gl_elems;
         const line_elems = this.line_elems;
@@ -218,9 +218,9 @@ class Hodographs<GridType extends Grid, MapType extends MapLikeType> extends Plo
         const bearing = gl_elems.map.getBearing();
         const pitch = gl_elems.map.getPitch();
 
-        line_elems.hodo_line.render(gl, matrix, [map_width, map_height], zoom, bearing, pitch);
-        line_elems.sm_line.render(gl, matrix, [map_width, map_height], zoom, bearing, bearing);
-        gl_elems.bg_billboard.render(gl, matrix, [map_width, map_height], zoom, bearing, pitch);
+        line_elems.hodo_line.render(gl, arg, [map_width, map_height], zoom, bearing, pitch);
+        line_elems.sm_line.render(gl, arg, [map_width, map_height], zoom, bearing, bearing);
+        gl_elems.bg_billboard.render(gl, arg, [map_width, map_height], zoom, bearing, pitch);
     }
 }
 

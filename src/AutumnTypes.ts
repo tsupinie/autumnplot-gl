@@ -48,5 +48,22 @@ type TypedArray = Float16Array | Float32Array;
 
 type ContourData = Record<number, [number, number][][]>;
 
-export {isWebGL2Ctx};
-export type {WindProfile, BillboardSpec, Polyline, LineData, WebGLAnyRenderingContext, TypedArray, ContourData};
+type mat4 = number[] | Float32Array | Float64Array;
+type RenderArgObject = {defaultProjectionData: {mainMatrix: mat4}, modelViewProjectionMatrix: mat4};
+type RenderMethodArg = mat4 | RenderArgObject;
+
+function isRenderArgObject(obj: any) : obj is RenderArgObject {
+    return 'modelViewProjectionMatrix' in obj && 'defaultProjectionData' in obj && 'mainMatrix' in obj.defaultProjectionData;
+}
+
+function getModelViewMatrix(arg: RenderMethodArg) {
+    const arg_raw = isRenderArgObject(arg) ? arg.defaultProjectionData.mainMatrix : arg;
+
+    if (arg_raw instanceof Float32Array || arg_raw instanceof Float64Array) 
+        return [...arg_raw];
+
+    return arg_raw;
+}
+
+export {isWebGL2Ctx, getModelViewMatrix};
+export type {WindProfile, BillboardSpec, Polyline, LineData, WebGLAnyRenderingContext, TypedArray, ContourData, RenderMethodArg};

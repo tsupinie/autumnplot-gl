@@ -1,4 +1,4 @@
-import { isWebGL2Ctx, WebGLAnyRenderingContext } from "./AutumnTypes";
+import { getModelViewMatrix, isWebGL2Ctx, RenderMethodArg, WebGLAnyRenderingContext } from "./AutumnTypes";
 import { Color } from "./Color";
 import { LngLat } from "./Map";
 import { Cache, normalizeOptions } from "./utils";
@@ -321,7 +321,8 @@ class TextCollection {
         return new TextCollection(gl, text_locs, atlas, opts);
     }
 
-    render(gl: WebGLAnyRenderingContext, matrix: number[], [map_width, map_height]: [number, number], map_zoom: number) {
+    render(gl: WebGLAnyRenderingContext, arg: RenderMethodArg, [map_width, map_height]: [number, number], map_zoom: number) {
+        const matrix = getModelViewMatrix(arg);
         const uniforms: Record<string, any> = {
             'u_matrix': matrix, 'u_map_width': map_width, 'u_map_height': map_height, 'u_map_zoom': map_zoom, 'u_font_size': this.opts.font_size,
             'u_text_color': this.opts.text_color.toRGBATuple(), 'u_halo_color': this.opts.halo_color.toRGBATuple(), 'u_offset': 0

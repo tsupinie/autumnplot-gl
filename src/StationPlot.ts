@@ -1,5 +1,5 @@
 
-import { WebGLAnyRenderingContext } from "./AutumnTypes";
+import { RenderMethodArg, WebGLAnyRenderingContext, getModelViewMatrix } from "./AutumnTypes";
 import { MapLikeType } from "./Map";
 import { PlotComponent } from "./PlotComponent";
 import { normalizeOptions } from "./utils";
@@ -337,11 +337,10 @@ class StationPlot<GridType extends Grid, MapType extends MapLikeType, ObsFieldNa
         this.updateField(this.field);
     }
 
-    public render(gl: WebGLAnyRenderingContext, matrix: Float32Array | number[]) {
+    public render(gl: WebGLAnyRenderingContext, arg: RenderMethodArg) {
         if (this.gl_elems === null || this.text_components === null) return;
 
-        if (matrix instanceof Float32Array)
-            matrix = [...matrix];
+        const matrix = getModelViewMatrix(arg);
 
         const gl_elems = this.gl_elems;
 
