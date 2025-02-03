@@ -160,6 +160,20 @@ class RawProfileField<GridType extends Grid> {
 
         return new RawVectorField(this.grid, u, v, {relative_to: 'grid'});
     }
+
+    public getProfileCoords() {
+        const {lats, lons} = this.grid.getEarthCoords();
+        const prof_lats = new Float32Array(this.profiles.length);
+        const prof_lons = new Float32Array(this.profiles.length);
+
+        this.profiles.forEach((prof, iprof) => {
+            const idx = prof.ilon + prof.jlat * this.grid.ni;
+            prof_lats[iprof] = lats[idx];
+            prof_lons[iprof] = lons[idx];
+        });
+
+        return {lats: prof_lats, lons: prof_lons};
+    }
 }
 
 type ObsRawData<ObsFieldName extends string> = Record<ObsFieldName, string | number | [number, number] | null>;

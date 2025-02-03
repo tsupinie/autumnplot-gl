@@ -2,8 +2,6 @@
 import { Float16Array } from "@petamoriken/float16";
 
 interface WindProfile {
-    lat: number;
-    lon: number;
     jlat: number;
     ilon: number;
     smu: number;

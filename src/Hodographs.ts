@@ -148,13 +148,14 @@ class Hodographs<GridType extends Grid, MapType extends MapLikeType> extends Plo
         this.gl_elems.bg_billboard.updateField(field.getStormMotionGrid());
 
         const profiles = this.profile_field.profiles;
+        const {lats, lons} = this.profile_field.getProfileCoords();
         
-        const hodo_polyline = profiles.map(prof => {
+        const hodo_polyline = profiles.map((prof, iprof) => {
             const zoom = getMinZoom(prof['jlat'], prof['ilon'], this.opts.thin_fac);
 
             return {
                 'offsets': [...prof['u']].map((u, ipt) => [u - prof['smu'], prof['v'][ipt] - prof['smv']]),
-                'vertices': [...prof['u']].map(u => [prof['lon'], prof['lat']]),
+                'vertices': [...prof['u']].map(u => [lons[iprof], lats[iprof]]),
                 'zoom': zoom,
                 'data': [...prof['z']],
             } as LineData;
@@ -162,7 +163,7 @@ class Hodographs<GridType extends Grid, MapType extends MapLikeType> extends Plo
 
         const hodo_line = await PolylineCollection.make(gl, hodo_polyline, {line_width: this.opts.hodo_line_width, cmap: this.opts.height_cmap, offset_scale: this.hodo_scale * this.bg_size});
 
-        const sm_polyline = profiles.map(prof => {
+        const sm_polyline = profiles.map((prof, iprof) => {
             const zoom = getMinZoom(prof['jlat'], prof['ilon'], this.opts.thin_fac);
 
             const sm_mag = Math.hypot(prof['smu'], prof['smv']);
@@ -172,7 +173,7 @@ class Hodographs<GridType extends Grid, MapType extends MapLikeType> extends Plo
             return {
                 'offsets': [[buffer * Math.sin(sm_ang), buffer * Math.cos(sm_ang)], 
                               [sm_mag * Math.sin(sm_ang), sm_mag * Math.cos(sm_ang)]],
-                'vertices': [[prof['lon'], prof['lat']], [prof['lon'], prof['lat']]],
+                'vertices': [[lons[iprof], lats[iprof]], [lons[iprof], lats[iprof]]],
                 'zoom': zoom
             } as LineData;
         });
