@@ -1,3 +1,4 @@
+#version 300 es
 
 uniform mat4 u_matrix;
 uniform int u_offset;
@@ -6,11 +7,11 @@ uniform highp float u_map_height;
 uniform highp float u_map_zoom;
 uniform highp float u_font_size;
 
-attribute vec3 a_pos;
-attribute vec2 a_offset;
-attribute vec2 a_tex_coord;
+in vec3 a_pos;
+in vec2 a_offset;
+in vec2 a_tex_coord;
 
-varying highp vec2 v_tex_coord;
+out highp vec2 v_tex_coord;
 
 mat4 scalingMatrix(float x_scale, float y_scale, float z_scale) {
     return mat4(x_scale, 0.0,     0.0,     0.0,

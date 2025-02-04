@@ -219,6 +219,13 @@ class ColorMapGPUInterface {
     }
 
     public static applyShader(shader_src: string) {
+        const ES3_SHADER_MAGIC = '#version 300 es\n';
+        const is_es3_shader = shader_src.startsWith(ES3_SHADER_MAGIC);
+
+        if (is_es3_shader) {
+            return ES3_SHADER_MAGIC + colormap_shader_src + "\n" + shader_src.slice(ES3_SHADER_MAGIC.length);
+        }
+        
         return colormap_shader_src + "\n" + shader_src;
     }
 

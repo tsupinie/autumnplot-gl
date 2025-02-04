@@ -1,8 +1,10 @@
+#version 300 es
+
 uniform mat4 u_matrix;
 uniform int u_offset;
 
-attribute vec3 a_pos;    // Has position, zoom, and corner info
-attribute vec2 a_tex_coord;
+in vec3 a_pos;    // Has position, zoom, and corner info
+in vec2 a_tex_coord;
 uniform lowp float u_bb_size;
 uniform lowp float u_map_aspect;
 uniform lowp float u_zoom;
@@ -17,9 +19,9 @@ uniform sampler2D u_u_sampler;
 uniform sampler2D u_v_sampler;
 uniform sampler2D u_rot_sampler;
 
-varying highp vec2 v_tex_coord;
+out highp vec2 v_tex_coord;
 #ifdef COLORMAP
-varying highp float v_mag;
+out highp float v_mag;
 #endif
 
 mat4 scalingMatrix(float x_scale, float y_scale, float z_scale) {
@@ -58,9 +60,9 @@ void main() {
     lowp float min_zoom = floor(zoom_corner / 4.0);
     lowp float corner = mod(zoom_corner, 4.0);
 
-    highp float u = texture2D(u_u_sampler, a_tex_coord).r;
-    highp float v = texture2D(u_v_sampler, a_tex_coord).r;
-    highp float rot = texture2D(u_rot_sampler, a_tex_coord).r;
+    highp float u = texture(u_u_sampler, a_tex_coord).r;
+    highp float v = texture(u_v_sampler, a_tex_coord).r;
+    highp float rot = texture(u_rot_sampler, a_tex_coord).r;
 
     lowp float bb_aspect = u_bb_width / u_bb_height;
     lowp float ang = (abs(u) < 1e-6 && abs(v) < 1e-6) ? 0. : atan(v, u) - 3.141592654 / 2.0;

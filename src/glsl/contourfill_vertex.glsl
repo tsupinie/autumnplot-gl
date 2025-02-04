@@ -1,10 +1,12 @@
+#version 300 es
+
 uniform mat4 u_matrix;
 uniform int u_offset;
 
-attribute vec2 a_pos;
-attribute vec2 a_tex_coord;
+in vec2 a_pos;
+in vec2 a_tex_coord;
 
-varying highp vec2 v_tex_coord;
+out highp vec2 v_tex_coord;
 
 void main() {
     float globe_width = 1.;

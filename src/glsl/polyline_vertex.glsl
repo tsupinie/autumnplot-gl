@@ -1,16 +1,18 @@
+#version 300 es
+
 uniform mat4 u_matrix;
 uniform int u_offset;
 
-attribute vec3 a_pos;
-attribute vec2 a_extrusion;
-attribute float a_data;
+in vec3 a_pos;
+in vec2 a_extrusion;
+in float a_data;
 
 #ifdef ZOOM
-attribute float a_min_zoom;
+in float a_min_zoom;
 #endif
 
 #ifdef OFFSET
-attribute vec2 a_offset;
+in vec2 a_offset;
 #endif
 
 uniform lowp float u_line_width;
@@ -27,11 +29,11 @@ uniform lowp float u_offset_scale;
 #endif
 
 #ifdef DATA
-varying highp float v_data;
+out highp float v_data;
 #endif
 
-varying highp float v_dist;
-varying lowp float v_cross;
+out highp float v_dist;
+out lowp float v_cross;
 
 mat4 scalingMatrix(float x_scale, float y_scale, float z_scale) {
     return mat4(x_scale, 0.0,     0.0,     0.0,

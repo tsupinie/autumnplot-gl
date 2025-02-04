@@ -20,8 +20,8 @@ lowp vec4 apply_colormap(highp float value) {
     else {
         lowp float index_buffer = 1. / (2. * float(u_n_index));
         normed_val = index_buffer + normed_val * (1. - 2. * index_buffer); // Chop off the half pixels on either end of the texture
-        highp float nonlin_val = texture2D(u_cmap_nonlin_sampler, vec2(normed_val, 0.5)).r;
-        color = texture2D(u_cmap_sampler, vec2(nonlin_val, 0.5));
+        highp float nonlin_val = texture(u_cmap_nonlin_sampler, vec2(normed_val, 0.5)).r;
+        color = texture(u_cmap_sampler, vec2(nonlin_val, 0.5));
     }
 
     return color;

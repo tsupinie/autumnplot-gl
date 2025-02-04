@@ -1,14 +1,18 @@
+#version 300 es
+
 #define MAX_N_COLORS 24
 
-varying highp vec2 v_tex_coord;
+in highp vec2 v_tex_coord;
 
 uniform sampler2D u_fill_sampler;
 uniform lowp vec4 u_colors[MAX_N_COLORS];
 uniform int u_num_colors;
 uniform highp float u_opacity;
 
+out highp vec4 fragColor;
+
 void main() {
-    highp float fill_val = texture2D(u_fill_sampler, v_tex_coord).r;
+    highp float fill_val = texture(u_fill_sampler, v_tex_coord).r;
     
     if (fill_val < 0.5) {
         discard;
@@ -25,5 +29,5 @@ void main() {
     }
 
     color.a = color.a * u_opacity;
-    gl_FragColor = color;
+    fragColor = color;
 }
