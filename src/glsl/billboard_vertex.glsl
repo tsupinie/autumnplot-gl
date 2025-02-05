@@ -7,11 +7,9 @@ in vec2 a_tex_coord;
 uniform lowp float u_bb_size;
 uniform lowp float u_map_aspect;
 uniform lowp float u_zoom;
-uniform highp float u_map_bearing;
 uniform lowp float u_bb_width;  // Normalized by texture width
 uniform lowp float u_bb_height; // Normalized by texture height
 uniform highp float u_bb_mag_bin_size;
-//uniform highp float u_bb_max_mag;
 uniform highp float u_bb_mag_wrap;
 
 uniform sampler2D u_u_sampler;
@@ -54,7 +52,14 @@ void main() {
     float globe_width = 1.;
     vec2 globe_offset = vec2(globe_width * float(u_offset), 0.);
 
+    mat4 map_stretch_matrix = scalingMatrix(1.0, 1. / u_map_aspect, 1.0);
+
     vec4 pivot_pos = projectTile(a_pos.xy + globe_offset);
+    vec4 pivot_pos_ihat = projectTile(a_pos.xy + globe_offset + vec2(1e-5, 0.));
+    // Surely there's a more linear-algebra-y way to do this than converting all the rotations to an angle.
+    vec2 pivot_east = normalize((inverse(map_stretch_matrix) * (pivot_pos_ihat - pivot_pos)).xy);
+    float globe_rotation = atan(pivot_east.x, pivot_east.y) - 3.141592654 / 2.0;
+
     highp float zoom_corner = a_pos.z;
     lowp float min_zoom = floor(zoom_corner / 4.0);
     lowp float corner = mod(zoom_corner, 4.0);
@@ -95,8 +100,7 @@ void main() {
             texcoord = tex_loc + vec2(u_bb_width, u_bb_height);
         }
 
-        mat4 barb_rotation = rotationZMatrix(ang + radians(u_map_bearing) - rot);
-        mat4 map_stretch_matrix = scalingMatrix(1.0, 1. / u_map_aspect, 1.0);
+        mat4 barb_rotation = rotationZMatrix(ang - globe_rotation - rot);
         offset = map_stretch_matrix * barb_rotation * offset;
     }
 
