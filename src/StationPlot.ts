@@ -1,5 +1,5 @@
 
-import { RenderMethodArg, WebGLAnyRenderingContext, getModelViewMatrix } from "./AutumnTypes";
+import { RenderMethodArg, WebGLAnyRenderingContext } from "./AutumnTypes";
 import { MapLikeType } from "./Map";
 import { PlotComponent } from "./PlotComponent";
 import { normalizeOptions } from "./utils";
@@ -340,8 +340,6 @@ class StationPlot<GridType extends Grid, MapType extends MapLikeType, ObsFieldNa
     public render(gl: WebGLAnyRenderingContext, arg: RenderMethodArg) {
         if (this.gl_elems === null || this.text_components === null) return;
 
-        const matrix = getModelViewMatrix(arg);
-
         const gl_elems = this.gl_elems;
 
         const text_components = this.text_components;
@@ -354,10 +352,10 @@ class StationPlot<GridType extends Grid, MapType extends MapLikeType, ObsFieldNa
         let itext = 0, ibarb = 0;
         Object.values<SPConfig>(this.opts.config).forEach(comp => {
             if (comp.type == 'barb') {
-                barb_components[ibarb++].render(gl, matrix);
+                barb_components[ibarb++].render(gl, arg);
             }
             else {
-                text_components[itext++].render(gl, matrix, [map_width, map_height], map_zoom);
+                text_components[itext++].render(gl, arg, [map_width, map_height], map_zoom);
             }
         });
     }

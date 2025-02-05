@@ -1,12 +1,13 @@
 
-import { RenderMethodArg, TypedArray, WebGLAnyRenderingContext, getModelViewMatrix } from "./AutumnTypes";
+import { RenderMethodArg, TypedArray, WebGLAnyRenderingContext, getRendererData } from "./AutumnTypes";
 import { Color } from "./Color";
 import { StructuredGrid } from "./Grid";
 import { MapLikeType } from "./Map";
 import { PlotComponent, getGLFormatTypeAlignment } from "./PlotComponent";
 import { RawScalarField } from "./RawField";
+import { ShaderProgramManager } from "./ShaderManager";
 import { normalizeOptions } from "./utils";
-import { WGLBuffer, WGLProgram, WGLTexture } from "autumn-wgl";
+import { WGLBuffer, WGLTexture } from "autumn-wgl";
 
 const paintball_vertex_shader_src = require('./glsl/paintball_vertex.glsl');
 const paintball_fragment_shader_src = require('./glsl/paintball_fragment.glsl');
@@ -31,7 +32,7 @@ const paintball_opt_defaults: Required<PaintballOptions> = {
 
 interface PaintballGLElems {
     gl: WebGLAnyRenderingContext;
-    program: WGLProgram;
+    shader_manager: ShaderProgramManager;
     vertices: WGLBuffer;
     texcoords: WGLBuffer;
 }
@@ -105,14 +106,14 @@ class Paintball<ArrayType extends TypedArray, GridType extends StructuredGrid, M
     public async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
         gl.getExtension('OES_texture_float');
 
-        const program = new WGLProgram(gl, paintball_vertex_shader_src, paintball_fragment_shader_src);
-
         const {vertices: verts_buf, texcoords: tex_coords_buf} = await this.field.grid.getWGLBuffers(gl);
         const vertices = verts_buf;
         const texcoords = tex_coords_buf;
 
+        const shader_manager = new ShaderProgramManager(paintball_vertex_shader_src, paintball_fragment_shader_src, []);
+
         this.gl_elems = {
-            gl: gl, program: program, vertices: vertices, texcoords: texcoords,
+            gl: gl, shader_manager: shader_manager, vertices: vertices, texcoords: texcoords,
         };
 
         this.updateField(this.field);
@@ -126,28 +127,32 @@ class Paintball<ArrayType extends TypedArray, GridType extends StructuredGrid, M
         if (this.gl_elems === null || this.fill_texture === null) return;
         const gl_elems = this.gl_elems;
 
-        const matrix = getModelViewMatrix(arg);
+        const render_data = getRendererData(arg);
+        const program = this.gl_elems.shader_manager.getShaderProgram(gl, render_data.shaderData);
 
         // Render to framebuffer
-        gl_elems.program.use(
+        program.use(
             {'a_pos': gl_elems.vertices, 'a_tex_coord': gl_elems.texcoords},
-            {'u_matrix': matrix, 'u_opacity': this.opts.opacity, 'u_colors': this.color_components, 'u_num_colors': this.opts.colors.length, 'u_offset': 0},
+            {'u_opacity': this.opts.opacity, 'u_colors': this.color_components, 'u_num_colors': this.opts.colors.length, 'u_offset': 0,
+             ...this.gl_elems.shader_manager.getShaderUniforms(render_data)},
             {'u_fill_sampler': this.fill_texture}
         );
 
         gl.enable(gl.BLEND);
         gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 
-        gl_elems.program.draw();
+        program.draw();
 
-        gl_elems.program.setUniforms({'u_offset': -2});
-        gl_elems.program.draw();
-
-        gl_elems.program.setUniforms({'u_offset': -1});
-        gl_elems.program.draw();
-
-        gl_elems.program.setUniforms({'u_offset': 1});
-        gl_elems.program.draw();
+        if (render_data.type != 'maplibre' || !render_data.shaderData.define.includes('GLOBE')) {
+            program.setUniforms({'u_offset': -2});
+            program.draw();
+    
+            program.setUniforms({'u_offset': -1});
+            program.draw();
+    
+            program.setUniforms({'u_offset': 1});
+            program.draw();
+        }
     }
 }
 

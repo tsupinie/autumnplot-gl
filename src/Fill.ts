@@ -1,12 +1,13 @@
 
 import { PlotComponent, getGLFormatTypeAlignment } from './PlotComponent';
 import { ColorMap, ColorMapGPUInterface} from './Colormap';
-import { WGLBuffer, WGLProgram, WGLTexture } from 'autumn-wgl';
+import { WGLBuffer, WGLTexture } from 'autumn-wgl';
 import { RawScalarField } from './RawField';
 import { MapLikeType } from './Map';
-import { RenderMethodArg, TypedArray, WebGLAnyRenderingContext, getModelViewMatrix } from './AutumnTypes';
+import { RenderMethodArg, TypedArray, WebGLAnyRenderingContext, getRendererData } from './AutumnTypes';
 import { normalizeOptions } from './utils';
-import { Grid, StructuredGrid } from './Grid';
+import { StructuredGrid } from './Grid';
+import { ShaderProgramManager } from './ShaderManager';
 
 const contourfill_vertex_shader_src = require('./glsl/contourfill_vertex.glsl');
 const contourfill_fragment_shader_src = require('./glsl/contourfill_fragment.glsl');
@@ -48,7 +49,7 @@ const raster_opt_defaults: Required<RasterOptions> = {
 interface PlotComponentFillGLElems<MapType extends MapLikeType> {
     gl: WebGLAnyRenderingContext;
     map: MapType;
-    program: WGLProgram;
+    shader_manager: ShaderProgramManager;
     vertices: WGLBuffer;
 
     texcoords: WGLBuffer;
@@ -115,15 +116,15 @@ class PlotComponentFill<ArrayType extends TypedArray, GridType extends Structure
         if (this.image_mag_filter === null || this.cmap_mag_filter === null) {
             throw `Implement magnification filtes in a subclass`;
         }
-        
-        const program = new WGLProgram(gl, contourfill_vertex_shader_src, ColorMapGPUInterface.applyShader(contourfill_fragment_shader_src));
 
         const {vertices: vertices, texcoords: texcoords} = await this.field.grid.getWGLBuffers(gl);
 
         this.cmap_gpu.setupShaderVariables(gl, this.cmap_mag_filter);
 
+        const shader_manger = new ShaderProgramManager(contourfill_vertex_shader_src, ColorMapGPUInterface.applyShader(contourfill_fragment_shader_src), []);
+
         this.gl_elems = {
-            gl: gl, map: map, program: program, vertices: vertices, texcoords: texcoords,
+            gl: gl, shader_manager: shader_manger, map: map, vertices: vertices, texcoords: texcoords,
         };
 
         this.updateField(this.field);
@@ -133,29 +134,32 @@ class PlotComponentFill<ArrayType extends TypedArray, GridType extends Structure
         if (this.gl_elems === null || this.fill_texture === null) return;
         const gl_elems = this.gl_elems;
 
-        const matrix = getModelViewMatrix(arg);
+        const render_data = getRendererData(arg);
+        const program = this.gl_elems.shader_manager.getShaderProgram(gl, render_data.shaderData);
 
-        gl_elems.program.use(
+        program.use(
             {'a_pos': gl_elems.vertices, 'a_tex_coord': gl_elems.texcoords},
-            {'u_matrix': matrix, 'u_opacity': this.opts.opacity, 'u_offset': 0},
+            {'u_opacity': this.opts.opacity, 'u_offset': 0, ...this.gl_elems.shader_manager.getShaderUniforms(render_data)},
             {'u_fill_sampler': this.fill_texture}
         );
 
-        this.cmap_gpu.bindShaderVariables(gl_elems.program);
+        this.cmap_gpu.bindShaderVariables(program);
 
         gl.enable(gl.BLEND);
         gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 
-        gl_elems.program.draw();
+        program.draw();
 
-        gl_elems.program.setUniforms({'u_offset': -2});
-        gl_elems.program.draw();
+        if (render_data.type != 'maplibre' || !render_data.shaderData.define.includes('GLOBE')) {
+            program.setUniforms({'u_offset': -2});
+            program.draw();
 
-        gl_elems.program.setUniforms({'u_offset': -1});
-        gl_elems.program.draw();
+            program.setUniforms({'u_offset': -1});
+            program.draw();
 
-        gl_elems.program.setUniforms({'u_offset': 1});
-        gl_elems.program.draw();
+            program.setUniforms({'u_offset': 1});
+            program.draw();
+        }
     }
 }
 

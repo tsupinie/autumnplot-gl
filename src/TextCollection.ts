@@ -1,9 +1,10 @@
-import { getModelViewMatrix, isWebGL2Ctx, RenderMethodArg, WebGLAnyRenderingContext } from "./AutumnTypes";
+import { getRendererData, isWebGL2Ctx, RenderMethodArg, WebGLAnyRenderingContext } from "./AutumnTypes";
 import { Color } from "./Color";
 import { LngLat } from "./Map";
+import { ShaderProgramManager } from "./ShaderManager";
 import { Cache, normalizeOptions } from "./utils";
 
-import { WGLBuffer, WGLProgram, WGLTexture } from "autumn-wgl";
+import { WGLBuffer, WGLTexture } from "autumn-wgl";
 
 import Protobuf from 'pbf';
 import potpack, {PotpackBox} from "potpack";
@@ -191,7 +192,7 @@ const text_collection_opt_defaults: Required<TextCollectionOptions> = {
 }
 
 class TextCollection {
-    readonly program: WGLProgram;
+    readonly shader_manager: ShaderProgramManager;
     readonly anchors: WGLBuffer;
     readonly offsets: WGLBuffer;
     readonly texcoords: WGLBuffer;
@@ -200,8 +201,6 @@ class TextCollection {
     readonly opts: Required<TextCollectionOptions>;
 
     private constructor(gl: WebGLAnyRenderingContext, text_locs: TextSpec[], font_atlas: FontAtlas, opts?: TextCollectionOptions) {
-        this.program = new WGLProgram(gl, text_vertex_shader_src, text_fragment_shader_src);
-
         this.opts = normalizeOptions(opts, text_collection_opt_defaults);
         
         const is_webgl2 = isWebGL2Ctx(gl);
@@ -296,6 +295,8 @@ class TextCollection {
             }
         });
 
+        this.shader_manager = new ShaderProgramManager(text_vertex_shader_src, text_fragment_shader_src, []);
+
         this.anchors = new WGLBuffer(gl, anchor_data, 3, gl.TRIANGLE_STRIP);
         this.offsets = new WGLBuffer(gl, offset_data, 2, gl.TRIANGLE_STRIP);
         this.texcoords = new WGLBuffer(gl, tc_data, 2, gl.TRIANGLE_STRIP);
@@ -322,15 +323,18 @@ class TextCollection {
     }
 
     render(gl: WebGLAnyRenderingContext, arg: RenderMethodArg, [map_width, map_height]: [number, number], map_zoom: number) {
-        const matrix = getModelViewMatrix(arg);
+        const render_data = getRendererData(arg);
+        const program = this.shader_manager.getShaderProgram(gl, render_data.shaderData);
+
         const uniforms: Record<string, any> = {
-            'u_matrix': matrix, 'u_map_width': map_width, 'u_map_height': map_height, 'u_map_zoom': map_zoom, 'u_font_size': this.opts.font_size,
-            'u_text_color': this.opts.text_color.toRGBATuple(), 'u_halo_color': this.opts.halo_color.toRGBATuple(), 'u_offset': 0
+            'u_map_width': map_width, 'u_map_height': map_height, 'u_map_zoom': map_zoom, 'u_font_size': this.opts.font_size,
+            'u_text_color': this.opts.text_color.toRGBATuple(), 'u_halo_color': this.opts.halo_color.toRGBATuple(), 'u_offset': 0,
+            ...this.shader_manager.getShaderUniforms(render_data)
         }
 
         uniforms['u_is_halo'] = this.opts.halo ? 1 : 0;
 
-        this.program.use(
+        program.use(
             {'a_pos': this.anchors, 'a_offset': this.offsets, 'a_tex_coord': this.texcoords},
             uniforms,
             {'u_sdf_sampler': this.texture}
@@ -339,35 +343,37 @@ class TextCollection {
         gl.enable(gl.BLEND);
         gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 
-        this.program.draw();
+        program.draw();
 
         if (this.opts.halo) {
-            this.program.setUniforms({'u_is_halo': 0});
-            this.program.draw();
+            program.setUniforms({'u_is_halo': 0});
+            program.draw();
         }
 
-        this.program.setUniforms({'u_offset': -2, 'u_is_halo': this.opts.halo ? 1 : 0});
-        this.program.draw();
-
-        if (this.opts.halo) {
-            this.program.setUniforms({'u_is_halo': 0});
-            this.program.draw();
-        }
-
-        this.program.setUniforms({'u_offset': -1, 'u_is_halo': this.opts.halo ? 1 : 0});
-        this.program.draw();
-
-        if (this.opts.halo) {
-            this.program.setUniforms({'u_is_halo': 0});
-            this.program.draw();
-        }
-
-        this.program.setUniforms({'u_offset': 1, 'u_is_halo': this.opts.halo ? 1 : 0});
-        this.program.draw();
-
-        if (this.opts.halo) {
-            this.program.setUniforms({'u_is_halo': 0});
-            this.program.draw();
+        if (render_data.type != 'maplibre' || !render_data.shaderData.define.includes('GLOBE')) {
+            program.setUniforms({'u_offset': -2, 'u_is_halo': this.opts.halo ? 1 : 0});
+            program.draw();
+    
+            if (this.opts.halo) {
+                program.setUniforms({'u_is_halo': 0});
+                program.draw();
+            }
+    
+            program.setUniforms({'u_offset': -1, 'u_is_halo': this.opts.halo ? 1 : 0});
+            program.draw();
+    
+            if (this.opts.halo) {
+                program.setUniforms({'u_is_halo': 0});
+                program.draw();
+            }
+    
+            program.setUniforms({'u_offset': 1, 'u_is_halo': this.opts.halo ? 1 : 0});
+            program.draw();
+    
+            if (this.opts.halo) {
+                program.setUniforms({'u_is_halo': 0});
+                program.draw();
+            }
         }
     }
 }

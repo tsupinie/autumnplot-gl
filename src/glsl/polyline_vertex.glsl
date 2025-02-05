@@ -1,6 +1,5 @@
 #version 300 es
 
-uniform mat4 u_matrix;
 uniform int u_offset;
 
 in vec3 a_pos;
@@ -68,7 +67,7 @@ void main() {
 
     v_dist = abs(a_pos.z);
     v_cross = sign(a_pos.z);
-    vec4 center_pos = u_matrix * vec4(a_pos.xy + globe_offset, 0.0, 1.0);
+    vec4 center_pos = projectTile(a_pos.xy + globe_offset);
     vec4 offset = vec4(0.0, 0.0, 0.0, 0.0);
 
 #ifdef ZOOM

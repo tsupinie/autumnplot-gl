@@ -91,4 +91,15 @@ function getArrayConstructor<ArrayType extends TypedArray>(ary: ArrayType) : new
     return ary.constructor as new(...args: any[]) => ArrayType;
 }
 
-export {zip, getMinZoom, getOS, Cache, normalizeOptions, getArrayConstructor};
+function mergeShaderCode(snippet: string, main: string) {
+    const ES3_SHADER_MAGIC = '#version 300 es\n';
+    const is_es3_shader = main.startsWith(ES3_SHADER_MAGIC);
+
+    if (is_es3_shader) {
+        return ES3_SHADER_MAGIC + snippet + "\n" + main.slice(ES3_SHADER_MAGIC.length);
+    }
+    
+    return snippet + "\n" + main;
+}
+
+export {zip, getMinZoom, getOS, Cache, normalizeOptions, getArrayConstructor, mergeShaderCode};

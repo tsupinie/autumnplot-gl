@@ -4,7 +4,7 @@ import { BillboardCollection } from './BillboardCollection';
 import { normalizeOptions } from './utils';
 import { RawVectorField } from "./RawField";
 import { MapLikeType } from "./Map";
-import { BillboardSpec, TypedArray, WebGLAnyRenderingContext } from "./AutumnTypes";
+import { BillboardSpec, RenderMethodArg, TypedArray, WebGLAnyRenderingContext } from "./AutumnTypes";
 import { Color } from "./Color";
 import { ColorMap } from "./Colormap";
 import { Grid } from "./Grid";
@@ -245,7 +245,7 @@ class Barbs<ArrayType extends TypedArray, GridType extends Grid, MapType extends
      * @internal 
      * Render the barb field
      */
-    public render(gl: WebGLAnyRenderingContext, matrix: number[] | Float32Array) {
+    public render(gl: WebGLAnyRenderingContext, matrix: RenderMethodArg) {
         if (this.gl_elems === null) return;
         const gl_elems = this.gl_elems
 

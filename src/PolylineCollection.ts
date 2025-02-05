@@ -1,9 +1,10 @@
 
-import { WGLBuffer, WGLProgram, WGLTexture } from "autumn-wgl";
-import { Polyline, LineData, WebGLAnyRenderingContext, isWebGL2Ctx, RenderMethodArg, getModelViewMatrix } from "./AutumnTypes";
+import { WGLBuffer, WGLTexture } from "autumn-wgl";
+import { Polyline, LineData, WebGLAnyRenderingContext, isWebGL2Ctx, RenderMethodArg, getRendererData } from "./AutumnTypes";
 import { ColorMap, ColorMapGPUInterface } from "./Colormap";
 import { Color } from "./Color";
 import { layer_worker } from "./PlotComponent";
+import { ShaderProgramManager } from "./ShaderManager";
 
 const polyline_vertex_src = require('./glsl/polyline_vertex.glsl');
 const polyline_fragment_src = require('./glsl/polyline_fragment.glsl');
@@ -55,7 +56,7 @@ class PolylineCollection {
     public readonly width: number;
     public readonly scale: number | null;
 
-    private readonly program: WGLProgram;
+    private readonly shader_manager: ShaderProgramManager;
 
     private readonly vertices: WGLBuffer;
     private readonly extrusion: WGLBuffer;
@@ -119,8 +120,7 @@ class PolylineCollection {
         }
 
         [this.n_dash, this.dash_texture] = makeDashTexture(gl, line_style);
-
-        this.program = new WGLProgram(gl, polyline_vertex_src, fragment_src, {define: shader_defines});
+        this.shader_manager = new ShaderProgramManager(polyline_vertex_src, fragment_src, shader_defines);
     }
 
     static async make(gl: WebGLAnyRenderingContext, lines: LineData[], opts?: PolylineCollectionOpts) {
@@ -129,12 +129,13 @@ class PolylineCollection {
     }
 
     public render(gl: WebGLAnyRenderingContext, arg: RenderMethodArg, [map_width, map_height]: [number, number], map_zoom: number, map_bearing: number, map_pitch: number) {
-        const matrix = getModelViewMatrix(arg);
+        const render_data = getRendererData(arg);
+        const program = this.shader_manager.getShaderProgram(gl, render_data.shaderData);
 
         const attributes: Record<string, WGLBuffer> = {'a_pos': this.vertices, 'a_extrusion': this.extrusion};
         const uniforms: Record<string, number | number[]> = {
-            'u_matrix': matrix, 'u_line_width': this.width, 'u_map_width': map_width, 'u_map_height': map_height, 'u_map_bearing': map_bearing, 'u_offset': 0, 'u_zoom': map_zoom,
-            'u_dash_pattern_length': this.n_dash
+            'u_line_width': this.width, 'u_map_width': map_width, 'u_map_height': map_height, 'u_map_bearing': map_bearing, 'u_offset': 0, 'u_zoom': map_zoom,
+            'u_dash_pattern_length': this.n_dash, ...this.shader_manager.getShaderUniforms(render_data)
         };
         const textures: Record<string, WGLTexture> = {'u_dash_sampler': this.dash_texture};
 
@@ -154,25 +155,27 @@ class PolylineCollection {
             uniforms['u_color'] = this.color.toRGBATuple();
         }
 
-        this.program.use(attributes, uniforms, textures);
+        program.use(attributes, uniforms, textures);
 
         if (this.cmap_gpu !== null) {
-            this.cmap_gpu.bindShaderVariables(this.program);
+            this.cmap_gpu.bindShaderVariables(program);
         }
 
         gl.enable(gl.BLEND);
         gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 
-        this.program.draw();
+        program.draw();
 
-        this.program.setUniforms({'u_offset': -2});
-        this.program.draw();
+        if (render_data.type != 'maplibre' || !render_data.shaderData.define.includes('GLOBE')) {
+            program.setUniforms({'u_offset': -2});
+            program.draw();
 
-        this.program.setUniforms({'u_offset': -1});
-        this.program.draw();
+            program.setUniforms({'u_offset': -1});
+            program.draw();
 
-        this.program.setUniforms({'u_offset': 1});
-        this.program.draw();
+            program.setUniforms({'u_offset': 1});
+            program.draw();
+        }
     }
 }
 

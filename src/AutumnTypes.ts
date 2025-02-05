@@ -47,21 +47,84 @@ type TypedArray = Float16Array | Float32Array;
 type ContourData = Record<number, [number, number][][]>;
 
 type mat4 = number[] | Float32Array | Float64Array;
-type RenderArgObject = {defaultProjectionData: {mainMatrix: mat4}, modelViewProjectionMatrix: mat4};
-type RenderMethodArg = mat4 | RenderArgObject;
+type vec4 = Float32Array | Float64Array;
+type RenderShaderData = {vertexShaderPrelude: string, define: string, variantName: string};
 
-function isRenderArgObject(obj: any) : obj is RenderArgObject {
+type MapLibreRendererDataProjection = {
+    clippingPlane: vec4;
+    fallbackMatrix: mat4;
+    mainMatrix: mat4;
+    projectionTransition: number;
+    tileMercatorCoords: vec4;
+};
+type MapLibreRendererDataShader = RenderShaderData;
+
+type MapLibreRendererData = {
+    defaultProjectionData: MapLibreRendererDataProjection;
+    farZ: number
+    fov: number
+    modelViewProjectionMatrix: mat4;
+    nearZ: number
+    projectionMatrix: mat4;
+    shaderData: MapLibreRendererDataShader;
+};
+
+type RenderMethodArg = mat4 | MapLibreRendererData;
+
+function isMapLibreRenderArg(obj: any) : obj is MapLibreRendererData {
     return 'modelViewProjectionMatrix' in obj && 'defaultProjectionData' in obj && 'mainMatrix' in obj.defaultProjectionData;
 }
 
-function getModelViewMatrix(arg: RenderMethodArg) {
-    const arg_raw = isRenderArgObject(arg) ? arg.defaultProjectionData.mainMatrix : arg;
+type RendererDataProjection = {
+    clippingPlane: number[];
+    fallbackMatrix: number[];
+    mainMatrix: number[];
+    projectionTransition: number;
+    tileMercatorCoords: number[];
+};
+type RendererDataShader = RenderShaderData;
 
-    if (arg_raw instanceof Float32Array || arg_raw instanceof Float64Array) 
-        return [...arg_raw];
+type RendererDataMapLibre = {
+    type: 'maplibre';
+    defaultProjectionData: RendererDataProjection;
+    farZ: number
+    fov: number
+    modelViewProjectionMatrix: number[];
+    nearZ: number
+    projectionMatrix: number[];
+    shaderData: RendererDataShader;
+};
 
-    return arg_raw;
+type RendererDataAutumn = {
+    type: 'autumn';
+    mainMatrix: number[];
+    shaderData: null;
 }
 
-export {isWebGL2Ctx, getModelViewMatrix};
-export type {WindProfile, BillboardSpec, Polyline, LineData, WebGLAnyRenderingContext, TypedArray, ContourData, RenderMethodArg};
+type RendererData = RendererDataMapLibre | RendererDataAutumn;
+
+function getRendererData(arg: RenderMethodArg) : RendererData{
+    if (isMapLibreRenderArg(arg)) {
+        return {
+            type: 'maplibre',
+            defaultProjectionData: {
+                clippingPlane: [...arg.defaultProjectionData.clippingPlane],
+                fallbackMatrix: [...arg.defaultProjectionData.fallbackMatrix],
+                mainMatrix: [...arg.defaultProjectionData.mainMatrix],
+                projectionTransition: arg.defaultProjectionData.projectionTransition,
+                tileMercatorCoords: [...arg.defaultProjectionData.tileMercatorCoords]
+            },
+            farZ: arg.farZ,
+            fov: arg.fov,
+            modelViewProjectionMatrix: [...arg.modelViewProjectionMatrix],
+            nearZ: arg.nearZ,
+            projectionMatrix: [...arg.projectionMatrix],
+            shaderData: arg.shaderData
+        };
+    }
+
+    return {type: 'autumn', mainMatrix: [...arg], shaderData: null};
+}
+
+export {isWebGL2Ctx, getRendererData};
+export type {WindProfile, BillboardSpec, Polyline, LineData, WebGLAnyRenderingContext, TypedArray, ContourData, RenderMethodArg, RendererData, RenderShaderData};

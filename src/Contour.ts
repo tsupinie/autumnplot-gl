@@ -1,5 +1,5 @@
 
-import { LineData, RenderMethodArg, TypedArray, WebGLAnyRenderingContext, getModelViewMatrix} from './AutumnTypes';
+import { LineData, RenderMethodArg, TypedArray, WebGLAnyRenderingContext } from './AutumnTypes';
 import { LngLat, MapLikeType } from './Map';
 import { PlotComponent } from './PlotComponent';
 import { RawScalarField } from './RawField';
@@ -8,7 +8,6 @@ import { TextCollection, TextCollectionOptions, TextSpec } from './TextCollectio
 import { Color } from './Color';
 
 import { normalizeOptions } from './utils';
-import { kdTree } from 'kd-tree-javascript';
 import { ColorMap } from './Colormap';
 import { StructuredGrid, UnstructuredGrid } from './Grid';
 
@@ -193,15 +192,13 @@ class Contour<ArrayType extends TypedArray, GridType extends StructuredGrid, Map
         if (this.gl_elems === null || this.contours === null) return;
         const gl_elems = this.gl_elems;
 
-        const matrix = getModelViewMatrix(arg);
-
         const zoom = gl_elems.map.getZoom();
         const map_width = gl_elems.map.getCanvas().width;
         const map_height = gl_elems.map.getCanvas().height;
         const bearing = gl_elems.map.getBearing();
         const pitch = gl_elems.map.getPitch();
 
-        this.contours.forEach(cnt => cnt.render(gl, matrix, [map_width, map_height], zoom, bearing, pitch));
+        this.contours.forEach(cnt => cnt.render(gl, arg, [map_width, map_height], zoom, bearing, pitch));
     }
 }
 
@@ -390,13 +387,11 @@ class ContourLabels<ArrayType extends TypedArray, GridType extends StructuredGri
         if (this.gl_elems === null || this.text_collection === null) return;
         const gl_elems = this.gl_elems;
 
-        const matrix = getModelViewMatrix(arg);
-
         const map_width = gl_elems.map.getCanvas().width;
         const map_height = gl_elems.map.getCanvas().height;
         const map_zoom = gl_elems.map.getZoom();
 
-        this.text_collection.render(gl, matrix, [map_width, map_height], map_zoom);
+        this.text_collection.render(gl, arg, [map_width, map_height], map_zoom);
     }
 }
 

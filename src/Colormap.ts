@@ -10,6 +10,7 @@ import { WGLProgram, WGLTexture } from "autumn-wgl";
 import { WebGLAnyRenderingContext } from "./AutumnTypes";
 import { getGLFormatTypeAlignment } from "./PlotComponent";
 import { Color } from "./Color";
+import { mergeShaderCode } from "./utils";
 
 const colormap_shader_src = require('./glsl/colormap.glsl');
 
@@ -218,15 +219,8 @@ class ColorMapGPUInterface {
         this.gl_elems = null;
     }
 
-    public static applyShader(shader_src: string) {
-        const ES3_SHADER_MAGIC = '#version 300 es\n';
-        const is_es3_shader = shader_src.startsWith(ES3_SHADER_MAGIC);
-
-        if (is_es3_shader) {
-            return ES3_SHADER_MAGIC + colormap_shader_src + "\n" + shader_src.slice(ES3_SHADER_MAGIC.length);
-        }
-        
-        return colormap_shader_src + "\n" + shader_src;
+    public static applyShader(shader_src: string) {        
+        return mergeShaderCode(colormap_shader_src, shader_src);
     }
 
     public setupShaderVariables(gl: WebGLAnyRenderingContext, mag_filter: number) {

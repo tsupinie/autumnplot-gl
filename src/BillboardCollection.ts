@@ -1,11 +1,12 @@
 
-import { BillboardSpec, RenderMethodArg, TypedArray, WebGLAnyRenderingContext, getModelViewMatrix } from "./AutumnTypes";
+import { BillboardSpec, RenderMethodArg, TypedArray, WebGLAnyRenderingContext, getRendererData } from "./AutumnTypes";
 import { Color } from "./Color";
 import { ColorMap, ColorMapGPUInterface } from "./Colormap";
 import { Grid } from "./Grid";
 import { getGLFormatTypeAlignment } from "./PlotComponent";
 import { RawVectorField } from "./RawField";
-import { WGLBuffer, WGLProgram, WGLTexture, WGLTextureSpec } from "autumn-wgl";
+import { WGLBuffer, WGLTexture, WGLTextureSpec } from "autumn-wgl";
+import { ShaderProgramManager } from "./ShaderManager";
 
 const billboard_vertex_shader_src = require('./glsl/billboard_vertex.glsl');
 const billboard_fragment_shader_src = require('./glsl/billboard_fragment.glsl');
@@ -17,7 +18,7 @@ interface BillboardCollectionOpts {
 
 interface BillboardCollectionGLElems {
     gl: WebGLAnyRenderingContext;
-    program: WGLProgram;
+    shader_manager: ShaderProgramManager;
     vertices: WGLBuffer;
     texcoords: WGLBuffer;
     texture: WGLTexture;
@@ -108,15 +109,16 @@ class BillboardCollection<ArrayType extends TypedArray, GridType extends Grid> {
             shader_defines.push('COLORMAP');
         }
 
-        const program = new WGLProgram(gl, billboard_vertex_shader_src, fragment_src, {define: shader_defines});
+        const shader_manager = new ShaderProgramManager(billboard_vertex_shader_src, fragment_src, shader_defines);
 
-        this.gl_elems = {gl: gl, program: program, vertices: vertices, texcoords: texcoords, texture: texture, proj_rot_texture: proj_rotation_tex, cmap_gpu: cmap_gpu};
+        this.gl_elems = {gl: gl, shader_manager: shader_manager, vertices: vertices, texcoords: texcoords, texture: texture, proj_rot_texture: proj_rotation_tex, cmap_gpu: cmap_gpu};
     }
 
     public render(gl: WebGLAnyRenderingContext, arg: RenderMethodArg, [map_width, map_height]: [number, number], map_zoom: number, map_bearing: number, map_pitch: number) {
         if (this.gl_elems === null || this.wind_textures === null || !this.show_field) return;
-        
-        const matrix = getModelViewMatrix(arg);
+
+        const render_data = getRendererData(arg);
+        const program = this.gl_elems.shader_manager.getShaderProgram(gl, render_data.shaderData);
 
         const gl_elems = this.gl_elems;
 
@@ -124,34 +126,37 @@ class BillboardCollection<ArrayType extends TypedArray, GridType extends Grid> {
         const bb_width = this.spec.BB_WIDTH / this.spec.BB_TEX_WIDTH;
         const bb_height = this.spec.BB_HEIGHT / this.spec.BB_TEX_HEIGHT;
 
-        gl_elems.program.use(
+        program.use(
             {'a_pos': gl_elems.vertices, 'a_tex_coord': gl_elems.texcoords},
             {'u_bb_size': bb_size, 'u_bb_width': bb_width, 'u_bb_height': bb_height,
              'u_bb_mag_bin_size': this.spec.BB_MAG_BIN_SIZE, 'u_bb_mag_wrap': this.spec.BB_MAG_WRAP, 'u_offset': 0,
-             'u_matrix': matrix, 'u_map_aspect': map_height / map_width, 'u_zoom': map_zoom, 'u_map_bearing': map_bearing},
+             'u_map_aspect': map_height / map_width, 'u_zoom': map_zoom, 'u_map_bearing': map_bearing, 
+              ...this.gl_elems.shader_manager.getShaderUniforms(render_data)},
             {'u_sampler': gl_elems.texture, 'u_u_sampler': this.wind_textures.u, 'u_v_sampler': this.wind_textures.v, 'u_rot_sampler': gl_elems.proj_rot_texture}
         );
 
         if (gl_elems.cmap_gpu !== null) {
-            gl_elems.cmap_gpu.bindShaderVariables(gl_elems.program);
+            gl_elems.cmap_gpu.bindShaderVariables(program);
         }
         else {
-            gl_elems.program.setUniforms({'u_bb_color': this.color.toRGBATuple()});
+            program.setUniforms({'u_bb_color': this.color.toRGBATuple()});
         }
 
         gl.enable(gl.BLEND);
         gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 
-        gl_elems.program.draw();
+        program.draw();
 
-        gl_elems.program.setUniforms({'u_offset': -2});
-        gl_elems.program.draw();
+        if (render_data.type != 'maplibre' || !render_data.shaderData.define.includes('GLOBE')) {
+            program.setUniforms({'u_offset': -2});
+            program.draw();
 
-        gl_elems.program.setUniforms({'u_offset': -1});
-        gl_elems.program.draw();
+            program.setUniforms({'u_offset': -1});
+            program.draw();
 
-        gl_elems.program.setUniforms({'u_offset': 1});
-        gl_elems.program.draw();
+            program.setUniforms({'u_offset': 1});
+            program.draw();
+        }
     }
 }
 
