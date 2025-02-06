@@ -81,7 +81,7 @@ function makeSynthetic500mbLayers() {
     const filled = new apgl.ContourFill(raw_ws_field, {'cmap': colormap, 'opacity': 0.8});
     const barbs = new apgl.Barbs(raw_wind_field, {color: '#000000', thin_fac: 16});
 
-    const labels = new apgl.ContourLabels(cntr, {text_color: '#ffffff', halo: true});
+    const labels = new apgl.ContourLabels(cntr, {text_color: '#ffffff', halo: true, font_url_template: 'https://autumnsky.us/glyphs/{fontstack}/{range}.pbf'});
 
     const hght_layer = new apgl.PlotLayer('height', cntr);
     const ws_layer = new apgl.PlotLayer('wind-speed', filled);
@@ -287,13 +287,29 @@ window.addEventListener('load', () => {
     const menu = document.querySelector('#selection select');
     menu.innerHTML = Object.entries(views).map(([k, v]) => `<option value="${k}">${v.name}</option>`).join('');
 
-    const map = new maplibregl.Map({
-        container: 'map',
-        style: 'http://localhost:9000/style.json',
-        center: [-97.5, 38.5],
-        zoom: 4,
-        maxZoom: 7,
-    });
+    const use_mapbox = false;
+    let map;
+    
+    if (use_mapbox) {
+        mapboxgl.accessToken = mapbox_api_key;
+
+        map = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/tsupinie/ckw7gzxpl2xxm14o3kpl0oqat',
+            center: [-97.5, 38.5],
+            zoom: 4,
+            maxZoom: 7,
+        });
+    }
+    else {
+        map = new maplibregl.Map({
+            container: 'map',
+            style: 'http://localhost:9000/style.json',
+            center: [-97.5, 38.5],
+            zoom: 4,
+            maxZoom: 7,
+        });
+    }
 
     let current_layers = [];
 
@@ -308,7 +324,7 @@ window.addEventListener('load', () => {
         });
 
         layers.forEach(lyr => {
-            map.addLayer(lyr, 'coastline');
+            map.addLayer(lyr, use_mapbox ? 'aeroway-polygon' : 'coastline');
         });
 
         const colorbar_container = document.querySelector('#colorbar');
