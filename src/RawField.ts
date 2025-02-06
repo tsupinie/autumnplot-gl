@@ -47,6 +47,11 @@ class RawScalarField<ArrayType extends TypedArray, GridType extends Grid> {
         return data as TextureDataType<ArrayType>;
     }
 
+    /**
+     * Get contour data as an object with each contour level being a separate property. 
+     * @param opts - Options for doing the contouring
+     * @returns contour data as an object
+     */
     public async getContours(opts: FieldContourOpts) {
         return await this.contour_cache.getValue(opts);
     }
@@ -106,6 +111,7 @@ class RawVectorField<ArrayType extends TypedArray, GridType extends Grid> {
         this.relative_to = opts.relative_to === undefined ? 'grid' : opts.relative_to;
     }
 
+    /** @internal */
     public getTextureData() {
         // Need to give float16 data as uint16s to make WebGL happy: https://github.com/petamoriken/float16/issues/105
         const raw_u = this.u.data;
@@ -117,6 +123,7 @@ class RawVectorField<ArrayType extends TypedArray, GridType extends Grid> {
         return {u: u as TextureDataType<ArrayType>, v: v as TextureDataType<ArrayType>};
     }
 
+    /** @internal */
     public getThinnedField(thin_fac: number, map_max_zoom: number) {
         const new_grid = this.grid.getThinnedGrid(thin_fac, map_max_zoom);
 
@@ -126,6 +133,7 @@ class RawVectorField<ArrayType extends TypedArray, GridType extends Grid> {
         return new RawVectorField(new_grid, thin_u, thin_v, {relative_to: this.relative_to});
     }
 
+    /** @internal */
     public get grid() {
         return this.u.grid
     }
@@ -146,7 +154,10 @@ class RawProfileField<GridType extends Grid> {
         this.grid = grid;
     }
 
-    /** Get the gridded storm motion vector field (internal method) */
+    /** 
+     * @internal
+     * Get the gridded storm motion vector field
+     */
     public getStormMotionGrid() {
         const profiles = this.profiles
         const u = new Float16Array(this.grid.ni * this.grid.nj).fill(parseFloat('nan'));
@@ -161,6 +172,7 @@ class RawProfileField<GridType extends Grid> {
         return new RawVectorField(this.grid, u, v, {relative_to: 'grid'});
     }
 
+    /** @internal */
     public getProfileCoords() {
         const {lats, lons} = this.grid.getEarthCoords();
         const prof_lats = new Float32Array(this.profiles.length);
@@ -176,17 +188,32 @@ class RawProfileField<GridType extends Grid> {
     }
 }
 
+/** 
+ * Type for an observation data point
+ * @example
+ * const obs : ObsRawData<'t' | 'td'> = {'t': 71, 'td': 66};
+ */
 type ObsRawData<ObsFieldName extends string> = Record<ObsFieldName, string | number | [number, number] | null>;
 
+/** Raw observation data, given as a list of objects */
 class RawObsField<GridType extends Grid, ObsFieldName extends string> {
     public readonly grid: GridType;
     public readonly data: ObsRawData<ObsFieldName>[];
 
+    /**
+     * Create a field of observations
+     * @param grid - The grid on which the obs are defined (can be either a structured or unstructured grid)
+     * @param data - The observation data. Conceptually, obs are given as a list of individual observations.
+     */
     constructor(grid: GridType, data: ObsRawData<ObsFieldName>[]) {
         this.grid = grid;
         this.data = data;
     }
 
+    /** 
+     * @internal
+     * Get observation element as a list of scalar numbers 
+     */
     getScalar(key: ObsFieldName) {
         const field_data = this.data.map(d => d[key]);
         if (!field_data.map(d => typeof d == 'number' || d === null).reduce((a, b) => a && b, true))
@@ -195,6 +222,10 @@ class RawObsField<GridType extends Grid, ObsFieldName extends string> {
         return field_data as (number | null)[];
     }
 
+    /** 
+     * @internal
+     * Get observed element as a list of strings (internal method)
+     */
     getStrings(key: ObsFieldName) {
         const field_data = this.data.map(d => d[key]);
         if (!field_data.map(d => typeof d == 'string' || d === null).reduce((a, b) => a && b, true))
@@ -203,6 +234,10 @@ class RawObsField<GridType extends Grid, ObsFieldName extends string> {
         return field_data as (string | null)[];
     }
 
+    /** 
+     * @internal
+     * Get observed element as a list of vectors (internal method) 
+     */
     getVector(key: ObsFieldName) {
         const field_data = this.data.map(d => d[key]);
         if (!field_data.map(d => Array.isArray(d)).reduce((a, b) => a && b, true))

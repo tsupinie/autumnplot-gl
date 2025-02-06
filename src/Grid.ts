@@ -114,6 +114,7 @@ abstract class Grid {
     }
 }
 
+/** A structured grid (in this case meaning a cartesian grid with i and j coordinates) */
 abstract class StructuredGrid extends Grid {
     private readonly buffer_cache: Cache<[WebGLAnyRenderingContext], Promise<{'vertices': WGLBuffer, 'texcoords': WGLBuffer}>>;
     protected readonly thin_x: number;
@@ -134,6 +135,7 @@ abstract class StructuredGrid extends Grid {
 
     public abstract getEarthCoords(ni?: number, nj?: number): EarthCoords;
 
+    /** @internal */
     protected xyThinFromMaxZoom(thin_fac: number, map_max_zoom: number) {
         const n_density_tiers = Math.log2(thin_fac);
         const n_inaccessible_tiers = Math.max(n_density_tiers + 1 - map_max_zoom, 0);
@@ -142,6 +144,7 @@ abstract class StructuredGrid extends Grid {
         return [xy_thin, xy_thin] as [number, number];
     }
 
+    /** @internal */
     public getMinVisibleZoom(thin_fac: number) {
         const min_zoom = new Uint8Array(this.ni * this.nj);
         const zoom_thin_fac = thin_fac / Math.max(this.thin_x, this.thin_y);
@@ -155,6 +158,7 @@ abstract class StructuredGrid extends Grid {
         return min_zoom;
     }
 
+    /** @internal */
     public thinDataArray<ArrayType extends TypedArray>(original_grid: StructuredGrid, ary: ArrayType) {
         const arrayType = getArrayConstructor(ary);
         const new_data = new arrayType(this.ni * this.nj);
@@ -243,6 +247,7 @@ class PlateCarreeGrid extends StructuredGrid {
         })
     }
 
+    /** @internal */
     public copy(opts?: {ni?: number, nj?: number, ll_lon?: number, ll_lat?: number, ur_lon?: number, ur_lat?: number}) {
         opts = opts !== undefined ? opts : {};
         const ni = opts.ni !== undefined ? opts.ni : this.ni;
@@ -256,6 +261,7 @@ class PlateCarreeGrid extends StructuredGrid {
     }
 
     /**
+     * @internal
      * Get a list of longitudes and latitudes on the grid (internal method)
      */
     public getEarthCoords(ni?: number, nj?: number) {
@@ -265,14 +271,17 @@ class PlateCarreeGrid extends StructuredGrid {
         return this.ll_cache.getValue(ni, nj);
     }
 
+    /** @internal */
     public getGridCoords() {
         return this.gc_cache.getValue();
     }
 
+    /** @internal */
     public transform(x: number, y: number, opts?: {inverse?: boolean}) {
         return [x, y] as [number, number];
     }
 
+    /** @internal */
     public getThinnedGrid(thin_fac: number, map_max_zoom: number) {
         const [thin_x, thin_y] = this.xyThinFromMaxZoom(thin_fac, map_max_zoom);
 
@@ -371,6 +380,7 @@ class PlateCarreeRotatedGrid extends StructuredGrid {
         })
     }
 
+    /** @internal */
     public copy(opts?: {ni?: number, nj?: number, ll_lon?: number, ll_lat?: number, ur_lon?: number, ur_lat?: number}) {
         opts = opts !== undefined ? opts : {};
         const ni = opts.ni !== undefined ? opts.ni : this.ni;
@@ -384,7 +394,8 @@ class PlateCarreeRotatedGrid extends StructuredGrid {
     }
 
     /**
-     * Get a list of longitudes and latitudes on the grid (internal method)
+     * @internal
+     * Get a list of longitudes and latitudes on the grid
      */
     public getEarthCoords(ni?: number, nj?: number) {
         ni = ni === undefined ? this.ni : ni;
@@ -393,10 +404,12 @@ class PlateCarreeRotatedGrid extends StructuredGrid {
         return this.ll_cache.getValue(ni, nj);
     }
 
+    /** @internal */
     public getGridCoords() {
         return this.gc_cache.getValue();
     }
 
+    /** @internal */
     public transform(x: number, y: number, opts?: {inverse?: boolean}) {
         opts = opts === undefined ? {}: opts;
         const inverse = 'inverse' in opts ? opts.inverse : false;
@@ -404,6 +417,7 @@ class PlateCarreeRotatedGrid extends StructuredGrid {
         return this.llrot(x, y, {inverse: !inverse});
     }
 
+    /** @internal */
     public getThinnedGrid(thin_fac: number, map_max_zoom: number) {
         const [thin_x, thin_y] = this.xyThinFromMaxZoom(thin_fac, map_max_zoom);
 
@@ -438,7 +452,7 @@ class LambertGrid extends StructuredGrid {
     private readonly gc_cache: Cache<[], GridCoords>;
 
     /**
-     * Create a Lambert conformal conic grid
+     * Create a Lambert conformal conic grid from the lower-left and upper-right corner x/y values.
      * @param ni      - The number of grid points in the i (longitude) direction
      * @param nj      - The number of grid points in the j (latitude) direction
      * @param lon_0   - The standard longitude for the projection; this is also the center longitude for the projection
@@ -503,6 +517,19 @@ class LambertGrid extends StructuredGrid {
         });
     }
 
+    /**
+     * Create a Lambert conformal conic grid from the lower-left grid point coordinate and a dx and dy.
+     * @param ni      - The number of grid points in the i (longitude) direction
+     * @param nj      - The number of grid points in the j (latitude) direction
+     * @param lon_0   - The standard longitude for the projection; this is also the center longitude for the projection
+     * @param lat_0   - The center latitude for the projection
+     * @param lat_std - The standard latitudes for the projection
+     * @param ll_lon  - The longitude of the lower-left corner of the grid
+     * @param ll_lat  - The latitude of the lower-left corner of the grid
+     * @param dx      - The grid dx in meters
+     * @param dy      - The grid dy in meters
+     * @returns 
+     */
     public static fromLLCornerLonLat(ni: number, nj: number, lon_0: number, lat_0: number, lat_std: [number, number], 
                                      ll_lon: number, ll_lat: number, dx: number, dy: number) {
 
@@ -512,6 +539,7 @@ class LambertGrid extends StructuredGrid {
         return new LambertGrid(ni, nj, lon_0, lat_0, lat_std, ll_x, ll_y, ll_x + ni * dx, ll_y + nj * dy);
     }
 
+    /** @internal */
     public copy(opts?: {ni?: number, nj?: number, ll_x?: number, ll_y?: number, ur_x?: number, ur_y?: number}) {
         opts = opts !== undefined ? opts : {};
         const ni = opts.ni !== undefined ? opts.ni : this.ni;
@@ -525,7 +553,8 @@ class LambertGrid extends StructuredGrid {
     }
 
     /**
-     * Get a list of longitudes and latitudes on the grid (internal method)
+     * @internal
+     * Get a list of longitudes and latitudes on the grid
      */
     public getEarthCoords(ni?: number, nj?: number) {
         ni = ni === undefined ? this.ni : ni;
@@ -534,10 +563,12 @@ class LambertGrid extends StructuredGrid {
         return this.ll_cache.getValue(ni, nj);
     }
 
+    /** @internal */
     public getGridCoords() {
         return this.gc_cache.getValue();
     }
 
+    /** @internal */
     public transform(x: number, y: number, opts?: {inverse?: boolean}) {
         opts = opts === undefined ? {}: opts;
         const inverse = opts.inverse === undefined ? false : opts.inverse;
@@ -545,6 +576,7 @@ class LambertGrid extends StructuredGrid {
         return this.lcc(x, y, {inverse: inverse});
     }
 
+    /** @internal */
     public getThinnedGrid(thin_fac: number, map_max_zoom: number) {
         const [thin_x, thin_y] = this.xyThinFromMaxZoom(thin_fac, map_max_zoom);
 
@@ -564,6 +596,7 @@ class LambertGrid extends StructuredGrid {
     }
 }
 
+/** An unstructured grid */
 class UnstructuredGrid extends Grid {
     public readonly coords: {lon: number, lat: number}[];
     private readonly zoom_cache: Cache<[number], Uint8Array>
@@ -571,7 +604,7 @@ class UnstructuredGrid extends Grid {
 
     /**
      * Create an unstructured grid
-     * @param coords - The coordinates of the grid points
+     * @param coords - The lat/lon coordinates of the grid points
      */
     constructor(coords: {lon: number, lat: number}[], zoom?: Uint8Array) {
         const MAX_DIM = 4096;
@@ -617,34 +650,41 @@ class UnstructuredGrid extends Grid {
         });
     }
 
+    /** @internal */
     public copy() {
         return new UnstructuredGrid(this.coords);
     }
 
+    /** @internal */
     public getEarthCoords() {
         return {lons: new Float32Array(this.coords.map(c => c.lon)), lats: new Float32Array(this.coords.map(c => c.lat))};
     }
 
+    /** @internal */
     public getGridCoords() {
         const {lons, lats} = this.getEarthCoords();
         return {x: lons, y: lats} as GridCoords;
     }
 
+    /** @internal */
     public transform(x: number, y: number, opts?: {inverse?: boolean}) {
         return [x, y] as [number, number];
     }
 
+    /** @internal */
     public getMinVisibleZoom(thin_fac: number) {
         if (this.zoom_arg !== null) 
             return this.zoom_arg;
         return this.zoom_cache.getValue(thin_fac);
     }
 
+    /** @internal */
     public getThinnedGrid(thin_fac: number, map_max_zoom: number) {
         const min_zoom = this.getMinVisibleZoom(thin_fac);
         return new UnstructuredGrid(this.coords.filter((ll, ill) => min_zoom[ill] <= map_max_zoom), min_zoom.filter(ll => ll <= map_max_zoom))
     }
 
+    /** @internal */
     public thinDataArray<ArrayType extends TypedArray>(original_grid: UnstructuredGrid, ary: ArrayType) {
         let i_new = 0;
         

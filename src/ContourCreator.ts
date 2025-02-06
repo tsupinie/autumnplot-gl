@@ -27,7 +27,7 @@ interface FieldContourOpts {
     levels?: number[];
 
     /**
-     * Add triangles in the contouring, which takes longer and generates more detailed contours
+     * Add triangles in the contouring, which takes longer and generates more detailed (not necessarily smoother or better) contours
      */
     quad_as_tri?: boolean;
 }

@@ -12,15 +12,18 @@ import Barbs from "./Barbs";
 
 /**
  * Positions around the station plot at which to draw the various elements
- *  'cl' -> center-left
- *  'll' -> lower-left
- *  'lc' -> lower-center
- *  'lr' -> lower-right
- *  'cr' -> center-right
- *  'ur' -> upper-right
- *  'uc' -> upper-center
- *  'ul' -> upper-left
- *  'c' -> center
+ * 
+ *  | Value   | Position     |
+ *  | --------|--------------|
+ *  | `'cl'`  | center-left  |
+ *  | `'ll'`  | lower-left   |
+ *  | `'lc'`  | lower-center |
+ *  | `'lr'`  | lower-right  |
+ *  | `'cr'`  | center-right |
+ *  | `'ur'`  | upper-right  |
+ *  | `'uc'`  | upper-center |
+ *  | `'ul'`  | upper-left   |
+ *  | `'c'`   | center       |
  */
 type SPPosition = 'cl' | 'll' | 'lc' | 'lr' | 'cr' | 'ur' | 'uc' | 'ul' | 'c';
 
@@ -34,7 +37,7 @@ interface SPNumberConfig {
 
     /**
      * The color to use to draw the number
-     * @default #000000
+     * @default '#000000'
      */
     color?: string;
 
@@ -57,7 +60,7 @@ interface SPStringConfig {
 
     /**
      * The color to use to draw the number
-     * @default #000000
+     * @default '#000000'
      */
     color?: string;
 }
@@ -67,7 +70,7 @@ interface SPBarbConfig {
 
     /**
      * The color to use to draw the number
-     * @default #000000
+     * @default '#000000'
      */
     color?: string;
 
@@ -78,7 +81,10 @@ interface SPBarbConfig {
     barb_size_multipler?: number;
 }
 
-type Symbol = ('0/8' | '1/8' | '2/8' | '3/8' | '4/8' | '5/8' | '6/8' | '7/8' | '8/8' | 
+/**
+ * Accepted symbol codes for sky cover and present weather symbols
+ */
+type SPSymbol = ('0/8' | '1/8' | '2/8' | '3/8' | '4/8' | '5/8' | '6/8' | '7/8' | '8/8' | 
                'clr' | 'few' | 'sct' | 'bkn' | 'ovc' | 'obsc' |
                'va' | 'fu' | 'hz' | 'du' | 'bldu' | 'sa' | 'blsa' | 'vcblsa' | 'vcbldu' | 'blpy' | 'po' | 'vcpo' | 'vcds' | 'vcss' | 
                'br' | 'bcbr' | 'bc' | 'mifg' | 'vcts' | 'virga' | 'vcsh' | 'ts' | 'thdr' | 'vctshz' | 'tsfzfg' | 'tsbr' | 'tsdz' | 'vctsup' | '-tsup' | 'tsup' | '+tsup' | 
@@ -98,7 +104,7 @@ type Symbol = ('0/8' | '1/8' | '2/8' | '3/8' | '4/8' | '5/8' | '6/8' | '7/8' | '
                '+tsfzrapl' | '+vctsra' | '+tsra' | '+tsfzra' | '+tssn' | '+tspl' | '+tsplsn' | '+vctssn' | 'tssa' | 'tsds' | 'tsdu' | '+tsgs' | '+tsgr' | '+tsrags' | '+tsragr' | 
                'in' | '-up' | 'up' | '+up' | '-fzup' | 'fzup' | '+fzup');
 
-const SYMBOLS: Record<Symbol, number> = {
+const SYMBOLS: Record<SPSymbol, number> = {
     // Sky cover symbols
     '0/8': 59658, '1/8': 59659, '2/8': 59660, '3/8': 59661, '4/8': 59662, '5/8': 59663, '6/8': 59664, '7/8': 59665, '8/8': 59666,
     'clr': 59658, 'few': 59660, 'sct': 59662, 'bkn': 59664, 'ovc': 59666, 'obsc': 59667,
@@ -146,12 +152,30 @@ interface SPSymbolConfig {
 
     /**
      * The color to use to draw the number
-     * @default #000000
+     * @default '#000000'
      */
     color?: string;
 }
 
 type SPConfig = SPNumberConfig | SPStringConfig | SPBarbConfig | SPSymbolConfig;
+
+/**
+ * Configuration for station data plots
+ * @example
+ * spconfig : SPDataConfig<'id' | 'tmpf' | 'wind' | 'skyc'> = {
+ *      // Add a string to the station plot (like the station ID)
+ *      id:   {type: 'string', pos: 'lr'},
+ * 
+ *      // Add a number to the station plot (like the temperature)
+ *      tmpf: {type: 'number', pos: 'ul', color: '#cc0000', formatter: val => val === null ? '' : val.toFixed(0)},
+ * 
+ *      // Add a barb to the station plot
+ *      wind: {type: 'barb', pos: 'c'},
+ * 
+ *      // Add a symbol to the station plot
+ *      skyc: {type: 'symbol', pos: 'c'},
+ * }
+ */
 type SPDataConfig<ObsFieldName extends string> = Record<ObsFieldName, SPConfig>;
 
 interface StationPlotOptions<ObsFieldName extends string> {
@@ -217,6 +241,11 @@ class StationPlot<GridType extends Grid, MapType extends MapLikeType, ObsFieldNa
     private gl_elems: StationPlotGLElems<GridType, MapType> | null;
     private text_components: TextCollection[] | null;
 
+    /**
+     * 
+     * @param field 
+     * @param opts 
+     */
     constructor(field: RawObsField<GridType, ObsFieldName>, opts: StationPlotOptions<ObsFieldName>) {
         super();
 
@@ -226,6 +255,10 @@ class StationPlot<GridType extends Grid, MapType extends MapLikeType, ObsFieldNa
         this.text_components = null;
     }
 
+    /**
+     * Update the data displayed as station plots
+     * @param field - The new field to display as station plots
+     */
     public async updateField(field: RawObsField<GridType, ObsFieldName>) {
         this.field = field;
 
@@ -286,7 +319,7 @@ class StationPlot<GridType extends Grid, MapType extends MapLikeType, ObsFieldNa
                 const color_opt = config.color;
                 const color = color_opt === undefined ? Color.fromHex('#000000') : Color.normalizeColor(color_opt);
 
-                const comp = this.field.getStrings(k) as (Symbol | null)[];
+                const comp = this.field.getStrings(k) as (SPSymbol | null)[];
                 const coords = this.field.grid.getEarthCoords();
                 const zoom = this.field.grid.getMinVisibleZoom(this.opts.thin_fac);
 
@@ -313,6 +346,7 @@ class StationPlot<GridType extends Grid, MapType extends MapLikeType, ObsFieldNa
         map.triggerRepaint();
     }
 
+    /** @internal */
     public async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
         const barb_promises = Object.entries<SPConfig>(this.opts.config).map(async ([k_, config]) => {
             const k = k_ as ObsFieldName;
@@ -337,6 +371,7 @@ class StationPlot<GridType extends Grid, MapType extends MapLikeType, ObsFieldNa
         this.updateField(this.field);
     }
 
+    /** @internal */
     public render(gl: WebGLAnyRenderingContext, arg: RenderMethodArg) {
         if (this.gl_elems === null || this.text_components === null) return;
 
@@ -362,4 +397,4 @@ class StationPlot<GridType extends Grid, MapType extends MapLikeType, ObsFieldNa
 }
 
 export default StationPlot;
-export type {StationPlotOptions, SPPosition, SPNumberConfig, SPStringConfig, SPBarbConfig, SPSymbolConfig, SPConfig, SPDataConfig};
+export type {StationPlotOptions, SPPosition, SPNumberConfig, SPStringConfig, SPBarbConfig, SPSymbolConfig, SPConfig, SPDataConfig, SPSymbol};
