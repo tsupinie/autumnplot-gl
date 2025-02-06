@@ -211,9 +211,4 @@ EMSCRIPTEN_BINDINGS(marching_squares) {
     emscripten::function("makeContoursFloat16", &makeContoursWASM<float16_t>);
     emscripten::function("getContourLevelsFloat32", &getContourLevelsWASM<float>);
     emscripten::function("getContourLevelsFloat16", &getContourLevelsWASM<float16_t>);
-    emscripten::class_<LambertGrid>("CppLambertGrid")
-        .constructor<unsigned int, unsigned int, float, float, float, float, float, float, float, float>()
-        .function("getMapCoords", &LambertGrid::getMapCoords)
-        .function("getVectorRotation", &LambertGrid::getVectorRotation);
-    emscripten::class_<StructuredGrid<LambertConformalConic, GridPoint>>("CppLambertGridBase");
 }
