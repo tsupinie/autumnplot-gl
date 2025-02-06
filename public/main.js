@@ -288,6 +288,7 @@ window.addEventListener('load', () => {
     menu.innerHTML = Object.entries(views).map(([k, v]) => `<option value="${k}">${v.name}</option>`).join('');
 
     const use_mapbox = false;
+    const use_globe = true;
     let map;
     
     if (use_mapbox) {
@@ -309,6 +310,12 @@ window.addEventListener('load', () => {
             zoom: 4,
             maxZoom: 7,
         });
+
+        if (use_globe) {
+            map.on('load', () => {
+                map.setProjection({type: 'globe'});
+            });
+        }
     }
 
     let current_layers = [];
