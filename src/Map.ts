@@ -195,7 +195,7 @@ function lngFromMercatorX(x: number) {
 function mercatorYfromLat(lat: number) {
     const sin_lat = Math.sin(lat * Math.PI / 180);
     const y = (180 - (90 / Math.PI * Math.log((1 + sin_lat) / (1 - sin_lat)))) / 360;
-    return Math.min(2, Math.max(-2, y));
+    return Math.min(1.5, Math.max(-0.5, y));
 }
 
 function latFromMercatorY(y: number) {

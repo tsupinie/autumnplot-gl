@@ -127,8 +127,8 @@ abstract class StructuredGrid extends Grid {
         this.thin_y = thin_y === undefined ? 1 : thin_y;
 
         this.buffer_cache = new Cache((gl: WebGLAnyRenderingContext) => {
-            const new_ni = Math.max(Math.floor(this.ni / 50), 20);
-            const new_nj = Math.max(Math.floor(this.nj / 50), 20);
+            const new_ni = Math.max(Math.floor(this.ni / 20), 20);
+            const new_nj = Math.max(Math.floor(this.nj / 20), 20);
             return makeWGLDomainBuffers(gl, this, new_ni, new_nj);
         });
     }
