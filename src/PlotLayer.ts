@@ -1,5 +1,5 @@
 
-import { WebGLAnyRenderingContext } from './AutumnTypes';
+import { RenderMethodArg, WebGLAnyRenderingContext } from './AutumnTypes';
 import { MapLikeType } from './Map';
 
 import { PlotComponent } from './PlotComponent';
@@ -60,7 +60,7 @@ class PlotLayer<MapType extends MapLikeType> extends PlotLayerBase<MapType> {
      * @internal
      * Render this layer
      */
-    public render(gl: WebGLAnyRenderingContext, matrix: number[] | Float32Array) {
+    public render(gl: WebGLAnyRenderingContext, matrix: RenderMethodArg) {
         this.field.render(gl, matrix);
     }
 }
@@ -119,7 +119,7 @@ class MultiPlotLayer<MapType extends MapLikeType> extends PlotLayerBase<MapType>
      * @internal
      * Render this layer
      */
-    public render(gl: WebGLAnyRenderingContext, matrix: number[] | Float32Array) {
+    public render(gl: WebGLAnyRenderingContext, matrix: RenderMethodArg) {
         if (this.map !== null && this.gl !== null && this.field_key !== null 
             && this.fields.hasOwnProperty(this.field_key) && this.fields[this.field_key] !== null) {
             this.fields[this.field_key].render(gl, matrix);

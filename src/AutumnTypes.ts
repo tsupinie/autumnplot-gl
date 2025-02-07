@@ -47,15 +47,14 @@ type TypedArray = Float16Array | Float32Array;
 type ContourData = Record<number, [number, number][][]>;
 
 type mat4 = number[] | Float32Array | Float64Array;
-type vec4 = Float32Array | Float64Array;
 type RenderShaderData = {vertexShaderPrelude: string, define: string, variantName: string};
 
 type MapLibreRendererDataProjection = {
-    clippingPlane: vec4;
+    clippingPlane: [number, number, number, number];
     fallbackMatrix: mat4;
     mainMatrix: mat4;
     projectionTransition: number;
-    tileMercatorCoords: vec4;
+    tileMercatorCoords: [number, number, number, number];
 };
 type MapLibreRendererDataShader = RenderShaderData;
 
