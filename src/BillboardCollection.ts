@@ -14,6 +14,7 @@ const billboard_fragment_shader_src = require('./glsl/billboard_fragment.glsl');
 interface BillboardCollectionOpts {
     color?: Color;
     cmap?: ColorMap;
+    rotate_with_map?: boolean;
 }
 
 interface BillboardCollectionGLElems {
@@ -31,6 +32,7 @@ class BillboardCollection<ArrayType extends TypedArray, GridType extends Grid> {
     public readonly spec: BillboardSpec;
     public readonly color: Color;
     public readonly cmap: ColorMap | null;
+    public readonly rotate_with_map: boolean;
     public readonly size_multiplier: number;
     public readonly thin_fac: number;
     public readonly max_zoom: number;
@@ -46,6 +48,7 @@ class BillboardCollection<ArrayType extends TypedArray, GridType extends Grid> {
         opts = opts === undefined ? {} : opts;
         this.color = opts.color === undefined ? new Color([0, 0, 0, 1]) : opts.color;
         this.cmap = opts.cmap === undefined ? null : opts.cmap;
+        this.rotate_with_map = opts.rotate_with_map === undefined ? true : opts.rotate_with_map;
 
         this.field = field;
         this.spec = billboard_spec;
@@ -130,7 +133,7 @@ class BillboardCollection<ArrayType extends TypedArray, GridType extends Grid> {
             {'a_pos': gl_elems.vertices, 'a_tex_coord': gl_elems.texcoords},
             {'u_bb_size': bb_size, 'u_bb_width': bb_width, 'u_bb_height': bb_height,
              'u_bb_mag_bin_size': this.spec.BB_MAG_BIN_SIZE, 'u_bb_mag_wrap': this.spec.BB_MAG_WRAP, 'u_offset': 0,
-             'u_map_aspect': map_height / map_width, 'u_zoom': map_zoom,
+             'u_map_aspect': map_height / map_width, 'u_zoom': map_zoom, 'u_rotate_with_map': this.rotate_with_map ? 1 : 0,
               ...this.gl_elems.shader_manager.getShaderUniforms(render_data)},
             {'u_sampler': gl_elems.texture, 'u_u_sampler': this.wind_textures.u, 'u_v_sampler': this.wind_textures.v, 'u_rot_sampler': gl_elems.proj_rot_texture}
         );

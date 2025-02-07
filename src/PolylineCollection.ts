@@ -29,6 +29,7 @@ function isLineStyle(obj: any) : obj is LineStyle {
 
 interface PolylineCollectionOpts {
     offset_scale?: number;
+    offset_rotates_with_map?: boolean;
     color?: string;
     cmap?: ColorMap;
     line_width?: number;
@@ -66,6 +67,7 @@ class PolylineCollection {
     private readonly line_data: WGLBuffer | null;
     private readonly color: Color;
     private readonly cmap_gpu: ColorMapGPUInterface | null;
+    private readonly offset_rotates_with_map: boolean;
     private readonly dash_texture: WGLTexture;
     private readonly n_dash: number;
 
@@ -76,6 +78,7 @@ class PolylineCollection {
 
         const line_width = opts.line_width === undefined ? 1 : opts.line_width;
         const line_style = opts.line_style === undefined ? '-' : opts.line_style;
+        this.offset_rotates_with_map = opts.offset_rotates_with_map === undefined ? true : opts.offset_rotates_with_map;
 
         this.width = line_width;
 
@@ -134,7 +137,7 @@ class PolylineCollection {
 
         const attributes: Record<string, WGLBuffer> = {'a_pos': this.vertices, 'a_extrusion': this.extrusion};
         const uniforms: Record<string, number | number[]> = {
-            'u_line_width': this.width, 'u_map_width': map_width, 'u_map_height': map_height, 'u_map_bearing': map_bearing, 'u_offset': 0, 'u_zoom': map_zoom,
+            'u_line_width': this.width, 'u_map_width': map_width, 'u_map_height': map_height, 'u_offset': 0, 'u_zoom': map_zoom,
             'u_dash_pattern_length': this.n_dash, ...this.shader_manager.getShaderUniforms(render_data)
         };
         const textures: Record<string, WGLTexture> = {'u_dash_sampler': this.dash_texture};
@@ -142,6 +145,7 @@ class PolylineCollection {
         if (this.offset !== null && this.scale !== null) {
             attributes['a_offset'] = this.offset;
             uniforms['u_offset_scale'] = this.scale * (map_height / map_width);
+            uniforms['u_offset_rotates_with_map'] = this.offset_rotates_with_map ? 1 : 0;
         }
 
         if (this.min_zoom !== null) {

@@ -11,6 +11,7 @@ uniform lowp float u_bb_width;  // Normalized by texture width
 uniform lowp float u_bb_height; // Normalized by texture height
 uniform highp float u_bb_mag_bin_size;
 uniform highp float u_bb_mag_wrap;
+uniform int u_rotate_with_map;
 
 uniform sampler2D u_u_sampler;
 uniform sampler2D u_v_sampler;
@@ -55,10 +56,14 @@ void main() {
     mat4 map_stretch_matrix = scalingMatrix(1.0, 1. / u_map_aspect, 1.0);
 
     vec4 pivot_pos = projectTile(a_pos.xy + globe_offset);
-    vec4 pivot_pos_ihat = projectTile(a_pos.xy + globe_offset + vec2(1e-5, 0.));
-    // Surely there's a more linear-algebra-y way to do this than converting all the rotations to an angle.
-    vec2 pivot_east = normalize((inverse(map_stretch_matrix) * (pivot_pos_ihat - pivot_pos)).xy);
-    float globe_rotation = atan(pivot_east.x, pivot_east.y) - 3.141592654 / 2.0;
+    float globe_rotation = 0.0;
+
+    if (u_rotate_with_map == 1) {
+        vec4 pivot_pos_ihat = projectTile(a_pos.xy + globe_offset + vec2(1e-5, 0.));
+        // Surely there's a more linear-algebra-y way to do this than converting all the rotations to an angle.
+        vec2 pivot_east = normalize((inverse(map_stretch_matrix) * (pivot_pos_ihat - pivot_pos)).xy);
+        globe_rotation = atan(pivot_east.x, pivot_east.y) - 3.141592654 / 2.0;
+    }
 
     highp float zoom_corner = a_pos.z;
     lowp float min_zoom = floor(zoom_corner / 4.0);

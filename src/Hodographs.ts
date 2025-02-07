@@ -161,7 +161,8 @@ class Hodographs<GridType extends Grid, MapType extends MapLikeType> extends Plo
             } as LineData;
         });
 
-        const hodo_line = await PolylineCollection.make(gl, hodo_polyline, {line_width: this.opts.hodo_line_width, cmap: this.opts.height_cmap, offset_scale: this.hodo_scale * this.bg_size});
+        const hodo_line = await PolylineCollection.make(gl, hodo_polyline, {line_width: this.opts.hodo_line_width, cmap: this.opts.height_cmap, 
+                                                                            offset_scale: this.hodo_scale * this.bg_size, offset_rotates_with_map: false});
 
         const sm_polyline = profiles.map((prof, iprof) => {
             const zoom = getMinZoom(prof['jlat'], prof['ilon'], this.opts.thin_fac);
@@ -178,7 +179,8 @@ class Hodographs<GridType extends Grid, MapType extends MapLikeType> extends Plo
             } as LineData;
         });
 
-        const sm_line = await PolylineCollection.make(gl, sm_polyline, {line_width: this.opts.background_line_width, color: this.opts.bgcolor, offset_scale: this.hodo_scale * this.bg_size});
+        const sm_line = await PolylineCollection.make(gl, sm_polyline, {line_width: this.opts.background_line_width, color: this.opts.bgcolor, 
+                                                                        offset_scale: this.hodo_scale * this.bg_size, offset_rotates_with_map: false});
 
         this.line_elems = {
             hodo_line: hodo_line, sm_line: sm_line
@@ -194,7 +196,7 @@ class Hodographs<GridType extends Grid, MapType extends MapLikeType> extends Plo
         const max_zoom = map.getMaxZoom();
 
         const bg_billboard = new BillboardCollection(this.profile_field.getStormMotionGrid(), this.opts.thin_fac, max_zoom, bg_image, HODO_BG_DIMS, this.bg_size * 0.004,
-                                                     {color: Color.fromHex(this.opts.bgcolor)});
+                                                     {color: Color.fromHex(this.opts.bgcolor), rotate_with_map: false});
         await bg_billboard.setup(gl);
 
         this.gl_elems = {
