@@ -3,7 +3,6 @@ import { BillboardSpec, RenderMethodArg, TypedArray, WebGLAnyRenderingContext, g
 import { Color } from "./Color";
 import { ColorMap, ColorMapGPUInterface } from "./Colormap";
 import { Grid } from "./Grid";
-import { getGLFormatTypeAlignment } from "./PlotComponent";
 import { RawVectorField } from "./RawField";
 import { WGLBuffer, WGLTexture, WGLTextureSpec } from "autumn-wgl";
 import { ShaderProgramManager } from "./ShaderManager";
@@ -40,7 +39,6 @@ class BillboardCollection<ArrayType extends TypedArray, GridType extends Grid> {
 
     private gl_elems: BillboardCollectionGLElems | null;
     private wind_textures: {u: WGLTexture, v: WGLTexture} | null;
-    private show_field: boolean;
 
     constructor(field: RawVectorField<ArrayType, GridType>, thin_fac: number, max_zoom: number, 
                 billboard_image: WGLTextureSpec, billboard_spec: BillboardSpec, billboard_size_mult: number, opts?: BillboardCollectionOpts) {
@@ -58,8 +56,6 @@ class BillboardCollection<ArrayType extends TypedArray, GridType extends Grid> {
         this.billboard_image = billboard_image;
         this.gl_elems = null;
         this.wind_textures = null;
-
-        this.show_field = true;
     }
 
     public updateField(field: RawVectorField<ArrayType, GridType>) {
@@ -70,19 +66,7 @@ class BillboardCollection<ArrayType extends TypedArray, GridType extends Grid> {
         const gl = this.gl_elems.gl;
         const data = this.field.getThinnedField(this.thin_fac, this.max_zoom);
 
-        const {u: u_thin, v: v_thin} = data.getTextureData();
-        this.show_field = u_thin !== null;
-        const {format, type, row_alignment} = getGLFormatTypeAlignment(gl, !(u_thin instanceof Float32Array));
-
-        const u_image = {'format': format, 'type': type,
-            'width': data.grid.ni, 'height': data.grid.nj, 'image': u_thin,
-            'mag_filter': gl.NEAREST, 'row_alignment': row_alignment,
-        };
-
-        const v_image = {'format': format, 'type': type,
-            'width': data.grid.ni, 'height': data.grid.nj, 'image': v_thin,
-            'mag_filter': gl.NEAREST, 'row_alignment': row_alignment,
-        };
+        const {u: u_image, v: v_image} = data.getWGLTextureSpecs(gl, gl.NEAREST);
 
         if (this.wind_textures === null) {
             this.wind_textures = {u: new WGLTexture(gl, u_image), v: new WGLTexture(gl, v_image)};
@@ -118,7 +102,7 @@ class BillboardCollection<ArrayType extends TypedArray, GridType extends Grid> {
     }
 
     public render(gl: WebGLAnyRenderingContext, arg: RenderMethodArg, [map_width, map_height]: [number, number], map_zoom: number, map_bearing: number, map_pitch: number) {
-        if (this.gl_elems === null || this.wind_textures === null || !this.show_field) return;
+        if (this.gl_elems === null || this.wind_textures === null) return;
 
         const render_data = getRendererData(arg);
         const program = this.gl_elems.shader_manager.getShaderProgram(gl, render_data.shaderData);

@@ -1,5 +1,5 @@
 
-import { PlotComponent, getGLFormatTypeAlignment } from './PlotComponent';
+import { PlotComponent } from './PlotComponent';
 import { ColorMap, ColorMapGPUInterface} from './Colormap';
 import { WGLBuffer, WGLTexture } from 'autumn-wgl';
 import { RawScalarField } from './RawField';
@@ -91,14 +91,8 @@ class PlotComponentFill<ArrayType extends TypedArray, GridType extends Structure
 
         const gl = this.gl_elems.gl;
         const map = this.gl_elems.map;
-        
-        const tex_data = this.field.getTextureData();
-        const {format, type, row_alignment} = getGLFormatTypeAlignment(gl, !(tex_data instanceof Float32Array));
     
-        const fill_image = {'format': format, 'type': type,
-            'width': this.field.grid.ni, 'height': this.field.grid.nj, 'image': tex_data,
-            'mag_filter': this.image_mag_filter, 'row_alignment': row_alignment,
-        };
+        const fill_image = this.field.getWGLTextureSpec(gl, this.image_mag_filter);
 
         if (this.fill_texture === null) {
             this.fill_texture = new WGLTexture(gl, fill_image);

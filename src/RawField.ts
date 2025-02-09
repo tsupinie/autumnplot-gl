@@ -1,9 +1,11 @@
 
 import { Float16Array } from "@petamoriken/float16";
-import { ContourData, TypedArray, WindProfile } from "./AutumnTypes";
+import { ContourData, TypedArray, WebGLAnyRenderingContext, WindProfile } from "./AutumnTypes";
 import { contourCreator, FieldContourOpts } from "./ContourCreator";
 import { Grid } from "./Grid";
 import { Cache, getArrayConstructor, zip } from "./utils";
+import { WGLTextureSpec } from "autumn-wgl";
+import { getGLFormatTypeAlignment } from "./PlotComponent";
 
 type TextureDataType<ArrayType> = ArrayType extends Float32Array ? Float32Array : Uint16Array;
 
@@ -33,7 +35,7 @@ class RawScalarField<ArrayType extends TypedArray, GridType extends Grid> {
     }
 
     /** @internal */
-    public getTextureData() : TextureDataType<ArrayType> {
+    private getTextureData() : TextureDataType<ArrayType> {
         // Need to give float16 data as uint16s to make WebGL happy: https://github.com/petamoriken/float16/issues/105
         const raw_data = this.data;
         let data: any;
@@ -45,6 +47,16 @@ class RawScalarField<ArrayType extends TypedArray, GridType extends Grid> {
         }
 
         return data as TextureDataType<ArrayType>;
+    }
+
+    public getWGLTextureSpec(gl: WebGLAnyRenderingContext, image_mag_filter: number) : WGLTextureSpec {
+        const tex_data = this.getTextureData();
+        const {format, type, row_alignment} = getGLFormatTypeAlignment(gl, !(tex_data instanceof Float32Array));
+    
+        return {'format': format, 'type': type,
+            'width': this.grid.ni, 'height': this.grid.nj, 'image': tex_data,
+            'mag_filter': image_mag_filter, 'row_alignment': row_alignment,
+        };
     }
 
     /**
@@ -112,7 +124,7 @@ class RawVectorField<ArrayType extends TypedArray, GridType extends Grid> {
     }
 
     /** @internal */
-    public getTextureData() {
+    private getTextureData() {
         // Need to give float16 data as uint16s to make WebGL happy: https://github.com/petamoriken/float16/issues/105
         const raw_u = this.u.data;
         const raw_v = this.v.data;
@@ -121,6 +133,24 @@ class RawVectorField<ArrayType extends TypedArray, GridType extends Grid> {
         const v: any = raw_v instanceof Float32Array ? raw_v : new Uint16Array(raw_v.buffer);
 
         return {u: u as TextureDataType<ArrayType>, v: v as TextureDataType<ArrayType>};
+    }
+
+    public getWGLTextureSpecs(gl: WebGLAnyRenderingContext, mag_filter: number) : {u: WGLTextureSpec, v: WGLTextureSpec} {
+        const {u: u_thin, v: v_thin} = this.getTextureData();
+
+        const {format, type, row_alignment} = getGLFormatTypeAlignment(gl, !(u_thin instanceof Float32Array));
+
+        const u_image = {'format': format, 'type': type,
+            'width': this.grid.ni, 'height': this.grid.nj, 'image': u_thin,
+            'mag_filter': mag_filter, 'row_alignment': row_alignment,
+        };
+
+        const v_image = {'format': format, 'type': type,
+            'width': this.grid.ni, 'height': this.grid.nj, 'image': v_thin,
+            'mag_filter': mag_filter, 'row_alignment': row_alignment,
+        };
+
+        return {u: u_image, v: v_image};
     }
 
     /** @internal */

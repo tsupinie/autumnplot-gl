@@ -3,7 +3,7 @@ import { RenderMethodArg, TypedArray, WebGLAnyRenderingContext, getRendererData 
 import { Color } from "./Color";
 import { StructuredGrid } from "./Grid";
 import { MapLikeType } from "./Map";
-import { PlotComponent, getGLFormatTypeAlignment } from "./PlotComponent";
+import { PlotComponent } from "./PlotComponent";
 import { RawScalarField } from "./RawField";
 import { ShaderProgramManager } from "./ShaderManager";
 import { normalizeOptions } from "./utils";
@@ -83,13 +83,7 @@ class Paintball<ArrayType extends TypedArray, GridType extends StructuredGrid, M
 
         gl.pixelStorei(gl.UNPACK_ALIGNMENT, 2);
 
-        const tex_data = this.field.getTextureData();
-        const {format, type, row_alignment} = getGLFormatTypeAlignment(gl, !(tex_data instanceof Float32Array));
-
-        const fill_image = {'format': format, 'type': type,
-            'width': this.field.grid.ni, 'height': this.field.grid.nj, 'image': tex_data,
-            'mag_filter': gl.NEAREST, 'row_alignment': row_alignment,
-        };
+        const fill_image = this.field.getWGLTextureSpec(gl, gl.NEAREST);
 
         if (this.fill_texture === null) {
             this.fill_texture = new WGLTexture(gl, fill_image);
