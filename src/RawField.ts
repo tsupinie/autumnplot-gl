@@ -1,13 +1,23 @@
 
 import { Float16Array } from "@petamoriken/float16";
-import { ContourData, TypedArray, WebGLAnyRenderingContext, WindProfile } from "./AutumnTypes";
+import { ContourData, TypedArray, TypedArrayStr, WebGLAnyRenderingContext, WindProfile } from "./AutumnTypes";
 import { contourCreator, FieldContourOpts } from "./ContourCreator";
 import { Grid } from "./Grid";
 import { Cache, getArrayConstructor, zip } from "./utils";
 import { WGLTextureSpec } from "autumn-wgl";
 import { getGLFormatTypeAlignment } from "./PlotComponent";
 
-type TextureDataType<ArrayType> = ArrayType extends Float32Array ? Float32Array : Uint16Array;
+type TextureDataType<ArrayType> = ArrayType extends Float32Array ? Float32Array : (ArrayType extends Uint8Array ? Uint8Array : Uint16Array);
+
+function getArrayDType(ary: TypedArray) : TypedArrayStr {
+    if (ary instanceof Float32Array) {
+        return 'float32';
+    }
+    else if (ary instanceof Uint8Array) {
+        return 'uint8';
+    }
+    return 'float16';
+}
 
 /** A class representing a raw 2D field of gridded data, such as height or u wind. */
 class RawScalarField<ArrayType extends TypedArray, GridType extends Grid> {
@@ -51,7 +61,7 @@ class RawScalarField<ArrayType extends TypedArray, GridType extends Grid> {
 
     public getWGLTextureSpec(gl: WebGLAnyRenderingContext, image_mag_filter: number) : WGLTextureSpec {
         const tex_data = this.getTextureData();
-        const {format, type, row_alignment} = getGLFormatTypeAlignment(gl, !(tex_data instanceof Float32Array));
+        const {format, type, row_alignment} = getGLFormatTypeAlignment(gl, getArrayDType(this.data));
     
         return {'format': format, 'type': type,
             'width': this.grid.ni, 'height': this.grid.nj, 'image': tex_data,
@@ -138,7 +148,7 @@ class RawVectorField<ArrayType extends TypedArray, GridType extends Grid> {
     public getWGLTextureSpecs(gl: WebGLAnyRenderingContext, mag_filter: number) : {u: WGLTextureSpec, v: WGLTextureSpec} {
         const {u: u_thin, v: v_thin} = this.getTextureData();
 
-        const {format, type, row_alignment} = getGLFormatTypeAlignment(gl, !(u_thin instanceof Float32Array));
+        const {format, type, row_alignment} = getGLFormatTypeAlignment(gl, getArrayDType(this.u.data));
 
         const u_image = {'format': format, 'type': type,
             'width': this.grid.ni, 'height': this.grid.nj, 'image': u_thin,

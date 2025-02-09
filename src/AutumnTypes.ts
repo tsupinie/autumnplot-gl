@@ -42,7 +42,8 @@ function isWebGL2Ctx(gl: WebGLAnyRenderingContext) : gl is WebGL2RenderingContex
     return gl.getParameter(gl.VERSION).includes('WebGL 2.0');
 }
 
-type TypedArray = Float16Array | Float32Array;
+type TypedArray = Float16Array | Float32Array | Uint8Array;
+type TypedArrayStr = 'float16' | 'float32' | 'uint8'
 
 type ContourData = Record<number, [number, number][][]>;
 
@@ -126,4 +127,4 @@ function getRendererData(arg: RenderMethodArg) : RendererData{
 }
 
 export {isWebGL2Ctx, getRendererData};
-export type {WindProfile, BillboardSpec, Polyline, LineData, WebGLAnyRenderingContext, TypedArray, ContourData, RenderMethodArg, RendererData, RenderShaderData};
+export type {WindProfile, BillboardSpec, Polyline, LineData, WebGLAnyRenderingContext, TypedArray, TypedArrayStr, ContourData, RenderMethodArg, RendererData, RenderShaderData};

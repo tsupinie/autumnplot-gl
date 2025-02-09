@@ -227,7 +227,7 @@ class ColorMapGPUInterface {
         const index_map = makeIndexMap(this.colormap);
         const cmap_image = makeTextureImage(this.colormap);
 
-        const {format: format_nonlin, type: type_nonlin, row_alignment: row_alignment_nonlin} = getGLFormatTypeAlignment(gl, true);
+        const {format: format_nonlin, type: type_nonlin, row_alignment: row_alignment_nonlin} = getGLFormatTypeAlignment(gl, 'float16');
 
         const cmap_image_spec = {'format': gl.RGBA, 'type': gl.UNSIGNED_BYTE, 'image': cmap_image, 'mag_filter': mag_filter};
         const cmap_texture = new WGLTexture(gl, cmap_image_spec);
