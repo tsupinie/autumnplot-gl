@@ -48,14 +48,8 @@ class RawScalarField<ArrayType extends TypedArray, GridType extends Grid> {
     private getTextureData() : TextureDataType<ArrayType> {
         // Need to give float16 data as uint16s to make WebGL happy: https://github.com/petamoriken/float16/issues/105
         const raw_data = this.data;
-        let data: any;
-        if (raw_data instanceof Float32Array) {
-            data = raw_data;
-        }
-        else {
-            data = new Uint16Array(raw_data.buffer);
-        }
-
+        const raw_data_type = getArrayDType(raw_data);
+        const data: any = (raw_data_type == 'float32' || raw_data_type == 'uint8') ? raw_data : new Uint16Array(raw_data.buffer);
         return data as TextureDataType<ArrayType>;
     }
 
@@ -139,8 +133,11 @@ class RawVectorField<ArrayType extends TypedArray, GridType extends Grid> {
         const raw_u = this.u.data;
         const raw_v = this.v.data;
 
-        const u: any = raw_u instanceof Float32Array ? raw_u : new Uint16Array(raw_u.buffer);
-        const v: any = raw_v instanceof Float32Array ? raw_v : new Uint16Array(raw_v.buffer);
+        const u_raw_data_type = getArrayDType(raw_u);
+        const v_raw_data_type = getArrayDType(raw_u);
+
+        const u: any = (u_raw_data_type == 'float32' || u_raw_data_type == 'uint8') ? raw_u : new Uint16Array(raw_u.buffer);
+        const v: any = (v_raw_data_type == 'float32' || v_raw_data_type == 'uint8') ? raw_v : new Uint16Array(raw_v.buffer);
 
         return {u: u as TextureDataType<ArrayType>, v: v as TextureDataType<ArrayType>};
     }
