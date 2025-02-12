@@ -103,14 +103,19 @@ function makeSynthetic500mbLayers() {
                                              ticks: [20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140],
                                              orientation: 'horizontal', tick_direction: 'bottom'});
 
-    return {layers: [ws_layer, hght_layer, barb_layer, label_layer], colorbar: svg};
+    return {layers: [ws_layer, hght_layer, barb_layer, label_layer], colorbar: [svg]};
 }
 
-async function fetchBinary(fname) {
+async function fetchBinary(fname, dtype) {
+    dtype = dtype === undefined ? 'float16' : dtype;
+
     resp = await fetch(fname);
     const blob = await resp.blob();
     const ary = new Uint8Array(await blob.arrayBuffer());
     const ary_inflated = pako.inflate(ary);
+
+    if (dtype == 'uint8') return ary_inflated;
+
     return new float16.Float16Array(new Float32Array(ary_inflated.buffer));
 }
 
@@ -137,7 +142,7 @@ async function makeHREFLayers() {
                                       ['HRRR', 'HRRR -6h', 'HRW ARW', 'HRW ARW -12h', 'HRW FV3', 'HRW FV3 -12h', 'HRW NSSL', 'HRW NSSL -12h', 'NAM 3k', 'NAM 3k -12h'],
                                       {n_cols: 5});
 
-    return {layers: [paintball_layer, nh_prob_layer], colorbar: svg};
+    return {layers: [paintball_layer, nh_prob_layer], colorbar: [svg]};
 }
 
 async function makeGFSLayers() {
@@ -167,7 +172,7 @@ async function makeGFSLayers() {
                                              ticks: [-60, -50, -40, -30, -20, -10, 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120],
                                              orientation: 'horizontal', tick_direction: 'bottom'});
 
-    return {layers: [t2m_layer], colorbar: svg};
+    return {layers: [t2m_layer], colorbar: [svg]};
 }
 
 function makeHodoLayers() {
@@ -265,11 +270,20 @@ async function makeMRMSLayer() {
     const raster_cref = new apgl.Raster(raw_cref_field, {cmap: [crain_cmap, csnow_cmap, cicep_cmap, cfrzr_cmap], cmap_mask: data_mask});
     const raster_layer = new apgl.PlotLayer('mrms_cref', raster_cref);
 
-    const svg = apgl.makeColorBar(apgl.colormaps.nws_storm_clear_refl, {label: "Reflectivity (dBZ)", fontface: 'Trebuchet MS', 
-                                                                        ticks: [-20, -10, 0, 10, 20, 30, 40, 50, 60, 70],
-                                                                        orientation: 'horizontal', tick_direction: 'bottom'})
+    const svg_crain = apgl.makeColorBar(crain_cmap, {label: "Rain Reflectivity (dBZ)", size_long: 320, size_short: 67, fontface: 'Trebuchet MS', 
+                                                     ticks: [-20, -10, 0, 10, 20, 30, 40, 50],
+                                                     orientation: 'horizontal', tick_direction: 'bottom'});
+    const svg_csnow = apgl.makeColorBar(csnow_cmap, {label: "Snow Reflectivity (dBZ)", size_long: 320, size_short: 67, fontface: 'Trebuchet MS', 
+                                                     ticks: [-20, -10, 0, 10, 20, 30, 40, 50],
+                                                     orientation: 'horizontal', tick_direction: 'bottom'});
+    const svg_cicep = apgl.makeColorBar(cicep_cmap, {label: "Sleet Reflectivity (dBZ)", size_long: 320, size_short: 67, fontface: 'Trebuchet MS', 
+                                                     ticks: [-20, -10, 0, 10, 20, 30, 40, 50],
+                                                     orientation: 'horizontal', tick_direction: 'bottom'});
+    const svg_cfrzr = apgl.makeColorBar(cfrzr_cmap, {label: "Freezing Rain Reflectivity (dBZ)", size_long: 320, size_short: 67, fontface: 'Trebuchet MS', 
+                                                     ticks: [-20, -10, 0, 10, 20, 30, 40, 50],
+                                                     orientation: 'horizontal', tick_direction: 'bottom'});
 
-    return {layers: [raster_layer], colorbar: svg};
+    return {layers: [raster_layer], colorbar: [svg_crain, svg_csnow, svg_cicep, svg_cfrzr]};
 }
 
 const views = {
@@ -359,7 +373,9 @@ window.addEventListener('load', () => {
         const colorbar_container = document.querySelector('#colorbar');
         colorbar_container.innerHTML = "";
         if (colorbar) {
-            colorbar_container.appendChild(colorbar);
+            colorbar.forEach(cb => {
+                colorbar_container.appendChild(cb);
+            });
         }
 
         current_layers = layers;

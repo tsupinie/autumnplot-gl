@@ -33,18 +33,14 @@
 
             div#colorbar.bottom {
                 position: absolute;
-                display:inline-block;
+                display: inline-flex;
+                justify-content: space-evenly;
                 bottom: 0%;
                 width: 100%;
-                height: 67px;
+                height: 60px;
                 z-index: 10;
                 background-color: #ffffffcc;
-            }
-            div#colorbar.bottom svg {
-                position: absolute;
-                bottom: 0%;
-                left: 50%;
-                transform: translate(-50%, 0);
+                padding-top: 5px;
             }
 
             div#map {
