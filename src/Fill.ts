@@ -14,7 +14,9 @@ const contourfill_fragment_shader_src = require('./glsl/contourfill_fragment.gls
 
 interface ContourFillOptions {
     /** The color map to use when creating the fills */
-    cmap: ColorMap;
+    cmap: ColorMap | ColorMap[];
+
+    cmap_mask?: Uint8Array | null;
 
     /** 
      * The opacity for the filled contours 
@@ -26,13 +28,16 @@ interface ContourFillOptions {
 const default_cmap = new ColorMap([0, 1], ['#000000'], {overflow_color: '#000000', underflow_color: '#000000'})
 
 const contour_fill_opt_defaults: Required<ContourFillOptions> = {
-    cmap: default_cmap,
+    cmap: [default_cmap],
+    cmap_mask: null,
     opacity: 1,
 }
 
 interface RasterOptions {
     /** The color map to use when creating the raster plot */
-    cmap: ColorMap;
+    cmap: ColorMap | ColorMap[];
+
+    cmap_mask?: Uint8Array | null;
 
     /** 
      * The opacity for the raster plot
@@ -42,7 +47,8 @@ interface RasterOptions {
 }
 
 const raster_opt_defaults: Required<RasterOptions> = {
-    cmap: default_cmap,
+    cmap: [default_cmap],
+    cmap_mask: null,
     opacity: 1,
 }
 
@@ -59,10 +65,11 @@ class PlotComponentFill<ArrayType extends TypedArray, GridType extends Structure
     private field: RawScalarField<ArrayType, GridType>;
     public readonly opts: Required<ContourFillOptions>;
 
-    private readonly cmap_gpu: ColorMapGPUInterface;
+    private readonly cmap_gpu: ColorMapGPUInterface[];
 
     private gl_elems: PlotComponentFillGLElems<MapType> | null;
     private fill_texture: WGLTexture | null;
+    private mask_texture: WGLTexture | null;
     protected image_mag_filter: number | null;
     protected cmap_mag_filter: number | null;
 
@@ -71,20 +78,22 @@ class PlotComponentFill<ArrayType extends TypedArray, GridType extends Structure
 
         this.field = field;
         this.opts = normalizeOptions(opts, contour_fill_opt_defaults);
+        this.opts.cmap = Array.isArray(this.opts.cmap) ? this.opts.cmap : [this.opts.cmap];
 
-        this.cmap_gpu = new ColorMapGPUInterface(this.opts.cmap);
+        this.cmap_gpu = this.opts.cmap.map(cm => new ColorMapGPUInterface(cm));
 
         this.gl_elems = null;
         this.fill_texture = null;
+        this.mask_texture = null;
         this.image_mag_filter = null;
         this.cmap_mag_filter = null;
     }
 
-    public async updateField(field: RawScalarField<ArrayType, GridType>) {
+    public async updateField(field: RawScalarField<ArrayType, GridType>, mask?: Uint8Array) {
         this.field = field;
 
         if (this.image_mag_filter === null || this.cmap_mag_filter === null) {
-            throw `Implement magnification filtes in a subclass`;
+            throw `Implement magnification filters in a subclass`;
         }
 
         if (this.gl_elems === null) return;
@@ -101,27 +110,52 @@ class PlotComponentFill<ArrayType extends TypedArray, GridType extends Structure
             this.fill_texture.setImageData(fill_image);
         }
 
+        if (mask !== undefined) {
+            if (this.opts.cmap_mask === null) {
+                console.warn("A mask was passed to updateField on a Fill component that didn't have a mask. The updated mask will be ignored.");
+                return;
+            }
+
+            const mask_field = new RawScalarField(this.field.grid, mask);
+            const mask_image = mask_field.getWGLTextureSpec(gl, gl.NEAREST);
+            
+            if (this.mask_texture === null) {
+                this.mask_texture = new WGLTexture(gl, mask_image);
+            }
+            else {
+                this.mask_texture.setImageData(mask_image);
+            }
+        }
+
         map.triggerRepaint();
     }
 
     public async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
         // Basic procedure for the filled contours inspired by https://blog.mbq.me/webgl-weather-globe/
-        
-        if (this.image_mag_filter === null || this.cmap_mag_filter === null) {
-            throw `Implement magnification filtes in a subclass`;
-        }
 
         const {vertices: vertices, texcoords: texcoords} = await this.field.grid.getWGLBuffers(gl);
 
-        this.cmap_gpu.setupShaderVariables(gl, this.cmap_mag_filter);
+        this.cmap_gpu.forEach(cmg => {
+            if (this.image_mag_filter === null || this.cmap_mag_filter === null) {
+                throw `Implement magnification filters in a subclass`;
+            }
 
-        const shader_manger = new ShaderProgramManager(contourfill_vertex_shader_src, ColorMapGPUInterface.applyShader(contourfill_fragment_shader_src), []);
+            cmg.setupShaderVariables(gl, this.cmap_mag_filter);
+        });
+
+        const shader_defines = [];
+
+        if (this.opts.cmap_mask !== null) {
+            shader_defines.push('MASK');
+        }
+
+        const shader_manger = new ShaderProgramManager(contourfill_vertex_shader_src, ColorMapGPUInterface.applyShader(contourfill_fragment_shader_src), shader_defines);
 
         this.gl_elems = {
             gl: gl, shader_manager: shader_manger, map: map, vertices: vertices, texcoords: texcoords,
         };
 
-        this.updateField(this.field);
+        this.updateField(this.field, this.opts.cmap_mask === null ? undefined : this.opts.cmap_mask);
     }
 
     public render(gl: WebGLAnyRenderingContext, arg: RenderMethodArg) {
@@ -137,23 +171,30 @@ class PlotComponentFill<ArrayType extends TypedArray, GridType extends Structure
             {'u_fill_sampler': this.fill_texture}
         );
 
-        this.cmap_gpu.bindShaderVariables(program);
+        this.cmap_gpu.forEach((cmg, icmg) => {
+            if (this.opts.cmap_mask !== null && this.mask_texture !== null) {
+                program.setUniforms({'u_mask_val': icmg + 1});
+                program.bindTextures({'u_mask_sampler': this.mask_texture});
+            }
 
-        gl.enable(gl.BLEND);
-        gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+            cmg.bindShaderVariables(program);
 
-        program.draw();
-
-        if (render_data.type != 'maplibre' || !render_data.shaderData.define.includes('GLOBE')) {
-            program.setUniforms({'u_offset': -2});
+            gl.enable(gl.BLEND);
+            gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    
             program.draw();
-
-            program.setUniforms({'u_offset': -1});
-            program.draw();
-
-            program.setUniforms({'u_offset': 1});
-            program.draw();
-        }
+    
+            if (render_data.type != 'maplibre' || !render_data.shaderData.define.includes('GLOBE')) {
+                program.setUniforms({'u_offset': -2});
+                program.draw();
+    
+                program.setUniforms({'u_offset': -1});
+                program.draw();
+    
+                program.setUniforms({'u_offset': 1});
+                program.draw();
+            }
+        });
     }
 }
 
@@ -178,8 +219,8 @@ class Raster<ArrayType extends TypedArray, GridType extends StructuredGrid, MapT
      * Update the data displayed as a raster plot
      * @param field - The new field to display as a raster plot
      */
-    public async updateField(field: RawScalarField<ArrayType, GridType>) {
-        await super.updateField(field);
+    public async updateField(field: RawScalarField<ArrayType, GridType>, mask?: Uint8Array) {
+        await super.updateField(field, mask);
     }
 
     /**
@@ -222,8 +263,8 @@ class ContourFill<ArrayType extends TypedArray, GridType extends StructuredGrid,
      * Update the data displayed as filled contours
      * @param field - The new field to display as filled contours
      */
-    public async updateField(field: RawScalarField<ArrayType, GridType>) {
-        await super.updateField(field);
+    public async updateField(field: RawScalarField<ArrayType, GridType>, mask?: Uint8Array) {
+        await super.updateField(field, mask);
     }
 
     /**
