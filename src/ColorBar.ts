@@ -9,6 +9,18 @@ interface ColorBarOptions {
     label?: string;
 
     /** 
+     * The size in pixels along the long axis of the colorbar 
+     * @default 600
+     */
+    size_long?: number;
+
+    /**
+     * The size in pixels along the short axis of the colorbar
+     * @default size_long / 9
+     */
+    size_short?: number;
+
+    /** 
      * An array of numbers to use as the tick locations. 
      * @default Use all the levels in the color map provided to {@link makeColorBar}.
      */
@@ -75,6 +87,8 @@ function makeColorBar(colormap: ColorMap, opts: ColorBarOptions) {
     const orientation = opts.orientation || 'vertical';
     const fontface = opts.fontface || 'sans-serif';
     const tickfontsize = opts.ticklabelsize || 12;
+    const size_long = opts.size_long || 600;
+    const size_short = opts.size_short || size_long / 9;
 
     const tick_dir = opts.tick_direction || (orientation == 'vertical' ? 'left' : 'bottom');
 
@@ -91,8 +105,8 @@ function makeColorBar(colormap: ColorMap, opts: ColorBarOptions) {
     const chars_right = getNChar(ticks[ticks.length - 1]);
     const need_overflow = colormap.underflow_color !== null || colormap.overflow_color !== null;
 
-    const bar_long_size = 600;
-    const bar_cross_size = bar_long_size / 9;
+    const bar_long_size = size_long;
+    const bar_cross_size = size_short;
     const bar_long_pad = Math.max(orientation == 'horizontal' ? Math.max(chars_left, chars_right) * 6 : 8, 
                                   need_overflow ? bar_cross_size / (2 * Math.sqrt(3)) : 0);
     const bar_cross_pad = 3;
