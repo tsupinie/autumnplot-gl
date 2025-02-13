@@ -13,9 +13,13 @@ const contourfill_vertex_shader_src = require('./glsl/contourfill_vertex.glsl');
 const contourfill_fragment_shader_src = require('./glsl/contourfill_fragment.glsl');
 
 interface ContourFillOptions {
-    /** The color map to use when creating the fills */
+    /** The color maps to use when creating the fills */
     cmap: ColorMap | ColorMap[];
 
+    /** 
+     * A mask specifying where to use each color map. This should be on the same grid as the RawScalarField passed. 
+     * A 1 in the mask means to use the first colormap, a 2 means to use the second colormap, etc.
+     */
     cmap_mask?: Uint8Array | null;
 
     /** 
@@ -37,6 +41,10 @@ interface RasterOptions {
     /** The color map to use when creating the raster plot */
     cmap: ColorMap | ColorMap[];
 
+    /** 
+     * A mask specifying where to use each color map. This should be on the same grid as the RawScalarField passed. 
+     * A 1 in the mask means to use the first colormap, a 2 means to use the second colormap, etc.
+     */
     cmap_mask?: Uint8Array | null;
 
     /** 
