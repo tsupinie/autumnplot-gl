@@ -175,13 +175,13 @@ class PlotComponentFill<ArrayType extends TypedArray, GridType extends Structure
 
         program.use(
             {'a_pos': gl_elems.vertices, 'a_tex_coord': gl_elems.texcoords},
-            {'u_opacity': this.opts.opacity, 'u_offset': 0, ...this.gl_elems.shader_manager.getShaderUniforms(render_data)},
+            {'u_opacity': this.opts.opacity, ...this.gl_elems.shader_manager.getShaderUniforms(render_data)},
             {'u_fill_sampler': this.fill_texture}
         );
 
         this.cmap_gpu.forEach((cmg, icmg) => {
             if (this.opts.cmap_mask !== null && this.mask_texture !== null) {
-                program.setUniforms({'u_mask_val': icmg + 1});
+                program.setUniforms({'u_mask_val': icmg + 1, 'u_offset': 0});
                 program.bindTextures({'u_mask_sampler': this.mask_texture});
             }
 
