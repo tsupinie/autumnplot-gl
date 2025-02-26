@@ -40,23 +40,26 @@ async function makeWGLBillboardBuffers(gl: WebGLAnyRenderingContext, grid: Grid,
     return {'vertices': vertices, 'texcoords': texcoords};
 }
 
-function makeVectorRotationTexture(gl: WebGLAnyRenderingContext, grid: Grid) {
+function makeVectorRotationTexture(gl: WebGLAnyRenderingContext, grid: Grid, data_are_earth_relative: boolean) {
     const coords = grid.getEarthCoords();
-
-    if (!grid.is_conformal) {
-        // If the grid is non-conformal, we need a fully general change of basis from grid coordinates to earth coordinates. This is not supported for now, so warn about it.
-        console.warn('Vector rotations for non-conformal projections are not supported. The output may look incorrect.')
-    }
 
     const rot_vals = new Float16Array(grid.ni * grid.nj).fill(parseFloat('nan'));
 
-    for (let icd = 0; icd < coords.lats.length; icd++) {
-        const lon = coords.lons[icd];
-        const lat = coords.lats[icd];
+    if (data_are_earth_relative) {
+        rot_vals.fill(0);
+    }
+    else {
+        if (!grid.is_conformal) {
+            // If the grid is non-conformal, we need a fully general change of basis from grid coordinates to earth coordinates. This is not supported for now, so warn about it.
+            console.warn('Vector rotations for non-conformal projections are not supported. The output may look incorrect.')
+        }
 
-        const [x, y] = grid.transform(lon, lat);
-        const [x_pertlon, y_pertlon] = grid.transform(lon + 0.01, lat);
-        rot_vals[icd] = Math.atan2(y_pertlon - y, x_pertlon - x);
+        for (let icd = 0; icd < coords.lats.length; icd++) {
+            const lon = coords.lons[icd];
+            const lat = coords.lats[icd];
+    
+            rot_vals[icd] = grid.getVectorRotationAtPoint(lon, lat);
+        }
     }
 
     const {format, type, row_alignment} = getGLFormatTypeAlignment(gl, 'float16');
@@ -79,7 +82,7 @@ abstract class Grid {
     public readonly is_conformal: boolean;
 
     private readonly billboard_buffer_cache: Cache<[WebGLAnyRenderingContext, number, number], Promise<{'vertices': WGLBuffer, 'texcoords': WGLBuffer}>>;
-    private readonly vector_rotation_cache: Cache<[WebGLAnyRenderingContext], {'rotation': WGLTexture}>
+    private readonly vector_rotation_cache: Cache<[WebGLAnyRenderingContext, boolean], {'rotation': WGLTexture}>
 
     constructor(type: GridType, is_conformal: boolean, ni: number, nj: number) {
         this.type = type;
@@ -91,8 +94,8 @@ abstract class Grid {
             return makeWGLBillboardBuffers(gl, this, thin_fac, max_zoom);
         });
 
-        this.vector_rotation_cache = new Cache((gl: WebGLAnyRenderingContext) => {
-            return makeVectorRotationTexture(gl, this);
+        this.vector_rotation_cache = new Cache((gl: WebGLAnyRenderingContext, data_are_earth_relative: boolean) => {
+            return makeVectorRotationTexture(gl, this, data_are_earth_relative);
         })
     }
 
@@ -109,8 +112,14 @@ abstract class Grid {
 
     public abstract copy(): Grid;
 
-    public getVectorRotationTexture(gl: WebGLAnyRenderingContext) {
-        return this.vector_rotation_cache.getValue(gl);
+    public getVectorRotationAtPoint(lon: number, lat: number) {    
+        const [x, y] = this.transform(lon, lat);
+        const [x_pertlon, y_pertlon] = this.transform(lon + 0.01, lat);
+        return Math.atan2(y_pertlon - y, x_pertlon - x);
+    }
+
+    public getVectorRotationTexture(gl: WebGLAnyRenderingContext, data_are_earth_relative: boolean) {
+        return this.vector_rotation_cache.getValue(gl, data_are_earth_relative);
     }
 }
 

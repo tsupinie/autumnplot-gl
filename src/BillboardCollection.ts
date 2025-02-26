@@ -80,7 +80,7 @@ class BillboardCollection<ArrayType extends TypedArray, GridType extends Grid> {
     public async setup(gl: WebGLAnyRenderingContext) {
         const thinned_grid = this.field.grid.getThinnedGrid(this.thin_fac, this.max_zoom);
         const {vertices, texcoords} = await thinned_grid.getWGLBillboardBuffers(gl, this.thin_fac, this.max_zoom);
-        const {rotation: proj_rotation_tex} = thinned_grid.getVectorRotationTexture(gl);
+        const {rotation: proj_rotation_tex} = thinned_grid.getVectorRotationTexture(gl, this.field.relative_to == 'earth');
 
         const texture = new WGLTexture(gl, this.billboard_image);
 
