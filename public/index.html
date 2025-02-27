@@ -68,6 +68,15 @@
             div#selection select {
                 font-size: 0.9em;
             }
+
+            div#readout {
+                position: absolute;
+                z-index: 10;
+                background-color: #ffffffcc;
+                right: 0px;
+                top: 0px;
+                padding: 0.5em;
+            }
         </style>
     </head>
     <body>
@@ -77,6 +86,7 @@
             </select>
         </div>
         <div id='colorbar' class="bottom"></div>
+        <div id='readout'></div>
         <div id='map'></div>
     </body>
 </html>

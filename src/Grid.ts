@@ -16,6 +16,24 @@ interface GridCoords {
     y: Float32Array;
 }
 
+function argMin<T>(ary: T[] | TypedArray) {
+    if (ary.length === 0) {
+        return -1;
+    }
+
+    let min = ary[0];
+    let minIndex = 0;
+
+    for (let i = 1; i < ary.length; i++) {
+        if (ary[i] < min) {
+            minIndex = i;
+            min = ary[i];
+        }
+    }
+
+    return minIndex;
+}
+
 async function makeWGLDomainBuffers(gl: WebGLAnyRenderingContext, grid: StructuredGrid, simplify_ni: number, simplify_nj: number) {
     const texcoord_margin_r = 1 / (2 * grid.ni);
     const texcoord_margin_s = 1 / (2 * grid.nj);
@@ -102,6 +120,7 @@ abstract class Grid {
     public abstract getEarthCoords(): EarthCoords;
     public abstract getGridCoords(): GridCoords;
     public abstract transform(x: number, y: number, opts?: {inverse?: boolean}): [number, number];
+    public abstract sampleNearestGridPoint(lon: number, lat: number, ary: TypedArray): {sample: number, sample_lon: number, sample_lat: number};
     public abstract getThinnedGrid(thin_fac: number, map_max_zoom: number): Grid;
     public abstract thinDataArray<ArrayType extends TypedArray>(original_grid: Grid, ary: ArrayType): ArrayType;
     public abstract getMinVisibleZoom(thin_fac: number): Uint8Array;
@@ -188,6 +207,30 @@ abstract class StructuredGrid extends Grid {
 
     public async getWGLBuffers(gl: WebGLAnyRenderingContext) {
         return await this.buffer_cache.getValue(gl);
+    }
+
+    public sampleNearestGridPoint(lon: number, lat: number, ary: TypedArray): {sample: number, sample_lon: number, sample_lat: number} {
+        const [x, y] = this.transform(lon, lat);
+        const {x: xs, y: ys} = this.getGridCoords();
+
+        const ll_x = xs[0];
+        const ur_x = xs[xs.length - 1];
+        const dx = xs[1] - xs[0];
+        const ll_y = ys[0];
+        const ur_y = ys[ys.length - 1];
+        const dy = ys[1] - ys[0];
+
+        if (x < ll_x - 0.5 * dx || x > ur_x + 0.5 * dx || y < ll_y - 0.5 * dy || y > ur_y + 0.5 * dy) {
+            return {sample: NaN, sample_lon: NaN, sample_lat: NaN};
+        }
+
+        const i_min = argMin(xs.map(xv => Math.abs(xv - x)));
+        const j_min = argMin(ys.map(yv => Math.abs(yv - y)));
+        const idx = i_min + j_min * this.ni;
+
+        const [lon_min, lat_min] = this.transform(xs[i_min], ys[j_min], {inverse: true});
+
+        return {sample: ary[idx], sample_lon: lon_min, sample_lat: lat_min};
     }
 }
 
@@ -709,6 +752,12 @@ class UnstructuredGrid extends Grid {
         }
 
         return new_data;
+    }
+
+    public sampleNearestGridPoint(lon: number, lat: number, ary: TypedArray): {sample: number, sample_lon: number, sample_lat: number} {
+        // TAS: This is gonna be slow. Need to think about using the kdTree here.
+        const idx = argMin(this.coords.map(c => (c.lon - lon) * (c.lon - lon) + (c.lat - lat) * (c.lat - lat)));
+        return {sample: ary[idx], sample_lon: this.coords[idx].lon, sample_lat: this.coords[idx].lat};
     }
 }
 

@@ -103,7 +103,9 @@ function makeSynthetic500mbLayers() {
                                              ticks: [20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140],
                                              orientation: 'horizontal', tick_direction: 'bottom'});
 
-    return {layers: [ws_layer, hght_layer, barb_layer, label_layer], colorbar: [svg]};
+    return {layers: [ws_layer, hght_layer, barb_layer, label_layer], colorbar: [svg], 
+            sampler: (lon, lat) => ({hght: raw_hght_field.sampleField(lon, lat), 
+                                     barb: raw_wind_field.sampleField(lon, lat)})};
 }
 
 async function fetchBinary(fname, dtype) {
@@ -360,7 +362,7 @@ window.addEventListener('load', () => {
         const view = views[menu.value];
         map.setMaxZoom(view.maxZoom);
 
-        const {layers, colorbar} = await view.makeLayers();
+        const {layers, colorbar, sampler} = await view.makeLayers();
 
         current_layers.forEach(lyr => {
             map.removeLayer(lyr.id);
@@ -379,6 +381,22 @@ window.addEventListener('load', () => {
         }
 
         current_layers = layers;
+
+        const readout = document.querySelector('#readout');
+
+        const getLatLon = (ev) => {
+            const coord = ev.lngLat.wrap();
+            const sample = sampler(coord.lng, coord.lat);
+            const str = Object.entries(sample).map(([sn, s]) => Array.isArray(s) ? `${sn}: ${s[0].toFixed(0)}/${s[1].toFixed(0)}` : `${sn}: ${s.toFixed(1)}`).join(', ');
+            readout.innerHTML = str;
+        }
+
+        if (sampler !== undefined) {
+            map.on('mousemove', getLatLon);
+        }
+        else {
+            map.off('mousemove', getLatLon);
+        }
     }
 
     map.on('load', updateMap);

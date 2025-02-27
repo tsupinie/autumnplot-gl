@@ -94,6 +94,10 @@ class RawScalarField<ArrayType extends TypedArray, GridType extends Grid> {
 
         return new RawScalarField(args[0].grid, agg_data);
     }
+
+    public sampleField(lon: number, lat: number) {
+        return this.grid.sampleNearestGridPoint(lon, lat, this.data).sample;
+    }
 }
 
 type VectorRelativeTo = 'earth' | 'grid';
@@ -173,6 +177,20 @@ class RawVectorField<ArrayType extends TypedArray, GridType extends Grid> {
     /** @internal */
     public get grid() {
         return this.u.grid
+    }
+
+    public sampleField(lon: number, lat: number) : [number, number] {
+        const u_sample = this.grid.sampleNearestGridPoint(lon, lat, this.u.data);
+        const v_sample = this.grid.sampleNearestGridPoint(lon, lat, this.v.data);
+
+        const rot = this.relative_to == 'earth' ? 0 : this.grid.getVectorRotationAtPoint(u_sample.sample_lon, u_sample.sample_lat);
+        const mag = Math.hypot(u_sample.sample, v_sample.sample);
+        let brg = (Math.PI / 2 - Math.atan2(-v_sample.sample, -u_sample.sample) + rot) * 180 / Math.PI;
+
+        if (brg > 360) brg -= 360;
+        if (brg < 0) brg += 360;
+
+        return [brg, mag];
     }
 }
 
