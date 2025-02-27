@@ -180,8 +180,10 @@ class PlotComponentFill<ArrayType extends TypedArray, GridType extends Structure
         );
 
         this.cmap_gpu.forEach((cmg, icmg) => {
+            program.setUniforms({'u_offset': 0});
+
             if (this.opts.cmap_mask !== null && this.mask_texture !== null) {
-                program.setUniforms({'u_mask_val': icmg + 1, 'u_offset': 0});
+                program.setUniforms({'u_mask_val': icmg + 1});
                 program.bindTextures({'u_mask_sampler': this.mask_texture});
             }
 
