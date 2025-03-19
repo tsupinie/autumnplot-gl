@@ -2,8 +2,9 @@
 
 uniform int u_offset;
 
-in vec3 a_pos;    // Has position, zoom, and corner info
+in vec3 a_pos;    // Has grid point position and zoom info
 in vec2 a_tex_coord;
+in lowp float a_geom; // Has corner info
 uniform lowp float u_bb_size;
 uniform lowp float u_map_aspect;
 uniform lowp float u_zoom;
@@ -65,9 +66,8 @@ void main() {
         globe_rotation = atan(pivot_east.x, pivot_east.y) - 3.141592654 / 2.0;
     }
 
-    highp float zoom_corner = a_pos.z;
-    lowp float min_zoom = floor(zoom_corner / 4.0);
-    lowp float corner = mod(zoom_corner, 4.0);
+    highp float min_zoom = a_pos.z;
+    lowp float corner = a_geom;
 
     highp float u = texture(u_u_sampler, a_tex_coord).r;
     highp float v = texture(u_v_sampler, a_tex_coord).r;

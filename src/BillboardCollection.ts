@@ -19,6 +19,7 @@ interface BillboardCollectionOpts {
 interface BillboardCollectionGLElems {
     gl: WebGLAnyRenderingContext;
     shader_manager: ShaderProgramManager;
+    geom_vertices: WGLBuffer;
     vertices: WGLBuffer;
     texcoords: WGLBuffer;
     texture: WGLTexture;
@@ -79,6 +80,10 @@ class BillboardCollection<ArrayType extends TypedArray, GridType extends Grid> {
 
     public async setup(gl: WebGLAnyRenderingContext) {
         const thinned_grid = this.field.grid.getThinnedGrid(this.thin_fac, this.max_zoom);
+
+        const geom_verts = new Float32Array([0., 1., 2., 3.]);
+        const geom_buffer = new WGLBuffer(gl, geom_verts, 1, gl.TRIANGLE_STRIP);
+
         const {vertices, texcoords} = await thinned_grid.getWGLBillboardBuffers(gl, this.thin_fac, this.max_zoom);
         const {rotation: proj_rotation_tex} = thinned_grid.getVectorRotationTexture(gl, this.field.relative_to == 'earth');
 
@@ -98,7 +103,8 @@ class BillboardCollection<ArrayType extends TypedArray, GridType extends Grid> {
 
         const shader_manager = new ShaderProgramManager(billboard_vertex_shader_src, fragment_src, shader_defines);
 
-        this.gl_elems = {gl: gl, shader_manager: shader_manager, vertices: vertices, texcoords: texcoords, texture: texture, proj_rot_texture: proj_rotation_tex, cmap_gpu: cmap_gpu};
+        this.gl_elems = {gl: gl, shader_manager: shader_manager, geom_vertices: geom_buffer, vertices: vertices, texcoords: texcoords, texture: texture, 
+                         proj_rot_texture: proj_rotation_tex, cmap_gpu: cmap_gpu};
     }
 
     public render(gl: WebGLAnyRenderingContext, arg: RenderMethodArg, [map_width, map_height]: [number, number], map_zoom: number, map_bearing: number, map_pitch: number) {
@@ -114,7 +120,7 @@ class BillboardCollection<ArrayType extends TypedArray, GridType extends Grid> {
         const bb_height = this.spec.BB_HEIGHT / this.spec.BB_TEX_HEIGHT;
 
         program.use(
-            {'a_pos': gl_elems.vertices, 'a_tex_coord': gl_elems.texcoords},
+            {'a_geom': gl_elems.geom_vertices, 'a_pos': gl_elems.vertices, 'a_tex_coord': gl_elems.texcoords},
             {'u_bb_size': bb_size, 'u_bb_width': bb_width, 'u_bb_height': bb_height,
              'u_bb_mag_bin_size': this.spec.BB_MAG_BIN_SIZE, 'u_bb_mag_wrap': this.spec.BB_MAG_WRAP, 'u_offset': 0,
              'u_map_aspect': map_height / map_width, 'u_zoom': map_zoom, 'u_rotate_with_map': this.rotate_with_map ? 1 : 0,

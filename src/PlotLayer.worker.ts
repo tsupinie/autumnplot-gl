@@ -7,13 +7,12 @@ import { LngLat } from "./Map";
 
 function makeBBElements(field_lats: Float32Array, field_lons: Float32Array, min_zoom: Uint8Array, field_ni: number, field_nj: number, map_max_zoom: number) {
         
-    const n_pts_per_poly = 6;
     const n_coords_per_pt_pts = 3;
     const n_coords_per_pt_tc = 2;
 
     const field_n_access = min_zoom.filter(mz => mz <= map_max_zoom).length;
-    const n_elems_pts = field_n_access * n_pts_per_poly * n_coords_per_pt_pts;
-    const n_elems_tc = field_n_access * n_pts_per_poly * n_coords_per_pt_tc;
+    const n_elems_pts = field_n_access * n_coords_per_pt_pts;
+    const n_elems_tc = field_n_access * n_coords_per_pt_tc;
 
     let pts = new Float32Array(n_elems_pts);
     let tex_coords = new Float32Array(n_elems_tc);
@@ -32,21 +31,15 @@ function makeBBElements(field_lats: Float32Array, field_lons: Float32Array, min_
 
             const pt_ll = new LngLat(lon, lat).toMercatorCoord();
 
-            // These contain a degenerate triangle on either end to imitate primitive restarting
-            //  (see https://groups.google.com/g/webgl-dev-list/c/KLfiwj4jax0/m/cKiezrhRz8MJ?pli=1)
-            for (let icrnr = 0; icrnr < n_pts_per_poly; icrnr++) {
-                const actual_icrnr = Math.max(0, Math.min(icrnr - 1, 3));
+            pts[istart_pts + 0] = pt_ll.x; 
+            pts[istart_pts + 1] = pt_ll.y; 
+            pts[istart_pts + 2] = zoom;
 
-                pts[istart_pts + icrnr * n_coords_per_pt_pts + 0] = pt_ll.x; 
-                pts[istart_pts + icrnr * n_coords_per_pt_pts + 1] = pt_ll.y; 
-                pts[istart_pts + icrnr * n_coords_per_pt_pts + 2] = zoom * 4 + actual_icrnr;
+            tex_coords[istart_tc + 0] = ilon / (field_ni - 1);
+            tex_coords[istart_tc + 1] = ilat / (field_nj - 1);
 
-                tex_coords[istart_tc + icrnr * n_coords_per_pt_tc + 0] = ilon / (field_ni - 1);
-                tex_coords[istart_tc + icrnr * n_coords_per_pt_tc + 1] = ilat / (field_nj - 1);
-            }
-
-            istart_pts += (n_pts_per_poly * n_coords_per_pt_pts);
-            istart_tc += (n_pts_per_poly * n_coords_per_pt_tc);
+            istart_pts += n_coords_per_pt_pts;
+            istart_tc += n_coords_per_pt_tc;
         }
     }
 
