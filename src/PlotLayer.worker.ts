@@ -7,7 +7,7 @@ import { LngLat } from "./Map";
 
 function makeBBElements(field_lats: Float32Array, field_lons: Float32Array, min_zoom: Uint8Array, field_ni: number, field_nj: number, map_max_zoom: number) {
         
-    const n_coords_per_pt_pts = 3;
+    const n_coords_per_pt_pts = 2;
     const n_coords_per_pt_tc = 2;
 
     const field_n_access = min_zoom.filter(mz => mz <= map_max_zoom).length;
@@ -33,9 +33,8 @@ function makeBBElements(field_lats: Float32Array, field_lons: Float32Array, min_
 
             pts[istart_pts + 0] = pt_ll.x; 
             pts[istart_pts + 1] = pt_ll.y; 
-            pts[istart_pts + 2] = zoom;
 
-            tex_coords[istart_tc + 0] = ilon / (field_ni - 1);
+            tex_coords[istart_tc + 0] = ilon / (field_ni - 1) + zoom; // Pack the min zoom in with the texture coordinates; only works because the min zoom is always an integer
             tex_coords[istart_tc + 1] = ilat / (field_nj - 1);
 
             istart_pts += n_coords_per_pt_pts;

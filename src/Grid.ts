@@ -52,7 +52,7 @@ async function makeWGLBillboardBuffers(gl: WebGLAnyRenderingContext, grid: Grid,
     const min_zoom = grid.getMinVisibleZoom(thin_fac);
     const bb_elements = await layer_worker.makeBBElements(field_lats, field_lons, min_zoom, grid.ni, grid.nj, map_max_zoom);
 
-    const vertices = new WGLBuffer(gl, bb_elements['pts'], 3, gl.TRIANGLE_STRIP, {per_instance: true});
+    const vertices = new WGLBuffer(gl, bb_elements['pts'], 2, gl.TRIANGLE_STRIP, {per_instance: true});
     const texcoords = new WGLBuffer(gl, bb_elements['tex_coords'], 2, gl.TRIANGLE_STRIP, {per_instance: true});
 
     return {'vertices': vertices, 'texcoords': texcoords};
