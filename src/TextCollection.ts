@@ -146,6 +146,11 @@ function createAtlas(pbf_glyphs: PBFGlyph[]): FontAtlas {
 const FONT_ATLAS_CACHE = new Cache(async (urls: string[]) => {
     const promises = urls.map(async url => {
         const resp = await fetch(url);
+        
+        if (resp.status != 200) {
+            throw `Error ${resp.status} retrieving font pbf from '${url}'`;
+        }
+
         const blob = await resp.blob();
         const data_buffer = await blob.arrayBuffer();
     
