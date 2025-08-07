@@ -42,6 +42,18 @@ interface SPNumberConfig {
     color?: string;
 
     /**
+     * Whether to draw a halo (outline) around the number
+     * @default true;
+     */
+    halo?: boolean;
+
+    /**
+     * The color to use for the halo (outline)
+     * @default '#ffffff'
+     */
+    halo_color?: string;
+
+    /**
      * A function that properly formats the number for display
      * @example (val) => val === null ? '' : val.toFixed(0)
      * @param val - The number to format
@@ -54,22 +66,34 @@ interface SPStringConfig {
     type: 'string';
 
     /**
-     * The position on the station plot at which to place the number
+     * The position on the station plot at which to place the string
      */
     pos: SPPosition;
 
     /**
-     * The color to use to draw the number
+     * The color to use to draw the string
      * @default '#000000'
      */
     color?: string;
+
+    /**
+     * Whether to draw a halo (outline) around the string
+     * @default true;
+     */
+    halo?: boolean;
+
+    /**
+     * The color to use for the halo (outline)
+     * @default '#ffffff'
+     */
+    halo_color?: string;
 }
 
 interface SPBarbConfig {
     type: 'barb';
 
     /**
-     * The color to use to draw the number
+     * The color to use to draw the barb
      * @default '#000000'
      */
     color?: string;
@@ -146,15 +170,27 @@ interface SPSymbolConfig {
     type: 'symbol';
 
     /**
-     * The position on the station plot at which to place the number
+     * The position on the station plot at which to place the symbol
      */
     pos: SPPosition;
 
     /**
-     * The color to use to draw the number
+     * The color to use to draw the symbol
      * @default '#000000'
      */
     color?: string;
+
+        /**
+     * Whether to draw a halo (outline) around the string
+     * @default true;
+     */
+    halo?: boolean;
+
+    /**
+     * The color to use for the halo (outline)
+     * @default '#ffffff'
+     */
+    halo_color?: string;
 }
 
 type SPConfig = SPNumberConfig | SPStringConfig | SPBarbConfig | SPSymbolConfig;
@@ -283,8 +319,9 @@ class StationPlot<GridType extends Grid, MapType extends MapLikeType, ObsFieldNa
 
             if (config.type == 'number' || config.type == 'string') {
                 const pos = config.pos;
-                const color_opt = config.color;
-                const color = color_opt === undefined ? Color.fromHex('#000000') : Color.normalizeColor(color_opt);
+                const color = config.color === undefined ? Color.fromHex('#000000') : Color.normalizeColor(config.color);
+                const halo_color = config.halo_color === undefined ? Color.fromHex('#ffffff') : Color.normalizeColor(config.halo_color);
+                const halo = config.halo === undefined ? true : config.halo;
 
                 const coords = this.field.grid.getEarthCoords();
                 const zoom = this.field.grid.getMinVisibleZoom(this.opts.thin_fac);
@@ -303,8 +340,8 @@ class StationPlot<GridType extends Grid, MapType extends MapLikeType, ObsFieldNa
 
                 const tc_opts: TextCollectionOptions = {
                     ...positionToAlignmentAndOffset(pos),
-                    font_size: this.opts.font_size, halo: true, 
-                    text_color: color, halo_color: Color.fromHex('#ffffff'),
+                    font_size: this.opts.font_size, halo: halo, 
+                    text_color: color, halo_color: halo_color,
                 };
 
                 return await TextCollection.make(gl, text_specs, font_url, tc_opts);
@@ -316,8 +353,9 @@ class StationPlot<GridType extends Grid, MapType extends MapLikeType, ObsFieldNa
             }
             else if (config.type == 'symbol') {
                 const pos = config.pos;
-                const color_opt = config.color;
-                const color = color_opt === undefined ? Color.fromHex('#000000') : Color.normalizeColor(color_opt);
+                const color = config.color === undefined ? Color.fromHex('#000000') : Color.normalizeColor(config.color);
+                const halo_color = config.halo_color === undefined ? Color.fromHex('#ffffff') : Color.normalizeColor(config.halo_color);
+                const halo = config.halo === undefined ? true : config.halo;
 
                 const comp = this.field.getStrings(k) as (SPSymbol | null)[];
                 const coords = this.field.grid.getEarthCoords();
@@ -329,8 +367,8 @@ class StationPlot<GridType extends Grid, MapType extends MapLikeType, ObsFieldNa
                 
                 const tc_opts: TextCollectionOptions = {
                     ...positionToAlignmentAndOffset(pos),
-                    font_size: this.opts.font_size, halo: true, 
-                    text_color: color, halo_color: Color.fromHex('#ffffff'),
+                    font_size: this.opts.font_size, halo: halo, 
+                    text_color: color, halo_color: halo_color,
                 };
 
                 if (tc_opts.offset_x !== undefined) tc_opts.offset_x -= 3;
