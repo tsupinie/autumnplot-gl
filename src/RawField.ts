@@ -1,6 +1,6 @@
 
 import { Float16Array } from "@petamoriken/float16";
-import { ContourData, TypedArray, TypedArrayStr, WebGLAnyRenderingContext, WindProfile } from "./AutumnTypes";
+import { ContourData, TypedArray, TypedArrayStr, WebGLAnyRenderingContext, WindProfile, isStormRelativeWindProfile } from "./AutumnTypes";
 import { contourCreator, FieldContourOpts } from "./ContourCreator";
 import { Grid } from "./Grid";
 import { Cache, getArrayConstructor, zip } from "./utils";
@@ -220,8 +220,14 @@ class RawProfileField<GridType extends Grid> {
 
         profiles.forEach(prof => {
             const idx = prof.ilon + this.grid.ni * prof.jlat;
-            u[idx] = prof.smu;
-            v[idx] = prof.smv;
+            if (isStormRelativeWindProfile(prof)) {
+                u[idx] = prof.smu;
+                v[idx] = prof.smv;
+            }
+            else {
+                u[idx] = 0;
+                v[idx] = 0;
+            }
         });
 
         return new RawVectorField(this.grid, u, v, {relative_to: 'grid'});

@@ -8,7 +8,7 @@ import Hodographs, {HodographOptions} from './Hodographs';
 import StationPlot, {StationPlotOptions, SPPosition, SPNumberConfig, SPStringConfig, SPBarbConfig, SPSymbolConfig, SPConfig, SPDataConfig, SPSymbol} from "./StationPlot";
 
 import { PlotLayer, MultiPlotLayer } from './PlotLayer';
-import { WindProfile, WebGLAnyRenderingContext, TypedArray, ContourData } from "./AutumnTypes";
+import { WindProfile, StormRelativeWindProfile, GroundRelativeWindProfile, WebGLAnyRenderingContext, TypedArray, ContourData } from "./AutumnTypes";
 import { MapLikeType } from "./Map";
 import { ColorMap, ColorMapOptions, bluered, redblue, pw_speed500mb, pw_speed850mb, pw_cape, pw_t2m, pw_td2m, nws_storm_clear_refl } from './Colormap';
 import { Color } from "./Color";
@@ -43,7 +43,7 @@ export {PlotComponent,
         Contour, ContourOptions, ContourLabels, ContourLabelOptions,
         ContourFill, Raster, ContourFillOptions, RasterOptions,
         Paintball, PaintballOptions,
-        Hodographs, HodographOptions, WindProfile,
+        Hodographs, HodographOptions, WindProfile, StormRelativeWindProfile, GroundRelativeWindProfile,
         StationPlot, StationPlotOptions, SPPosition, SPNumberConfig, SPStringConfig, SPBarbConfig, SPSymbolConfig, SPConfig, SPDataConfig, SPSymbol,
         PlotLayer, MultiPlotLayer, 
         MapLikeType, LineStyle,

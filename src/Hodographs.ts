@@ -5,7 +5,7 @@ import { BillboardCollection } from "./BillboardCollection";
 import { getMinZoom, normalizeOptions } from './utils';
 import { MapLikeType } from "./Map";
 import { RawProfileField } from "./RawField";
-import { LineData, RenderMethodArg, TypedArray, WebGLAnyRenderingContext } from "./AutumnTypes";
+import { LineData, RenderMethodArg, TypedArray, WebGLAnyRenderingContext, WindProfile, isStormRelativeWindProfile } from "./AutumnTypes";
 import { Float16Array } from "@petamoriken/float16";
 import { ColorMap } from "./Colormap";
 import { Color } from "./Color";
@@ -24,7 +24,7 @@ const HODO_BG_DIMS = {
     BB_MAG_BIN_SIZE: 1000,
 }
 
-function _createHodoBackgroundTexture(line_width: number) {
+function _createHodoBackgroundTexture(line_width: number, arrow_head: boolean) {
     let canvas = document.createElement('canvas');
 
     canvas.width = HODO_BG_DIMS.BB_TEX_WIDTH;
@@ -44,14 +44,21 @@ function _createHodoBackgroundTexture(line_width: number) {
         ctx.stroke();
     }
 
-    const ctr_x = HODO_BG_DIMS.BB_TEX_WIDTH / 2, ctr_y = HODO_BG_DIMS.BB_TEX_WIDTH / 2;
-    const arrow_size = 20
-    ctx.beginPath()
-    ctx.moveTo(ctr_x, ctr_y);
-    ctx.lineTo(ctr_x + arrow_size / 2, ctr_y + arrow_size);
-    ctx.lineTo(ctr_x - arrow_size / 2, ctr_y + arrow_size);
-    ctx.lineTo(ctr_x, ctr_y);
-    ctx.fill()
+    if (arrow_head) {
+        const ctr_x = HODO_BG_DIMS.BB_TEX_WIDTH / 2, ctr_y = HODO_BG_DIMS.BB_TEX_WIDTH / 2;
+        const arrow_size = 20
+        ctx.beginPath()
+        ctx.moveTo(ctr_x, ctr_y);
+        ctx.lineTo(ctr_x + arrow_size / 2, ctr_y + arrow_size);
+        ctx.lineTo(ctr_x - arrow_size / 2, ctr_y + arrow_size);
+        ctx.lineTo(ctr_x, ctr_y);
+        ctx.fill();
+    }
+    else {
+        ctx.beginPath();
+        ctx.arc(HODO_BG_DIMS.BB_TEX_WIDTH / 2, HODO_BG_DIMS.BB_TEX_WIDTH / 2, line_width, 0, 2 * Math.PI);
+        ctx.fill();
+    }
 
     return canvas;
 };
@@ -95,7 +102,7 @@ const hodograph_opt_defaults: Required<HodographOptions> = {
     thin_fac: 1,
     hodo_line_width: 2.5,
     background_line_width: 1.5,
-    height_cmap: HODO_CMAP
+    height_cmap: HODO_CMAP,
 }
 
 interface HodographGLElems<ArrayType extends TypedArray, GridType extends Grid, MapType extends MapLikeType> {
@@ -126,7 +133,7 @@ class Hodographs<GridType extends Grid, MapType extends MapLikeType> extends Plo
         this.profile_field = profile_field;
         this.opts = normalizeOptions(opts, hodograph_opt_defaults);
 
-        this.hodo_bg_texture = _createHodoBackgroundTexture(this.opts.background_line_width * LINE_WIDTH_MULTIPLIER);
+        this.hodo_bg_texture = _createHodoBackgroundTexture(this.opts.background_line_width * LINE_WIDTH_MULTIPLIER, isStormRelativeWindProfile(profile_field.profiles[0]));
         this.hodo_scale = (HODO_BG_DIMS.BB_TEX_WIDTH - this.opts.background_line_width / 2) / (HODO_BG_DIMS.BB_TEX_WIDTH * BG_MAX_RING_MAG);
         this.bg_size = 140;
 
@@ -154,7 +161,12 @@ class Hodographs<GridType extends Grid, MapType extends MapLikeType> extends Plo
             const zoom = getMinZoom(prof['jlat'], prof['ilon'], this.opts.thin_fac);
 
             return {
-                'offsets': [...prof['u']].map((u, ipt) => [u - prof['smu'], prof['v'][ipt] - prof['smv']]),
+                'offsets': [...prof['u']].map((u, ipt) => {
+                    if (isStormRelativeWindProfile(prof)) {
+                        return [u - prof['smu'], prof['v'][ipt] - prof['smv']]
+                    }
+                    return [u, prof['v'][ipt]];
+                }),
                 'vertices': [...prof['u']].map(u => [lons[iprof], lats[iprof]]),
                 'zoom': zoom,
                 'data': [...prof['z']],
@@ -165,6 +177,10 @@ class Hodographs<GridType extends Grid, MapType extends MapLikeType> extends Plo
                                                                             offset_scale: this.hodo_scale * this.bg_size, offset_rotates_with_map: false});
 
         const sm_polyline = profiles.map((prof, iprof) => {
+            if (!isStormRelativeWindProfile(prof)) {
+                return {vertices: []} as LineData;
+            }
+
             const zoom = getMinZoom(prof['jlat'], prof['ilon'], this.opts.thin_fac);
 
             const sm_mag = Math.hypot(prof['smu'], prof['smv']);

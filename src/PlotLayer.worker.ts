@@ -228,7 +228,7 @@ function makePolylinesMiter(lines) {
 */
 
 function makePolylines(lines: LineData[]) : Polyline {
-    if (lines.length == 0) {
+    if (lines.length == 0 || lines[0].vertices.length == 0) {
         return {vertices: new Float32Array([]), extrusion: new Float32Array([])};
     }
 

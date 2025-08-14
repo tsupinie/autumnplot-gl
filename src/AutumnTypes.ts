@@ -1,7 +1,7 @@
 
 import { Float16Array } from "@petamoriken/float16";
 
-interface WindProfile {
+interface StormRelativeWindProfile {
     jlat: number;
     ilon: number;
     smu: number;
@@ -9,6 +9,20 @@ interface WindProfile {
     u: Float32Array;
     v: Float32Array;
     z: Float32Array
+}
+
+interface GroundRelativeWindProfile {
+    jlat: number;
+    ilon: number;
+    u: Float32Array;
+    v: Float32Array;
+    z: Float32Array
+}
+
+type WindProfile = StormRelativeWindProfile | GroundRelativeWindProfile;
+
+function isStormRelativeWindProfile(obj: any) : obj is StormRelativeWindProfile {
+    return 'smu' in obj && 'smv' in obj;
 }
 
 interface BillboardSpec {
@@ -126,5 +140,6 @@ function getRendererData(arg: RenderMethodArg) : RendererData{
     return {type: 'autumn', mainMatrix: [...arg], shaderData: null};
 }
 
-export {isWebGL2Ctx, getRendererData};
-export type {WindProfile, BillboardSpec, Polyline, LineData, WebGLAnyRenderingContext, TypedArray, TypedArrayStr, ContourData, RenderMethodArg, RendererData, RenderShaderData};
+export {isWebGL2Ctx, getRendererData, isStormRelativeWindProfile};
+export type {WindProfile, StormRelativeWindProfile, GroundRelativeWindProfile, BillboardSpec, Polyline, LineData, WebGLAnyRenderingContext, 
+             TypedArray, TypedArrayStr, ContourData, RenderMethodArg, RendererData, RenderShaderData};
