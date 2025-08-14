@@ -34,7 +34,10 @@ function makeBBElements(field_lats: Float32Array, field_lons: Float32Array, min_
             pts[istart_pts + 0] = pt_ll.x; 
             pts[istart_pts + 1] = pt_ll.y; 
 
-            tex_coords[istart_tc + 0] = ilon / (field_ni - 1) + zoom; // Pack the min zoom in with the texture coordinates; only works because the min zoom is always an integer
+            // Pack the min zoom in with the texture coordinates; only works because the min zoom is always an integer
+            // Another gotcha is that if the i texcoord is 1, then that bump up the zoom that gets unpacked on the GPU, which causes may cause the last column of billboards to
+            //  disappear. To fix this, cap the texcoord at 0.99999, which should be good for textures up to 10^5 pixels in size.
+            tex_coords[istart_tc + 0] = Math.min(ilon / (field_ni - 1), 0.99999) + zoom;
             tex_coords[istart_tc + 1] = ilat / (field_nj - 1);
 
             istart_pts += n_coords_per_pt_pts;
