@@ -12,7 +12,6 @@ import { Color } from "./Color";
 import { Grid } from "./Grid";
 
 const LINE_WIDTH_MULTIPLIER = 2.5;
-const BG_MAX_RING_MAG = 40;
 
 const HODO_BG_DIMS = {
     BB_WIDTH: 256,
@@ -95,6 +94,12 @@ interface HodographOptions {
      * The colormap to use for the heights on the hodograph. Default is a yellow-blue colormap.
      */
     height_cmap?: ColorMap;
+
+    /**
+     * The wind speed (in kts) of the largest ring on the hodograph background
+     * @default 80
+     */
+    max_wind_speed_ring?: number;
 }
 
 const hodograph_opt_defaults: Required<HodographOptions> = {
@@ -103,6 +108,7 @@ const hodograph_opt_defaults: Required<HodographOptions> = {
     hodo_line_width: 2.5,
     background_line_width: 1.5,
     height_cmap: HODO_CMAP,
+    max_wind_speed_ring: 80
 }
 
 interface HodographGLElems<ArrayType extends TypedArray, GridType extends Grid, MapType extends MapLikeType> {
@@ -134,7 +140,7 @@ class Hodographs<GridType extends Grid, MapType extends MapLikeType> extends Plo
         this.opts = normalizeOptions(opts, hodograph_opt_defaults);
 
         this.hodo_bg_texture = _createHodoBackgroundTexture(this.opts.background_line_width * LINE_WIDTH_MULTIPLIER, isStormRelativeWindProfile(profile_field.profiles[0]));
-        this.hodo_scale = (HODO_BG_DIMS.BB_TEX_WIDTH - this.opts.background_line_width / 2) / (HODO_BG_DIMS.BB_TEX_WIDTH * BG_MAX_RING_MAG);
+        this.hodo_scale = (HODO_BG_DIMS.BB_TEX_WIDTH - this.opts.background_line_width / 2) / (HODO_BG_DIMS.BB_TEX_WIDTH * this.opts.max_wind_speed_ring);
         this.bg_size = 140;
 
         this.gl_elems = null;
