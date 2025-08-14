@@ -2,7 +2,7 @@
 import { PlotComponent } from "./PlotComponent";
 import { PolylineCollection } from "./PolylineCollection";
 import { BillboardCollection } from "./BillboardCollection";
-import { getMinZoom, normalizeOptions } from './utils';
+import { normalizeOptions } from './utils';
 import { MapLikeType } from "./Map";
 import { RawProfileField } from "./RawField";
 import { LineData, RenderMethodArg, TypedArray, WebGLAnyRenderingContext, WindProfile, isStormRelativeWindProfile } from "./AutumnTypes";
@@ -156,10 +156,9 @@ class Hodographs<GridType extends Grid, MapType extends MapLikeType> extends Plo
 
         const profiles = this.profile_field.profiles;
         const {lats, lons} = this.profile_field.getProfileCoords();
+        const min_visible_zoom = this.profile_field.grid.getMinVisibleZoom(this.opts.thin_fac);
         
         const hodo_polyline = profiles.map((prof, iprof) => {
-            const zoom = getMinZoom(prof['jlat'], prof['ilon'], this.opts.thin_fac);
-
             return {
                 'offsets': [...prof['u']].map((u, ipt) => {
                     if (isStormRelativeWindProfile(prof)) {
@@ -168,7 +167,7 @@ class Hodographs<GridType extends Grid, MapType extends MapLikeType> extends Plo
                     return [u, prof['v'][ipt]];
                 }),
                 'vertices': [...prof['u']].map(u => [lons[iprof], lats[iprof]]),
-                'zoom': zoom,
+                'zoom': min_visible_zoom[iprof],
                 'data': [...prof['z']],
             } as LineData;
         });
@@ -181,8 +180,6 @@ class Hodographs<GridType extends Grid, MapType extends MapLikeType> extends Plo
                 return {vertices: []} as LineData;
             }
 
-            const zoom = getMinZoom(prof['jlat'], prof['ilon'], this.opts.thin_fac);
-
             const sm_mag = Math.hypot(prof['smu'], prof['smv']);
             const sm_ang = Math.PI / 2 - Math.atan2(-prof['smv'], -prof['smu']);
             const buffer = 2
@@ -191,7 +188,7 @@ class Hodographs<GridType extends Grid, MapType extends MapLikeType> extends Plo
                 'offsets': [[buffer * Math.sin(sm_ang), buffer * Math.cos(sm_ang)], 
                               [sm_mag * Math.sin(sm_ang), sm_mag * Math.cos(sm_ang)]],
                 'vertices': [[lons[iprof], lats[iprof]], [lons[iprof], lats[iprof]]],
-                'zoom': zoom
+                'zoom': min_visible_zoom[iprof]
             } as LineData;
         });
 
