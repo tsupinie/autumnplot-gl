@@ -288,6 +288,10 @@ function makePolylines(lines: LineData[]) : Polyline {
             return [v_ll.x, v_ll.y] as [number, number];
         });
 
+        if (line.vertices.length == 0) {
+            return;
+        }
+
         const has_offsets = line.offsets !== undefined;
         const extrusion_verts = line.offsets !== undefined ? line.offsets : verts;
 
