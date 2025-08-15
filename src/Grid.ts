@@ -16,6 +16,9 @@ interface GridCoords {
     y: Float32Array;
 }
 
+const WGS84_SEMIMAJOR = 6378137.0;
+const WGS84_SEMIMINOR = 6356752.314245;
+
 function argMin<T>(ary: T[] | TypedArray) {
     if (ary.length === 0) {
         return -1;
@@ -498,6 +501,8 @@ class LambertGrid extends StructuredGrid {
     public readonly ll_y: number;
     public readonly ur_x: number;
     public readonly ur_y: number;
+    public readonly a: number;
+    public readonly b: number;
 
     private readonly lcc: (a: number, b: number, opts?: {inverse: boolean}) => [number, number];
     private readonly ll_cache: Cache<[number, number], EarthCoords>;
@@ -514,9 +519,11 @@ class LambertGrid extends StructuredGrid {
      * @param ll_y    - The y coordinate in projection space of the lower-left corner of the grid
      * @param ur_x    - The x coordinate in projection space of the upper-right corner of the grid
      * @param ur_y    - The y coordinate in projection space of the upper-right corner of the grid
+     * @param a       - The semimajor axis of the assumed shape of Earth in meters
+     * @param b       - The semiminor axis of the assumed shape of Earth in meters
      */
     constructor(ni: number, nj: number, lon_0: number, lat_0: number, lat_std: [number, number], 
-                ll_x: number, ll_y: number, ur_x: number, ur_y: number, thin_x?: number, thin_y?: number) {
+                ll_x: number, ll_y: number, ur_x: number, ur_y: number, a?: number, b?: number, thin_x?: number, thin_y?: number) {
         super('lcc', true, ni, nj, thin_x, thin_y);
 
         this.lon_0 = lon_0;
@@ -526,7 +533,9 @@ class LambertGrid extends StructuredGrid {
         this.ll_y = ll_y;
         this.ur_x = ur_x;
         this.ur_y = ur_y;
-        this.lcc = lambertConformalConic({lon_0: lon_0, lat_0: lat_0, lat_std: lat_std});
+        this.a = a === undefined ? WGS84_SEMIMAJOR : a;
+        this.b = b === undefined ? WGS84_SEMIMINOR : b;
+        this.lcc = lambertConformalConic({lon_0: lon_0, lat_0: lat_0, lat_std: lat_std, a: this.a, b: this.b});
 
         const dx = (this.ur_x - this.ll_x) / this.ni;
         const dy = (this.ur_y - this.ll_y) / this.nj;
@@ -580,12 +589,17 @@ class LambertGrid extends StructuredGrid {
      * @param ll_lat  - The latitude of the lower-left corner of the grid
      * @param dx      - The grid dx in meters
      * @param dy      - The grid dy in meters
+     * @param a       - The semimajor axis of the assumed shape of Earth in meters
+     * @param b       - The semiminor axis of the assumed shape of Earth in meters
      * @returns 
      */
     public static fromLLCornerLonLat(ni: number, nj: number, lon_0: number, lat_0: number, lat_std: [number, number], 
-                                     ll_lon: number, ll_lat: number, dx: number, dy: number) {
+                                     ll_lon: number, ll_lat: number, dx: number, dy: number, a?: number, b?: number) {
 
-        const lcc = lambertConformalConic({lon_0: lon_0, lat_0: lat_0, lat_std: lat_std});
+        a = a === undefined ? WGS84_SEMIMAJOR : a;
+        b = b === undefined ? WGS84_SEMIMINOR : b;
+
+        const lcc = lambertConformalConic({lon_0: lon_0, lat_0: lat_0, lat_std: lat_std, a: a, b: b});
         const [ll_x, ll_y] = lcc(ll_lon, ll_lat);
 
         return new LambertGrid(ni, nj, lon_0, lat_0, lat_std, ll_x, ll_y, ll_x + ni * dx, ll_y + nj * dy);
@@ -601,7 +615,7 @@ class LambertGrid extends StructuredGrid {
         const ur_x = opts.ur_x !== undefined ? opts.ur_x : this.ur_x;
         const ur_y = opts.ur_y !== undefined ? opts.ur_y : this.ur_y;
 
-        return new LambertGrid(ni, nj, this.lon_0, this.lat_0, this.lat_std, ll_x, ll_y, ur_x, ur_y);
+        return new LambertGrid(ni, nj, this.lon_0, this.lat_0, this.lat_std, ll_x, ll_y, ur_x, ur_y, this.a, this.b);
     }
 
     /**
@@ -644,7 +658,7 @@ class LambertGrid extends StructuredGrid {
         const ur_x = this.ur_x - ni_remove * dx;
         const ur_y = this.ur_y - nj_remove * dy;
 
-        return new LambertGrid(ni, nj, this.lon_0, this.lat_0, this.lat_std, ll_x, ll_y, ur_x, ur_y, this.thin_x * thin_x, this.thin_y * thin_y);
+        return new LambertGrid(ni, nj, this.lon_0, this.lat_0, this.lat_std, ll_x, ll_y, ur_x, ur_y, this.a, this.b, this.thin_x * thin_x, this.thin_y * thin_y);
     }
 }
 
