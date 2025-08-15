@@ -602,7 +602,7 @@ class LambertGrid extends StructuredGrid {
         const lcc = lambertConformalConic({lon_0: lon_0, lat_0: lat_0, lat_std: lat_std, a: a, b: b});
         const [ll_x, ll_y] = lcc(ll_lon, ll_lat);
 
-        return new LambertGrid(ni, nj, lon_0, lat_0, lat_std, ll_x, ll_y, ll_x + ni * dx, ll_y + nj * dy);
+        return new LambertGrid(ni, nj, lon_0, lat_0, lat_std, ll_x, ll_y, ll_x + ni * dx, ll_y + nj * dy, a, b);
     }
 
     /** @internal */
