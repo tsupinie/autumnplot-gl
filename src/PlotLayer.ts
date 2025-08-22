@@ -26,7 +26,7 @@ abstract class PlotLayerBase<MapType extends MapLikeType> {
 }
 
 /** 
- * A static map layer. The data are assumed to be static in time. If the data have a time component (e.g., a model forecast), an {@link MultiPlotLayer} 
+ * A static map layer. The data are assumed to be static in time. If the data have a time component (e.g., a model forecast), a {@link MultiPlotLayer} 
  * may be more appropriate.
  * @example
  * // Create map layers from provided fields
@@ -66,7 +66,7 @@ class PlotLayer<MapType extends MapLikeType> extends PlotLayerBase<MapType> {
 }
 
 /**
- * A varying map layer. If the data don't have a varying component, such as over time, it might be easier to use an {@link PlotLayer} instead.
+ * A varying map layer. If the data don't have a varying component, such as over time, it might be easier to use a {@link PlotLayer} instead.
  * @example
  * // Create a varying map layer
  * height_layer = new MultiPlotLayer('height-contours');

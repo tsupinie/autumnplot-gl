@@ -96,6 +96,7 @@ function makeVectorRotationTexture(gl: WebGLAnyRenderingContext, grid: Grid, dat
 
 type GridType = 'latlon' | 'latlonrot' | 'lcc' | 'unstructured';
 
+/** The base class for grid types */
 abstract class Grid {
     public readonly type: GridType;
     public readonly ni: number;
@@ -662,7 +663,7 @@ class LambertGrid extends StructuredGrid {
     }
 }
 
-/** An unstructured grid */
+/** An unstructured grid defined by a list of latitudes and longitudes */
 class UnstructuredGrid extends Grid {
     public readonly coords: {lon: number, lat: number}[];
     private readonly zoom_cache: Cache<[number], Uint8Array>

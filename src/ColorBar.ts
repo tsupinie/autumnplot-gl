@@ -2,8 +2,13 @@
 import { ColorMap } from "./Colormap";
 import { Color } from "./Color";
 
+/** The orientation for color bars (horizontal or vertical) */
 type ColorbarOrientation = 'horizontal' | 'vertical';
+
+/** Which side of a color bar the ticks are on */
 type ColorbarTickDirection = 'top' | 'bottom' | 'left' | 'right';
+
+/** Options for {@link ColorBar}s */
 interface ColorBarOptions {
     /** The label to place along the color bar */
     label?: string;
@@ -280,6 +285,7 @@ function makeColorBar(colormap: ColorMap, opts: ColorBarOptions) {
     return root;
 }
 
+/** Options for {@link makePaintballKey | makePaintballKey()} */
 interface PaintballKeyOptions {
     /**
      * The number of columns of entries in the key

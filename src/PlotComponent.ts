@@ -9,6 +9,7 @@ import { RenderMethodArg, TypedArrayStr, WebGLAnyRenderingContext, isWebGL2Ctx }
 const worker = new Worker(new URL('./PlotLayer.worker', import.meta.url));
 const layer_worker = Comlink.wrap<PlotLayerWorker>(worker);
 
+/** Base class for all plot components */
 abstract class PlotComponent<MapType extends MapLikeType> {
     public abstract onAdd(map: MapType, gl: WebGLAnyRenderingContext) : Promise<void>;
     public abstract render(gl: WebGLAnyRenderingContext, arg: RenderMethodArg) : void;

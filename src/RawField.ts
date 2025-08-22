@@ -100,8 +100,10 @@ class RawScalarField<ArrayType extends TypedArray, GridType extends Grid> {
     }
 }
 
+/** The basis vectors for vector fields (i.e, whether vectors a relative to Earth or the grid) */
 type VectorRelativeTo = 'earth' | 'grid';
 
+/** Options for {@link RawVectorField}s */
 interface RawVectorFieldOptions {
     /**
      * Whether the vectors are relative to the grid ('grid') or Earth ('earth')

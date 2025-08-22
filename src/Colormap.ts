@@ -14,6 +14,7 @@ import { mergeShaderCode } from "./utils";
 
 const colormap_shader_src = require('./glsl/colormap.glsl');
 
+/** Options for {@link ColorMap}s */
 interface ColorMapOptions {
     /** The color to use for areas where the value is above the highest value in the color map */
     overflow_color?: Color | string;

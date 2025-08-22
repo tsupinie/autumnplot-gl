@@ -5,6 +5,7 @@ type StyleSpecification = {
     glyphs?: string;
 }
 
+/** Type with the required methods for mapping libraries */
 type MapLikeType = {
     triggerRepaint: () => void;
     getCanvas: () => HTMLCanvasElement;

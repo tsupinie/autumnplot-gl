@@ -11,6 +11,7 @@ import { normalizeOptions } from './utils';
 import { ColorMap } from './Colormap';
 import { StructuredGrid, UnstructuredGrid } from './Grid';
 
+/** Options for {@link Contour} components */
 interface ContourOptions {
     /** 
      * The color of the contours as a hex color string 
@@ -207,6 +208,7 @@ interface ContourLabelGLElems<MapType extends MapLikeType> {
     map: MapType;
 }
 
+/** Options for {@link ContourLabels} */
 interface ContourLabelOptions {
     /**
      * Number of decimal places to use in the contour labels
@@ -267,6 +269,14 @@ const contour_label_opt_defaults: Required<ContourLabelOptions> = {
     density: 1
 }
 
+/** 
+ * Label the contours on a plot 
+ * @example 
+ * // Contour some data
+ * const contours = new Contour(height_field, {color: '#000000', interval: 30});
+ * // Label the contours
+ * const labels = new ContourLabels(contours, {text_color: '#ffffff', halo: true});
+ */
 class ContourLabels<ArrayType extends TypedArray, GridType extends StructuredGrid, MapType extends MapLikeType> extends PlotComponent<MapType> {
     private readonly contours: Contour<ArrayType, GridType, MapType>;
     private gl_elems: ContourLabelGLElems<MapType> | null;
@@ -338,6 +348,8 @@ class ContourLabels<ArrayType extends TypedArray, GridType extends StructuredGri
                 let n_labels_placed = 0;
                 for (let idist = 1; idist < dist.length; idist++) {
                     const target_dist = contour_label_spacing * (n_labels_placed + (icntr / 2) % 1);
+                    // This works fine when contour_label_spacing > the spacing between points along a contour, but when you allow the map to zoom in
+                    //  (and therefore contour_label_spacing gets small), dist[idist] outruns target_dist, so it doesn't put any more labels after the first.
                     if (dist[idist - 1] <= target_dist && target_dist < dist[idist]) {
                         const pt1 = contour[idist - 1];
                         const pt2 = contour[idist];

@@ -12,6 +12,7 @@ import { ShaderProgramManager } from './ShaderManager';
 const contourfill_vertex_shader_src = require('./glsl/contourfill_vertex.glsl');
 const contourfill_fragment_shader_src = require('./glsl/contourfill_fragment.glsl');
 
+/** Options for {@link ContourFill} components */
 interface ContourFillOptions {
     /** The color maps to use when creating the fills */
     cmap: ColorMap | ColorMap[];
@@ -37,6 +38,7 @@ const contour_fill_opt_defaults: Required<ContourFillOptions> = {
     opacity: 1,
 }
 
+/** Options for {@link Raster} components */
 interface RasterOptions {
     /** The color map to use when creating the raster plot */
     cmap: ColorMap | ColorMap[];

@@ -127,6 +127,7 @@ function createBarbTexture(dimensions: BillboardSpec, line_width: number) : HTML
     return canvas;
 }
 
+/** Options for {@link Barbs} components */
 interface BarbsOptions {
     /** 
      * The color to use for the barbs as a hex color string;.

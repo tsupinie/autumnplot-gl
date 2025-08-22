@@ -19,6 +19,7 @@ import { Grid, GridType, StructuredGrid, PlateCarreeGrid, PlateCarreeRotatedGrid
 
 import { initMSModule, FieldContourOpts } from './ContourCreator';
 
+/** All built-in colormaps */
 const colormaps = {
     bluered: bluered,
     redblue: redblue,

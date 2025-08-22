@@ -12,6 +12,7 @@ import { WGLBuffer, WGLTexture } from "autumn-wgl";
 const paintball_vertex_shader_src = require('./glsl/paintball_vertex.glsl');
 const paintball_fragment_shader_src = require('./glsl/paintball_fragment.glsl');
 
+/** Options for {@link Paintball} components */
 interface PaintballOptions {
     /**
      * The list of colors (as hex strings) to use for each member in the paintball plot. The first color corresponds to member 1, the second to member 2, etc.

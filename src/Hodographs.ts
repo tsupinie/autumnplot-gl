@@ -64,6 +64,7 @@ function _createHodoBackgroundTexture(line_width: number, arrow_head: boolean) {
 
 const HODO_CMAP = new ColorMap([0, 1, 3, 6, 9], ['#ffffcc', '#a1dab4', '#41b6c4', '#225ea8']);
 
+/** Options for {@link Hodographs} components */
 interface HodographOptions {
     /** 
      * The color of the hodograph plot background as a hex string

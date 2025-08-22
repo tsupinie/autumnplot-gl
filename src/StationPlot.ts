@@ -27,6 +27,7 @@ import Barbs from "./Barbs";
  */
 type SPPosition = 'cl' | 'll' | 'lc' | 'lr' | 'cr' | 'ur' | 'uc' | 'ul' | 'c';
 
+/** Configuration for numerical values on station plots */
 interface SPNumberConfig {
     type: 'number';
 
@@ -62,6 +63,7 @@ interface SPNumberConfig {
     formatter?: (val: number | null) => string;
 }
 
+/** Configuration for strings on station plots */
 interface SPStringConfig {
     type: 'string';
 
@@ -89,6 +91,7 @@ interface SPStringConfig {
     halo_color?: string;
 }
 
+/** Configuration for wind barbs on station plots */
 interface SPBarbConfig {
     type: 'barb';
 
@@ -166,6 +169,7 @@ const SYMBOLS: Record<SPSymbol, number> = {
     '-up': 59750, 'up': 59750, '+up': 59751, '-fzup': 59756, 'fzup': 59756, '+fzup': 59757,
 }
 
+/** Configuration for symbols on station plots */
 interface SPSymbolConfig {
     type: 'symbol';
 
@@ -193,6 +197,7 @@ interface SPSymbolConfig {
     halo_color?: string;
 }
 
+/** Configuration for station plot sub-elements */
 type SPConfig = SPNumberConfig | SPStringConfig | SPBarbConfig | SPSymbolConfig;
 
 /**
@@ -214,6 +219,7 @@ type SPConfig = SPNumberConfig | SPStringConfig | SPBarbConfig | SPSymbolConfig;
  */
 type SPDataConfig<ObsFieldName extends string> = Record<ObsFieldName, SPConfig>;
 
+/** Options for {@link StationPlot} components */
 interface StationPlotOptions<ObsFieldName extends string> {
     config: SPDataConfig<ObsFieldName>, 
     /**
@@ -271,6 +277,21 @@ function positionToAlignmentAndOffset(pos: SPPosition, off_size?: number) {
     return {horizontal_align: ha, vertical_align: va, offset_x: xoff, offset_y: yoff};
 }
 
+/** 
+ * Station model plots for observed data
+ * @example
+ * // Specify how to set up the station plot
+ * const station_plot_locs = {
+ *     tmpf: {type: 'number', pos: 'ul', color: '#cc0000', formatter: val => val === null ? '' : val.toFixed(0)},
+ *     dwpf: {type: 'number', pos: 'll', color: '#00aa00', formatter: val => val === null ? '' : val.toFixed(0)}, 
+ *     wind: {type: 'barb', pos: 'c'},
+ *     preswx: {type: 'symbol', pos: 'cl', color: '#ff00ff'},
+ *     skyc: {type: 'symbol', pos: 'c'},
+ * };
+ * 
+ * // Create the station plot
+ * const station_plot = new StationPlot(obs_field, {config: station_plot_locs, thin_fac: 8, font_size: 14});
+ */
 class StationPlot<GridType extends Grid, MapType extends MapLikeType, ObsFieldName extends string> extends PlotComponent<MapType> {
     private field: RawObsField<GridType, ObsFieldName>;
     public readonly opts: Required<StationPlotOptions<ObsFieldName>>;
@@ -278,9 +299,9 @@ class StationPlot<GridType extends Grid, MapType extends MapLikeType, ObsFieldNa
     private text_components: TextCollection[] | null;
 
     /**
-     * 
-     * @param field 
-     * @param opts 
+     * Create station plots
+     * @param field - A field containing the observed data
+     * @param opts  - Various options for the station plots
      */
     constructor(field: RawObsField<GridType, ObsFieldName>, opts: StationPlotOptions<ObsFieldName>) {
         super();

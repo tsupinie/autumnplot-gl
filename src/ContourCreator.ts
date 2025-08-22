@@ -15,6 +15,7 @@ function initMSModule() {
     return msm_promise;
 }
 
+/** Options for contouring data via {@link RawScalarField.getContours | RawScalarField.getContours()} */
 interface FieldContourOpts {
     /**
      * The interval at which to create contours. The field will be contoured at this interval from its minimum to its maximum.

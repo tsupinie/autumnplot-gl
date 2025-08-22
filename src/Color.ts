@@ -90,6 +90,7 @@ const hsv2rgb = (hsv: [number, number, number]) : [number, number, number] => {
     return [r_prime + m, g_prime + m, b_prime + m];
 }
 
+/** A class for handling colors and translations between different color spaces */
 class Color {
     private rgba: [number, number, number, number];
 
