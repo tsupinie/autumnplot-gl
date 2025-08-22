@@ -50,6 +50,12 @@ interface ColorBarOptions {
      * @default 12
      */
     ticklabelsize?: number;
+
+    /**
+     * The color for the color bar outline and the text
+     * @default '#000000'
+     */
+    outline_and_text_color?: string;
 };
 
 const createElement = (tagname: string, attributes?: Record<string, string | number>, parent?: SVGElement) => {
@@ -89,6 +95,7 @@ function makeColorBar(colormap: ColorMap, opts: ColorBarOptions) {
     const tickfontsize = opts.ticklabelsize || 12;
     const size_long = opts.size_long || 600;
     const size_short = opts.size_short || size_long / 9;
+    const outline_and_text_color = opts.outline_and_text_color || '#000000';
 
     const tick_dir = opts.tick_direction || (orientation == 'vertical' ? 'left' : 'bottom');
 
@@ -226,7 +233,7 @@ function makeColorBar(colormap: ColorMap, opts: ColorBarOptions) {
             lineattrs = tick_dir == 'bottom' ? {y2 : 6} : {y2: -6};
         }
 
-        createElement('line', {...lineattrs, stroke: '#000000', 'stroke-width': 1.5}, gtick);
+        createElement('line', {...lineattrs, stroke: outline_and_text_color, 'stroke-width': 1.5}, gtick);
 
         let textattrs;
         if (orientation == 'vertical') {
@@ -236,7 +243,7 @@ function makeColorBar(colormap: ColorMap, opts: ColorBarOptions) {
             textattrs = tick_dir == 'bottom' ? {y: 9, dy: '0.8em'} : {y: -9, dy: '0em'};
         }
 
-        const text = createElement('text', {...textattrs, fill: '#000000', style: `font-family: ${fontface}; font-size: ${tickfontsize}pt`}, gtick);
+        const text = createElement('text', {...textattrs, fill: outline_and_text_color, style: `font-family: ${fontface}; font-size: ${tickfontsize}pt`}, gtick);
         text.textContent = level.toString();
     });
 
@@ -253,7 +260,7 @@ function makeColorBar(colormap: ColorMap, opts: ColorBarOptions) {
 
     const outline_attrs = {
         points: point_list,
-        stroke: '#000000',
+        stroke: outline_and_text_color,
         'stroke-width': 1.5,
         fill: 'none'
     };
@@ -267,7 +274,7 @@ function makeColorBar(colormap: ColorMap, opts: ColorBarOptions) {
     else {
         labelattrs = tick_dir == 'bottom' ? {transform: `translate(${width / 2}, ${height - 5})`} : {transform: `translate(${width / 2}, 15)`}
     }
-    const label_elem = createElement('text', {...labelattrs, fill: '#000000', 'text-anchor': 'middle', style: `font-family: ${fontface};`}, root);
+    const label_elem = createElement('text', {...labelattrs, fill: outline_and_text_color, 'text-anchor': 'middle', style: `font-family: ${fontface};`}, root);
     label_elem.textContent = label;
 
     return root;
