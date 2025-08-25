@@ -66,7 +66,7 @@ class Paintball<ArrayType extends TypedArray, GridType extends StructuredGrid, M
         this.field = field;
 
         this.opts = normalizeOptions(opts, paintball_opt_defaults);
-        this.color_components = [...this.opts.colors].reverse().map(color => Color.fromHex(color).toRGBATuple()).flat();
+        this.color_components = this.opts.colors.map(color => Color.fromHex(color).toRGBATuple()).flat();
         
         this.gl_elems = null;
         this.fill_texture = null;

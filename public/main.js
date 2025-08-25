@@ -137,7 +137,7 @@ async function makeHREFLayers() {
     const href_pb_colors = ['#9d4c1c', '#f2b368', '#792394', '#d99cf9', '#1e3293', '#aabee3', '#bc373b', '#f0928f', '#397d21', '#b5f0ab'];
 
     const pb_field = new apgl.RawScalarField(grid_href, pb_data);
-    const paintball = new apgl.Paintball(pb_field, {'colors': href_pb_colors});
+    const paintball = new apgl.Paintball(pb_field, {'colors': [...href_pb_colors].reverse()});
     const paintball_layer = new apgl.PlotLayer('paintball', paintball);
 
     const svg = apgl.makePaintballKey(href_pb_colors,
