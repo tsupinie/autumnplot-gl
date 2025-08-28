@@ -1,5 +1,5 @@
 
-import { WebGLAnyRenderingContext } from './AutumnTypes';
+import { RenderMethodArg, WebGLAnyRenderingContext } from './AutumnTypes';
 import { MapLikeType } from './Map';
 
 import { PlotComponent } from './PlotComponent';
@@ -26,7 +26,7 @@ abstract class PlotLayerBase<MapType extends MapLikeType> {
 }
 
 /** 
- * A static map layer. The data are assumed to be static in time. If the data have a time component (e.g., a model forecast), an {@link MultiPlotLayer} 
+ * A static map layer. The data are assumed to be static in time. If the data have a time component (e.g., a model forecast), a {@link MultiPlotLayer} 
  * may be more appropriate.
  * @example
  * // Create map layers from provided fields
@@ -60,13 +60,13 @@ class PlotLayer<MapType extends MapLikeType> extends PlotLayerBase<MapType> {
      * @internal
      * Render this layer
      */
-    public render(gl: WebGLAnyRenderingContext, matrix: number[] | Float32Array) {
+    public render(gl: WebGLAnyRenderingContext, matrix: RenderMethodArg) {
         this.field.render(gl, matrix);
     }
 }
 
 /**
- * A varying map layer. If the data don't have a varying component, such as over time, it might be easier to use an {@link PlotLayer} instead.
+ * A varying map layer. If the data don't have a varying component, such as over time, it might be easier to use a {@link PlotLayer} instead.
  * @example
  * // Create a varying map layer
  * height_layer = new MultiPlotLayer('height-contours');
@@ -119,7 +119,7 @@ class MultiPlotLayer<MapType extends MapLikeType> extends PlotLayerBase<MapType>
      * @internal
      * Render this layer
      */
-    public render(gl: WebGLAnyRenderingContext, matrix: number[] | Float32Array) {
+    public render(gl: WebGLAnyRenderingContext, matrix: RenderMethodArg) {
         if (this.map !== null && this.gl !== null && this.field_key !== null 
             && this.fields.hasOwnProperty(this.field_key) && this.fields[this.field_key] !== null) {
             this.fields[this.field_key].render(gl, matrix);

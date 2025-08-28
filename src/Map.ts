@@ -5,6 +5,7 @@ type StyleSpecification = {
     glyphs?: string;
 }
 
+/** Type with the required methods for mapping libraries */
 type MapLikeType = {
     triggerRepaint: () => void;
     getCanvas: () => HTMLCanvasElement;
@@ -20,6 +21,8 @@ interface LambertConformalConicParameters {
     lon_0: number,
     lat_0: number,
     lat_std: [number, number] | number;
+    a: number;
+    b: number;
 }
 
 function lambertConformalConic(params: LambertConformalConicParameters) {
@@ -35,8 +38,8 @@ function lambertConformalConic(params: LambertConformalConicParameters) {
     }
 
     // WGS 84 spheroid
-    const semimajor = 6378137.0;
-    const semiminor = 6356752.314245;
+    const semimajor = params.a;
+    const semiminor = params.b;
     const eccen = Math.sqrt(1 - (semiminor * semiminor) / (semimajor * semimajor));
     const radians = Math.PI / 180;
 
@@ -195,7 +198,7 @@ function lngFromMercatorX(x: number) {
 function mercatorYfromLat(lat: number) {
     const sin_lat = Math.sin(lat * Math.PI / 180);
     const y = (180 - (90 / Math.PI * Math.log((1 + sin_lat) / (1 - sin_lat)))) / 360;
-    return Math.min(2, Math.max(-2, y));
+    return Math.min(1.5, Math.max(-0.5, y));
 }
 
 function latFromMercatorY(y: number) {

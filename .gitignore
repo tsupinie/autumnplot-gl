@@ -3,7 +3,7 @@ docs/
 dist/
 lib/
 
-public/maptiler.js
+public/api_keys.js
 public/tiles
 public/style.json
 public/tiles.json

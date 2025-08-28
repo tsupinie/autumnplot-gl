@@ -1,6 +1,6 @@
 {
     "name": "autumnplot-gl",
-    "version": "3.2.0",
+    "version": "4.0.0",
     "description": "",
     "main": "lib/index.js",
     "types": "lib/index.d.ts",
@@ -27,14 +27,14 @@
         "typedoc": "^0.25.13",
         "typedoc-plugin-markdown": "^4.0.2",
         "typescript": "^5.4.5",
-        "webpack": "^5.75.0",
+        "webpack": "5.100",
         "webpack-cli": "^5.0.1",
         "webpack-dev-server": "^4.11.1",
         "webpack-glsl-loader": "^1.0.1"
     },
     "dependencies": {
         "@petamoriken/float16": "^3.8.4",
-        "autumn-wgl": "^1.4.1",
+        "autumn-wgl": "^1.5.3",
         "comlink": "^4.3.1",
         "kd-tree-javascript": "^1.0.3",
         "pbf": "^3.2.1",

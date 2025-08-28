@@ -1,16 +1,16 @@
-import { isWebGL2Ctx, WebGLAnyRenderingContext } from "./AutumnTypes";
+import { getRendererData, isWebGL2Ctx, RenderMethodArg, WebGLAnyRenderingContext } from "./AutumnTypes";
 import { Color } from "./Color";
 import { LngLat } from "./Map";
+import { ShaderProgramManager } from "./ShaderManager";
 import { Cache, normalizeOptions } from "./utils";
 
-import { WGLBuffer, WGLProgram, WGLTexture } from "autumn-wgl";
+import { WGLBuffer, WGLTexture } from "autumn-wgl";
 
 import Protobuf from 'pbf';
 import potpack, {PotpackBox} from "potpack";
 
 const text_vertex_shader_src = require('./glsl/text_vertex.glsl');
 const text_fragment_shader_src = require('./glsl/text_fragment.glsl');
-const program_cache = new Cache((gl: WebGLAnyRenderingContext) => new WGLProgram(gl, text_vertex_shader_src, text_fragment_shader_src));
 
 const PADDING = 3
 
@@ -112,6 +112,8 @@ function createAtlas(pbf_glyphs: PBFGlyph[]): FontAtlas {
 
     const atlas_data = new Uint8Array(img_width * img_height);
     const glyphs: Record<number, Glyph> = {}
+    let max_glyph_height = 0;
+
     glyph_bins.forEach(glyph_bin => {
         const {bin, glyph} = glyph_bin;
 
@@ -123,6 +125,8 @@ function createAtlas(pbf_glyphs: PBFGlyph[]): FontAtlas {
             atlas_i: bin.x, atlas_j: bin.y, advance: glyph.advance
         };
 
+        max_glyph_height = Math.max(max_glyph_height, glyph.height);
+
         for (let i = 0; i < glyph.width; i++) {
             for (let j = 0; j < glyph.height; j++) {
                 const glyph_idx = i + glyph.width * j;
@@ -133,23 +137,32 @@ function createAtlas(pbf_glyphs: PBFGlyph[]): FontAtlas {
     });
 
     const glyph_M = glyphs['M'.charCodeAt(0)];
-    const baseline = glyph_M.height - glyph_M.top;
-    const top = -glyph_M.top;
+    const baseline = glyph_M === undefined ? max_glyph_height : glyph_M.height - glyph_M.top;
+    const top = glyph_M === undefined ? 0 : -glyph_M.top;
 
     return {atlas: atlas_data, atlas_width: img_width, atlas_height: img_height, baseline: baseline, top: top, glyph_info: glyphs};
 }
 
-async function getFontAtlas(url: string) {
-    const resp = await fetch(url);
-    const blob = await resp.blob();
-    const data_buffer = await blob.arrayBuffer();
+const FONT_ATLAS_CACHE = new Cache(async (urls: string[]) => {
+    const promises = urls.map(async url => {
+        const resp = await fetch(url);
+        
+        if (resp.status != 200) {
+            throw `Error ${resp.status} retrieving font pbf from '${url}'`;
+        }
 
-    // Parse the PBF and get the glyph data
-    const glyphs = parseFontPBF(new Uint8Array(data_buffer));
+        const blob = await resp.blob();
+        const data_buffer = await blob.arrayBuffer();
+    
+        // Parse the PBF and get the glyph data
+        return parseFontPBF(new Uint8Array(data_buffer));
+    });
+
+    const glyphs = (await Promise.all(promises)).flat();
 
     // Create an atlas for the glyphs
     return createAtlas(glyphs);
-}
+});
 
 interface TextSpec {
     lat: number;
@@ -168,6 +181,8 @@ interface TextCollectionOptions {
     text_color?: Color;
     halo_color?: Color;
     halo?: boolean;
+    offset_x?: number;
+    offset_y?: number;
 }
 
 const text_collection_opt_defaults: Required<TextCollectionOptions> = {
@@ -176,11 +191,13 @@ const text_collection_opt_defaults: Required<TextCollectionOptions> = {
     font_size: 12,
     text_color: new Color([0, 0, 0, 1]),
     halo_color: new Color([0, 0, 0, 1]),
-    halo: false
+    halo: false,
+    offset_x: 0,
+    offset_y: 0
 }
 
 class TextCollection {
-    readonly program: WGLProgram;
+    readonly shader_manager: ShaderProgramManager;
     readonly anchors: WGLBuffer;
     readonly offsets: WGLBuffer;
     readonly texcoords: WGLBuffer;
@@ -189,8 +206,6 @@ class TextCollection {
     readonly opts: Required<TextCollectionOptions>;
 
     private constructor(gl: WebGLAnyRenderingContext, text_locs: TextSpec[], font_atlas: FontAtlas, opts?: TextCollectionOptions) {
-        this.program = program_cache.getValue(gl);
-
         this.opts = normalizeOptions(opts, text_collection_opt_defaults);
         
         const is_webgl2 = isWebGL2Ctx(gl);
@@ -198,9 +213,14 @@ class TextCollection {
         const type = gl.UNSIGNED_BYTE;
         const row_alignment = 1;
 
+        const empty_atlas = font_atlas.atlas_width == 0 || font_atlas.atlas_height == 0 || font_atlas.atlas.length == 0;
+        const atlas_width = empty_atlas ? 1 : font_atlas.atlas_width;
+        const atlas_height = empty_atlas ? 1 : font_atlas.atlas_height
+        const atlas_data = empty_atlas ? new Uint8Array([0, 0, 0, 0]) : font_atlas.atlas;
+
         const image = {
-            'format': format, 'type': type, 'width': font_atlas.atlas_width, 'height': font_atlas.atlas_height, 
-            'image': font_atlas.atlas, 'row_alignment': row_alignment, 'mag_filter': gl.LINEAR
+            'format': format, 'type': type, 'width': atlas_width, 'height': atlas_height, 
+            'image': atlas_data, 'row_alignment': row_alignment, 'mag_filter': gl.LINEAR
         };
 
         this.texture = new WGLTexture(gl, image);
@@ -218,7 +238,8 @@ class TextCollection {
             const min_zoom = loc.min_zoom === undefined ? 0 : loc.min_zoom;
             const {x: anchor_x, y: anchor_y} = new LngLat(lon, lat).toMercatorCoord();
             
-            let x_offset = 0;
+            let x_offset = this.opts.offset_x;
+            let y_offset = this.opts.offset_y;
             const init_i_off = i_off;
 
             for (let i = 0; i < text.length; i++) {
@@ -239,12 +260,12 @@ class TextCollection {
                 anchor_data[i_anch++] = anchor_x; anchor_data[i_anch++] = anchor_y; anchor_data[i_anch++] = min_zoom;
                 anchor_data[i_anch++] = anchor_x; anchor_data[i_anch++] = anchor_y; anchor_data[i_anch++] = min_zoom;
                 
-                offset_data[i_off++] = x_offset;                    offset_data[i_off++] = font_atlas.baseline + glyph_info.top - glyph_info.height;
-                offset_data[i_off++] = x_offset;                    offset_data[i_off++] = font_atlas.baseline + glyph_info.top - glyph_info.height;
-                offset_data[i_off++] = x_offset + glyph_info.width; offset_data[i_off++] = font_atlas.baseline + glyph_info.top - glyph_info.height;
-                offset_data[i_off++] = x_offset;                    offset_data[i_off++] = font_atlas.baseline + glyph_info.top;
-                offset_data[i_off++] = x_offset + glyph_info.width; offset_data[i_off++] = font_atlas.baseline + glyph_info.top;
-                offset_data[i_off++] = x_offset + glyph_info.width; offset_data[i_off++] = font_atlas.baseline + glyph_info.top;
+                offset_data[i_off++] = x_offset;                    offset_data[i_off++] = y_offset + font_atlas.baseline + glyph_info.top - glyph_info.height;
+                offset_data[i_off++] = x_offset;                    offset_data[i_off++] = y_offset + font_atlas.baseline + glyph_info.top - glyph_info.height;
+                offset_data[i_off++] = x_offset + glyph_info.width; offset_data[i_off++] = y_offset + font_atlas.baseline + glyph_info.top - glyph_info.height;
+                offset_data[i_off++] = x_offset;                    offset_data[i_off++] = y_offset + font_atlas.baseline + glyph_info.top;
+                offset_data[i_off++] = x_offset + glyph_info.width; offset_data[i_off++] = y_offset + font_atlas.baseline + glyph_info.top;
+                offset_data[i_off++] = x_offset + glyph_info.width; offset_data[i_off++] = y_offset + font_atlas.baseline + glyph_info.top;
                 
                 tc_data[i_tc++] = glyph_info.atlas_i / font_atlas.atlas_width;                      tc_data[i_tc++] = (glyph_info.atlas_j + glyph_info.height) / font_atlas.atlas_height;
                 tc_data[i_tc++] = glyph_info.atlas_i / font_atlas.atlas_width;                      tc_data[i_tc++] = (glyph_info.atlas_j + glyph_info.height) / font_atlas.atlas_height;
@@ -258,12 +279,12 @@ class TextCollection {
 
             if (this.opts.horizontal_align == 'center') {
                 for (let i = init_i_off; i < init_i_off + text.length * 12; i += 2) {
-                    offset_data[i] -= x_offset / 2;
+                    offset_data[i] -= (x_offset - this.opts.offset_x) / 2;
                 }
             }
             else if (this.opts.horizontal_align == 'right') {
                 for (let i = init_i_off; i < init_i_off + text.length * 12; i += 2) {
-                    offset_data[i] -= x_offset;
+                    offset_data[i] -= (x_offset - this.opts.offset_x);
                 }
             }
 
@@ -279,25 +300,46 @@ class TextCollection {
             }
         });
 
+        this.shader_manager = new ShaderProgramManager(text_vertex_shader_src, text_fragment_shader_src, []);
+
         this.anchors = new WGLBuffer(gl, anchor_data, 3, gl.TRIANGLE_STRIP);
         this.offsets = new WGLBuffer(gl, offset_data, 2, gl.TRIANGLE_STRIP);
         this.texcoords = new WGLBuffer(gl, tc_data, 2, gl.TRIANGLE_STRIP);
     }
 
-    static async make(gl: WebGLAnyRenderingContext, text_locs: TextSpec[], fontstack_url: string, opts?: TextCollectionOptions) {
-        const atlas = await getFontAtlas(fontstack_url);
+    static async make(gl: WebGLAnyRenderingContext, text_locs: TextSpec[], fontstack_url_template: string, opts?: TextCollectionOptions) {
+        const FONT_GROUP_SIZE = 256;
+        const characters = text_locs.map(tl => [...tl.text]).flat().map(c => c.charCodeAt(0)).filter((c, i, ary) => ary.indexOf(c) == i);
+        const char_code_min = Math.min(...characters);
+        const char_code_max = Math.max(...characters);
+
+        const stack_start = Math.floor(char_code_min / FONT_GROUP_SIZE) * FONT_GROUP_SIZE;
+        const stack_end = Math.floor(char_code_max / FONT_GROUP_SIZE) * FONT_GROUP_SIZE;
+
+        const fontstack_urls = [];
+        for (let istack = stack_start; istack <= stack_end; istack += FONT_GROUP_SIZE) {
+            fontstack_urls.push(fontstack_url_template.replace('{range}', `${istack}-${istack + FONT_GROUP_SIZE - 1}`));
+        }
+
+        const atlas = await FONT_ATLAS_CACHE.getValue(fontstack_urls);
+        if (atlas.atlas_height == 0 || atlas.atlas_width == 0 || atlas.atlas.length == 0) console.warn(`No font data from '${fontstack_url_template}'`);
+
         return new TextCollection(gl, text_locs, atlas, opts);
     }
 
-    render(gl: WebGLAnyRenderingContext, matrix: number[], [map_width, map_height]: [number, number], map_zoom: number) {
+    render(gl: WebGLAnyRenderingContext, arg: RenderMethodArg, [map_width, map_height]: [number, number], map_zoom: number) {
+        const render_data = getRendererData(arg);
+        const program = this.shader_manager.getShaderProgram(gl, render_data.shaderData);
+
         const uniforms: Record<string, any> = {
-            'u_matrix': matrix, 'u_map_width': map_width, 'u_map_height': map_height, 'u_map_zoom': map_zoom, 'u_font_size': this.opts.font_size,
-            'u_text_color': this.opts.text_color.toRGBATuple(), 'u_halo_color': this.opts.halo_color.toRGBATuple(), 'u_offset': 0
+            'u_map_width': map_width, 'u_map_height': map_height, 'u_map_zoom': map_zoom, 'u_font_size': this.opts.font_size,
+            'u_text_color': this.opts.text_color.toRGBATuple(), 'u_halo_color': this.opts.halo_color.toRGBATuple(), 'u_offset': 0,
+            ...this.shader_manager.getShaderUniforms(render_data)
         }
 
         uniforms['u_is_halo'] = this.opts.halo ? 1 : 0;
 
-        this.program.use(
+        program.use(
             {'a_pos': this.anchors, 'a_offset': this.offsets, 'a_tex_coord': this.texcoords},
             uniforms,
             {'u_sdf_sampler': this.texture}
@@ -306,38 +348,40 @@ class TextCollection {
         gl.enable(gl.BLEND);
         gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 
-        this.program.draw();
+        program.draw();
 
         if (this.opts.halo) {
-            this.program.setUniforms({'u_is_halo': 0});
-            this.program.draw();
+            program.setUniforms({'u_is_halo': 0});
+            program.draw();
         }
 
-        this.program.setUniforms({'u_offset': -2, 'u_is_halo': this.opts.halo ? 1 : 0});
-        this.program.draw();
-
-        if (this.opts.halo) {
-            this.program.setUniforms({'u_is_halo': 0});
-            this.program.draw();
-        }
-
-        this.program.setUniforms({'u_offset': -1, 'u_is_halo': this.opts.halo ? 1 : 0});
-        this.program.draw();
-
-        if (this.opts.halo) {
-            this.program.setUniforms({'u_is_halo': 0});
-            this.program.draw();
-        }
-
-        this.program.setUniforms({'u_offset': 1, 'u_is_halo': this.opts.halo ? 1 : 0});
-        this.program.draw();
-
-        if (this.opts.halo) {
-            this.program.setUniforms({'u_is_halo': 0});
-            this.program.draw();
+        if (render_data.type != 'maplibre' || !render_data.shaderData.define.includes('GLOBE')) {
+            program.setUniforms({'u_offset': -2, 'u_is_halo': this.opts.halo ? 1 : 0});
+            program.draw();
+    
+            if (this.opts.halo) {
+                program.setUniforms({'u_is_halo': 0});
+                program.draw();
+            }
+    
+            program.setUniforms({'u_offset': -1, 'u_is_halo': this.opts.halo ? 1 : 0});
+            program.draw();
+    
+            if (this.opts.halo) {
+                program.setUniforms({'u_is_halo': 0});
+                program.draw();
+            }
+    
+            program.setUniforms({'u_offset': 1, 'u_is_halo': this.opts.halo ? 1 : 0});
+            program.draw();
+    
+            if (this.opts.halo) {
+                program.setUniforms({'u_is_halo': 0});
+                program.draw();
+            }
         }
     }
 }
 
 export {TextCollection};
-export type {TextSpec, TextCollectionOptions};
+export type {TextSpec, TextCollectionOptions, HorizontalAlign, VerticalAlign};

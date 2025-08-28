@@ -1,3 +1,4 @@
+#version 300 es
 
 uniform sampler2D u_dash_sampler;
 
@@ -10,15 +11,17 @@ uniform lowp float u_zoom;
 uniform int u_dash_pattern_length;
 
 #ifdef DATA
-varying highp float v_data;
+in highp float v_data;
 #endif
 
-varying highp float v_dist;
-varying lowp float v_cross;
+in highp float v_dist;
+in lowp float v_cross;
+
+out highp vec4 fragColor;
 
 void main() {
     lowp float dash_x = fract(v_dist * 2e2 * pow(2., floor(u_zoom)) / float(u_dash_pattern_length));
-    lowp float dash = texture2D(u_dash_sampler, vec2(dash_x, 0.5)).r;
+    lowp float dash = texture(u_dash_sampler, vec2(dash_x, 0.5)).r;
 
     lowp vec4 color;
 #ifdef DATA
@@ -30,5 +33,5 @@ void main() {
     lowp float feather = clamp((1. - abs(v_cross)) * u_line_width, 0., 1.);
     color.a *= (dash >= 1. ? 1. : 0.) * feather;
 
-    gl_FragColor = color;
+    fragColor = color;
 }

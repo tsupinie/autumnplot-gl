@@ -10,9 +10,11 @@ import { WGLProgram, WGLTexture } from "autumn-wgl";
 import { WebGLAnyRenderingContext } from "./AutumnTypes";
 import { getGLFormatTypeAlignment } from "./PlotComponent";
 import { Color } from "./Color";
+import { mergeShaderCode } from "./utils";
 
 const colormap_shader_src = require('./glsl/colormap.glsl');
 
+/** Options for {@link ColorMap}s */
 interface ColorMapOptions {
     /** The color to use for areas where the value is above the highest value in the color map */
     overflow_color?: Color | string;
@@ -39,14 +41,12 @@ class ColorMap {
             throw `Mismatch between number of levels (${levels.length}) and number of colors (${colors.length}; expected ${levels.length - 1})`;
         }
 
-        const normalizeColor = (c: Color | string) => c instanceof Color ? c : Color.fromHex(c);
-
         this.levels = levels;
-        this.colors = colors.map(c => normalizeColor(c));
+        this.colors = colors.map(c => Color.normalizeColor(c));
 
         opts = opts === undefined ? {} : opts;
-        this.overflow_color = opts.overflow_color === undefined ? null : normalizeColor(opts.overflow_color);
-        this.underflow_color = opts.underflow_color === undefined ? null : normalizeColor(opts.underflow_color);
+        this.overflow_color = opts.overflow_color === undefined ? null : Color.normalizeColor(opts.overflow_color);
+        this.underflow_color = opts.underflow_color === undefined ? null : Color.normalizeColor(opts.underflow_color);
     }
 
     /**
@@ -220,15 +220,15 @@ class ColorMapGPUInterface {
         this.gl_elems = null;
     }
 
-    public static applyShader(shader_src: string) {
-        return colormap_shader_src + "\n" + shader_src;
+    public static applyShader(shader_src: string) {        
+        return mergeShaderCode(colormap_shader_src, shader_src);
     }
 
     public setupShaderVariables(gl: WebGLAnyRenderingContext, mag_filter: number) {
         const index_map = makeIndexMap(this.colormap);
         const cmap_image = makeTextureImage(this.colormap);
 
-        const {format: format_nonlin, type: type_nonlin, row_alignment: row_alignment_nonlin} = getGLFormatTypeAlignment(gl, true);
+        const {format: format_nonlin, type: type_nonlin, row_alignment: row_alignment_nonlin} = getGLFormatTypeAlignment(gl, 'float16');
 
         const cmap_image_spec = {'format': gl.RGBA, 'type': gl.UNSIGNED_BYTE, 'image': cmap_image, 'mag_filter': mag_filter};
         const cmap_texture = new WGLTexture(gl, cmap_image_spec);

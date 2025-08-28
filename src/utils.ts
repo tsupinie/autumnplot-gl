@@ -1,3 +1,4 @@
+import { TypedArray } from "./AutumnTypes";
 
 function getMinZoom(jlat: number, ilon: number, thin_fac_base: number) {
     const zoom_base = 1;
@@ -86,4 +87,19 @@ function normalizeOptions<Type extends Record<string, any>>(opts: Type | undefin
     return ret;
 }
 
-export {zip, getMinZoom, getOS, Cache, normalizeOptions};
+function getArrayConstructor<ArrayType extends TypedArray>(ary: ArrayType) : new(...args: any[]) => ArrayType {
+    return ary.constructor as new(...args: any[]) => ArrayType;
+}
+
+function mergeShaderCode(snippet: string, main: string) {
+    const ES3_SHADER_MAGIC = '#version 300 es\n';
+    const is_es3_shader = main.startsWith(ES3_SHADER_MAGIC);
+
+    if (is_es3_shader) {
+        return ES3_SHADER_MAGIC + snippet + "\n" + main.slice(ES3_SHADER_MAGIC.length);
+    }
+    
+    return snippet + "\n" + main;
+}
+
+export {zip, getMinZoom, getOS, Cache, normalizeOptions, getArrayConstructor, mergeShaderCode};

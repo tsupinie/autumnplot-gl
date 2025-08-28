@@ -3,7 +3,7 @@
     "entryFileName": "index",
     "out": "docs",
     "intentionallyNotExported": [
-        "GridCoords", "EarthCoords", "TextureDataType", "StyleSpecification"
+        "GridCoords", "EarthCoords", "StyleSpecification", "RenderMethodArg"
     ],
     "plugin": ["typedoc-plugin-markdown"],
     "githubPages": false,

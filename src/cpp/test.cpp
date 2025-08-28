@@ -1,0 +1,143 @@
+
+#include <vector>
+#include <iostream>
+#include <sstream>
+#include <string>
+
+#include "marchingsquares.hpp"
+#include "map.hpp"
+
+struct ContourTestCase {
+    const char* name;
+    float grid[4];
+    float value;
+    bool quad_as_tri;
+    std::vector<Contour> expected;
+};
+
+void testContour(const ContourTestCase& test_case) {
+    const int nx = 2, ny = 2;
+
+    float x_grid[nx] = {0, 1};
+    float y_grid[ny] = {0, 1};
+    std::vector<float> contour_vals(1, {test_case.value});
+    
+    std::vector<Contour> contours = makeContours(test_case.grid, x_grid, y_grid, nx, ny, contour_vals, test_case.quad_as_tri);
+
+    bool passed = true;
+    try {
+        if (contours.size() != test_case.expected.size()) {
+            throw std::string("Incorrect number of contours");
+        }
+
+        std::stringstream ss;
+        for (int idx = 0; idx < contours.size(); idx++) {
+            if (!contours[idx].isClose(test_case.expected[idx])) {
+                if (ss.str().length() == 0) {
+                    ss << "Contour data is wrong ";
+                }
+
+                ss << std::endl << "    Received " << contours[idx] << std::endl << "    Expected " << test_case.expected[idx];
+            }
+        }
+
+        if (ss.str().length() > 0) {
+            throw ss.str();
+        }
+    }
+    catch (std::string exc) {
+        std::cout << test_case.name << " test failed: " << exc << std::endl;
+        passed = false;
+    }
+
+    if (passed) {
+        std::cout << test_case.name << " test passed" << std::endl;
+    }
+}
+
+int main(int argc, char** argv) {
+    /*
+    const int nx = 8;
+    const int ny = 6;
+    float grid[nx * ny] = {
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 2, 1, 1, 1, 1, 0, 0,
+        0, 1, 0, 1, 0, 1, 0, 0,
+        0, 1, 1, 0, 1, 1, 0, 0,
+        0, 1, 1, 1, 1, 1, 0, 0,
+        0, 0, 0, 0, 1, 0, 0, 0
+    };
+
+    float x_grid[nx] = {0, 10, 20, 30, 40, 50, 60, 70};
+    float y_grid[ny] = {0, 10, 20, 30, 40, 50};
+    std::vector<float> contour_vals(1, {0.5});
+    */
+
+    std::vector<ContourTestCase> test_cases = {
+        {"Tri Case 1", {4, 0, 0, 0}, 1.2, true, {{{{0.7, 0.0}, {0.4666666666666667, 0.4666666666666667}, {0.0, 0.7}}, 1.2}}},
+        {"Tri Case 2", {0, 4, 0, 0}, 1.2, true, {{{{1.0, 0.7}, {0.5333333333333333, 0.4666666666666667}, {0.3, 0.0}}, 1.2}}},
+        {"Tri Case 3", {4, 4, 0, 0}, 3, true, {{{{1.0, 0.25}, {0.75, 0.25}, {0.25, 0.25}, {0.0, 0.25}}, 3}}},
+        {"Tri Case 4", {0, 0, 0, 4}, 1.2, true, {{{{0.3, 1.0}, {0.5333333333333333, 0.5333333333333333}, {1.0, 0.3}}, 1.2}}},
+        {"Tri Case 5", {4, 0, 0, 4}, 3, true, {{{{0.25, 0.0}, {0.25, 0.25}, {0.0, 0.25}}, 3}, {{{0.75, 1.0}, {0.75, 0.75}, {1.0, 0.75}}, 3}}},
+        {"Tri Case 6", {0, 4, 0, 4}, 3, true, {{{{0.75, 1.0}, {0.75, 0.75}, {0.75, 0.25}, {0.75, 0.0}}, 3}}},
+        {"Tri Case 7", {4, 4, 0, 4}, 3.2, true, {{{{0.8, 1.0}, {0.6, 0.6}, {0.6, 0.4}, {0.4, 0.4}, {0.0, 0.2}}, 3.2}}},
+        {"Tri Case 8", {0, 0, 4, 0}, 1.2, true, {{{{0.0, 0.3}, {0.4666666666666667, 0.5333333333333333}, {0.7, 1.0}}, 1.2}}},
+        {"Tri Case 9", {4, 0, 4, 0}, 3, true, {{{{0.25, 0.0}, {0.25, 0.25}, {0.25, 0.75}, {0.25, 1.0}}, 3}}},
+        {"Tri Case 10", {0, 4, 4, 0}, 3, true, {{{{0.0, 0.75}, {0.25, 0.75}, {0.25, 1.0}}, 3}, {{{1.0, 0.25}, {0.75, 0.25}, {0.75, 0.0}}, 3}}},
+        {"Tri Case 11", {4, 4, 4, 0}, 3.2, true, {{{{1.0, 0.2}, {0.6, 0.4}, {0.4, 0.4}, {0.4, 0.6}, {0.2, 1.0}}, 3.2}}},
+        {"Tri Case 12", {0, 0, 4, 4}, 3, true, {{{{0.0, 0.75}, {0.25, 0.75}, {0.75, 0.75}, {1.0, 0.75}}, 3}}},
+        {"Tri Case 13", {4, 0, 4, 4}, 3.2, true, {{{{0.2, 0.0}, {0.4, 0.4}, {0.4, 0.6}, {0.6, 0.6}, {1.0, 0.8}}, 3.2}}},
+        {"Tri Case 14", {0, 4, 4, 4}, 3.2, true, {{{{0.0, 0.8}, {0.4, 0.6}, {0.6, 0.6}, {0.6, 0.4}, {0.8, 0.0}}, 3.2}}},
+        {"Tri Case 17", {4, 0, 0, 0}, 0.8, true, {{{{0.8, 0.0}, {0.6, 0.4}, {0.6, 0.6}, {0.4, 0.6}, {0.0, 0.8}}, 0.8}}},
+        {"Tri Case 18", {0, 4, 0, 0}, 0.8, true, {{{{1.0, 0.8}, {0.6, 0.6}, {0.4, 0.6}, {0.4, 0.4}, {0.2, 0.0}}, 0.8}}},
+        {"Tri Case 19", {4, 4, 0, 0}, 1, true, {{{{1.0, 0.75}, {0.75, 0.75}, {0.25, 0.75}, {0.0, 0.75}}, 1}}},
+        {"Tri Case 20", {0, 0, 0, 4}, 0.8, true, {{{{0.2, 1.0}, {0.4, 0.6}, {0.4, 0.4}, {0.6, 0.4}, {1.0, 0.2}}, 0.8}}},
+        {"Tri Case 21", {4, 0, 0, 4}, 1, true, {{{{0.75, 0.0}, {0.75, 0.25}, {1.0, 0.25}}, 1}, {{{0.25, 1.0}, {0.25, 0.75}, {0.0, 0.75}}, 1}}},
+        {"Tri Case 22", {0, 4, 0, 4}, 1, true, {{{{0.25, 1.0}, {0.25, 0.75}, {0.25, 0.25}, {0.25, 0.0}}, 1}}},
+        {"Tri Case 23", {4, 4, 0, 4}, 2.8, true, {{{{0.7, 1.0}, {0.4666666666666666, 0.5333333333333333}, {0.0, 0.3}}, 2.8}}},
+        {"Tri Case 24", {0, 0, 4, 0}, 0.8, true, {{{{0.0, 0.2}, {0.4, 0.4}, {0.6, 0.4}, {0.6, 0.6}, {0.8, 1.0}}, 0.8}}},
+        {"Tri Case 25", {4, 0, 4, 0}, 1, true, {{{{0.75, 0.0}, {0.75, 0.25}, {0.75, 0.75}, {0.75, 1.0}}, 1}}},
+        {"Tri Case 26", {0, 4, 4, 0}, 1, true, {{{{0.0, 0.25}, {0.25, 0.25}, {0.25, 0.0}}, 1}, {{{1.0, 0.75}, {0.75, 0.75}, {0.75, 1.0}}, 1}}},
+        {"Tri Case 27", {4, 4, 4, 0}, 2.8, true, {{{{1.0, 0.3}, {0.5333333333333333, 0.5333333333333333}, {0.3, 1.0}}, 2.8}}},
+        {"Tri Case 28", {0, 0, 4, 4}, 1, true, {{{{0.0, 0.25}, {0.25, 0.25}, {0.75, 0.25}, {1.0, 0.25}}, 1}}},
+        {"Tri Case 29", {4, 0, 4, 4}, 2.8, true, {{{{0.3, 0.0}, {0.5333333333333333, 0.4666666666666666}, {1.0, 0.7}}, 2.8}}},
+        {"Tri Case 30", {0, 4, 4, 4}, 2.8, true, {{{{0.0, 0.7}, {0.4666666666666666, 0.4666666666666666}, {0.7, 0.0}}, 2.8}}},
+
+        {"Quad Case 1", {4, 0, 0, 0}, 1, false, {{{{0.75, 0.0}, {0.0, 0.75}}, 1}}},
+        {"Quad Case 2", {0, 4, 0, 0}, 1, false, {{{{1.0, 0.75}, {0.25, 0.0}}, 1}}},
+        {"Quad Case 3", {4, 4, 0, 0}, 3, false, {{{{1.0, 0.25}, {0.0, 0.25}}, 3}}},
+        {"Quad Case 4", {0, 0, 0, 4}, 1, false, {{{{0.25, 1.0}, {1.0, 0.25}}, 1}}},
+        {"Quad Case 5", {4, 0, 0, 4}, 3, false, {{{{0.25, 0.0}, {0.0, 0.25}}, 3}, {{{0.75, 1.0}, {1.0, 0.75}}, 3}}},
+        {"Quad Case 5 (disambiguation)", {4, 0, 0, 4}, 1, false, {{{{0.25, 1.0}, {0.0, 0.75}}, 1}, {{{0.75, 0.0}, {1.0, 0.25}}, 1}}},
+        {"Quad Case 6", {0, 4, 0, 4}, 3, false, {{{{0.75, 1.0}, {0.75, 0.0}}, 3}}},
+        {"Quad Case 7", {4, 4, 0, 4}, 3, false, {{{{0.75, 1.0}, {0.0, 0.25}}, 3}}},
+        {"Quad Case 8", {0, 0, 4, 0}, 1, false, {{{{0.0, 0.25}, {0.75, 1.0}}, 1}}},
+        {"Quad Case 9", {4, 0, 4, 0}, 3, false, {{{{0.25, 0.0}, {0.25, 1.0}}, 3}}},
+        {"Quad Case 10", {0, 4, 4, 0}, 3, false, {{{{0.0, 0.75}, {0.25, 1.0}}, 3}, {{{1.0, 0.25}, {0.75, 0.0}}, 3}}},
+        {"Quad Case 10 (disambiguation)", {0, 4, 4, 0}, 1, false, {{{{0.0, 0.25}, {0.25, 0.0}}, 1}, {{{1.0, 0.75}, {0.75, 1.0}}, 1}}},
+        {"Quad Case 11", {4, 4, 4, 0}, 3, false, {{{{1.0, 0.25}, {0.25, 1.0}}, 3}}},
+        {"Quad Case 12", {0, 0, 4, 4}, 3, false, {{{{0.0, 0.75}, {1.0, 0.75}}, 3}}},
+        {"Quad Case 13", {4, 0, 4, 4}, 3, false, {{{{0.25, 0.0}, {1.0, 0.75}}, 3}}},
+        {"Quad Case 14", {0, 4, 4, 4}, 3, false, {{{{0.0, 0.75}, {0.75, 0.0}}, 3}}},
+    };
+
+    for (auto it = test_cases.begin() ; it != test_cases.end() ; ++it) {
+        testContour(*it);
+    }
+
+    LambertConformalConic lcc(-97.5, 38.5, 38.5, 38.5);
+    EarthPoint pt(-97.44, 35.18);
+
+    std::cout << lcc.transform(pt) << std::endl;
+    std::cout << lcc.transform_inverse(lcc.transform(pt)) << std::endl;
+
+    RotateSphere rs(180, 60, 0);
+    std::cout << rs.transform(pt) << std::endl;
+    std::cout << rs.transform_inverse(rs.transform(pt)) << std::endl;
+
+    WebMercator wm;
+    std::cout << wm.transform(pt) << std::endl;
+    std::cout << wm.transform_inverse(wm.transform(pt)) << std::endl;
+
+    return 0;
+}

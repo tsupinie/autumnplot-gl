@@ -1,3 +1,4 @@
+#!/bin/bash
 
 rm -rf lib/*
 npx -p typescript tsc --declaration --outDir lib --target es2020 --sourceMap false --allowJs false 

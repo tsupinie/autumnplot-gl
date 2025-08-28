@@ -7,14 +7,19 @@ import { ContourData, TypedArray } from "./AutumnTypes";
 
 let msm_promise: Promise<MarchingSquaresModule> | null = null;
 
-function initMSModule() {
+interface InitMSModuleOpts {
+    document_script?: string;
+}
+
+function initMSModule(opts: InitMSModuleOpts) {
     if (msm_promise === null) {
-        msm_promise = Module();
+        msm_promise = Module({'locateFile': (fname: string, dir: string) => (opts.document_script === undefined ? dir : opts.document_script) + fname});
     }
 
     return msm_promise;
 }
 
+/** Options for contouring data via {@link RawScalarField.getContours | RawScalarField.getContours()} */
 interface FieldContourOpts {
     /**
      * The interval at which to create contours. The field will be contoured at this interval from its minimum to its maximum.
@@ -25,6 +30,11 @@ interface FieldContourOpts {
      * Contour the field at these specific levels.
      */
     levels?: number[];
+
+    /**
+     * Add triangles in the contouring, which takes longer and generates more detailed (not necessarily smoother or better) contours
+     */
+    quad_as_tri?: boolean;
 }
 
 async function contourCreator<ArrayType extends TypedArray>(data: ArrayType, grid: Grid, opts: FieldContourOpts) {
@@ -33,8 +43,9 @@ async function contourCreator<ArrayType extends TypedArray>(data: ArrayType, gri
     }
 
     const interval = opts.interval === undefined ? 0 : opts.interval;
+    const quad_as_tri = opts.quad_as_tri === undefined ? false : opts.quad_as_tri;
 
-    const msm = await initMSModule();
+    const msm = await initMSModule({});
 
     const grid_coords = grid.getGridCoords();
 
@@ -42,7 +53,7 @@ async function contourCreator<ArrayType extends TypedArray>(data: ArrayType, gri
     const makeContours = data instanceof Float32Array ? msm.makeContoursFloat32 : msm.makeContoursFloat16;
 
     const levels = opts.levels === undefined ? getContourLevels(data, grid.ni, grid.nj, interval) : opts.levels;
-    const contours = makeContours(data, grid_coords.x, grid_coords.y, levels, (x: number, y: number) => grid.transform(x, y, {inverse: true}));
+    const contours = makeContours(data, grid_coords.x, grid_coords.y, levels, (x: number, y: number) => grid.transform(x, y, {inverse: true}), quad_as_tri);
 
     return contours as ContourData;
 }

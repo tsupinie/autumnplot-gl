@@ -6,9 +6,6 @@
                 "${workspaceFolder}/**",
                 "/Users/tsupinie/software/emsdk/upstream/emscripten/system/include"
             ],
-            "defines": [
-                "WASM"
-            ],
             "macFrameworkPath": [
                 "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks"
             ],

@@ -90,6 +90,7 @@ const hsv2rgb = (hsv: [number, number, number]) : [number, number, number] => {
     return [r_prime + m, g_prime + m, b_prime + m];
 }
 
+/** A class for handling colors and translations between different color spaces */
 class Color {
     private rgba: [number, number, number, number];
 
@@ -180,6 +181,10 @@ class Color {
     static fromHSVTuple(hsv: [number, number, number]) {
         const rgb = hsv2rgb(hsv);
         return new Color([rgb[0], rgb[1], rgb[2], 1]);
+    }
+
+    static normalizeColor(color: Color | string) {
+        return color instanceof Color ? color : Color.fromHex(color);
     }
 }
 
