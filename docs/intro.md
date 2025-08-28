@@ -35,9 +35,9 @@ You may have to modify your build tool configuration to include the WebAssembly 
 ## Pre-built Javascript source files
 If you'd rather use pre-built files and not mess with webpack or any other bundler ([understandable!](https://bsky.app/profile/plustssn.autumnsky.us/post/3luxvjinjo22n)), you can grab these three files and include them in the same directory in your project.
 
-* <a href="/assets/dist/autumnplot-gl.js" target="_blank" download>autumnplot-gl.js</a>
-* <a href="/assets/dist/983.autumnplot-gl.js" target="_blank" download>983.autumnplot-gl.js</a>
-* <a href="/assets/dist/marchingsquares.wasm" target="_blank" download>marchingsquares.wasm</a>
+* <a href="/autumnplot-gl/assets/dist/autumnplot-gl.js" target="_blank" download>autumnplot-gl.js</a>
+* <a href="/autumnplot-gl/assets/dist/983.autumnplot-gl.js" target="_blank" download>983.autumnplot-gl.js</a>
+* <a href="/autumnplot-gl/assets/dist/marchingsquares.wasm" target="_blank" download>marchingsquares.wasm</a>
 
 Then include the main `autumnplot-gl.js` file in your html as a Javascript source.
 
