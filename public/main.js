@@ -339,6 +339,12 @@ window.addEventListener('load', () => {
             zoom: 4,
             maxZoom: 7,
         });
+
+        if (use_globe) {
+            map.on('load', () => {
+                map.setProjection('globe');
+            });
+        }
     }
     else {
         map = new maplibregl.Map({
