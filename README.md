@@ -1,3 +1,5 @@
+![autumnplot-gl logo](https://tsupinie.github.io/autumnplot-gl/img/apgl.svg)
+
 # autumnplot-gl
 Hardware-accelerated geospatial data plotting in the browser
 
