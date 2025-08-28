@@ -1,0 +1,267 @@
+{
+    "id": "0",
+    "name": "Autumn",
+    "zoom": 4,
+    "pitch": 0,
+    "center": [-97.5, 38.5],
+    "bearing": 0,
+    "glyphs": "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
+    "layers": [
+        {
+            "id": "background",
+            "type": "background",
+            "paint": {
+                "background-color": "#D8F2FF"
+            },
+            "filter": [
+                "all"
+            ],
+            "layout": {
+                "visibility": "visible"
+            },
+            "maxzoom": 24
+        },
+        {
+            "id": "lands",
+            "type": "fill",
+            "paint": {
+                "fill-color": "#ffffff"
+            },
+            "filter": [
+                "all"
+            ],
+            "source": "autumn",
+            "maxzoom": 24,
+            "minzoom": 0,
+            "source-layer": "land"
+        },
+        {
+            "id": "coastline",
+            "type": "line",
+            "paint": {
+                "line-blur": 0.5,
+                "line-color": "#333333",
+                "line-width": 2.5
+            },
+            "filter": [
+                "all"
+            ],
+            "layout": {
+                "line-cap": "round",
+                "line-join": "round",
+                "visibility": "visible"
+            },
+            "source": "autumn",
+            "maxzoom": 24,
+            "minzoom": 0,
+            "source-layer": "coastline"
+        },
+        {
+            "id": "secondary_highways_outline",
+            "type": "line",
+            "paint": {
+                "line-blur": 0.5,
+                "line-color": "#ccccff",
+                "line-width": 3.75,
+                "line-opacity": 0.4
+            },
+            "filter": [
+                "all"
+            ],
+            "layout": {
+                "line-cap": "round",
+                "line-join": "round",
+                "visibility": "visible"
+            },
+            "source": "autumn",
+            "maxzoom": 24,
+            "minzoom": 6,
+            "source-layer": "roads_secondary_highway"
+        },
+        {
+            "id": "secondary_highways",
+            "type": "line",
+            "paint": {
+                "line-blur": 0.5,
+                "line-color": "#3333cc",
+                "line-width": 1.25
+            },
+            "filter": [
+                "all"
+            ],
+            "layout": {
+                "line-cap": "round",
+                "line-join": "round",
+                "visibility": "visible"
+            },
+            "source": "autumn",
+            "maxzoom": 24,
+            "minzoom": 6,
+            "source-layer": "roads_secondary_highway"
+        },
+        {
+            "id": "major_highways_outline",
+            "type": "line",
+            "paint": {
+                "line-blur": 0.5,
+                "line-color": "#ccccff",
+                "line-width": {
+                    "stops": [
+                        [5, 4.5],
+                        [6, 6]
+                    ]
+                },
+                "line-opacity": 0.6
+            },
+            "filter": [
+                "all"
+            ],
+            "layout": {
+                "line-cap": "round",
+                "line-join": "round",
+                "visibility": "visible"
+            },
+            "source": "autumn",
+            "maxzoom": 24,
+            "minzoom": 4,
+            "source-layer": "roads_major_highway"
+        },
+        {
+            "id": "major_highways",
+            "type": "line",
+            "paint": {
+                "line-blur": 0.5,
+                "line-color": "#0000cc",
+                "line-width": {
+                    "stops": [
+                        [5, 1.5],
+                        [6, 2]
+                    ]
+                }
+            },
+            "filter": [
+                "all"
+            ],
+            "layout": {
+                "line-cap": "round",
+                "line-join": "round",
+                "visibility": "visible"
+            },
+            "source": "autumn",
+            "maxzoom": 24,
+            "minzoom": 4,
+            "source-layer": "roads_major_highway"
+        },
+        {
+            "id": "countries",
+            "type": "line",
+            "paint": {
+                "line-blur": 0.5,
+                "line-color": "#333333",
+                "line-width": 2
+            },
+            "filter": [
+                "all"
+            ],
+            "layout": {
+                "line-cap": "round",
+                "line-join": "round",
+                "visibility": "visible"
+            },
+            "source": "autumn",
+            "maxzoom": 24,
+            "minzoom": 0,
+            "source-layer": "countries"
+        },
+        {
+            "id": "states_provinces",
+            "type": "line",
+            "paint": {
+                "line-blur": 0.5,
+                "line-color": "#333333",
+                "line-width": {
+                    "stops": [
+                        [5, 1.5],
+                        [6, 2.25]
+                    ]
+                }
+            },
+            "filter": [
+                "all"
+            ],
+            "layout": {
+                "line-cap": "round",
+                "line-join": "round",
+                "visibility": "visible"
+            },
+            "source": "autumn",
+            "maxzoom": 24,
+            "minzoom": 0,
+            "source-layer": "states_provinces"
+        },
+        {
+            "id": "counties",
+            "type": "line",
+            "paint": {
+                "line-blur": 0.5,
+                "line-color": "#333333",
+                "line-width": 1.5,
+                "line-dasharray": [4, 3]
+            },
+            "filter": [
+                "all"
+            ],
+            "layout": {
+                "line-cap": "round",
+                "line-join": "round",
+                "visibility": "visible"
+            },
+            "source": "autumn",
+            "maxzoom": 24,
+            "minzoom": 6,
+            "source-layer": "counties"
+        },
+        {
+            "id": "places",
+            "type": "symbol",
+            "paint": {
+                "text-color": "#ffffff",
+                "text-halo-color": "#333333",
+                "text-halo-width": {
+                    "stops": [
+                        [3, 1],
+                        [6, 1.5]
+                    ]
+                }
+            },
+            "filter": [
+                "all"
+            ],
+            "layout": {
+                "text-font": [
+                    "Open Sans Semibold"
+                ],
+                "text-size": [
+                    "step", ["zoom"], 12,
+                    3, ["case", [">=", ["get", "rank"], 13], 16, 12],
+                    6, ["case", [">=", ["get", "rank"], 13], 20, [">=", ["get", "rank"], 10], 16, 12]
+                ],
+                "text-field": "{name}",
+                "visibility": "visible",
+                "text-max-width": 10,
+                "text-transform": "none"
+            },
+            "source": "autumn",
+            "maxzoom": 24,
+            "minzoom": 2,
+            "source-layer": "places"
+        }
+    ],
+    "sources": {
+        "autumn": {
+            "url": "http://localhost:9000/tiles.json",
+            "type": "vector"
+        }
+    },
+    "version": 8
+}

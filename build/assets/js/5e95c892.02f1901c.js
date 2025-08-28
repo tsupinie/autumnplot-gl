@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkautumnplot_gl_docs=self.webpackChunkautumnplot_gl_docs||[]).push([[9647],{3124:(e,s,u)=>{u.r(s),u.d(s,{default:()=>o});u(6540);var r=u(4164),t=u(8630),a=u(7153),c=u(2831),l=u(9512),n=u(4848);function o(e){return(0,n.jsx)(a.e3,{className:(0,r.A)(t.G.wrapper.docsPages),children:(0,n.jsx)(l.A,{children:(0,c.v)(e.route.routes)})})}}}]);
