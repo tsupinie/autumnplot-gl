@@ -4,7 +4,7 @@ title: RawProfileField
 
 # Class: RawProfileField\<GridType\>
 
-Defined in: [RawField.ts:200](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/RawField.ts#L200)
+Defined in: [RawField.ts:200](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/RawField.ts#L200)
 
 A class grid of wind profiles
 
@@ -20,7 +20,7 @@ A class grid of wind profiles
 
 > **new RawProfileField**\<`GridType`\>(`grid`, `profiles`): `RawProfileField`\<`GridType`\>
 
-Defined in: [RawField.ts:209](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/RawField.ts#L209)
+Defined in: [RawField.ts:209](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/RawField.ts#L209)
 
 Create a grid of wind profiles
 
@@ -39,5 +39,5 @@ Create a grid of wind profiles
 
 | Property | Modifier | Type | Defined in |
 | ------ | ------ | ------ | ------ |
-| <a id="grid"></a> `grid` | `readonly` | `GridType` | [RawField.ts:202](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/RawField.ts#L202) |
-| <a id="profiles"></a> `profiles` | `readonly` | [`WindProfile`](../type-aliases/WindProfile.md)[] | [RawField.ts:201](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/RawField.ts#L201) |
+| <a id="grid"></a> `grid` | `readonly` | `GridType` | [RawField.ts:202](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/RawField.ts#L202) |
+| <a id="profiles"></a> `profiles` | `readonly` | [`WindProfile`](../type-aliases/WindProfile.md)[] | [RawField.ts:201](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/RawField.ts#L201) |

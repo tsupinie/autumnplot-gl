@@ -4,7 +4,7 @@ title: MultiPlotLayer
 
 # Class: MultiPlotLayer\<MapType\>
 
-Defined in: [PlotLayer.ts:82](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/PlotLayer.ts#L82)
+Defined in: [PlotLayer.ts:82](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/PlotLayer.ts#L82)
 
 A varying map layer. If the data don't have a varying component, such as over time, it might be easier to use a [PlotLayer](PlotLayer.md) instead.
 
@@ -39,7 +39,7 @@ height_layer.setActiveKey('20230112_1200');
 
 > **new MultiPlotLayer**\<`MapType`\>(`id`): `MultiPlotLayer`\<`MapType`\>
 
-Defined in: [PlotLayer.ts:92](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/PlotLayer.ts#L92)
+Defined in: [PlotLayer.ts:92](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/PlotLayer.ts#L92)
 
 Create a time-varying map layer
 
@@ -61,9 +61,9 @@ Create a time-varying map layer
 
 | Property | Modifier | Type | Inherited from | Defined in |
 | ------ | ------ | ------ | ------ | ------ |
-| <a id="id"></a> `id` | `readonly` | `string` | `PlotLayerBase.id` | [PlotLayer.ts:9](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/PlotLayer.ts#L9) |
-| <a id="map"></a> `map` | `protected` | `null` \| `MapType` | `PlotLayerBase.map` | [PlotLayer.ts:10](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/PlotLayer.ts#L10) |
-| <a id="type"></a> `type` | `readonly` | `"custom"` | `PlotLayerBase.type` | [PlotLayer.ts:8](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/PlotLayer.ts#L8) |
+| <a id="id"></a> `id` | `readonly` | `string` | `PlotLayerBase.id` | [PlotLayer.ts:9](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/PlotLayer.ts#L9) |
+| <a id="map"></a> `map` | `protected` | `null` \| `MapType` | `PlotLayerBase.map` | [PlotLayer.ts:10](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/PlotLayer.ts#L10) |
+| <a id="type"></a> `type` | `readonly` | `"custom"` | `PlotLayerBase.type` | [PlotLayer.ts:8](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/PlotLayer.ts#L8) |
 
 ## Methods
 
@@ -71,7 +71,7 @@ Create a time-varying map layer
 
 > **addField**(`field`, `key`): `void`
 
-Defined in: [PlotLayer.ts:153](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/PlotLayer.ts#L153)
+Defined in: [PlotLayer.ts:153](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/PlotLayer.ts#L153)
 
 Add a field with a given key
 
@@ -92,7 +92,7 @@ Add a field with a given key
 
 > **getKeys**(): `string`[]
 
-Defined in: [PlotLayer.ts:144](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/PlotLayer.ts#L144)
+Defined in: [PlotLayer.ts:144](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/PlotLayer.ts#L144)
 
 Get a list of all dates/times that have been added to the layer
 
@@ -108,7 +108,7 @@ An array of dates/times
 
 > `protected` **repaint**(): `void`
 
-Defined in: [PlotLayer.ts:21](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/PlotLayer.ts#L21)
+Defined in: [PlotLayer.ts:21](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/PlotLayer.ts#L21)
 
 #### Returns
 
@@ -124,7 +124,7 @@ Defined in: [PlotLayer.ts:21](https://github.com/tsupinie/autumnplot-gl/blob/415
 
 > **setActiveKey**(`key`): `void`
 
-Defined in: [PlotLayer.ts:133](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/PlotLayer.ts#L133)
+Defined in: [PlotLayer.ts:133](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/PlotLayer.ts#L133)
 
 Set the active key
 

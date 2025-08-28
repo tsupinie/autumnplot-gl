@@ -6,7 +6,7 @@ title: MapLikeType
 
 > **MapLikeType** = `object`
 
-Defined in: [Map.ts:9](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/Map.ts#L9)
+Defined in: [Map.ts:9](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/Map.ts#L9)
 
 Type with the required methods for mapping libraries
 
@@ -16,7 +16,7 @@ Type with the required methods for mapping libraries
 
 > **getBearing**: () => `number`
 
-Defined in: [Map.ts:16](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/Map.ts#L16)
+Defined in: [Map.ts:16](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/Map.ts#L16)
 
 #### Returns
 
@@ -28,7 +28,7 @@ Defined in: [Map.ts:16](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5
 
 > **getCanvas**: () => `HTMLCanvasElement`
 
-Defined in: [Map.ts:11](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/Map.ts#L11)
+Defined in: [Map.ts:11](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/Map.ts#L11)
 
 #### Returns
 
@@ -40,7 +40,7 @@ Defined in: [Map.ts:11](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5
 
 > **getMaxZoom**: () => `number`
 
-Defined in: [Map.ts:15](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/Map.ts#L15)
+Defined in: [Map.ts:15](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/Map.ts#L15)
 
 #### Returns
 
@@ -52,7 +52,7 @@ Defined in: [Map.ts:15](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5
 
 > **getPitch**: () => `number`
 
-Defined in: [Map.ts:17](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/Map.ts#L17)
+Defined in: [Map.ts:17](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/Map.ts#L17)
 
 #### Returns
 
@@ -64,7 +64,7 @@ Defined in: [Map.ts:17](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5
 
 > **getStyle**: () => `StyleSpecification`
 
-Defined in: [Map.ts:12](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/Map.ts#L12)
+Defined in: [Map.ts:12](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/Map.ts#L12)
 
 #### Returns
 
@@ -76,7 +76,7 @@ Defined in: [Map.ts:12](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5
 
 > **getZoom**: () => `number`
 
-Defined in: [Map.ts:14](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/Map.ts#L14)
+Defined in: [Map.ts:14](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/Map.ts#L14)
 
 #### Returns
 
@@ -88,7 +88,7 @@ Defined in: [Map.ts:14](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5
 
 > **triggerRepaint**: () => `void`
 
-Defined in: [Map.ts:10](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/Map.ts#L10)
+Defined in: [Map.ts:10](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/Map.ts#L10)
 
 #### Returns
 

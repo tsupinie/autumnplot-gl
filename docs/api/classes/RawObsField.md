@@ -4,7 +4,7 @@ title: RawObsField
 
 # Class: RawObsField\<GridType, ObsFieldName\>
 
-Defined in: [RawField.ts:262](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/RawField.ts#L262)
+Defined in: [RawField.ts:262](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/RawField.ts#L262)
 
 Raw observation data, given as a list of objects
 
@@ -21,7 +21,7 @@ Raw observation data, given as a list of objects
 
 > **new RawObsField**\<`GridType`, `ObsFieldName`\>(`grid`, `data`): `RawObsField`\<`GridType`, `ObsFieldName`\>
 
-Defined in: [RawField.ts:271](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/RawField.ts#L271)
+Defined in: [RawField.ts:271](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/RawField.ts#L271)
 
 Create a field of observations
 
@@ -40,5 +40,5 @@ Create a field of observations
 
 | Property | Modifier | Type | Defined in |
 | ------ | ------ | ------ | ------ |
-| <a id="data"></a> `data` | `readonly` | [`ObsRawData`](../type-aliases/ObsRawData.md)\<`ObsFieldName`\>[] | [RawField.ts:264](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/RawField.ts#L264) |
-| <a id="grid"></a> `grid` | `readonly` | `GridType` | [RawField.ts:263](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/RawField.ts#L263) |
+| <a id="data"></a> `data` | `readonly` | [`ObsRawData`](../type-aliases/ObsRawData.md)\<`ObsFieldName`\>[] | [RawField.ts:264](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/RawField.ts#L264) |
+| <a id="grid"></a> `grid` | `readonly` | `GridType` | [RawField.ts:263](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/RawField.ts#L263) |

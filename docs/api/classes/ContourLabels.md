@@ -4,7 +4,7 @@ title: ContourLabels
 
 # Class: ContourLabels\<ArrayType, GridType, MapType\>
 
-Defined in: [Contour.ts:280](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/Contour.ts#L280)
+Defined in: [Contour.ts:280](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/Contour.ts#L280)
 
 Label the contours on a plot
 
@@ -35,7 +35,7 @@ const labels = new ContourLabels(contours, {text_color: '#ffffff', halo: true});
 
 > **new ContourLabels**\<`ArrayType`, `GridType`, `MapType`\>(`contours`, `opts?`): `ContourLabels`\<`ArrayType`, `GridType`, `MapType`\>
 
-Defined in: [Contour.ts:286](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/Contour.ts#L286)
+Defined in: [Contour.ts:286](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/Contour.ts#L286)
 
 #### Parameters
 
@@ -58,7 +58,7 @@ Defined in: [Contour.ts:286](https://github.com/tsupinie/autumnplot-gl/blob/415c
 
 > **updateField**(): `Promise`\<`void`\>
 
-Defined in: [Contour.ts:299](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/Contour.ts#L299)
+Defined in: [Contour.ts:299](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/Contour.ts#L299)
 
 Update contour labels when the field for the associated Contour object has been changed.
 

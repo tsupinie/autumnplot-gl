@@ -6,7 +6,7 @@ title: SPDataConfig
 
 > **SPDataConfig**\<`ObsFieldName`\> = `Record`\<`ObsFieldName`, [`SPConfig`](SPConfig.md)\>
 
-Defined in: [StationPlot.ts:220](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/StationPlot.ts#L220)
+Defined in: [StationPlot.ts:220](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/StationPlot.ts#L220)
 
 Configuration for station data plots
 

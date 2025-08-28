@@ -4,7 +4,7 @@ title: PlotLayer
 
 # Class: PlotLayer\<MapType\>
 
-Defined in: [PlotLayer.ts:37](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/PlotLayer.ts#L37)
+Defined in: [PlotLayer.ts:37](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/PlotLayer.ts#L37)
 
 A static map layer. The data are assumed to be static in time. If the data have a time component (e.g., a model forecast), a [MultiPlotLayer](MultiPlotLayer.md) 
 may be more appropriate.
@@ -34,7 +34,7 @@ const barb_layer = new PlotLayer('barbs', wind_barbs);
 
 > **new PlotLayer**\<`MapType`\>(`id`, `field`): `PlotLayer`\<`MapType`\>
 
-Defined in: [PlotLayer.ts:45](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/PlotLayer.ts#L45)
+Defined in: [PlotLayer.ts:45](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/PlotLayer.ts#L45)
 
 Create a map layer from a field
 
@@ -57,9 +57,9 @@ Create a map layer from a field
 
 | Property | Modifier | Type | Inherited from | Defined in |
 | ------ | ------ | ------ | ------ | ------ |
-| <a id="id"></a> `id` | `readonly` | `string` | `PlotLayerBase.id` | [PlotLayer.ts:9](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/PlotLayer.ts#L9) |
-| <a id="map"></a> `map` | `protected` | `null` \| `MapType` | `PlotLayerBase.map` | [PlotLayer.ts:10](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/PlotLayer.ts#L10) |
-| <a id="type"></a> `type` | `readonly` | `"custom"` | `PlotLayerBase.type` | [PlotLayer.ts:8](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/PlotLayer.ts#L8) |
+| <a id="id"></a> `id` | `readonly` | `string` | `PlotLayerBase.id` | [PlotLayer.ts:9](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/PlotLayer.ts#L9) |
+| <a id="map"></a> `map` | `protected` | `null` \| `MapType` | `PlotLayerBase.map` | [PlotLayer.ts:10](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/PlotLayer.ts#L10) |
+| <a id="type"></a> `type` | `readonly` | `"custom"` | `PlotLayerBase.type` | [PlotLayer.ts:8](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/PlotLayer.ts#L8) |
 
 ## Methods
 
@@ -67,7 +67,7 @@ Create a map layer from a field
 
 > `protected` **repaint**(): `void`
 
-Defined in: [PlotLayer.ts:21](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/PlotLayer.ts#L21)
+Defined in: [PlotLayer.ts:21](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/PlotLayer.ts#L21)
 
 #### Returns
 

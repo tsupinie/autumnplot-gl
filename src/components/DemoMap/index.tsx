@@ -18,7 +18,7 @@ type DemoContourLayerProps = {
     label_contours?: boolean,
 }
 
-const document_script = (ExecutionEnvironment.canUseDOM ? window.location.protocol + "/" : "");
+const document_script = (ExecutionEnvironment.canUseDOM ? window.location.protocol + "/autumnplot-gl/" : "");
 
 export function DemoContourLayer(props: DemoContourLayerProps) : React.ReactNode {
     const {current: map_ref} = useMap();

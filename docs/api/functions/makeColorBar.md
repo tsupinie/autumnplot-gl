@@ -6,7 +6,7 @@ title: makeColorBar()
 
 > **makeColorBar**(`colormap`, `opts`): `SVGElement`
 
-Defined in: [ColorBar.ts:95](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/ColorBar.ts#L95)
+Defined in: [ColorBar.ts:95](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/ColorBar.ts#L95)
 
 Make an SVG containing a color bar. The color bar can either be oriented horizontal or vertical, and a label can be provided.
 

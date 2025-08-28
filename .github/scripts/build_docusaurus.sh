@@ -50,5 +50,3 @@ git commit -m "Update docs to v$VERSION"
 
 # Finally, push to the original repo
 git push origin gh-pages
-git remote -v
-git log

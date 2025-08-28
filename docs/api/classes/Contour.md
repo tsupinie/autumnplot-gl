@@ -4,7 +4,7 @@ title: Contour
 
 # Class: Contour\<ArrayType, GridType, MapType\>
 
-Defined in: [Contour.ts:85](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/Contour.ts#L85)
+Defined in: [Contour.ts:85](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/Contour.ts#L85)
 
 A field of contoured data.
 
@@ -34,7 +34,7 @@ const contours = new Contour(height_field, {color: '#000000', interval: 30});
 
 > **new Contour**\<`ArrayType`, `GridType`, `MapType`\>(`field`, `opts`): `Contour`\<`ArrayType`, `GridType`, `MapType`\>
 
-Defined in: [Contour.ts:97](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/Contour.ts#L97)
+Defined in: [Contour.ts:97](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/Contour.ts#L97)
 
 Create a contoured field
 
@@ -57,7 +57,7 @@ Create a contoured field
 
 | Property | Modifier | Type | Defined in |
 | ------ | ------ | ------ | ------ |
-| <a id="opts"></a> `opts` | `readonly` | `Required`\<[`ContourOptions`](../interfaces/ContourOptions.md)\> | [Contour.ts:87](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/Contour.ts#L87) |
+| <a id="opts"></a> `opts` | `readonly` | `Required`\<[`ContourOptions`](../interfaces/ContourOptions.md)\> | [Contour.ts:87](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/Contour.ts#L87) |
 
 ## Methods
 
@@ -65,7 +65,7 @@ Create a contoured field
 
 > **getContours**(): `Promise`\<[`ContourData`](../type-aliases/ContourData.md)\>
 
-Defined in: [Contour.ts:170](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/Contour.ts#L170)
+Defined in: [Contour.ts:170](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/Contour.ts#L170)
 
 #### Returns
 
@@ -77,7 +77,7 @@ Defined in: [Contour.ts:170](https://github.com/tsupinie/autumnplot-gl/blob/415c
 
 > **updateField**(`field`): `Promise`\<`void`\>
 
-Defined in: [Contour.ts:111](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/Contour.ts#L111)
+Defined in: [Contour.ts:111](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/Contour.ts#L111)
 
 Update the data displayed as contours
 

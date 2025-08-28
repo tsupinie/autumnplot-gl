@@ -4,7 +4,7 @@ title: Barbs
 
 # Class: Barbs\<ArrayType, GridType, MapType\>
 
-Defined in: [Barbs.ts:184](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/Barbs.ts#L184)
+Defined in: [Barbs.ts:184](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/Barbs.ts#L184)
 
 A class representing a field of wind barbs. The barbs are automatically thinned based on the zoom level on the map; the user only has to provide a
 thinning factor at zoom level 1.
@@ -35,7 +35,7 @@ const barbs = new Barbs(vector_field, {color: '#000000', thin_fac: 16});
 
 > **new Barbs**\<`ArrayType`, `GridType`, `MapType`\>(`fields`, `opts`): `Barbs`\<`ArrayType`, `GridType`, `MapType`\>
 
-Defined in: [Barbs.ts:198](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/Barbs.ts#L198)
+Defined in: [Barbs.ts:198](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/Barbs.ts#L198)
 
 Create a field of wind barbs
 
@@ -58,7 +58,7 @@ Create a field of wind barbs
 
 | Property | Modifier | Type | Defined in |
 | ------ | ------ | ------ | ------ |
-| <a id="opts"></a> `opts` | `readonly` | `Required`\<[`BarbsOptions`](../interfaces/BarbsOptions.md)\> | [Barbs.ts:187](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/Barbs.ts#L187) |
+| <a id="opts"></a> `opts` | `readonly` | `Required`\<[`BarbsOptions`](../interfaces/BarbsOptions.md)\> | [Barbs.ts:187](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/Barbs.ts#L187) |
 
 ## Methods
 
@@ -66,7 +66,7 @@ Create a field of wind barbs
 
 > **updateField**(`fields`): `Promise`\<`void`\>
 
-Defined in: [Barbs.ts:214](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/Barbs.ts#L214)
+Defined in: [Barbs.ts:214](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/Barbs.ts#L214)
 
 Update the field displayed as barbs
 

@@ -4,7 +4,7 @@ title: RawVectorField
 
 # Class: RawVectorField\<ArrayType, GridType\>
 
-Defined in: [RawField.ts:116](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/RawField.ts#L116)
+Defined in: [RawField.ts:116](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/RawField.ts#L116)
 
 A class representing a 2D gridded field of vectors
 
@@ -21,7 +21,7 @@ A class representing a 2D gridded field of vectors
 
 > **new RawVectorField**\<`ArrayType`, `GridType`\>(`grid`, `u`, `v`, `opts?`): `RawVectorField`\<`ArrayType`, `GridType`\>
 
-Defined in: [RawField.ts:128](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/RawField.ts#L128)
+Defined in: [RawField.ts:128](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/RawField.ts#L128)
 
 Create a vector field.
 
@@ -42,9 +42,9 @@ Create a vector field.
 
 | Property | Modifier | Type | Defined in |
 | ------ | ------ | ------ | ------ |
-| <a id="relative_to"></a> `relative_to` | `readonly` | [`VectorRelativeTo`](../type-aliases/VectorRelativeTo.md) | [RawField.ts:119](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/RawField.ts#L119) |
-| <a id="u"></a> `u` | `readonly` | [`RawScalarField`](RawScalarField.md)\<`ArrayType`, `GridType`\> | [RawField.ts:117](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/RawField.ts#L117) |
-| <a id="v"></a> `v` | `readonly` | [`RawScalarField`](RawScalarField.md)\<`ArrayType`, `GridType`\> | [RawField.ts:118](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/RawField.ts#L118) |
+| <a id="relative_to"></a> `relative_to` | `readonly` | [`VectorRelativeTo`](../type-aliases/VectorRelativeTo.md) | [RawField.ts:119](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/RawField.ts#L119) |
+| <a id="u"></a> `u` | `readonly` | [`RawScalarField`](RawScalarField.md)\<`ArrayType`, `GridType`\> | [RawField.ts:117](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/RawField.ts#L117) |
+| <a id="v"></a> `v` | `readonly` | [`RawScalarField`](RawScalarField.md)\<`ArrayType`, `GridType`\> | [RawField.ts:118](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/RawField.ts#L118) |
 
 ## Methods
 
@@ -52,7 +52,7 @@ Create a vector field.
 
 > **getWGLTextureSpecs**(`gl`, `mag_filter`): `object`
 
-Defined in: [RawField.ts:151](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/RawField.ts#L151)
+Defined in: [RawField.ts:151](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/RawField.ts#L151)
 
 #### Parameters
 
@@ -79,7 +79,7 @@ Defined in: [RawField.ts:151](https://github.com/tsupinie/autumnplot-gl/blob/415
 
 > **sampleField**(`lon`, `lat`): \[`number`, `number`\]
 
-Defined in: [RawField.ts:184](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/RawField.ts#L184)
+Defined in: [RawField.ts:184](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/RawField.ts#L184)
 
 #### Parameters
 

@@ -4,7 +4,7 @@ title: RawScalarField
 
 # Class: RawScalarField\<ArrayType, GridType\>
 
-Defined in: [RawField.ts:23](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/RawField.ts#L23)
+Defined in: [RawField.ts:23](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/RawField.ts#L23)
 
 A class representing a raw 2D field of gridded data, such as height or u wind.
 
@@ -21,7 +21,7 @@ A class representing a raw 2D field of gridded data, such as height or u wind.
 
 > **new RawScalarField**\<`ArrayType`, `GridType`\>(`grid`, `data`): `RawScalarField`\<`ArrayType`, `GridType`\>
 
-Defined in: [RawField.ts:34](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/RawField.ts#L34)
+Defined in: [RawField.ts:34](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/RawField.ts#L34)
 
 Create a data field.
 
@@ -40,8 +40,8 @@ Create a data field.
 
 | Property | Modifier | Type | Defined in |
 | ------ | ------ | ------ | ------ |
-| <a id="data"></a> `data` | `readonly` | `ArrayType` | [RawField.ts:25](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/RawField.ts#L25) |
-| <a id="grid"></a> `grid` | `readonly` | `GridType` | [RawField.ts:24](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/RawField.ts#L24) |
+| <a id="data"></a> `data` | `readonly` | `ArrayType` | [RawField.ts:25](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/RawField.ts#L25) |
+| <a id="grid"></a> `grid` | `readonly` | `GridType` | [RawField.ts:24](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/RawField.ts#L24) |
 
 ## Methods
 
@@ -49,7 +49,7 @@ Create a data field.
 
 > **getContours**(`opts`): `Promise`\<[`ContourData`](../type-aliases/ContourData.md)\>
 
-Defined in: [RawField.ts:71](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/RawField.ts#L71)
+Defined in: [RawField.ts:71](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/RawField.ts#L71)
 
 Get contour data as an object with each contour level being a separate property.
 
@@ -71,7 +71,7 @@ contour data as an object
 
 > **getWGLTextureSpec**(`gl`, `image_mag_filter`): `WGLTextureSpec`
 
-Defined in: [RawField.ts:56](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/RawField.ts#L56)
+Defined in: [RawField.ts:56](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/RawField.ts#L56)
 
 #### Parameters
 
@@ -90,7 +90,7 @@ Defined in: [RawField.ts:56](https://github.com/tsupinie/autumnplot-gl/blob/415c
 
 > **sampleField**(`lon`, `lat`): `number`
 
-Defined in: [RawField.ts:98](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/RawField.ts#L98)
+Defined in: [RawField.ts:98](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/RawField.ts#L98)
 
 #### Parameters
 
@@ -109,7 +109,7 @@ Defined in: [RawField.ts:98](https://github.com/tsupinie/autumnplot-gl/blob/415c
 
 > `static` **aggregateFields**\<`ArrayType`, `GridType`\>(`func`, ...`args`): `RawScalarField`\<`ArrayType`, `GridType`\>
 
-Defined in: [RawField.ts:84](https://github.com/tsupinie/autumnplot-gl/blob/415c194b5b688b75b61f2937cae581fa6787a516/src/RawField.ts#L84)
+Defined in: [RawField.ts:84](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/RawField.ts#L84)
 
 Create a new field by aggregating a number of fields using a specific function
 

@@ -84,9 +84,9 @@ map.on('load', () => {
 });
 ```
 
-<!--DemoMap>
+<DemoMap>
     <DemoContourLayer label_contours={true}/>
-</DemoMap-->
+</DemoMap>
 
 ## Creating wind barbs
 
