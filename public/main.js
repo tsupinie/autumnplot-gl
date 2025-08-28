@@ -198,7 +198,7 @@ function makeHodoLayers() {
     ];
     const hodo_grid = new apgl.PlateCarreeGrid(2, 3, -97.44, 35.17, -96.94, 36.17);
     const raw_prof_field = new apgl.RawProfileField(hodo_grid, profs);
-    const hodos = new apgl.Hodographs(raw_prof_field, {bgcolor: '#000000', thin_fac: 64});
+    const hodos = new apgl.Hodographs(raw_prof_field, {bgcolor: '#000000', thin_fac: 64, max_wind_speed_ring: 40});
     const hodo_layer = new apgl.PlotLayer('hodos', hodos);
 
     return {layers: [hodo_layer]};
