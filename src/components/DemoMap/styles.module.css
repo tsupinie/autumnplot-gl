@@ -1,0 +1,37 @@
+
+.autumnplot-gl-demo-map {
+    position: relative;
+    height: 15em;
+    margin-bottom: 0.8em;
+    border-radius: 7px;
+
+    transition: height 0.8s;
+}
+
+[data-theme='light'] .autumnplot-gl-demo-map {
+    background-color: #b9bfc6;
+}
+
+[data-theme='dark'] .autumnplot-gl-demo-map {
+    background-color: #2e3338;
+}
+
+.autumnplot-gl-demo-map.expanded {
+    height: 40em;
+}
+
+.expand-handle {
+    position: absolute;
+    background-color: #ffffff66;
+    color: black;
+    border-radius: 4px;
+
+    bottom: 1em;
+    left: 1em;
+    width: 2em;
+    height: 2em;
+    text-align: center;
+    line-height: 2em;
+
+    cursor: pointer;
+}
