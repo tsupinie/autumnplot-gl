@@ -7,9 +7,13 @@ import { ContourData, TypedArray } from "./AutumnTypes";
 
 let msm_promise: Promise<MarchingSquaresModule> | null = null;
 
-function initMSModule() {
+interface InitMSModuleOpts {
+    document_script?: string;
+}
+
+function initMSModule(opts: InitMSModuleOpts) {
     if (msm_promise === null) {
-        msm_promise = Module();
+        msm_promise = Module({'locateFile': (fname: string, dir: string) => (opts.document_script === undefined ? dir : opts.document_script) + fname});
     }
 
     return msm_promise;
@@ -41,7 +45,7 @@ async function contourCreator<ArrayType extends TypedArray>(data: ArrayType, gri
     const interval = opts.interval === undefined ? 0 : opts.interval;
     const quad_as_tri = opts.quad_as_tri === undefined ? false : opts.quad_as_tri;
 
-    const msm = await initMSModule();
+    const msm = await initMSModule({});
 
     const grid_coords = grid.getGridCoords();
 

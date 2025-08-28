@@ -31,12 +31,20 @@ const colormaps = {
     nws_storm_clear_refl: nws_storm_clear_refl,
 }
 
+/** Options for initializing the autumnplot-gl library */
+interface InitAutumnPlotOpts {
+    /** Base URL at which to find the WASM module (change with caution!) */
+    wasm_base_url?: string;
+}
+
 /**
  * Initialize the WebAssembly module in autumnplot-gl. It's not strictly necessary to call it first, but if you call it
  * first, you can prevent races when you contour a bunch of fields at once.
  */
-function initAutumnPlot() {
-    initMSModule();
+function initAutumnPlot(opts?: InitAutumnPlotOpts) {
+    opts = opts === undefined ? {} : opts;
+
+    initMSModule({document_script: opts.wasm_base_url});
 }
 
 export {PlotComponent,
@@ -52,4 +60,4 @@ export {PlotComponent,
         RawScalarField, RawVectorField, RawProfileField, RawObsField, ObsRawData,
         Grid, GridType, StructuredGrid, VectorRelativeTo, RawVectorFieldOptions, PlateCarreeGrid, PlateCarreeRotatedGrid, LambertGrid, UnstructuredGrid,
         WebGLAnyRenderingContext, TypedArray, ContourData,
-        initAutumnPlot, FieldContourOpts};
+        initAutumnPlot, InitAutumnPlotOpts, FieldContourOpts};
