@@ -125,15 +125,12 @@ async function makeHREFLayers() {
     const grid_href = new apgl.LambertGrid.fromLLCornerLonLat(1799, 1059, -97.5, 38.5, [38.5, 38.5], -122.719528, 21.138123, 3000, 3000);
 
     const nh_prob_data = await fetchBinary('data/hrefv3.2023051100.f036.mxuphl5000_2000m.nh_max.086400_p99.85_0040km.bin.gz');
-    //const nh_prob_data = await fetchBinary('data/hrrr_pmsl.bin.gz');
     const nh_prob_field = new apgl.RawScalarField(grid_href, nh_prob_data);
     const nh_prob_contour = new apgl.Contour(nh_prob_field, {'levels': [0.1, 0.3, 0.5, 0.7, 0.9], 'color': '#000000'});
-    //const nh_prob_contour = new apgl.Contour(nh_prob_field, {'interval': 400, 'color': '#000000'});
     const nh_prob_layer = new apgl.PlotLayer('nh_probs', nh_prob_contour);
 
 
     const pb_data = await fetchBinary('data/hrefv3.2023051100.f036.mxuphl5000_2000m.086400.pb75.bin.gz');
-    // If I don't draw the contours, this doesn't draw anything. Why is that?
     const href_pb_colors = ['#9d4c1c', '#f2b368', '#792394', '#d99cf9', '#1e3293', '#aabee3', '#bc373b', '#f0928f', '#397d21', '#b5f0ab'];
 
     const pb_field = new apgl.RawScalarField(grid_href, pb_data);
