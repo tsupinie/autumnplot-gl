@@ -39,7 +39,6 @@ interface PaintballGLElems<MapType extends MapLikeType> {
     shader_program_1: WGLProgram;
     shader_manager_2: ShaderProgramManager;
     vertices_step1: WGLBuffer;
-    texcoords_step1: WGLBuffer;
     vertices_step2: WGLBuffer;
     texcoords_step2: WGLBuffer;
     framebuffer: WGLFramebuffer;
@@ -109,7 +108,6 @@ class Paintball<ArrayType extends TypedArray, GridType extends StructuredGrid, M
         gl.getExtension('OES_texture_float');
 
         const vertices_step1 = new WGLBuffer(gl, new Float32Array([-1., -1., 1., -1., -1., 1., 1., 1.]), 2, gl.TRIANGLE_STRIP);
-        const texcoords_step1 = new WGLBuffer(gl, new Float32Array([0., 0., 1., 0., 0., 1., 1., 1.]), 2, gl.TRIANGLE_STRIP);
         const {vertices: vertices_step2, texcoords: texcoords_step2} = await this.field.grid.getWGLBuffers(gl);
 
         const shader_program_step1 = new WGLProgram(gl, paintball_step1_vertex_shader_src, paintball_step1_fragment_shader_src);
@@ -125,7 +123,7 @@ class Paintball<ArrayType extends TypedArray, GridType extends StructuredGrid, M
 
         this.gl_elems = {
             gl: gl, map: map, shader_program_1: shader_program_step1, shader_manager_2: shader_manager_step2, 
-            vertices_step1: vertices_step1, texcoords_step1: texcoords_step1, vertices_step2: vertices_step2, texcoords_step2: texcoords_step2,
+            vertices_step1: vertices_step1, vertices_step2: vertices_step2, texcoords_step2: texcoords_step2,
             framebuffer: fb
         };
 
@@ -152,7 +150,7 @@ class Paintball<ArrayType extends TypedArray, GridType extends StructuredGrid, M
         this.color_components.forEach((color, icolor) => {
             // Render to framebuffer to pull out an individual member from the packed field
             program_step1.use(
-                {'a_pos': gl_elems.vertices_step1, 'a_tex_coord': gl_elems.texcoords_step1},
+                {'a_pos': gl_elems.vertices_step1},
                 {'u_imem': icolor},
                 {'u_fill_sampler': fill_texture}
             );
