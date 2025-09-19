@@ -104,8 +104,12 @@ function makeSynthetic500mbLayers() {
                                              orientation: 'horizontal', tick_direction: 'bottom'});
 
     return {layers: [ws_layer, hght_layer, barb_layer, label_layer], colorbar: [svg], 
-            sampler: (lon, lat) => ({hght: raw_hght_field.sampleField(lon, lat), 
-                                     barb: raw_wind_field.sampleField(lon, lat)})};
+            sampler: (lon, lat) => {
+                const hght_val = raw_hght_field.sampleField(lon, lat);
+                const barb_val = raw_wind_field.sampleField(lon, lat);
+                return {hght: hght_val.toFixed(1), 
+                        barb: `${barb_val[0].toFixed(0)}/${barb_val[1].toFixed(0)}`}
+            }};
 }
 
 async function fetchBinary(fname, dtype) {
@@ -133,15 +137,34 @@ async function makeHREFLayers() {
     const pb_data = await fetchBinary('data/hrefv3.2023051100.f036.mxuphl5000_2000m.086400.pb75.bin.gz');
     const href_pb_colors = ['#9d4c1c', '#f2b368', '#792394', '#d99cf9', '#1e3293', '#aabee3', '#bc373b', '#f0928f', '#397d21', '#b5f0ab'];
 
+    // For this example field, the members are packed in reverse order from what the library now expects. So I'm doing the lazy thing and reversing
+    //  the members here rather than remaking the field.
+
     const pb_field = new apgl.RawScalarField(grid_href, pb_data);
     const paintball = new apgl.Paintball(pb_field, {'colors': [...href_pb_colors].reverse()});
     const paintball_layer = new apgl.PlotLayer('paintball', paintball);
 
-    const svg = apgl.makePaintballKey(href_pb_colors,
-                                      ['HRRR', 'HRRR -6h', 'HRW ARW', 'HRW ARW -12h', 'HRW FV3', 'HRW FV3 -12h', 'HRW NSSL', 'HRW NSSL -12h', 'NAM 3k', 'NAM 3k -12h'],
+    const members = ['HRRR', 'HRRR -6h', 'HRW ARW', 'HRW ARW -12h', 'HRW FV3', 'HRW FV3 -12h', 'HRW NSSL', 'HRW NSSL -12h', 'NAM 3k', 'NAM 3k -12h'];
+
+    const svg = apgl.makePaintballKey(href_pb_colors, members,
                                       {n_cols: 5});
 
-    return {layers: [paintball_layer, nh_prob_layer], colorbar: [svg]};
+    return {layers: [paintball_layer, nh_prob_layer], colorbar: [svg],
+            sampler: (lon, lat) => {
+                const pb_val = pb_field.sampleField(lon, lat);
+                const nh_prob_val = nh_prob_field.sampleField(lon, lat);
+
+                const pb_mems = [];
+
+                members.forEach((mem, imem, ary) => {
+                    const test_val = 1 << (ary.length - imem - 1);
+                    if (pb_val & test_val) {
+                        pb_mems.push(mem);
+                    }
+                });
+
+                return {pb: pb_mems.join(', '), nh_prob: nh_prob_val.toFixed(2)}
+            }};
 }
 
 async function makeGFSLayers() {
@@ -361,11 +384,24 @@ window.addEventListener('load', () => {
 
     let current_layers = [];
 
+    const readout = document.querySelector('#readout');
+    let sampler = null;
+
+    const getLatLon = (ev) => {
+        if (sampler === null || sampler === undefined) return;
+
+        const coord = ev.lngLat.wrap();
+        const sample = sampler(coord.lng, coord.lat);
+        const str = Object.entries(sample).map(([sn, s]) => `${sn}: ${s}`).join(', ');
+        readout.innerHTML = str;
+    }
+
     async function updateMap() {
         const view = views[menu.value];
         map.setMaxZoom(view.maxZoom);
 
-        const {layers, colorbar, sampler} = await view.makeLayers();
+        const {layers, colorbar, sampler: sampler_} = await view.makeLayers();
+        sampler = sampler_;
 
         current_layers.forEach(lyr => {
             map.removeLayer(lyr.id);
@@ -385,20 +421,13 @@ window.addEventListener('load', () => {
 
         current_layers = layers;
 
-        const readout = document.querySelector('#readout');
-
-        const getLatLon = (ev) => {
-            const coord = ev.lngLat.wrap();
-            const sample = sampler(coord.lng, coord.lat);
-            const str = Object.entries(sample).map(([sn, s]) => Array.isArray(s) ? `${sn}: ${s[0].toFixed(0)}/${s[1].toFixed(0)}` : `${sn}: ${s.toFixed(1)}`).join(', ');
-            readout.innerHTML = str;
-        }
-
         if (sampler !== undefined) {
             map.on('mousemove', getLatLon);
+            readout.style.display = 'block';
         }
         else {
             map.off('mousemove', getLatLon);
+            readout.style.display = 'none';
         }
     }
 
