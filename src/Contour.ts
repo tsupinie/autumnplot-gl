@@ -234,6 +234,13 @@ interface ContourLabelOptions {
     font_url_template?: string;
 
     /**
+     * Function to format the labels from numbers to a string
+     * @example val => Math.round(val).toString() // Round a number before to the nearest integer before converting to a string
+     * @default val => val.toString()
+     */
+    label_formatter?: (val: number) => string;
+
+    /**
      * Text color for the contour labels
      * @default '#000000'
      */
@@ -263,6 +270,7 @@ const contour_label_opt_defaults: Required<ContourLabelOptions> = {
     font_face: 'Trebuchet MS',
     font_size: 12,
     font_url_template: '',
+    label_formatter: (val: number) => val.toString(),
     text_color: '#000000',
     halo_color: '#000000',
     halo: false,
@@ -325,7 +333,7 @@ class ContourLabels<ArrayType extends TypedArray, GridType extends StructuredGri
 
         Object.entries(contour_data).forEach(([level, contours]) => {
             const icntr = (parseFloat(level) - contour_levels[0]);
-            const level_str = level.toString();
+            const level_str = this.opts.label_formatter(level as unknown as keyof typeof contour_data);
 
             contours.forEach(contour => {
                 const c_map = contour.map(v => {

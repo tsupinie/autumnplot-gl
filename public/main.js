@@ -133,6 +133,11 @@ async function makeHREFLayers() {
     const nh_prob_contour = new apgl.Contour(nh_prob_field, {'levels': [0.1, 0.3, 0.5, 0.7, 0.9], 'color': '#000000'});
     const nh_prob_layer = new apgl.PlotLayer('nh_probs', nh_prob_contour);
 
+    const labels = new apgl.ContourLabels(nh_prob_contour, {text_color: '#ffffff', halo: true, 
+                                                            label_formatter: val => Math.round(val * 100).toString(),
+                                                            font_url_template: 'https://autumnsky.us/glyphs/{fontstack}/{range}.pbf'});
+    const label_layer = new apgl.PlotLayer('nh_prob_labels', labels);
+
 
     const pb_data = await fetchBinary('data/hrefv3.2023051100.f036.mxuphl5000_2000m.086400.pb75.bin.gz');
     const href_pb_colors = ['#9d4c1c', '#f2b368', '#792394', '#d99cf9', '#1e3293', '#aabee3', '#bc373b', '#f0928f', '#397d21', '#b5f0ab'];
@@ -149,7 +154,7 @@ async function makeHREFLayers() {
     const svg = apgl.makePaintballKey(href_pb_colors, members,
                                       {n_cols: 5});
 
-    return {layers: [paintball_layer, nh_prob_layer], colorbar: [svg],
+    return {layers: [paintball_layer, nh_prob_layer, label_layer], colorbar: [svg],
             sampler: (lon, lat) => {
                 const pb_val = pb_field.sampleField(lon, lat);
                 const nh_prob_val = nh_prob_field.sampleField(lon, lat);
