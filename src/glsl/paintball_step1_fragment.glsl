@@ -2,13 +2,12 @@
 
 in highp vec2 v_tex_coord;
 
-uniform sampler2D u_fill_sampler;
 uniform int u_imem;
 
 out highp vec4 fragColor;
 
 void main() {
-    int fill_val = int(texture(u_fill_sampler, v_tex_coord).r);
+    int fill_val = int(get_field_value(v_tex_coord));
     
     if (fill_val < 1) {
         discard;

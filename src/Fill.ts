@@ -1,11 +1,11 @@
 
-import { PlotComponent } from './PlotComponent';
+import { PlotComponent, getGLFormatTypeAlignment } from './PlotComponent';
 import { ColorMap, ColorMapGPUInterface} from './Colormap';
 import { WGLBuffer, WGLTexture } from 'autumn-wgl';
 import { RawScalarField } from './RawField';
 import { MapLikeType } from './Map';
 import { RenderMethodArg, TypedArray, WebGLAnyRenderingContext, getRendererData } from './AutumnTypes';
-import { normalizeOptions } from './utils';
+import { applySamplerCode, normalizeOptions } from './utils';
 import { StructuredGrid } from './Grid';
 import { ShaderProgramManager } from './ShaderManager';
 
@@ -78,7 +78,7 @@ class PlotComponentFill<ArrayType extends TypedArray, GridType extends Structure
     private readonly cmap_gpu: ColorMapGPUInterface[];
 
     private gl_elems: PlotComponentFillGLElems<MapType> | null;
-    private fill_texture: WGLTexture | null;
+    private fill_texture: Map<string, WGLTexture> | null;
     private mask_texture: WGLTexture | null;
     protected image_mag_filter: number | null;
     protected cmap_mag_filter: number | null;
@@ -114,10 +114,16 @@ class PlotComponentFill<ArrayType extends TypedArray, GridType extends Structure
         const fill_image = this.field.getWGLTextureSpec(gl, this.image_mag_filter);
 
         if (this.fill_texture === null) {
-            this.fill_texture = new WGLTexture(gl, fill_image);
+            this.fill_texture = new Map([...fill_image.entries()].map(([key, fill_image]) => [key, new WGLTexture(gl, fill_image)]));
         }
         else {
-            this.fill_texture.setImageData(fill_image);
+            this.fill_texture.forEach((tex, key) => {
+                const key_fill_image = fill_image.get(key);
+                if (key_fill_image === undefined)
+                    throw `Missing key '${key}' in fill_image`;
+
+                tex.setImageData(key_fill_image)
+            });
         }
 
         if (mask !== undefined) {
@@ -126,8 +132,11 @@ class PlotComponentFill<ArrayType extends TypedArray, GridType extends Structure
                 return;
             }
 
-            const mask_field = new RawScalarField(this.field.grid, mask);
-            const mask_image = mask_field.getWGLTextureSpec(gl, gl.NEAREST);
+            const {format, type, row_alignment} = getGLFormatTypeAlignment(gl, 'uint8');
+            const mask_image = {'format': format, 'type': type,
+                'width': this.field.grid.ni, 'height': this.field.grid.nj, 'image': mask,
+                'mag_filter': gl.NEAREST, 'row_alignment': row_alignment,
+            };
             
             if (this.mask_texture === null) {
                 this.mask_texture = new WGLTexture(gl, mask_image);
@@ -159,7 +168,16 @@ class PlotComponentFill<ArrayType extends TypedArray, GridType extends Structure
             shader_defines.push('MASK');
         }
 
-        const shader_manger = new ShaderProgramManager(contourfill_vertex_shader_src, ColorMapGPUInterface.applyShader(contourfill_fragment_shader_src), shader_defines);
+        if (this.image_mag_filter === null || this.cmap_mag_filter === null) {
+            throw `Implement magnification filters in a subclass`;
+        }
+
+        const sampler_keys = [...this.field.getWGLTextureSpec(gl, this.image_mag_filter).keys()];
+        const sampler_expression = this.field.getExpression();
+
+        const frag_shader_src = applySamplerCode(ColorMapGPUInterface.applyShader(contourfill_fragment_shader_src), sampler_keys, sampler_expression);
+
+        const shader_manger = new ShaderProgramManager(contourfill_vertex_shader_src, frag_shader_src, shader_defines);
 
         this.gl_elems = {
             gl: gl, shader_manager: shader_manger, map: map, vertices: vertices, texcoords: texcoords,
@@ -175,10 +193,12 @@ class PlotComponentFill<ArrayType extends TypedArray, GridType extends Structure
         const render_data = getRendererData(arg);
         const program = this.gl_elems.shader_manager.getShaderProgram(gl, render_data.shaderData);
 
+        const samplers = Object.fromEntries([...this.fill_texture.entries()])
+
         program.use(
             {'a_pos': gl_elems.vertices, 'a_tex_coord': gl_elems.texcoords},
             {'u_opacity': this.opts.opacity, ...this.gl_elems.shader_manager.getShaderUniforms(render_data)},
-            {'u_fill_sampler': this.fill_texture}
+            samplers
         );
 
         this.cmap_gpu.forEach((cmg, icmg) => {

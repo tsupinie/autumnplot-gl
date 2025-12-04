@@ -102,4 +102,23 @@ function mergeShaderCode(snippet: string, main: string) {
     return snippet + "\n" + main;
 }
 
-export {zip, getMinZoom, getOS, Cache, normalizeOptions, getArrayConstructor, mergeShaderCode};
+function applySamplerCode(src: string, sampler_names: string[], sampler_expression: string) {
+    // TAS: find a better place for this to live.
+    const samplers = sampler_names.map(v => `uniform sampler2D ${v};`).join("\n");
+    const sampler_get = sampler_names.map(v => `highp float ${v}_val = texture(${v}, tex_coord).r;`).join("\n");
+
+    sampler_names.forEach(v => sampler_expression = sampler_expression.replaceAll(v, `${v}_val`));
+
+    const sampler_code = `
+        ${samplers}
+
+        highp float get_field_value(lowp vec2 tex_coord) {
+            ${sampler_get}
+            return ${sampler_expression};
+        }
+    `;
+
+    return mergeShaderCode(sampler_code, src);
+}
+
+export {zip, getMinZoom, getOS, Cache, normalizeOptions, getArrayConstructor, mergeShaderCode, applySamplerCode};

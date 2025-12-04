@@ -6,7 +6,7 @@ import { MapLikeType } from "./Map";
 import { PlotComponent, getGLFormatTypeAlignment } from "./PlotComponent";
 import { RawScalarField } from "./RawField";
 import { ShaderProgramManager } from "./ShaderManager";
-import { normalizeOptions } from "./utils";
+import { applySamplerCode, normalizeOptions } from "./utils";
 import { WGLBuffer, WGLFramebuffer, WGLProgram, WGLTexture } from "autumn-wgl";
 
 const paintball_step1_vertex_shader_src = require('./glsl/paintball_step1_vertex.glsl');
@@ -57,7 +57,7 @@ class Paintball<ArrayType extends TypedArray, GridType extends StructuredGrid, M
     private readonly color_components: [number, number, number, number][];
 
     private gl_elems: PaintballGLElems<MapType> | null;
-    private fill_texture: WGLTexture | null;
+    private fill_texture: Map<string, WGLTexture> | null;
 
     /**
      * Create a paintball plot
@@ -93,10 +93,16 @@ class Paintball<ArrayType extends TypedArray, GridType extends StructuredGrid, M
         const fill_image = this.field.getWGLTextureSpec(gl, gl.NEAREST);
 
         if (this.fill_texture === null) {
-            this.fill_texture = new WGLTexture(gl, fill_image);
+            this.fill_texture = new Map([...fill_image.entries()].map(([key, fill_image]) => [key, new WGLTexture(gl, fill_image)]));
         }
         else {
-            this.fill_texture.setImageData(fill_image);
+            this.fill_texture.forEach((tex, key) => {
+                const key_fill_image = fill_image.get(key);
+                if (key_fill_image === undefined)
+                    throw `Missing key '${key}' in fill_image`;
+
+                tex.setImageData(key_fill_image)
+            });
         }
     }
 
@@ -110,7 +116,12 @@ class Paintball<ArrayType extends TypedArray, GridType extends StructuredGrid, M
         const vertices_step1 = new WGLBuffer(gl, new Float32Array([-1., -1., 1., -1., -1., 1., 1., 1.]), 2, gl.TRIANGLE_STRIP);
         const {vertices: vertices_step2, texcoords: texcoords_step2} = await this.field.grid.getWGLBuffers(gl);
 
-        const shader_program_step1 = new WGLProgram(gl, paintball_step1_vertex_shader_src, paintball_step1_fragment_shader_src);
+        const sampler_keys = [...this.field.getWGLTextureSpec(gl, gl.NEAREST).keys()];
+        let sampler_expression = this.field.getExpression();
+
+        const step1_frag_shader_src = applySamplerCode(paintball_step1_fragment_shader_src, sampler_keys, sampler_expression);
+
+        const shader_program_step1 = new WGLProgram(gl, paintball_step1_vertex_shader_src, step1_frag_shader_src);
         const shader_manager_step2 = new ShaderProgramManager(paintball_step2_vertex_shader_src, paintball_step2_fragment_shader_src, []);
 
         const {format, type, row_alignment} = getGLFormatTypeAlignment(gl, 'float16');
@@ -147,12 +158,14 @@ class Paintball<ArrayType extends TypedArray, GridType extends StructuredGrid, M
         const program_step1 = this.gl_elems.shader_program_1;
         const program_step2 = this.gl_elems.shader_manager_2.getShaderProgram(gl, render_data.shaderData);
 
+        const samplers = Object.fromEntries([...this.fill_texture.entries()])
+
         this.color_components.forEach((color, icolor) => {
             // Render to framebuffer to pull out an individual member from the packed field
             program_step1.use(
                 {'a_pos': gl_elems.vertices_step1},
                 {'u_imem': icolor},
-                {'u_fill_sampler': fill_texture}
+                samplers
             );
 
             gl_elems.framebuffer.clear([0, 0, 0, 1]);

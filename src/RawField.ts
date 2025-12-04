@@ -6,6 +6,7 @@ import { Grid } from "./Grid";
 import { Cache, getArrayConstructor, zip } from "./utils";
 import { WGLTextureSpec } from "autumn-wgl";
 import { getGLFormatTypeAlignment } from "./PlotComponent";
+import { v4 as uuidv4 } from "uuid";
 
 type TextureDataType<ArrayType> = ArrayType extends Float32Array ? Float32Array : (ArrayType extends Uint8Array ? Uint8Array : Uint16Array);
 
@@ -25,6 +26,7 @@ class RawScalarField<ArrayType extends TypedArray, GridType extends Grid> {
     public readonly data: ArrayType;
 
     private readonly contour_cache: Cache<[FieldContourOpts], Promise<ContourData>>;
+    private readonly id: string;
 
     /**
      * Create a data field. 
@@ -34,6 +36,7 @@ class RawScalarField<ArrayType extends TypedArray, GridType extends Grid> {
     constructor(grid: GridType, data: ArrayType) {
         this.grid = grid;
         this.data = data;
+        this.id = '_' + uuidv4().replaceAll('-', '_');
 
         if (grid.ni * grid.nj != data.length) {
             throw `Data size (${data.length}) doesn't match the grid dimensions (${grid.ni} x ${grid.nj}; expected ${grid.ni * grid.nj} points)`;
@@ -53,14 +56,18 @@ class RawScalarField<ArrayType extends TypedArray, GridType extends Grid> {
         return data as TextureDataType<ArrayType>;
     }
 
-    public getWGLTextureSpec(gl: WebGLAnyRenderingContext, image_mag_filter: number) : WGLTextureSpec {
+    public getWGLTextureSpec(gl: WebGLAnyRenderingContext, image_mag_filter: number) : Map<string, WGLTextureSpec> {
         const tex_data = this.getTextureData();
         const {format, type, row_alignment} = getGLFormatTypeAlignment(gl, getArrayDType(this.data));
     
-        return {'format': format, 'type': type,
+        return new Map([[this.id, {'format': format, 'type': type,
             'width': this.grid.ni, 'height': this.grid.nj, 'image': tex_data,
             'mag_filter': image_mag_filter, 'row_alignment': row_alignment,
-        };
+        }]]);
+    }
+
+    public getExpression() : string {
+        return this.id;
     }
 
     /**

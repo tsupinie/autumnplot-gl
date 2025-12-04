@@ -2,8 +2,6 @@
 
 in highp vec2 v_tex_coord;
 
-uniform sampler2D u_fill_sampler;
-
 #ifdef MASK
 uniform sampler2D u_mask_sampler;
 #endif
@@ -16,7 +14,7 @@ uniform int u_mask_val;
 out highp vec4 fragColor;
 
 void main() {
-    highp float fill_val = texture(u_fill_sampler, v_tex_coord).r;
+    highp float fill_val = get_field_value(v_tex_coord);
 
     int draw_mask = 1;
 
