@@ -1,7 +1,7 @@
 import { Float16Array } from "@petamoriken/float16";
 import { WGLBuffer, WGLTexture, WGLTextureSpec } from "autumn-wgl";
 import { TypedArray, WebGLAnyRenderingContext } from "./AutumnTypes";
-import { LngLat, lambertConformalConic, rotateSphere } from "./Map";
+import { LngLat, lambertConformalConic, rotateSphere, verticalPerspective } from "./Map";
 import { getGLFormatTypeAlignment, layer_worker } from "./PlotComponent";
 import { Cache, getArrayConstructor, getMinZoom } from "./utils";
 import { kdTree } from "kd-tree-javascript";
@@ -94,7 +94,7 @@ function makeVectorRotationTexture(gl: WebGLAnyRenderingContext, grid: Grid, dat
     return {'rotation': rot_tex};
 }
 
-type GridType = 'latlon' | 'latlonrot' | 'lcc' | 'unstructured';
+type GridType = 'latlon' | 'latlonrot' | 'lcc' | 'unstructured' | 'geostationary';
 
 /** The base class for grid types */
 abstract class Grid {
@@ -773,6 +773,64 @@ class UnstructuredGrid extends Grid {
         // TAS: This is gonna be slow. Need to think about using the kdTree here.
         const idx = argMin(this.coords.map(c => (c.lon - lon) * (c.lon - lon) + (c.lat - lat) * (c.lat - lat)));
         return {sample: ary[idx], sample_lon: this.coords[idx].lon, sample_lat: this.coords[idx].lat};
+    }
+}
+
+// Maybe this shouldn't be called "geostationary" but something like "image" ... for all the non-geostationary satellites out there.
+class GeostationaryImage extends Grid {
+    public readonly satellite_lon: number;
+    public readonly satellite_lat: number;
+
+    private readonly vpp: (a: number, b: number, opts?: {inverse: boolean}) => [number, number];
+
+    constructor(ni: number, nj: number, satellite_lon: number, satellite_lat: number) {
+        super('geostationary', false, ni, nj);
+
+        this.satellite_lon = satellite_lon;
+        this.satellite_lat = satellite_lat;
+        this.vpp = verticalPerspective({lon_0: satellite_lon, lat_0: satellite_lat, alt: 35786000., a: 6731229, b: 6371229});
+    }
+
+    public getEarthCoords(): EarthCoords {}
+    public getGridCoords(): GridCoords {}
+
+    public transform(x: number, y: number, opts?: {inverse?: boolean}): [number, number] {
+        opts = opts === undefined ? {}: opts;
+        const inverse = opts.inverse === undefined ? false : opts.inverse;
+
+        return this.vpp(x, y, {inverse: inverse});
+    }
+
+    public sampleNearestGridPoint(lon: number, lat: number, ary: TypedArray): {sample: number, sample_lon: number, sample_lat: number} {
+        const [x, y] = this.transform(lon, lat);
+        const {x: xs, y: ys} = this.getGridCoords();
+
+        const ll_x = xs[0];
+        const ur_x = xs[xs.length - 1];
+        const dx = xs[1] - xs[0];
+        const ll_y = ys[0];
+        const ur_y = ys[ys.length - 1];
+        const dy = ys[1] - ys[0];
+
+        if (x < ll_x - 0.5 * dx || x > ur_x + 0.5 * dx || y < ll_y - 0.5 * dy || y > ur_y + 0.5 * dy) {
+            return {sample: NaN, sample_lon: NaN, sample_lat: NaN};
+        }
+
+        const i_min = argMin(xs.map(xv => Math.abs(xv - x)));
+        const j_min = argMin(ys.map(yv => Math.abs(yv - y)));
+        const idx = i_min + j_min * this.ni;
+
+        const [lon_min, lat_min] = this.transform(xs[i_min], ys[j_min], {inverse: true});
+
+        return {sample: ary[idx], sample_lon: lon_min, sample_lat: lat_min};
+    }
+
+    public getThinnedGrid(thin_fac: number, map_max_zoom: number): Grid {}
+    public thinDataArray<ArrayType extends TypedArray>(original_grid: Grid, ary: ArrayType): ArrayType {}
+    public getMinVisibleZoom(thin_fac: number): Uint8Array {}
+
+    public copy() {
+        return new GeostationaryImage(this.ni, this.nj, this.satellite_lon, this.satellite_lat);
     }
 }
 

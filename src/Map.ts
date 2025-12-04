@@ -187,6 +187,84 @@ function rotateSphere(params: RotateSphereParams) {
     }
 }
 
+interface VerticalPerspectiveParams {
+    lat_0: number,
+    lon_0: number,
+    alt: number,
+    a: number,
+    b: number,
+}
+
+function verticalPerspective(params: VerticalPerspectiveParams) {
+    // WGS 84 spheroid
+    const semimajor = params.a;
+    const semiminor = params.b;
+    const eccen = Math.sqrt(1 - (semiminor * semiminor) / (semimajor * semimajor));
+    const radians = Math.PI / 180;
+
+    let {lat_0, lon_0, alt} = params;
+    const alt_0 = 0;
+    const alt_00 = 0;
+    const eccen2 = eccen * eccen;
+
+    lat_0 *= radians;
+    lon_0 *= radians;
+
+    const sin_lat_0 = Math.sin(lat_0);
+    const cos_lat_0 = Math.cos(lat_0);
+
+    const N1 = semimajor / Math.sqrt(1 - (eccen * sin_lat_0) ** 2);
+    let lat_g = lat_0, P = 0;
+
+    for (let i = 0; i < 2; i++) {
+        P = Math.cos(lat_0) / Math.cos(lat_g) * (alt + N1 + alt_00) / semimajor;
+        lat_g = lat_0 - Math.asin(N1 * eccen * eccen * sin_lat_0 * cos_lat_0 / (P * semimajor));
+    }
+
+    const compute_perspective = (lon: number, lat: number) : [number, number] => {
+        lon *= radians;
+        lat *= radians;
+
+        const sin_lat = Math.sin(lat);
+        const cos_lat = Math.cos(lat);
+
+        const N = semimajor / Math.sqrt(1 - (eccen * sin_lat) ** 2);
+        const C = (N + alt_0) / semimajor * cos_lat;
+        const S = ((N * (1 - eccen * eccen) + alt_0) / semimajor) * sin_lat;
+        const K = alt / (P * Math.cos(lat_0 - lat_g) - S * sin_lat_0 - C * cos_lat_0 * Math.cos(lon - lon_0));
+        const x = K * C * Math.sin(lon - lon_0);
+        const y = K * (P * Math.sin(lat_0 - lat_g) + S * cos_lat_0 - C * sin_lat_0 * Math.cos(lon - lon_0));
+
+        return [x, y];
+    }
+
+    const B = P * Math.cos(lat_0 - lat_g);
+    const D = P * Math.sin(lat_0 - lat_g);
+    const L = 1 - eccen2 * cos_lat_0 * cos_lat_0;
+    const G = 1 - eccen2 * sin_lat_0 * sin_lat_0;
+    const J = 2 * eccen2 * sin_lat_0 * cos_lat_0;
+    const E = 1; // If alt_0 = 0, set E = 1
+    const t = P * P * (1 - (eccen * Math.cos(lat_g)) ** 2) - E * (1 - eccen2);
+
+    const compute_perspective_inverse = (x: number, y: number) : [number, number] => {
+        const u = -2 * B * L * alt - 2 * D * G * y + B * J * y + D * J * alt;
+        const v = L * alt * alt + G * y * y - alt * J * y + (1 - eccen2) * x * x;
+        const K_prime = (-u + Math.sqrt(u * u - 4 * t * v)) / (2 * t);
+        const X = semimajor * ((B - alt / K_prime) * cos_lat_0 - (y / K_prime - D) * sin_lat_0);
+        const Y = semimajor * x / K_prime;
+        const S = (y / K_prime - D) * cos_lat_0 + (B - alt / K_prime) * sin_lat_0;
+        const lon = lon_0 + Math.atan2(Y, X);
+        const lat = Math.atan2(S, Math.sqrt((1 - eccen2) * (1 - eccen2 - S * S)));
+
+        return [lon / radians, lat / radians];
+    }
+
+    return (a: number, b: number, opts?: {inverse: boolean}) => {
+        opts = opts === undefined ? {inverse: false} : opts;
+        return opts.inverse ? compute_perspective_inverse(a, b) : compute_perspective(a, b);
+    }
+}
+
 function mercatorXfromLng(lng: number) {
     return (180 + lng) / 360;
 }
@@ -242,5 +320,5 @@ function latFromMercatorY(y: number) {
     }
 }
 
-export {LngLat, lambertConformalConic, rotateSphere};
+export {LngLat, lambertConformalConic, rotateSphere, verticalPerspective};
 export type {MapLikeType};
