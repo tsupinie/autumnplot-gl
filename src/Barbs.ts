@@ -7,7 +7,7 @@ import { MapLikeType } from "./Map";
 import { BillboardSpec, RenderMethodArg, TypedArray, WebGLAnyRenderingContext } from "./AutumnTypes";
 import { Color } from "./Color";
 import { ColorMap } from "./Colormap";
-import { Grid } from "./Grid";
+import { AutoZoomGrid, Grid } from "./Grid";
 
 const BASE_BARB_DIMS: BillboardSpec = {
     BB_WIDTH: 85,
@@ -168,7 +168,7 @@ const barb_opt_defaults: Required<BarbsOptions> = {
     thin_fac: 1
 }
 
-interface BarbsGLElems<ArrayType extends TypedArray, GridType extends Grid, MapType extends MapLikeType> {
+interface BarbsGLElems<ArrayType extends TypedArray, GridType extends AutoZoomGrid<Grid>, MapType extends MapLikeType> {
     map: MapType;
     barb_billboards: BillboardCollection<ArrayType, GridType>;
 }
@@ -181,7 +181,7 @@ interface BarbsGLElems<ArrayType extends TypedArray, GridType extends Grid, MapT
  * const vector_field = new RawVectorField(grid, u_data, v_data);
  * const barbs = new Barbs(vector_field, {color: '#000000', thin_fac: 16});
  */
-class Barbs<ArrayType extends TypedArray, GridType extends Grid, MapType extends MapLikeType> extends PlotComponent<MapType> {
+class Barbs<ArrayType extends TypedArray, GridType extends AutoZoomGrid<Grid>, MapType extends MapLikeType> extends PlotComponent<MapType> {
     /** The vector field */
     private fields: RawVectorField<ArrayType, GridType>;
     public readonly opts: Required<BarbsOptions>;

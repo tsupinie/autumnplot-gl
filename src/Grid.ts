@@ -50,7 +50,7 @@ async function makeWGLDomainBuffers(gl: WebGLAnyRenderingContext, grid: Structur
     return {'vertices': vertices, 'texcoords': texcoords};
 }
 
-async function makeWGLBillboardBuffers(gl: WebGLAnyRenderingContext, grid: Grid, thin_fac: number, map_max_zoom: number) {
+async function makeWGLBillboardBuffers(gl: WebGLAnyRenderingContext, grid: AutoZoomGrid<Grid>, thin_fac: number, map_max_zoom: number) {
     const {lats: field_lats, lons: field_lons} = grid.getEarthCoords();
     const min_zoom = grid.getMinVisibleZoom(thin_fac);
     const bb_elements = await layer_worker.makeBBElements(field_lats, field_lons, min_zoom, grid.ni, grid.nj, map_max_zoom);
@@ -61,7 +61,7 @@ async function makeWGLBillboardBuffers(gl: WebGLAnyRenderingContext, grid: Grid,
     return {'vertices': vertices, 'texcoords': texcoords};
 }
 
-function makeVectorRotationTexture(gl: WebGLAnyRenderingContext, grid: Grid, data_are_earth_relative: boolean) {
+function makeVectorRotationTexture(gl: WebGLAnyRenderingContext, grid: AutoZoomGrid<Grid>, data_are_earth_relative: boolean) {
     const coords = grid.getEarthCoords();
 
     const rot_vals = new Float16Array(grid.ni * grid.nj).fill(parseFloat('nan'));
@@ -103,48 +103,63 @@ abstract class Grid {
     public readonly nj: number;
     public readonly is_conformal: boolean;
 
-    private readonly billboard_buffer_cache: Cache<[WebGLAnyRenderingContext, number, number], Promise<{'vertices': WGLBuffer, 'texcoords': WGLBuffer}>>;
-    private readonly vector_rotation_cache: Cache<[WebGLAnyRenderingContext, boolean], {'rotation': WGLTexture}>
-
     constructor(type: GridType, is_conformal: boolean, ni: number, nj: number) {
         this.type = type;
         this.is_conformal = is_conformal;
         this.ni = ni;
         this.nj = nj;
-
-        this.billboard_buffer_cache = new Cache((gl: WebGLAnyRenderingContext, thin_fac: number, max_zoom: number) => {
-            return makeWGLBillboardBuffers(gl, this, thin_fac, max_zoom);
-        });
-
-        this.vector_rotation_cache = new Cache((gl: WebGLAnyRenderingContext, data_are_earth_relative: boolean) => {
-            return makeVectorRotationTexture(gl, this, data_are_earth_relative);
-        })
     }
 
     public abstract getEarthCoords(): EarthCoords;
     public abstract getGridCoords(): GridCoords;
     public abstract transform(x: number, y: number, opts?: {inverse?: boolean}): [number, number];
     public abstract sampleNearestGridPoint(lon: number, lat: number, ary: TypedArray): {sample: number, sample_lon: number, sample_lat: number};
-    public abstract getThinnedGrid(thin_fac: number, map_max_zoom: number): Grid;
-    public abstract thinDataArray<ArrayType extends TypedArray>(original_grid: Grid, ary: ArrayType): ArrayType;
-    public abstract getMinVisibleZoom(thin_fac: number): Uint8Array;
-
-    public async getWGLBillboardBuffers(gl: WebGLAnyRenderingContext, thin_fac: number, max_zoom: number) {
-        return await this.billboard_buffer_cache.getValue(gl, thin_fac, max_zoom);
-    }
 
     public abstract copy(): Grid;
-
-    public getVectorRotationAtPoint(lon: number, lat: number) {    
-        const [x, y] = this.transform(lon, lat);
-        const [x_pertlon, y_pertlon] = this.transform(lon + 0.01, lat);
-        return Math.atan2(y_pertlon - y, x_pertlon - x);
-    }
-
-    public getVectorRotationTexture(gl: WebGLAnyRenderingContext, data_are_earth_relative: boolean) {
-        return this.vector_rotation_cache.getValue(gl, data_are_earth_relative);
-    }
 }
+
+type AbstractConstructor<T> = abstract new(...args: any[]) => T;
+
+function autoZoomGridMixin<G extends AbstractConstructor<Grid>>(base: G) {
+    abstract class AutoZoomGrid extends base {
+        private readonly billboard_buffer_cache: Cache<[WebGLAnyRenderingContext, number, number], Promise<{'vertices': WGLBuffer, 'texcoords': WGLBuffer}>>;
+        private readonly vector_rotation_cache: Cache<[WebGLAnyRenderingContext, boolean], {'rotation': WGLTexture}>
+
+        constructor(...args: any[]) {
+            super(...args);
+
+            this.billboard_buffer_cache = new Cache((gl: WebGLAnyRenderingContext, thin_fac: number, max_zoom: number) => {
+                return makeWGLBillboardBuffers(gl, this, thin_fac, max_zoom);
+            });
+
+            this.vector_rotation_cache = new Cache((gl: WebGLAnyRenderingContext, data_are_earth_relative: boolean) => {
+                return makeVectorRotationTexture(gl, this, data_are_earth_relative);
+            });
+        }
+
+        public async getWGLBillboardBuffers(gl: WebGLAnyRenderingContext, thin_fac: number, max_zoom: number) {
+            return await this.billboard_buffer_cache.getValue(gl, thin_fac, max_zoom);
+        }
+
+        public getVectorRotationTexture(gl: WebGLAnyRenderingContext, data_are_earth_relative: boolean) {
+            return this.vector_rotation_cache.getValue(gl, data_are_earth_relative);
+        }
+
+        public getVectorRotationAtPoint(lon: number, lat: number) {    
+            const [x, y] = this.transform(lon, lat);
+            const [x_pertlon, y_pertlon] = this.transform(lon + 0.01, lat);
+            return Math.atan2(y_pertlon - y, x_pertlon - x);
+        }
+
+        public abstract getThinnedGrid(thin_fac: number, map_max_zoom: number): AutoZoomGrid;
+        public abstract thinDataArray<ArrayType extends TypedArray>(original_grid: AutoZoomGrid, ary: ArrayType): ArrayType;
+        public abstract getMinVisibleZoom(thin_fac: number): Uint8Array;
+    }
+
+    return AutoZoomGrid;
+}
+
+type AutoZoomGrid<T extends Grid> = InstanceType<ReturnType<typeof autoZoomGridMixin<AbstractConstructor<T>>>>;
 
 /** A structured grid (in this case meaning a cartesian grid with i and j coordinates) */
 abstract class StructuredGrid extends Grid {
@@ -239,7 +254,7 @@ abstract class StructuredGrid extends Grid {
 }
 
 /** A plate carree (a.k.a. lat/lon) grid with uniform grid spacing */
-class PlateCarreeGrid extends StructuredGrid {
+class PlateCarreeGrid extends autoZoomGridMixin(StructuredGrid) {
     public readonly ll_lon: number;
     public readonly ll_lat: number;
     public readonly ur_lon: number;
@@ -358,7 +373,7 @@ class PlateCarreeGrid extends StructuredGrid {
 }
 
 /** A rotated lat-lon (plate carree) grid with uniform grid spacing */
-class PlateCarreeRotatedGrid extends StructuredGrid {
+class PlateCarreeRotatedGrid extends autoZoomGridMixin(StructuredGrid) {
     public readonly np_lon: number;
     public readonly np_lat: number;
     public readonly lon_shift: number;
@@ -494,7 +509,7 @@ class PlateCarreeRotatedGrid extends StructuredGrid {
 }
 
 /** A Lambert conformal conic grid with uniform grid spacing */
-class LambertGrid extends StructuredGrid {
+class LambertGrid extends autoZoomGridMixin(StructuredGrid) {
     public readonly lon_0: number;
     public readonly lat_0: number;
     public readonly lat_std: [number, number];
@@ -664,7 +679,7 @@ class LambertGrid extends StructuredGrid {
 }
 
 /** An unstructured grid defined by a list of latitudes and longitudes */
-class UnstructuredGrid extends Grid {
+class UnstructuredGrid extends autoZoomGridMixin(Grid) {
     public readonly coords: {lon: number, lat: number}[];
     private readonly zoom_cache: Cache<[number], Uint8Array>
     private readonly zoom_arg: Uint8Array | null;
@@ -777,4 +792,4 @@ class UnstructuredGrid extends Grid {
 }
 
 export {Grid, StructuredGrid, PlateCarreeGrid, PlateCarreeRotatedGrid, LambertGrid, UnstructuredGrid};
-export type {GridType};
+export type {GridType, AutoZoomGrid};

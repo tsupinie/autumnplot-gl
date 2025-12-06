@@ -3,7 +3,7 @@ import { RenderMethodArg, WebGLAnyRenderingContext } from "./AutumnTypes";
 import { MapLikeType } from "./Map";
 import { PlotComponent } from "./PlotComponent";
 import { normalizeOptions } from "./utils";
-import { Grid } from "./Grid";
+import { AutoZoomGrid, Grid } from "./Grid";
 import { RawObsField } from "./RawField";
 import { HorizontalAlign, TextCollection, TextCollectionOptions, TextSpec, VerticalAlign } from "./TextCollection";
 import { Float16Array } from "@petamoriken/float16";
@@ -254,7 +254,7 @@ const station_plot_opts_defaults: Required<StationPlotOptions<never>> = {
     font_url_template: '',
 };
 
-interface StationPlotGLElems<GridType extends Grid, MapType extends MapLikeType> {
+interface StationPlotGLElems<GridType extends AutoZoomGrid<Grid>, MapType extends MapLikeType> {
     map: MapType;
     gl: WebGLAnyRenderingContext;
     barb_components: Barbs<Float16Array, GridType, MapType>[];
@@ -292,7 +292,7 @@ function positionToAlignmentAndOffset(pos: SPPosition, off_size?: number) {
  * // Create the station plot
  * const station_plot = new StationPlot(obs_field, {config: station_plot_locs, thin_fac: 8, font_size: 14});
  */
-class StationPlot<GridType extends Grid, MapType extends MapLikeType, ObsFieldName extends string> extends PlotComponent<MapType> {
+class StationPlot<GridType extends AutoZoomGrid<Grid>, MapType extends MapLikeType, ObsFieldName extends string> extends PlotComponent<MapType> {
     private field: RawObsField<GridType, ObsFieldName>;
     public readonly opts: Required<StationPlotOptions<ObsFieldName>>;
     private gl_elems: StationPlotGLElems<GridType, MapType> | null;
