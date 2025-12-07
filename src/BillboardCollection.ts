@@ -28,7 +28,7 @@ interface BillboardCollectionGLElems {
     cmap_gpu: ColorMapGPUInterface | null;
 }
 
-class BillboardCollection<ArrayType extends TypedArray, GridType extends AutoZoomGrid<Grid>> {
+class BillboardCollection<ArrayType extends TypedArray, GridType extends AutoZoomGrid> {
     private field: RawVectorField<ArrayType, GridType>;
     public readonly spec: BillboardSpec;
     public readonly color: Color;

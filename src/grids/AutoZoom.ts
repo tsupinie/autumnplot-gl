@@ -5,7 +5,7 @@ import { AbstractConstructor, Grid } from "./Grid";
 import { getGLFormatTypeAlignment, layer_worker } from "../PlotComponent";
 import { Float16Array } from "@petamoriken/float16";
 
-async function makeWGLBillboardBuffers(gl: WebGLAnyRenderingContext, grid: AutoZoomGrid<Grid>, thin_fac: number, map_max_zoom: number) {
+async function makeWGLBillboardBuffers(gl: WebGLAnyRenderingContext, grid: AutoZoomGrid, thin_fac: number, map_max_zoom: number) {
     const {lats: field_lats, lons: field_lons} = grid.getEarthCoords();
     const min_zoom = grid.getMinVisibleZoom(thin_fac);
     const bb_elements = await layer_worker.makeBBElements(field_lats, field_lons, min_zoom, grid.ni, grid.nj, map_max_zoom);
@@ -16,7 +16,7 @@ async function makeWGLBillboardBuffers(gl: WebGLAnyRenderingContext, grid: AutoZ
     return {'vertices': vertices, 'texcoords': texcoords};
 }
 
-function makeVectorRotationTexture(gl: WebGLAnyRenderingContext, grid: AutoZoomGrid<Grid>, data_are_earth_relative: boolean) {
+function makeVectorRotationTexture(gl: WebGLAnyRenderingContext, grid: AutoZoomGrid, data_are_earth_relative: boolean) {
     const coords = grid.getEarthCoords();
 
     const rot_vals = new Float16Array(grid.ni * grid.nj).fill(parseFloat('nan'));
@@ -88,7 +88,7 @@ function autoZoomGridMixin<G extends AbstractConstructor<Grid>>(base: G) {
     return AutoZoomGrid;
 }
 
-type AutoZoomGrid<T extends Grid> = InstanceType<ReturnType<typeof autoZoomGridMixin<AbstractConstructor<T>>>>;
+type AutoZoomGrid<T extends Grid = Grid> = InstanceType<ReturnType<typeof autoZoomGridMixin<AbstractConstructor<T>>>>;
 
 export {autoZoomGridMixin};
 export type {AutoZoomGrid};

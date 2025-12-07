@@ -114,7 +114,7 @@ interface RawVectorFieldOptions {
 }
 
 /** A class representing a 2D gridded field of vectors */
-class RawVectorField<ArrayType extends TypedArray, GridType extends AutoZoomGrid<Grid>> {
+class RawVectorField<ArrayType extends TypedArray, GridType extends AutoZoomGrid> {
     public readonly u: RawScalarField<ArrayType, GridType>;
     public readonly v: RawScalarField<ArrayType, GridType>;
     public readonly relative_to: VectorRelativeTo;
@@ -198,7 +198,7 @@ class RawVectorField<ArrayType extends TypedArray, GridType extends AutoZoomGrid
 }
 
 /** A class grid of wind profiles */
-class RawProfileField<GridType extends AutoZoomGrid<Grid>> {
+class RawProfileField<GridType extends AutoZoomGrid> {
     public readonly profiles: WindProfile[];
     public readonly grid: GridType;
 
@@ -260,7 +260,7 @@ class RawProfileField<GridType extends AutoZoomGrid<Grid>> {
 type ObsRawData<ObsFieldName extends string> = Record<ObsFieldName, string | number | [number, number] | null>;
 
 /** Raw observation data, given as a list of objects */
-class RawObsField<GridType extends AutoZoomGrid<Grid>, ObsFieldName extends string> {
+class RawObsField<GridType extends AutoZoomGrid, ObsFieldName extends string> {
     public readonly grid: GridType;
     public readonly data: ObsRawData<ObsFieldName>[];
 

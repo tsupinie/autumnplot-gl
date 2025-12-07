@@ -113,14 +113,14 @@ const hodograph_opt_defaults: Required<HodographOptions> = {
     max_wind_speed_ring: 80
 }
 
-interface HodographGLElems<ArrayType extends TypedArray, GridType extends AutoZoomGrid<Grid>, MapType extends MapLikeType> {
+interface HodographGLElems<ArrayType extends TypedArray, GridType extends AutoZoomGrid, MapType extends MapLikeType> {
     gl: WebGLAnyRenderingContext;
     map: MapType;
     bg_billboard: BillboardCollection<ArrayType, GridType>;
 }
 
 /** A class representing a field of hodograph plots */
-class Hodographs<GridType extends AutoZoomGrid<Grid>, MapType extends MapLikeType> extends PlotComponent<MapType> {
+class Hodographs<GridType extends AutoZoomGrid, MapType extends MapLikeType> extends PlotComponent<MapType> {
     private profile_field: RawProfileField<GridType>;
     public readonly opts: Required<HodographOptions>;
 
