@@ -1,7 +1,7 @@
 
 import { RenderMethodArg, TypedArray, WebGLAnyRenderingContext, getRendererData } from "./AutumnTypes";
 import { Color } from "./Color";
-import { StructuredGrid } from "./Grid";
+import { StructuredGrid } from "./grids/StructuredGrid";
 import { MapLikeType } from "./Map";
 import { PlotComponent, getGLFormatTypeAlignment } from "./PlotComponent";
 import { RawScalarField } from "./RawField";

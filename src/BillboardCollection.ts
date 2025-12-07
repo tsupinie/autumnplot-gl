@@ -2,7 +2,8 @@
 import { BillboardSpec, RenderMethodArg, TypedArray, WebGLAnyRenderingContext, getRendererData } from "./AutumnTypes";
 import { Color } from "./Color";
 import { ColorMap, ColorMapGPUInterface } from "./Colormap";
-import { AutoZoomGrid, Grid } from "./Grid";
+import { Grid } from "./grids/Grid";
+import { AutoZoomGrid } from "./grids/AutoZoom";
 import { RawVectorField } from "./RawField";
 import { WGLBuffer, WGLTexture, WGLTextureSpec } from "autumn-wgl";
 import { ShaderProgramManager } from "./ShaderManager";

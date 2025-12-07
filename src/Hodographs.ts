@@ -9,7 +9,8 @@ import { LineData, RenderMethodArg, TypedArray, WebGLAnyRenderingContext, WindPr
 import { Float16Array } from "@petamoriken/float16";
 import { ColorMap } from "./Colormap";
 import { Color } from "./Color";
-import { AutoZoomGrid, Grid } from "./Grid";
+import { Grid } from "./grids/Grid";
+import { AutoZoomGrid } from "./grids/AutoZoom";
 
 const LINE_WIDTH_MULTIPLIER = 2.5;
 

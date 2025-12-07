@@ -2,10 +2,11 @@
 import { Float16Array } from "@petamoriken/float16";
 import { ContourData, TypedArray, TypedArrayStr, WebGLAnyRenderingContext, WindProfile, isStormRelativeWindProfile } from "./AutumnTypes";
 import { contourCreator, FieldContourOpts } from "./ContourCreator";
-import { AutoZoomGrid, Grid } from "./Grid";
+import { Grid } from "./grids/Grid";
 import { Cache, getArrayConstructor, zip } from "./utils";
 import { WGLTextureSpec } from "autumn-wgl";
 import { getGLFormatTypeAlignment } from "./PlotComponent";
+import { AutoZoomGrid } from "./grids/AutoZoom";
 
 type TextureDataType<ArrayType> = ArrayType extends Float32Array ? Float32Array : (ArrayType extends Uint8Array ? Uint8Array : Uint16Array);
 

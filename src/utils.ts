@@ -102,4 +102,22 @@ function mergeShaderCode(snippet: string, main: string) {
     return snippet + "\n" + main;
 }
 
-export {zip, getMinZoom, getOS, Cache, normalizeOptions, getArrayConstructor, mergeShaderCode};
+function argMin<T>(ary: T[] | TypedArray) {
+    if (ary.length === 0) {
+        return -1;
+    }
+
+    let min = ary[0];
+    let minIndex = 0;
+
+    for (let i = 1; i < ary.length; i++) {
+        if (ary[i] < min) {
+            minIndex = i;
+            min = ary[i];
+        }
+    }
+
+    return minIndex;
+}
+
+export {zip, getMinZoom, getOS, Cache, normalizeOptions, getArrayConstructor, mergeShaderCode, argMin};

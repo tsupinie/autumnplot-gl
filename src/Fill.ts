@@ -6,7 +6,7 @@ import { RawScalarField } from './RawField';
 import { MapLikeType } from './Map';
 import { RenderMethodArg, TypedArray, WebGLAnyRenderingContext, getRendererData } from './AutumnTypes';
 import { normalizeOptions } from './utils';
-import { StructuredGrid } from './Grid';
+import { StructuredGrid } from './grids/StructuredGrid';
 import { ShaderProgramManager } from './ShaderManager';
 
 const contourfill_vertex_shader_src = require('./glsl/contourfill_vertex.glsl');

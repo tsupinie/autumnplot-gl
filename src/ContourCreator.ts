@@ -2,7 +2,7 @@
 import Module from './cpp/marchingsquares';
 import { MarchingSquaresModule } from './cpp/marchingsquares';
 import './cpp/marchingsquares.wasm';
-import { Grid } from "./Grid";
+import { Grid } from "./grids/Grid";
 import { ContourData, TypedArray } from "./AutumnTypes";
 
 let msm_promise: Promise<MarchingSquaresModule> | null = null;
