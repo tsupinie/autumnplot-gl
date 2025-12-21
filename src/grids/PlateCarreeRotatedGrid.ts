@@ -1,11 +1,10 @@
 import { rotateSphere } from "../Map";
-import { Cache } from "../utils";
 import { autoZoomGridMixin } from "./AutoZoom";
-import { EarthCoords, GridCoords } from "./Grid";
+import { gridCoordinateMixin } from "./GridCoordinates";
 import { StructuredGrid } from "./StructuredGrid";
 
 /** A rotated lat-lon (plate carree) grid with uniform grid spacing */
-class PlateCarreeRotatedGrid extends autoZoomGridMixin(StructuredGrid) {
+class PlateCarreeRotatedGrid extends autoZoomGridMixin(gridCoordinateMixin(StructuredGrid)) {
     public readonly np_lon: number;
     public readonly np_lat: number;
     public readonly lon_shift: number;
@@ -15,8 +14,6 @@ class PlateCarreeRotatedGrid extends autoZoomGridMixin(StructuredGrid) {
     public readonly ur_lat: number;
 
     private readonly llrot: (a: number, b: number, opts?: {inverse: boolean}) => [number, number];
-    private readonly ll_cache: Cache<[number, number], EarthCoords>;
-    private readonly gc_cache: Cache<[], GridCoords>;
 
     /**
      * Create a Lambert conformal conic grid
@@ -42,45 +39,7 @@ class PlateCarreeRotatedGrid extends autoZoomGridMixin(StructuredGrid) {
         this.ur_lat = ur_lat;
         this.llrot = rotateSphere({np_lon: np_lon, np_lat: np_lat, lon_shift: lon_shift});
 
-        const dlon = (this.ur_lon - this.ll_lon) / (this.ni - 1);
-        const dlat = (this.ur_lat - this.ll_lat) / (this.nj - 1);
-
-        this.ll_cache = new Cache((ni: number, nj: number) => {
-            const lons = new Float32Array(ni * nj);
-            const lats = new Float32Array(ni * nj);
-
-            const dlon_req = (this.ni - 1) / (ni - 1) * dlon;
-            const dlat_req = (this.nj - 1) / (nj - 1) * dlat;
-
-            for (let i = 0; i < ni; i++) {
-                const lon_p = this.ll_lon + i * dlon_req;
-                for (let j = 0; j < nj; j++) {
-                    const lat_p = this.ll_lat + j * dlat_req;
-
-                    const [lon, lat] = this.llrot(lon_p, lat_p);
-                    const idx = i + j * ni;
-                    lons[idx] = lon;
-                    lats[idx] = lat;
-                }
-            }
-
-            return {lons: lons, lats: lats};
-        });
-
-        this.gc_cache = new Cache(() => {
-            const x = new Float32Array(this.ni);
-            const y = new Float32Array(this.nj);
-
-            for (let i = 0; i < this.ni; i++) {
-                x[i] = this.ll_lon + i * dlon;
-            }
-
-            for (let j = 0; j < this.nj; j++) {
-                y[j] = this.ll_lat + j * dlat;
-            }
-
-            return {x: x, y: y};
-        })
+        this.setupCoordinateCaches(ll_lon, ur_lon, ll_lat, ur_lat);
     }
 
     /** @internal */
@@ -94,22 +53,6 @@ class PlateCarreeRotatedGrid extends autoZoomGridMixin(StructuredGrid) {
         const ur_lat = opts.ur_lat !== undefined ? opts.ur_lat : this.ur_lat;
 
         return new PlateCarreeRotatedGrid(ni, nj, this.np_lon, this.np_lat, this.lon_shift, ll_lon, ll_lat, ur_lon, ur_lat);
-    }
-
-    /**
-     * @internal
-     * Get a list of longitudes and latitudes on the grid
-     */
-    public getEarthCoords(ni?: number, nj?: number) {
-        ni = ni === undefined ? this.ni : ni;
-        nj = nj === undefined ? this.nj : nj;
-
-        return this.ll_cache.getValue(ni, nj);
-    }
-
-    /** @internal */
-    public getGridCoords() {
-        return this.gc_cache.getValue();
     }
 
     /** @internal */

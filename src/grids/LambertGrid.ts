@@ -1,11 +1,11 @@
 import { lambertConformalConic } from "../Map";
-import { Cache } from "../utils";
 import { autoZoomGridMixin } from "./AutoZoom";
-import { EarthCoords, GridCoords, WGS84_SEMIMAJOR, WGS84_SEMIMINOR } from "./Grid";
+import { WGS84_SEMIMAJOR, WGS84_SEMIMINOR } from "./Grid";
+import { gridCoordinateMixin } from "./GridCoordinates";
 import { StructuredGrid } from "./StructuredGrid";
 
 /** A Lambert conformal conic grid with uniform grid spacing */
-class LambertGrid extends autoZoomGridMixin(StructuredGrid) {
+class LambertGrid extends autoZoomGridMixin(gridCoordinateMixin(StructuredGrid)) {
     public readonly lon_0: number;
     public readonly lat_0: number;
     public readonly lat_std: [number, number];
@@ -17,8 +17,6 @@ class LambertGrid extends autoZoomGridMixin(StructuredGrid) {
     public readonly b: number;
 
     private readonly lcc: (a: number, b: number, opts?: {inverse: boolean}) => [number, number];
-    private readonly ll_cache: Cache<[number, number], EarthCoords>;
-    private readonly gc_cache: Cache<[], GridCoords>;
 
     /**
      * Create a Lambert conformal conic grid from the lower-left and upper-right corner x/y values.
@@ -49,45 +47,7 @@ class LambertGrid extends autoZoomGridMixin(StructuredGrid) {
         this.b = b === undefined ? WGS84_SEMIMINOR : b;
         this.lcc = lambertConformalConic({lon_0: lon_0, lat_0: lat_0, lat_std: lat_std, a: this.a, b: this.b});
 
-        const dx = (this.ur_x - this.ll_x) / this.ni;
-        const dy = (this.ur_y - this.ll_y) / this.nj;
-
-        this.ll_cache = new Cache((ni: number, nj: number) => {
-            const lons = new Float32Array(ni * nj);
-            const lats = new Float32Array(ni * nj);
-
-            const dx_req = (this.ni - 1) / (ni - 1) * dx;
-            const dy_req = (this.nj - 1) / (nj - 1) * dy;
-
-            for (let i = 0; i < ni; i++) {
-                const x = this.ll_x + i * dx_req;
-                for (let j = 0; j < nj; j++) {
-                    const y = this.ll_y + j * dy_req;
-
-                    const [lon, lat] = this.lcc(x, y, {inverse: true});
-                    const idx = i + j * ni;
-                    lons[idx] = lon;
-                    lats[idx] = lat;
-                }
-            }
-
-            return {lons: lons, lats: lats};
-        });
-
-        this.gc_cache = new Cache(() => {
-            const x = new Float32Array(this.ni);
-            const y = new Float32Array(this.nj);
-
-            for (let i = 0; i < this.ni; i++) {
-                x[i] = this.ll_x + i * dx;
-            }
-
-            for (let j = 0; j < this.nj; j++) {
-                y[j] = this.ll_y + j * dy;
-            }
-
-            return {x: x, y: y};
-        });
+        this.setupCoordinateCaches(ll_x, ur_x, ll_y, ur_y);
     }
 
     /**
@@ -128,22 +88,6 @@ class LambertGrid extends autoZoomGridMixin(StructuredGrid) {
         const ur_y = opts.ur_y !== undefined ? opts.ur_y : this.ur_y;
 
         return new LambertGrid(ni, nj, this.lon_0, this.lat_0, this.lat_std, ll_x, ll_y, ur_x, ur_y, this.a, this.b);
-    }
-
-    /**
-     * @internal
-     * Get a list of longitudes and latitudes on the grid
-     */
-    public getEarthCoords(ni?: number, nj?: number) {
-        ni = ni === undefined ? this.ni : ni;
-        nj = nj === undefined ? this.nj : nj;
-
-        return this.ll_cache.getValue(ni, nj);
-    }
-
-    /** @internal */
-    public getGridCoords() {
-        return this.gc_cache.getValue();
     }
 
     /** @internal */

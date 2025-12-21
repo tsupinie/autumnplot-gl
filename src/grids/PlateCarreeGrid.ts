@@ -1,17 +1,13 @@
-import { Cache } from "../utils";
 import { autoZoomGridMixin } from "./AutoZoom";
-import { EarthCoords, GridCoords } from "./Grid";
+import { gridCoordinateMixin } from "./GridCoordinates";
 import { StructuredGrid } from "./StructuredGrid";
 
 /** A plate carree (a.k.a. lat/lon) grid with uniform grid spacing */
-class PlateCarreeGrid extends autoZoomGridMixin(StructuredGrid) {
+class PlateCarreeGrid extends autoZoomGridMixin(gridCoordinateMixin(StructuredGrid)) {
     public readonly ll_lon: number;
     public readonly ll_lat: number;
     public readonly ur_lon: number;
     public readonly ur_lat: number;
-
-    private readonly ll_cache: Cache<[number, number], EarthCoords>;
-    private readonly gc_cache: Cache<[], GridCoords>;
 
     /**
      * Create a plate carree grid
@@ -30,42 +26,7 @@ class PlateCarreeGrid extends autoZoomGridMixin(StructuredGrid) {
         this.ur_lon = ur_lon;
         this.ur_lat = ur_lat;
 
-        const dlon = (this.ur_lon - this.ll_lon) / (this.ni - 1);
-        const dlat = (this.ur_lat - this.ll_lat) / (this.nj - 1);
-
-        this.ll_cache = new Cache((ni: number, nj: number) => {
-            const lons = new Float32Array(ni * nj);
-            const lats = new Float32Array(ni * nj);
-
-            const dlon_req = (this.ni - 1) / (ni - 1) * dlon;
-            const dlat_req = (this.nj - 1) / (nj - 1) * dlat;
-
-            for (let i = 0; i < ni; i++) {
-                for (let j = 0; j < nj; j++) {
-                    const idx = i + j * ni;
-
-                    lons[idx] = this.ll_lon + i * dlon_req;
-                    lats[idx] = this.ll_lat + j * dlat_req;
-                }
-            }
-
-            return {'lons': lons, 'lats': lats};
-        });
-
-        this.gc_cache = new Cache(() => {
-            const x = new Float32Array(this.ni);
-            const y = new Float32Array(this.nj);
-
-            for (let i = 0; i < this.ni; i++) {
-                x[i] = this.ll_lon + i * dlon;
-            }
-
-            for (let j = 0; j < this.nj; j++) {
-                y[j] = this.ll_lat + j * dlat;
-            }
-
-            return {x: x, y: y};
-        })
+        this.setupCoordinateCaches(ll_lon, ur_lon, ll_lat, ur_lat);
     }
 
     /** @internal */
@@ -79,22 +40,6 @@ class PlateCarreeGrid extends autoZoomGridMixin(StructuredGrid) {
         const ur_lat = opts.ur_lat !== undefined ? opts.ur_lat : this.ur_lat;
 
         return new PlateCarreeGrid(ni, nj, ll_lon, ll_lat, ur_lon, ur_lat);
-    }
-
-    /**
-     * @internal
-     * Get a list of longitudes and latitudes on the grid (internal method)
-     */
-    public getEarthCoords(ni?: number, nj?: number) {
-        ni = ni === undefined ? this.ni : ni;
-        nj = nj === undefined ? this.nj : nj;
-
-        return this.ll_cache.getValue(ni, nj);
-    }
-
-    /** @internal */
-    public getGridCoords() {
-        return this.gc_cache.getValue();
     }
 
     /** @internal */
