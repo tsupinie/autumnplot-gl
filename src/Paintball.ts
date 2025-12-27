@@ -1,7 +1,7 @@
 
 import { RenderMethodArg, TypedArray, WebGLAnyRenderingContext, getRendererData } from "./AutumnTypes";
 import { Color } from "./Color";
-import { StructuredGrid } from "./grids/StructuredGrid";
+import { DomainBufferGrid } from "./grids/DomainBuffer";
 import { MapLikeType } from "./Map";
 import { PlotComponent, getGLFormatTypeAlignment } from "./PlotComponent";
 import { RawScalarField } from "./RawField";
@@ -51,7 +51,7 @@ interface PaintballGLElems<MapType extends MapLikeType> {
  * of single-precision floats, this works for up to 24 members. (Technically speaking, I don't need the quotes around "bits", as they're bits of the 
  * significand of an IEEE 754 float.)
  */
-class Paintball<ArrayType extends TypedArray, GridType extends StructuredGrid, MapType extends MapLikeType> extends PlotComponent<MapType> {
+class Paintball<ArrayType extends TypedArray, GridType extends DomainBufferGrid, MapType extends MapLikeType> extends PlotComponent<MapType> {
     private field: RawScalarField<ArrayType, GridType>;
     public readonly opts: Required<PaintballOptions>;
     private readonly color_components: [number, number, number, number][];
@@ -108,7 +108,7 @@ class Paintball<ArrayType extends TypedArray, GridType extends StructuredGrid, M
         gl.getExtension('OES_texture_float');
 
         const vertices_step1 = new WGLBuffer(gl, new Float32Array([-1., -1., 1., -1., -1., 1., 1., 1.]), 2, gl.TRIANGLE_STRIP);
-        const {vertices: vertices_step2, texcoords: texcoords_step2} = await this.field.grid.getWGLBuffers(gl);
+        const {vertices: vertices_step2, texcoords: texcoords_step2} = await this.field.grid.getDomainBuffers(gl);
 
         const shader_program_step1 = new WGLProgram(gl, paintball_step1_vertex_shader_src, paintball_step1_fragment_shader_src);
         const shader_manager_step2 = new ShaderProgramManager(paintball_step2_vertex_shader_src, paintball_step2_fragment_shader_src, []);

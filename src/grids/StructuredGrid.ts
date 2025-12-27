@@ -1,10 +1,11 @@
 import { WGLBuffer } from "autumn-wgl";
 import { TypedArray, WebGLAnyRenderingContext } from "../AutumnTypes";
-import { Cache, argMin, getArrayConstructor, getMinZoom } from "../utils";
+import { argMin, getArrayConstructor, getMinZoom } from "../utils";
 import { EarthCoords, Grid, GridType } from "./Grid";
 import { layer_worker } from "../PlotComponent";
+import { domainBufferMixin } from "./DomainBuffer";
 
-async function makeWGLDomainBuffers(gl: WebGLAnyRenderingContext, grid: StructuredGrid, simplify_ni: number, simplify_nj: number) {
+async function makeCartesianDomainBuffers(gl: WebGLAnyRenderingContext, grid: StructuredGrid, simplify_ni: number, simplify_nj: number) {
     const texcoord_margin_r = 1 / (2 * grid.ni);
     const texcoord_margin_s = 1 / (2 * grid.nj);
 
@@ -18,8 +19,7 @@ async function makeWGLDomainBuffers(gl: WebGLAnyRenderingContext, grid: Structur
 }
 
 /** A structured grid (in this case meaning a cartesian grid with i and j coordinates) */
-abstract class StructuredGrid extends Grid {
-    private readonly buffer_cache: Cache<[WebGLAnyRenderingContext], Promise<{'vertices': WGLBuffer, 'texcoords': WGLBuffer}>>;
+abstract class StructuredGrid extends domainBufferMixin(Grid) {
     protected readonly thin_x: number;
     protected readonly thin_y: number;
 
@@ -28,12 +28,6 @@ abstract class StructuredGrid extends Grid {
 
         this.thin_x = thin_x === undefined ? 1 : thin_x;
         this.thin_y = thin_y === undefined ? 1 : thin_y;
-
-        this.buffer_cache = new Cache((gl: WebGLAnyRenderingContext) => {
-            const new_ni = Math.max(Math.floor(this.ni / 20), 20);
-            const new_nj = Math.max(Math.floor(this.nj / 20), 20);
-            return makeWGLDomainBuffers(gl, this, new_ni, new_nj);
-        });
     }
 
     public abstract getEarthCoords(ni?: number, nj?: number): EarthCoords;
@@ -80,8 +74,10 @@ abstract class StructuredGrid extends Grid {
 
     public abstract copy(opts?: {ni?: number, nj?: number}): Grid;
 
-    public async getWGLBuffers(gl: WebGLAnyRenderingContext) {
-        return await this.buffer_cache.getValue(gl);
+    protected async makeDomainBuffers(gl: WebGLAnyRenderingContext) {
+        const simplify_ni = Math.max(Math.floor(this.ni / 20), 20);
+        const simplify_nj = Math.max(Math.floor(this.nj / 20), 20);
+        return makeCartesianDomainBuffers(gl, this, simplify_ni, simplify_nj);
     }
 
     public sampleNearestGridPoint(lon: number, lat: number, ary: TypedArray): {sample: number, sample_lon: number, sample_lat: number} {
