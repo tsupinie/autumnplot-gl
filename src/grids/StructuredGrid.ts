@@ -5,9 +5,13 @@ import { EarthCoords, Grid, GridType } from "./Grid";
 import { layer_worker } from "../PlotComponent";
 import { domainBufferMixin } from "./DomainBuffer";
 
-async function makeCartesianDomainBuffers(gl: WebGLAnyRenderingContext, grid: StructuredGrid, simplify_ni: number, simplify_nj: number) {
-    const texcoord_margin_r = 1 / (2 * grid.ni);
-    const texcoord_margin_s = 1 / (2 * grid.nj);
+async function makeCartesianDomainBuffers(gl: WebGLAnyRenderingContext, grid: StructuredGrid, simplify_ni: number, simplify_nj: number, opts?: {margin_r?: boolean, margin_s?: boolean}) {
+    opts = opts === undefined ? {} : opts;
+    const use_margin_r = opts.margin_r === undefined ? true : opts.margin_r;
+    const use_margin_s = opts.margin_s === undefined ? true : opts.margin_s;
+
+    const texcoord_margin_r = use_margin_r ? 1 / (2 * grid.ni) : 0;
+    const texcoord_margin_s = use_margin_s ? 1 / (2 * grid.nj) : 0;
 
     const {lats: field_lats, lons: field_lons} = grid.getEarthCoords(simplify_ni, simplify_nj);
     const domain_coords = await layer_worker.makeDomainVerticesAndTexCoords(field_lats, field_lons, simplify_ni, simplify_nj, texcoord_margin_r, texcoord_margin_s);

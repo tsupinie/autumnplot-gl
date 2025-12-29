@@ -361,7 +361,7 @@ const views = {
         makeLayers: makeMRMSLayer,
         maxZoom: 8.5,
     },
-        'nexrad-l2': {
+    'nexrad-l2': {
         name: "NEXRAD",
         makeLayers: makeNEXRADLayer,
         maxZoom: 14,

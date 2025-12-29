@@ -43,7 +43,7 @@ class RadarSweepGrid extends gridCoordinateMixin(StructuredGrid) {
     }
 
     protected async makeDomainBuffers(gl: WebGLAnyRenderingContext) {
-        return await makeCartesianDomainBuffers(gl, this as StructuredGrid, this.ni, 8);
+        return await makeCartesianDomainBuffers(gl, this as StructuredGrid, this.ni, 8, {margin_r: false});
     }
 
     public transform(a: number, b: number, opts?: { inverse?: boolean | undefined; } | undefined): [number, number] {
