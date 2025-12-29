@@ -105,4 +105,4 @@ abstract class StructuredGrid extends domainBufferMixin(Grid) {
     }
 }
 
-export {StructuredGrid};
+export {StructuredGrid, makeCartesianDomainBuffers};

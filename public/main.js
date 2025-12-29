@@ -313,6 +313,23 @@ async function makeMRMSLayer() {
     return {layers: [raster_layer], colorbar: [svg_crain, svg_csnow, svg_cicep, svg_cfrzr]};
 }
 
+async function makeNEXRADLayer() {
+    const grid = new apgl.RadarGrid(720, 1832, 21.192626953125, 381.19262695, 2125.0, 459875.0, -97.27776336669922, 35.3333625793457);
+    const data = await fetchBinary('data/KTLX_20230420_004221');
+    const raw_radar = new apgl.RawScalarField(grid, data);
+    const radar_raster = new apgl.Raster(raw_radar, {cmap: apgl.colormaps.nws_storm_clear_refl})
+
+    const radar_layer = new apgl.PlotLayer('nexrad', radar_raster);
+
+    const cbar = apgl.makeColorBar(apgl.colormaps.nws_storm_clear_refl, {label: 'Reflectivity (dBZ)', 
+                                                                         ticks: [-10, 0, 10, 20, 30, 40, 50, 60, 70], 
+                                                                         fontface: 'Trebuchet MS',
+                                                                         orientation: 'horizontal',
+                                                                         tick_direction: 'bottom'});
+
+    return {layers: [radar_layer], colorbar: [cbar]};
+}
+
 const views = {
     'default': {
         name: "Synthetic 500mb",
@@ -343,7 +360,12 @@ const views = {
         name: "MRMS",
         makeLayers: makeMRMSLayer,
         maxZoom: 8.5,
-    }
+    },
+        'nexrad-l2': {
+        name: "NEXRAD",
+        makeLayers: makeNEXRADLayer,
+        maxZoom: 14,
+    },
 };
 
 window.addEventListener('load', () => {
