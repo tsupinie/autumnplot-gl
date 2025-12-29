@@ -314,7 +314,7 @@ async function makeMRMSLayer() {
 }
 
 async function makeNEXRADLayer() {
-    const grid = new apgl.RadarGrid(720, 1832, 21.192626953125, 381.19262695, 2125.0, 459875.0, -97.27776336669922, 35.3333625793457);
+    const grid = new apgl.RadarSweepGrid(720, 1832, 21.192626953125, 381.19262695, 2125.0, 459875.0, -97.27776336669922, 35.3333625793457);
     const data = await fetchBinary('data/KTLX_20230420_004221');
     const raw_radar = new apgl.RawScalarField(grid, data);
     const radar_raster = new apgl.Raster(raw_radar, {cmap: apgl.colormaps.nws_storm_clear_refl})

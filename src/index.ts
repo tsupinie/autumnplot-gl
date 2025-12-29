@@ -20,7 +20,7 @@ import { StructuredGrid } from "./grids/StructuredGrid";
 import { PlateCarreeGrid } from "./grids/PlateCarreeGrid";
 import { PlateCarreeRotatedGrid } from "./grids/PlateCarreeRotatedGrid";
 import { LambertGrid } from "./grids/LambertGrid";
-import { RadarGrid } from "./grids/RadarGrid";
+import { RadarSweepGrid } from "./grids/RadarSweepGrid";
 import { UnstructuredGrid } from "./grids/UnstructuredGrid";
 
 import { initMSModule, FieldContourOpts } from './ContourCreator';
@@ -64,6 +64,6 @@ export {PlotComponent,
         MapLikeType, LineStyle,
         ColorMap, ColorMapOptions, colormaps, makeColorBar, makePaintballKey, Color, ColorbarOrientation, ColorbarTickDirection, ColorBarOptions, PaintballKeyOptions,
         RawScalarField, RawVectorField, RawProfileField, RawObsField, ObsRawData,
-        Grid, GridType, StructuredGrid, VectorRelativeTo, RawVectorFieldOptions, PlateCarreeGrid, PlateCarreeRotatedGrid, LambertGrid, UnstructuredGrid, RadarGrid,
+        Grid, GridType, StructuredGrid, VectorRelativeTo, RawVectorFieldOptions, PlateCarreeGrid, PlateCarreeRotatedGrid, LambertGrid, UnstructuredGrid, RadarSweepGrid,
         WebGLAnyRenderingContext, TypedArray, ContourData,
         initAutumnPlot, InitAutumnPlotOpts, FieldContourOpts};

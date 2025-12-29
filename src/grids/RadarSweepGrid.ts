@@ -3,7 +3,7 @@ import { gridCoordinateMixin } from "./GridCoordinates";
 import { StructuredGrid, makeCartesianDomainBuffers } from "./StructuredGrid";
 import { WebGLAnyRenderingContext } from "../AutumnTypes";
 
-class RadarGrid extends gridCoordinateMixin(StructuredGrid) {
+class RadarSweepGrid extends gridCoordinateMixin(StructuredGrid) {
     readonly longitude: number;
     readonly latitude: number;
     readonly start_az: number;
@@ -27,7 +27,7 @@ class RadarGrid extends gridCoordinateMixin(StructuredGrid) {
         this.setupCoordinateCaches(start_az, end_az, start_rn, end_rn);
     }
 
-    public copy(opts?: {nt?: number, nr?: number, start_az?: number, end_az?: number, start_rn?: number, end_rn?: number, longitude?: number, latitude?: number}): RadarGrid {
+    public copy(opts?: {nt?: number, nr?: number, start_az?: number, end_az?: number, start_rn?: number, end_rn?: number, longitude?: number, latitude?: number}): RadarSweepGrid {
         opts = opts === undefined ? {} : opts;
 
         const nt = opts.nt === undefined ? this.ni : opts.nt;
@@ -39,7 +39,7 @@ class RadarGrid extends gridCoordinateMixin(StructuredGrid) {
         const start_rn = opts.start_rn === undefined ? this.start_rn : opts.start_rn;
         const end_rn = opts.end_rn === undefined ? this.end_rn : opts.end_rn;
 
-        return new RadarGrid(nt, nr, start_az, end_az, start_rn, end_rn, longitude, latitude);
+        return new RadarSweepGrid(nt, nr, start_az, end_az, start_rn, end_rn, longitude, latitude);
     }
 
     protected async makeDomainBuffers(gl: WebGLAnyRenderingContext) {
@@ -66,4 +66,4 @@ class RadarGrid extends gridCoordinateMixin(StructuredGrid) {
     }
 }
 
-export {RadarGrid};
+export {RadarSweepGrid};
