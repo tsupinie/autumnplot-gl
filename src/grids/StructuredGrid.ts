@@ -4,6 +4,7 @@ import { argMin, getArrayConstructor, getMinZoom } from "../utils";
 import { EarthCoords, Grid, GridType } from "./Grid";
 import { layer_worker } from "../PlotComponent";
 import { domainBufferMixin } from "./DomainBuffer";
+import { GridElement } from "./GridCoordinates";
 
 async function makeCartesianDomainBuffers(gl: WebGLAnyRenderingContext, grid: StructuredGrid, simplify_ni: number, simplify_nj: number, opts?: {margin_r?: boolean, margin_s?: boolean}) {
     opts = opts === undefined ? {} : opts;
@@ -13,8 +14,14 @@ async function makeCartesianDomainBuffers(gl: WebGLAnyRenderingContext, grid: St
     const texcoord_margin_r = use_margin_r ? 1 / (2 * grid.ni) : 0;
     const texcoord_margin_s = use_margin_s ? 1 / (2 * grid.nj) : 0;
 
-    const {lats: field_lats, lons: field_lons} = grid.getEarthCoords(simplify_ni, simplify_nj);
-    const domain_coords = await layer_worker.makeDomainVerticesAndTexCoords(field_lats, field_lons, simplify_ni, simplify_nj, texcoord_margin_r, texcoord_margin_s);
+    const grid_element_i = use_margin_r ? 'center' : 'edge';
+    const grid_element_j = use_margin_s ? 'center' : 'edge';
+
+    const domain_ni = use_margin_r ? simplify_ni : simplify_ni + 1;
+    const domain_nj = use_margin_s ? simplify_nj : simplify_nj + 1;
+
+    const {lats: field_lats, lons: field_lons} = grid.getEarthCoords(simplify_ni, simplify_nj, grid_element_i, grid_element_j);
+    const domain_coords = await layer_worker.makeDomainVerticesAndTexCoords(field_lats, field_lons, domain_ni, domain_nj, texcoord_margin_r, texcoord_margin_s);
 
     const vertices = new WGLBuffer(gl, domain_coords['vertices'], 2, gl.TRIANGLE_STRIP);
     const texcoords = new WGLBuffer(gl, domain_coords['tex_coords'], 2, gl.TRIANGLE_STRIP);
@@ -34,7 +41,7 @@ abstract class StructuredGrid extends domainBufferMixin(Grid) {
         this.thin_y = thin_y === undefined ? 1 : thin_y;
     }
 
-    public abstract getEarthCoords(ni?: number, nj?: number): EarthCoords;
+    public abstract getEarthCoords(ni?: number, nj?: number, which_i?: GridElement, which_j?: GridElement): EarthCoords;
 
     /** @internal */
     protected xyThinFromMaxZoom(thin_fac: number, map_max_zoom: number) {

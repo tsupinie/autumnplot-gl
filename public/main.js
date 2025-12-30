@@ -327,7 +327,11 @@ async function makeNEXRADLayer() {
                                                                          orientation: 'horizontal',
                                                                          tick_direction: 'bottom'});
 
-    return {layers: [radar_layer], colorbar: [cbar]};
+    return {layers: [radar_layer], colorbar: [cbar], 
+            sampler: (lon, lat) => {
+                const refl_val = raw_radar.sampleField(lon, lat);
+                return {refl: refl_val.toFixed(1)}
+            }};
 }
 
 const views = {

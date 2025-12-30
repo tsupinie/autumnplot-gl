@@ -25,7 +25,6 @@ class RadarSweepGrid extends gridCoordinateMixin(StructuredGrid) {
         this.geod = Geodesic.WGS84;
 
         const dt = (end_az - start_az) / nt;
-
         this.setupCoordinateCaches(start_az, end_az - dt, start_rn, end_rn);
     }
 
@@ -45,7 +44,7 @@ class RadarSweepGrid extends gridCoordinateMixin(StructuredGrid) {
     }
 
     protected async makeDomainBuffers(gl: WebGLAnyRenderingContext) {
-        return await makeCartesianDomainBuffers(gl, this as StructuredGrid, this.ni, 16, {margin_r: true});
+        return await makeCartesianDomainBuffers(gl, this as StructuredGrid, this.ni, 16, {margin_r: false, margin_s: false});
     }
 
     public transform(a: number, b: number, opts?: { inverse?: boolean | undefined; } | undefined): [number, number] {
