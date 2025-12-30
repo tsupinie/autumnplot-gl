@@ -24,7 +24,9 @@ class RadarSweepGrid extends gridCoordinateMixin(StructuredGrid) {
 
         this.geod = Geodesic.WGS84;
 
-        this.setupCoordinateCaches(start_az, end_az, start_rn, end_rn);
+        const dt = (end_az - start_az) / nt;
+
+        this.setupCoordinateCaches(start_az, end_az - dt, start_rn, end_rn);
     }
 
     public copy(opts?: {nt?: number, nr?: number, start_az?: number, end_az?: number, start_rn?: number, end_rn?: number, longitude?: number, latitude?: number}): RadarSweepGrid {
@@ -43,7 +45,7 @@ class RadarSweepGrid extends gridCoordinateMixin(StructuredGrid) {
     }
 
     protected async makeDomainBuffers(gl: WebGLAnyRenderingContext) {
-        return await makeCartesianDomainBuffers(gl, this as StructuredGrid, this.ni, 8, {margin_r: false});
+        return await makeCartesianDomainBuffers(gl, this as StructuredGrid, this.ni, 16, {margin_r: true});
     }
 
     public transform(a: number, b: number, opts?: { inverse?: boolean | undefined; } | undefined): [number, number] {
@@ -58,10 +60,14 @@ class RadarSweepGrid extends gridCoordinateMixin(StructuredGrid) {
             return [ret.lon2, ret.lat2];
         }
         else {
-            const ret = this.geod.Inverse(this.latitude, this.longitude, a, b);
+            const ret = this.geod.Inverse(this.latitude, this.longitude, b, a);
             if (ret.azi1 === undefined || ret.s12 === undefined)
                 throw "Why are azi1 and s12 not in the return value?";
-            return [ret.azi1, ret.s12];
+
+            let az1 = ret.azi1;
+            while (az1 < this.start_az) az1 += 360;
+            while (az1 >= this.end_az) az1 -= 360;
+            return [az1, ret.s12];
         }
     }
 }
