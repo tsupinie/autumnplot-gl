@@ -62,9 +62,11 @@ class RadarSweepGrid extends gridCoordinateMixin(StructuredGrid) {
             if (ret.azi1 === undefined || ret.s12 === undefined)
                 throw "Why are azi1 and s12 not in the return value?";
 
+            const half_dt = 0.5 * (this.end_az - this.start_az) / this.ni;
+
             let az1 = ret.azi1;
-            while (az1 < this.start_az) az1 += 360;
-            while (az1 >= this.end_az) az1 -= 360;
+            while (az1 < this.start_az - half_dt) az1 += 360;
+            while (az1 >= this.end_az + half_dt) az1 -= 360;
             return [az1, ret.s12];
         }
     }
