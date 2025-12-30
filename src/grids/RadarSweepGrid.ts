@@ -24,8 +24,7 @@ class RadarSweepGrid extends gridCoordinateMixin(StructuredGrid) {
 
         this.geod = Geodesic.WGS84;
 
-        const dt = (end_az - start_az) / nt;
-        this.setupCoordinateCaches(start_az, end_az - dt, start_rn, end_rn);
+        this.setupCoordinateCaches(start_az, end_az, start_rn, end_rn);
     }
 
     public copy(opts?: {nt?: number, nr?: number, start_az?: number, end_az?: number, start_rn?: number, end_rn?: number, longitude?: number, latitude?: number}): RadarSweepGrid {
