@@ -9,7 +9,8 @@ import { Color } from './Color';
 
 import { normalizeOptions } from './utils';
 import { ColorMap } from './Colormap';
-import { StructuredGrid, UnstructuredGrid } from './Grid';
+import { StructuredGrid} from './grids/StructuredGrid';
+import { UnstructuredGrid } from './grids/UnstructuredGrid';
 
 /** Options for {@link Contour} components */
 interface ContourOptions {

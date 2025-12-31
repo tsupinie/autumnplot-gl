@@ -2,7 +2,8 @@
 import { BillboardSpec, RenderMethodArg, TypedArray, WebGLAnyRenderingContext, getRendererData } from "./AutumnTypes";
 import { Color } from "./Color";
 import { ColorMap, ColorMapGPUInterface } from "./Colormap";
-import { Grid } from "./Grid";
+import { Grid } from "./grids/Grid";
+import { AutoZoomGrid } from "./grids/AutoZoom";
 import { RawVectorField } from "./RawField";
 import { WGLBuffer, WGLTexture, WGLTextureSpec } from "autumn-wgl";
 import { ShaderProgramManager } from "./ShaderManager";
@@ -27,7 +28,7 @@ interface BillboardCollectionGLElems {
     cmap_gpu: ColorMapGPUInterface | null;
 }
 
-class BillboardCollection<ArrayType extends TypedArray, GridType extends Grid> {
+class BillboardCollection<ArrayType extends TypedArray, GridType extends AutoZoomGrid> {
     private field: RawVectorField<ArrayType, GridType>;
     public readonly spec: BillboardSpec;
     public readonly color: Color;

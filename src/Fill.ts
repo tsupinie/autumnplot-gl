@@ -6,8 +6,8 @@ import { RawScalarField } from './RawField';
 import { MapLikeType } from './Map';
 import { RenderMethodArg, TypedArray, WebGLAnyRenderingContext, getRendererData } from './AutumnTypes';
 import { normalizeOptions } from './utils';
-import { StructuredGrid } from './Grid';
 import { ShaderProgramManager } from './ShaderManager';
+import { DomainBufferGrid } from './grids/DomainBuffer';
 
 const contourfill_vertex_shader_src = require('./glsl/contourfill_vertex.glsl');
 const contourfill_fragment_shader_src = require('./glsl/contourfill_fragment.glsl');
@@ -71,7 +71,7 @@ interface PlotComponentFillGLElems<MapType extends MapLikeType> {
     texcoords: WGLBuffer;
 }
 
-class PlotComponentFill<ArrayType extends TypedArray, GridType extends StructuredGrid, MapType extends MapLikeType> extends PlotComponent<MapType> {
+class PlotComponentFill<ArrayType extends TypedArray, GridType extends DomainBufferGrid, MapType extends MapLikeType> extends PlotComponent<MapType> {
     private field: RawScalarField<ArrayType, GridType>;
     public readonly opts: Required<ContourFillOptions>;
 
@@ -143,7 +143,7 @@ class PlotComponentFill<ArrayType extends TypedArray, GridType extends Structure
     public async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
         // Basic procedure for the filled contours inspired by https://blog.mbq.me/webgl-weather-globe/
 
-        const {vertices: vertices, texcoords: texcoords} = await this.field.grid.getWGLBuffers(gl);
+        const {vertices: vertices, texcoords: texcoords} = await this.field.grid.getDomainBuffers(gl);
 
         this.cmap_gpu.forEach(cmg => {
             if (this.image_mag_filter === null || this.cmap_mag_filter === null) {
@@ -216,7 +216,7 @@ class PlotComponentFill<ArrayType extends TypedArray, GridType extends Structure
  * // Create a raster plot with the provided color map
  * const raster = new Raster(wind_speed_field, {cmap: color_map});
  */
-class Raster<ArrayType extends TypedArray, GridType extends StructuredGrid, MapType extends MapLikeType> extends PlotComponentFill<ArrayType, GridType, MapType> {
+class Raster<ArrayType extends TypedArray, GridType extends DomainBufferGrid, MapType extends MapLikeType> extends PlotComponentFill<ArrayType, GridType, MapType> {
 
     /**
      * Create a raster plot
@@ -260,7 +260,7 @@ class Raster<ArrayType extends TypedArray, GridType extends StructuredGrid, MapT
  * // Create a field of filled contours with the provided color map
  * const fill = new ContourFill(wind_speed_field, {cmap: color_map});
  */
-class ContourFill<ArrayType extends TypedArray, GridType extends StructuredGrid, MapType extends MapLikeType> extends PlotComponentFill<ArrayType, GridType, MapType> {
+class ContourFill<ArrayType extends TypedArray, GridType extends DomainBufferGrid, MapType extends MapLikeType> extends PlotComponentFill<ArrayType, GridType, MapType> {
 
     /**
      * Create a filled contoured field
