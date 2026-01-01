@@ -95,12 +95,15 @@ abstract class StructuredGrid extends domainBufferMixin(Grid) {
         const [x, y] = this.transform(lon, lat);
         const {x: xs, y: ys} = this.getGridCoords();
 
-        const ll_x = xs[0];
-        const ur_x = xs[xs.length - 1];
+        let ll_x = xs[0];
+        let ur_x = xs[xs.length - 1];
         const dx = xs[1] - xs[0];
-        const ll_y = ys[0];
-        const ur_y = ys[ys.length - 1];
+        let ll_y = ys[0];
+        let ur_y = ys[ys.length - 1];
         const dy = ys[1] - ys[0];
+
+        if (dx < 0) [ll_x, ur_x] = [ur_x, ll_x];
+        if (dy < 0) [ll_y, ur_y] = [ur_y, ll_y];
 
         if (x < ll_x - 0.5 * dx || x > ur_x + 0.5 * dx || y < ll_y - 0.5 * dy || y > ur_y + 0.5 * dy) {
             return {sample: NaN, sample_lon: NaN, sample_lat: NaN};
