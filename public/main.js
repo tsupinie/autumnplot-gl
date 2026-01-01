@@ -334,6 +334,26 @@ async function makeNEXRADLayer() {
             }};
 }
 
+async function makeGOESLayer() {
+    // CONUS mid-level water vapor
+    const grid = new apgl.GeostationaryImage(2500, 1500, -3626269.332309611, 4589199.739172205, 1381769.939093754, 1583173.7143861316, -75.0);
+    const data = await fetchBinary('data/g19_conus_band9_20251028_160236.gz');
+
+    const cmap = apgl.colormaps.wv_cimss;
+    const raw_sat = new apgl.RawScalarField(grid, data);
+    const sat_raster = new apgl.Raster(raw_sat, {cmap: cmap});
+
+    const sat_layer = new apgl.PlotLayer('goes', sat_raster);
+
+    const cbar = apgl.makeColorBar(cmap, {label: 'Brightness Temperature (K)', 
+                                          ticks: [170, 180, 190, 200, 210, 220, 230, 240, 250, 260, 270], 
+                                          fontface: 'Trebuchet MS',
+                                          orientation: 'horizontal',
+                                          tick_direction: 'bottom'});
+    
+    return {layers: [sat_layer], colorbar: [cbar]};
+}
+
 const views = {
     'default': {
         name: "Synthetic 500mb",
@@ -369,6 +389,11 @@ const views = {
         name: "NEXRAD",
         makeLayers: makeNEXRADLayer,
         maxZoom: 14,
+    },
+    'goes': {
+        name: "GOES",
+        makeLayers: makeGOESLayer,
+        maxZoom: 9,
     },
 };
 

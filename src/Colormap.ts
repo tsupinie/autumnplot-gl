@@ -5,6 +5,7 @@ import cape_colormap_data from "./json/pwcape_colormap.json";
 import t2m_colormap_data from "./json/pwt2m_colormap.json";
 import td2m_colormap_data from "./json/pwtd2m_colormap.json";
 import nws_storm_clear_refl_colormap_data from "./json/nws_storm_clear_refl_colormap.json";
+import wv_cimss_data from "./json/wv_cimss.json";
 import { Float16Array } from "@petamoriken/float16";
 import { WGLProgram, WGLTexture } from "autumn-wgl";
 import { WebGLAnyRenderingContext } from "./AutumnTypes";
@@ -173,6 +174,9 @@ function buildColormap(cm_data: {levels: number[], colors: string[]}, overflow: 
     return new ColorMap(cm_data.levels, cm_data.colors, opts);
 }
 
+// This was dumb. Fix this later.
+wv_cimss_data.colors = wv_cimss_data.colors.reverse();
+
 // Some built-in colormaps
 const pw_speed500mb = buildColormap(spd500_colormap_data, 'over').withOpacity((levl, levu) => Math.min((levu - 20) / 10, 1.));
 const pw_speed850mb = buildColormap(spd850_colormap_data, 'over').withOpacity((levl, levu) => Math.min((levu - 20) / 10, 1.));
@@ -180,6 +184,7 @@ const pw_cape = buildColormap(cape_colormap_data, 'over').withOpacity((levl, lev
 const pw_t2m = buildColormap(t2m_colormap_data, 'both');
 const pw_td2m = buildColormap(td2m_colormap_data, 'both');
 const nws_storm_clear_refl = buildColormap(nws_storm_clear_refl_colormap_data, 'over');
+const wv_cimss = buildColormap(wv_cimss_data, 'neither');
 
 /**
  * Create a diverging red/blue colormap, where red corresponds to the lowest value and blue corresponds to the highest value
@@ -305,5 +310,5 @@ function makeIndexMap(colormap: ColorMap) {
     return new Float16Array(inv_cmap_norm);
 }
 
-export {ColorMap, ColorMapGPUInterface, bluered, redblue, pw_speed500mb, pw_speed850mb, pw_cape, pw_t2m, pw_td2m, nws_storm_clear_refl}
+export {ColorMap, ColorMapGPUInterface, bluered, redblue, pw_speed500mb, pw_speed850mb, pw_cape, pw_t2m, pw_td2m, nws_storm_clear_refl, wv_cimss}
 export type {ColorMapOptions};

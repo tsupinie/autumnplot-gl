@@ -302,20 +302,27 @@ function latFromMercatorY(y: number) {
 
     constructor(lng: number, lat: number) {
         if (isNaN(lng) || isNaN(lat)) {
-            throw new Error(`Invalid LngLat object: (${lng}, ${lat})`);
+            this.lng = NaN;
+            this.lat = NaN;
         }
-        this.lng = +lng;
-        this.lat = +lat;
-        if (this.lat > 90 || this.lat < -90) {
-            throw new Error('Invalid LngLat latitude value: must be between -90 and 90');
+        else {
+            this.lng = +lng;
+            this.lat = +lat;
+            if (this.lat > 90 || this.lat < -90) {
+                throw new Error('Invalid LngLat latitude value: must be between -90 and 90');
+            }
         }
     }
 
     public toMercatorCoord() {
+        if (isNaN(this.lng) || isNaN(this.lng)) return {x: NaN, y: NaN};
+
         return {x: mercatorXfromLng(this.lng), y: mercatorYfromLat(this.lat)};
     }
 
     public static fromMercatorCoord(x: number, y: number) {
+        if (isNaN(x) || isNaN(y)) return new LngLat(NaN, NaN);
+
         return new LngLat(lngFromMercatorX(x), latFromMercatorY(y));
     }
 }
