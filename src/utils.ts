@@ -121,4 +121,22 @@ function applySamplerCode(src: string, sampler_names: string[], sampler_expressi
     return mergeShaderCode(sampler_code, src);
 }
 
-export {zip, getMinZoom, getOS, Cache, normalizeOptions, getArrayConstructor, mergeShaderCode, applySamplerCode};
+function argMin<T>(ary: T[] | TypedArray) {
+    if (ary.length === 0) {
+        return -1;
+    }
+
+    let min = ary[0];
+    let minIndex = 0;
+
+    for (let i = 1; i < ary.length; i++) {
+        if (ary[i] < min) {
+            minIndex = i;
+            min = ary[i];
+        }
+    }
+
+    return minIndex;
+}
+
+export {zip, getMinZoom, getOS, Cache, normalizeOptions, getArrayConstructor, mergeShaderCode, applySamplerCode, argMin};

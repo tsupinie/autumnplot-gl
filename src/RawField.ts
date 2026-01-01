@@ -2,11 +2,12 @@
 import { Float16Array } from "@petamoriken/float16";
 import { ContourData, TypedArray, TypedArrayStr, WebGLAnyRenderingContext, WindProfile, isStormRelativeWindProfile } from "./AutumnTypes";
 import { contourCreator, FieldContourOpts } from "./ContourCreator";
-import { Grid } from "./Grid";
+import { Grid } from "./grids/Grid";
 import { Cache, getArrayConstructor, zip } from "./utils";
 import { WGLTextureSpec } from "autumn-wgl";
 import { getGLFormatTypeAlignment } from "./PlotComponent";
 import { v4 as uuidv4 } from "uuid";
+import { AutoZoomGrid } from "./grids/AutoZoom";
 
 type TextureDataType<ArrayType> = ArrayType extends Float32Array ? Float32Array : (ArrayType extends Uint8Array ? Uint8Array : Uint16Array);
 
@@ -120,7 +121,7 @@ interface RawVectorFieldOptions {
 }
 
 /** A class representing a 2D gridded field of vectors */
-class RawVectorField<ArrayType extends TypedArray, GridType extends Grid> {
+class RawVectorField<ArrayType extends TypedArray, GridType extends AutoZoomGrid> {
     public readonly u: RawScalarField<ArrayType, GridType>;
     public readonly v: RawScalarField<ArrayType, GridType>;
     public readonly relative_to: VectorRelativeTo;
@@ -204,7 +205,7 @@ class RawVectorField<ArrayType extends TypedArray, GridType extends Grid> {
 }
 
 /** A class grid of wind profiles */
-class RawProfileField<GridType extends Grid> {
+class RawProfileField<GridType extends AutoZoomGrid> {
     public readonly profiles: WindProfile[];
     public readonly grid: GridType;
 
@@ -266,7 +267,7 @@ class RawProfileField<GridType extends Grid> {
 type ObsRawData<ObsFieldName extends string> = Record<ObsFieldName, string | number | [number, number] | null>;
 
 /** Raw observation data, given as a list of objects */
-class RawObsField<GridType extends Grid, ObsFieldName extends string> {
+class RawObsField<GridType extends AutoZoomGrid, ObsFieldName extends string> {
     public readonly grid: GridType;
     public readonly data: ObsRawData<ObsFieldName>[];
 
