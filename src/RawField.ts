@@ -4,9 +4,8 @@ import { ContourData, TypedArray, TypedArrayStr, WebGLAnyRenderingContext, WindP
 import { contourCreator, FieldContourOpts } from "./ContourCreator";
 import { Grid } from "./grids/Grid";
 import { Cache, getArrayConstructor, zip } from "./utils";
-import { WGLTextureSpec } from "autumn-wgl";
+import { WGLTexture, WGLTextureSpec } from "autumn-wgl";
 import { getGLFormatTypeAlignment } from "./PlotComponent";
-import { v4 as uuidv4 } from "uuid";
 import { AutoZoomGrid } from "./grids/AutoZoom";
 
 type TextureDataType<ArrayType> = ArrayType extends Float32Array ? Float32Array : (ArrayType extends Uint8Array ? Uint8Array : Uint16Array);
@@ -27,7 +26,6 @@ class RawScalarField<ArrayType extends TypedArray, GridType extends Grid> {
     public readonly data: ArrayType;
 
     private readonly contour_cache: Cache<[FieldContourOpts], Promise<ContourData>>;
-    private readonly id: string;
 
     /**
      * Create a data field. 
@@ -37,7 +35,6 @@ class RawScalarField<ArrayType extends TypedArray, GridType extends Grid> {
     constructor(grid: GridType, data: ArrayType) {
         this.grid = grid;
         this.data = data;
-        this.id = '_' + uuidv4().replaceAll('-', '_');
 
         if (grid.ni * grid.nj != data.length) {
             throw `Data size (${data.length}) doesn't match the grid dimensions (${grid.ni} x ${grid.nj}; expected ${grid.ni * grid.nj} points)`;
@@ -57,18 +54,52 @@ class RawScalarField<ArrayType extends TypedArray, GridType extends Grid> {
         return data as TextureDataType<ArrayType>;
     }
 
-    public getWGLTextureSpec(gl: WebGLAnyRenderingContext, image_mag_filter: number) : Map<string, WGLTextureSpec> {
+    private getWGLTextureSpec(gl: WebGLAnyRenderingContext, image_mag_filter: number) : Map<string, WGLTextureSpec> {
         const tex_data = this.getTextureData();
         const {format, type, row_alignment} = getGLFormatTypeAlignment(gl, getArrayDType(this.data));
     
-        return new Map([[this.id, {'format': format, 'type': type,
+        return new Map([['_0', {'format': format, 'type': type,
             'width': this.grid.ni, 'height': this.grid.nj, 'image': tex_data,
             'mag_filter': image_mag_filter, 'row_alignment': row_alignment,
         }]]);
     }
 
+    public updateTexImageData(gl: WebGLAnyRenderingContext, image_mag_filter: number, fill_textures: Map<string, WGLTexture> | null) {
+        const fill_texture_specs = this.getWGLTextureSpec(gl, image_mag_filter);
+
+        if (fill_textures === null) {
+            fill_textures = new Map(this.getSamplerIds().map(key => {
+                const key_fill_image = fill_texture_specs.get(key);
+
+                if (key_fill_image === undefined)
+                    throw `Missing key '${key}' in fill_texture_specs`;
+
+                return [key, new WGLTexture(gl, key_fill_image)];
+            }));
+        }
+        else {
+            this.getSamplerIds().forEach(key => {
+                const key_fill_image = fill_texture_specs.get(key);
+                if (key_fill_image === undefined)
+                    throw `Missing key '${key}' in fill_texture_specs`;
+
+                const tex = fill_textures?.get(key);
+                if (tex === undefined)
+                    throw `Missing key '${key}' in fill_textures`; 
+
+                tex.setImageData(key_fill_image);
+            });
+        }
+
+        return fill_textures;
+    }
+
+    public getSamplerIds() : string[] {
+        return ['_0'];
+    }
+
     public getExpression() : string {
-        return this.id;
+        return '_0';
     }
 
     /**
@@ -107,6 +138,68 @@ class RawScalarField<ArrayType extends TypedArray, GridType extends Grid> {
         return this.grid.sampleNearestGridPoint(lon, lat, this.data).sample;
     }
 }
+
+const chars = 'abcdefghijklmnopqrstuvwxyz';
+
+class ComputedScalarField<ArrayType extends TypedArray, GridType extends Grid> {
+    private readonly raw_fields: ExpressionScalarField<ArrayType, GridType>[];
+    private readonly expression: string;
+
+    constructor(raw_fields: ExpressionScalarField<ArrayType, GridType>[], expression: string) {
+        this.raw_fields = raw_fields;
+        this.expression = expression;
+    }
+
+    get grid(): GridType {
+        return this.raw_fields[0].grid;
+    }
+
+    public updateTexImageData(gl: WebGLAnyRenderingContext, image_mag_filter: number, fill_textures: Map<string, WGLTexture> | null) {
+        const fill_textures_ret: Map<string, WGLTexture> = new Map();
+
+        this.raw_fields.forEach((field, idx) => {
+            let fill_textures_pre_field: Map<string, WGLTexture> | null = null;
+            if (fill_textures !== null) {
+                fill_textures_pre_field = new Map();
+
+                for (let [key, val] of fill_textures) {
+                    if (key[key.length - 1] == chars[idx])
+                        fill_textures_pre_field.set(key.slice(0, -1), val);
+                }
+            }
+
+            const fill_textures_field = field.updateTexImageData(gl, image_mag_filter, fill_textures_pre_field);
+
+            for (let [key, val] of fill_textures_field) {
+                fill_textures_ret.set(`${key}${chars[idx]}`, val);
+            }
+
+        });
+
+        return fill_textures_ret;
+    }
+
+    public getSamplerIds(): string[] {
+        return this.raw_fields.map((f, i) => f.getSamplerIds().map(id => `${id}${chars[i]}`)).flat();
+    }
+
+    public getExpression(): string {
+        let expression = this.expression;
+        this.raw_fields.forEach((field, idx) => {
+            let field_expr = field.getExpression();
+            const matches = field_expr.match(/_0[a-z]*/g);
+            if (matches === null)
+                throw `Field expression not found`;
+
+            matches.forEach(m => field_expr = field_expr.replace(m, `${m}${chars[idx]}`));
+            expression = expression.replace(`{${idx}}`, field_expr);
+        });
+
+        return `(${expression})`;
+    }
+}
+
+type ExpressionScalarField<ArrayType extends TypedArray, GridType extends Grid> = RawScalarField<ArrayType, GridType> | ComputedScalarField<ArrayType, GridType>;
 
 /** The basis vectors for vector fields (i.e, whether vectors a relative to Earth or the grid) */
 type VectorRelativeTo = 'earth' | 'grid';
@@ -172,6 +265,10 @@ class RawVectorField<ArrayType extends TypedArray, GridType extends AutoZoomGrid
         };
 
         return {u: u_image, v: v_image};
+    }
+
+    public magnitude() {
+        return new ComputedScalarField([this.u, this.v], 'length(vec2({0}, {1}))');
     }
 
     /** @internal */
@@ -339,5 +436,5 @@ class RawObsField<GridType extends AutoZoomGrid, ObsFieldName extends string> {
     }
 }
 
-export {RawScalarField, RawVectorField, RawProfileField, RawObsField};
-export type {RawVectorFieldOptions, VectorRelativeTo, TextureDataType, ObsRawData};
+export {RawScalarField, ComputedScalarField, RawVectorField, RawProfileField, RawObsField};
+export type {ExpressionScalarField, RawVectorFieldOptions, VectorRelativeTo, TextureDataType, ObsRawData};

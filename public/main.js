@@ -60,22 +60,11 @@ function makeSynthetic500mbLayers() {
         return new apgl.RawVectorField(grid, new arrayType(u), new arrayType(v), {relative_to: 'grid'});
     }
 
-    function makeWindSpeed(key) {
-        const winds = makeWinds(key);
-        const wspd = [];
-
-        for (let idx = 0; idx < winds.u.data.length; idx++) {
-            wspd[idx] = Math.hypot(winds.u.data[idx], winds.v.data[idx]);
-        }
-
-        return new apgl.RawScalarField(grid, new arrayType(wspd));
-    }
-
     const colormap = apgl.colormaps.pw_speed500mb;
 
     const raw_hght_field = makeHeight(0);
     const raw_wind_field = makeWinds(0);
-    const raw_ws_field = makeWindSpeed(0);
+    const raw_ws_field = raw_wind_field.magnitude();
 
     const cntr = new apgl.Contour(raw_hght_field, {interval: 1, color: '#000000', line_width: lev => lev < 565 ? 2 : 4, line_style: lev => lev < 555 ? '--' : '-'});
     const filled = new apgl.ContourFill(raw_ws_field, {'cmap': colormap, 'opacity': 0.8});
@@ -90,8 +79,9 @@ function makeSynthetic500mbLayers() {
 
     function updateTime(time) {
         cntr.updateField(makeHeight(time));
-        filled.updateField(makeWindSpeed(time));
-        barbs.updateField(makeWinds(time));
+        const raw_wind_field = makeWinds(time);
+        barbs.updateField(raw_wind_field);
+        filled.updateField(raw_wind_field.magnitude());
         labels.updateField();
 
         window.requestAnimationFrame(updateTime);

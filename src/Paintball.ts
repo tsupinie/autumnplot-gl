@@ -4,7 +4,7 @@ import { Color } from "./Color";
 import { DomainBufferGrid } from "./grids/DomainBuffer";
 import { MapLikeType } from "./Map";
 import { PlotComponent, getGLFormatTypeAlignment } from "./PlotComponent";
-import { RawScalarField } from "./RawField";
+import { ExpressionScalarField } from "./RawField";
 import { ShaderProgramManager } from "./ShaderManager";
 import { applySamplerCode, normalizeOptions } from "./utils";
 import { WGLBuffer, WGLFramebuffer, WGLProgram, WGLTexture } from "autumn-wgl";
@@ -52,7 +52,7 @@ interface PaintballGLElems<MapType extends MapLikeType> {
  * significand of an IEEE 754 float.)
  */
 class Paintball<ArrayType extends TypedArray, GridType extends DomainBufferGrid, MapType extends MapLikeType> extends PlotComponent<MapType> {
-    private field: RawScalarField<ArrayType, GridType>;
+    private field: ExpressionScalarField<ArrayType, GridType>;
     public readonly opts: Required<PaintballOptions>;
     private readonly color_components: [number, number, number, number][];
 
@@ -66,7 +66,7 @@ class Paintball<ArrayType extends TypedArray, GridType extends DomainBufferGrid,
      *               `M2` is the same thing for member 2, and `M3` and `M4` and up to `Mn` are the same thing for the rest of the members.
      * @param opts  - Options for creating the paintball plot
      */
-    constructor(field: RawScalarField<ArrayType, GridType>, opts?: PaintballOptions) {
+    constructor(field: ExpressionScalarField<ArrayType, GridType>, opts?: PaintballOptions) {
         super();
 
         this.field = field;
@@ -82,7 +82,7 @@ class Paintball<ArrayType extends TypedArray, GridType extends DomainBufferGrid,
      * Update the field displayed as a paintball plot
      * @param field - The new field to display as a paintball plot
      */
-    public async updateField(field: RawScalarField<ArrayType, GridType>) {
+    public async updateField(field: ExpressionScalarField<ArrayType, GridType>) {
         this.field = field;
 
         if (this.gl_elems === null) return;
@@ -90,20 +90,7 @@ class Paintball<ArrayType extends TypedArray, GridType extends DomainBufferGrid,
 
         gl.pixelStorei(gl.UNPACK_ALIGNMENT, 2);
 
-        const fill_image = this.field.getWGLTextureSpec(gl, gl.NEAREST);
-
-        if (this.fill_texture === null) {
-            this.fill_texture = new Map([...fill_image.entries()].map(([key, fill_image]) => [key, new WGLTexture(gl, fill_image)]));
-        }
-        else {
-            this.fill_texture.forEach((tex, key) => {
-                const key_fill_image = fill_image.get(key);
-                if (key_fill_image === undefined)
-                    throw `Missing key '${key}' in fill_image`;
-
-                tex.setImageData(key_fill_image)
-            });
-        }
+        this.fill_texture = this.field.updateTexImageData(gl, gl.NEAREST, this.fill_texture);
     }
 
     /**
@@ -116,7 +103,7 @@ class Paintball<ArrayType extends TypedArray, GridType extends DomainBufferGrid,
         const vertices_step1 = new WGLBuffer(gl, new Float32Array([-1., -1., 1., -1., -1., 1., 1., 1.]), 2, gl.TRIANGLE_STRIP);
         const {vertices: vertices_step2, texcoords: texcoords_step2} = await this.field.grid.getDomainBuffers(gl);
 
-        const sampler_keys = [...this.field.getWGLTextureSpec(gl, gl.NEAREST).keys()];
+        const sampler_keys = this.field.getSamplerIds();
         let sampler_expression = this.field.getExpression();
 
         const step1_frag_shader_src = applySamplerCode(paintball_step1_fragment_shader_src, sampler_keys, sampler_expression);

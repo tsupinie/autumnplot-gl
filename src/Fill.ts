@@ -2,7 +2,7 @@
 import { PlotComponent, getGLFormatTypeAlignment } from './PlotComponent';
 import { ColorMap, ColorMapGPUInterface} from './Colormap';
 import { WGLBuffer, WGLTexture } from 'autumn-wgl';
-import { RawScalarField } from './RawField';
+import { ExpressionScalarField } from './RawField';
 import { MapLikeType } from './Map';
 import { RenderMethodArg, TypedArray, WebGLAnyRenderingContext, getRendererData } from './AutumnTypes';
 import { applySamplerCode, normalizeOptions } from './utils';
@@ -72,7 +72,7 @@ interface PlotComponentFillGLElems<MapType extends MapLikeType> {
 }
 
 class PlotComponentFill<ArrayType extends TypedArray, GridType extends DomainBufferGrid, MapType extends MapLikeType> extends PlotComponent<MapType> {
-    private field: RawScalarField<ArrayType, GridType>;
+    private field: ExpressionScalarField<ArrayType, GridType>;
     public readonly opts: Required<ContourFillOptions>;
 
     private readonly cmap_gpu: ColorMapGPUInterface[];
@@ -83,7 +83,7 @@ class PlotComponentFill<ArrayType extends TypedArray, GridType extends DomainBuf
     protected image_mag_filter: number | null;
     protected cmap_mag_filter: number | null;
 
-    constructor(field: RawScalarField<ArrayType, GridType>, opts: ContourFillOptions) {
+    constructor(field: ExpressionScalarField<ArrayType, GridType>, opts: ContourFillOptions) {
         super();
 
         this.field = field;
@@ -99,7 +99,7 @@ class PlotComponentFill<ArrayType extends TypedArray, GridType extends DomainBuf
         this.cmap_mag_filter = null;
     }
 
-    public async updateField(field: RawScalarField<ArrayType, GridType>, mask?: Uint8Array) {
+    public async updateField(field: ExpressionScalarField<ArrayType, GridType>, mask?: Uint8Array) {
         this.field = field;
 
         if (this.image_mag_filter === null || this.cmap_mag_filter === null) {
@@ -111,20 +111,7 @@ class PlotComponentFill<ArrayType extends TypedArray, GridType extends DomainBuf
         const gl = this.gl_elems.gl;
         const map = this.gl_elems.map;
     
-        const fill_image = this.field.getWGLTextureSpec(gl, this.image_mag_filter);
-
-        if (this.fill_texture === null) {
-            this.fill_texture = new Map([...fill_image.entries()].map(([key, fill_image]) => [key, new WGLTexture(gl, fill_image)]));
-        }
-        else {
-            this.fill_texture.forEach((tex, key) => {
-                const key_fill_image = fill_image.get(key);
-                if (key_fill_image === undefined)
-                    throw `Missing key '${key}' in fill_image`;
-
-                tex.setImageData(key_fill_image)
-            });
-        }
+        this.fill_texture = this.field.updateTexImageData(gl, this.image_mag_filter, this.fill_texture);
 
         if (mask !== undefined) {
             if (this.opts.cmap_mask === null) {
@@ -172,7 +159,7 @@ class PlotComponentFill<ArrayType extends TypedArray, GridType extends DomainBuf
             throw `Implement magnification filters in a subclass`;
         }
 
-        const sampler_keys = [...this.field.getWGLTextureSpec(gl, this.image_mag_filter).keys()];
+        const sampler_keys = this.field.getSamplerIds();
         const sampler_expression = this.field.getExpression();
 
         const frag_shader_src = applySamplerCode(ColorMapGPUInterface.applyShader(contourfill_fragment_shader_src), sampler_keys, sampler_expression);
@@ -243,7 +230,7 @@ class Raster<ArrayType extends TypedArray, GridType extends DomainBufferGrid, Ma
      * @param field - The field to create the raster plot from
      * @param opts  - Options for creating the raster plot
      */
-    constructor(field: RawScalarField<ArrayType, GridType>, opts: RasterOptions) {
+    constructor(field: ExpressionScalarField<ArrayType, GridType>, opts: RasterOptions) {
         super(field, opts);
     }
 
@@ -251,7 +238,7 @@ class Raster<ArrayType extends TypedArray, GridType extends DomainBufferGrid, Ma
      * Update the data displayed as a raster plot
      * @param field - The new field to display as a raster plot
      */
-    public async updateField(field: RawScalarField<ArrayType, GridType>, mask?: Uint8Array) {
+    public async updateField(field: ExpressionScalarField<ArrayType, GridType>, mask?: Uint8Array) {
         await super.updateField(field, mask);
     }
 
@@ -287,7 +274,7 @@ class ContourFill<ArrayType extends TypedArray, GridType extends DomainBufferGri
      * @param field - The field to create filled contours from
      * @param opts  - Options for creating the filled contours
      */
-    constructor(field: RawScalarField<ArrayType, GridType>, opts: ContourFillOptions) {
+    constructor(field: ExpressionScalarField<ArrayType, GridType>, opts: ContourFillOptions) {
         super(field, opts);
     }
 
@@ -295,7 +282,7 @@ class ContourFill<ArrayType extends TypedArray, GridType extends DomainBufferGri
      * Update the data displayed as filled contours
      * @param field - The new field to display as filled contours
      */
-    public async updateField(field: RawScalarField<ArrayType, GridType>, mask?: Uint8Array) {
+    public async updateField(field: ExpressionScalarField<ArrayType, GridType>, mask?: Uint8Array) {
         await super.updateField(field, mask);
     }
 
