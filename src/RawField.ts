@@ -20,8 +20,43 @@ function getArrayDType(ary: TypedArray) : TypedArrayStr {
     return 'float16';
 }
 
+abstract class ExpressionScalarField<GridType extends Grid> {
+    public abstract updateTexImageData(gl: WebGLAnyRenderingContext, image_mag_filter: number, fill_textures: Map<string, WGLTexture> | null) : Map<string, WGLTexture>;
+    public abstract getSamplerIds(): string[];
+    public abstract getExpression(): string;
+
+    abstract get grid() : GridType;
+
+    private operand(other: ExpressionScalarField<GridType> | number, operand: string): ComputedScalarField<GridType> {
+        if (typeof other === 'number') {
+            let other_str = other.toFixed();
+            if (!other_str.includes('.')) other_str = `${other_str}.0`;
+
+            return new ComputedScalarField([this], `{0} ${operand} ${other_str}`);
+        }
+
+        return new ComputedScalarField([this, other], `{0} ${operand} {1}`);
+    }
+
+    public multiply(other: ExpressionScalarField<GridType> | number): ComputedScalarField<GridType> {
+        return this.operand(other, '*');
+    }
+
+    public divide(other: ExpressionScalarField<GridType> | number): ComputedScalarField<GridType> {
+        return this.operand(other, '/');
+    }
+
+    public add(other: ExpressionScalarField<GridType> | number): ComputedScalarField<GridType> {
+        return this.operand(other, '+');
+    }
+
+    public subtract(other: ExpressionScalarField<GridType> | number): ComputedScalarField<GridType> {
+        return this.operand(other, '-');
+    }
+}
+
 /** A class representing a raw 2D field of gridded data, such as height or u wind. */
-class RawScalarField<ArrayType extends TypedArray, GridType extends Grid> {
+class RawScalarField<ArrayType extends TypedArray, GridType extends Grid> extends ExpressionScalarField<GridType> {
     public readonly grid: GridType;
     public readonly data: ArrayType;
 
@@ -33,6 +68,8 @@ class RawScalarField<ArrayType extends TypedArray, GridType extends Grid> {
      * @param data - The data, which should be given as a 1D array in row-major order, with the first element being at the lower-left corner of the grid.
      */
     constructor(grid: GridType, data: ArrayType) {
+        super();
+
         this.grid = grid;
         this.data = data;
 
@@ -141,11 +178,13 @@ class RawScalarField<ArrayType extends TypedArray, GridType extends Grid> {
 
 const chars = 'abcdefghijklmnopqrstuvwxyz';
 
-class ComputedScalarField<ArrayType extends TypedArray, GridType extends Grid> {
-    private readonly raw_fields: ExpressionScalarField<ArrayType, GridType>[];
+class ComputedScalarField<GridType extends Grid> extends ExpressionScalarField<GridType> {
+    private readonly raw_fields: ExpressionScalarField<GridType>[];
     private readonly expression: string;
 
-    constructor(raw_fields: ExpressionScalarField<ArrayType, GridType>[], expression: string) {
+    constructor(raw_fields: ExpressionScalarField<GridType>[], expression: string) {
+        super();
+
         this.raw_fields = raw_fields;
         this.expression = expression;
     }
@@ -198,8 +237,6 @@ class ComputedScalarField<ArrayType extends TypedArray, GridType extends Grid> {
         return `(${expression})`;
     }
 }
-
-type ExpressionScalarField<ArrayType extends TypedArray, GridType extends Grid> = RawScalarField<ArrayType, GridType> | ComputedScalarField<ArrayType, GridType>;
 
 /** The basis vectors for vector fields (i.e, whether vectors a relative to Earth or the grid) */
 type VectorRelativeTo = 'earth' | 'grid';

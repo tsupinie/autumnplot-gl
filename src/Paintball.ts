@@ -51,8 +51,8 @@ interface PaintballGLElems<MapType extends MapLikeType> {
  * of single-precision floats, this works for up to 24 members. (Technically speaking, I don't need the quotes around "bits", as they're bits of the 
  * significand of an IEEE 754 float.)
  */
-class Paintball<ArrayType extends TypedArray, GridType extends DomainBufferGrid, MapType extends MapLikeType> extends PlotComponent<MapType> {
-    private field: ExpressionScalarField<ArrayType, GridType>;
+class Paintball<GridType extends DomainBufferGrid, MapType extends MapLikeType> extends PlotComponent<MapType> {
+    private field: ExpressionScalarField<GridType>;
     public readonly opts: Required<PaintballOptions>;
     private readonly color_components: [number, number, number, number][];
 
@@ -66,7 +66,7 @@ class Paintball<ArrayType extends TypedArray, GridType extends DomainBufferGrid,
      *               `M2` is the same thing for member 2, and `M3` and `M4` and up to `Mn` are the same thing for the rest of the members.
      * @param opts  - Options for creating the paintball plot
      */
-    constructor(field: ExpressionScalarField<ArrayType, GridType>, opts?: PaintballOptions) {
+    constructor(field: ExpressionScalarField<GridType>, opts?: PaintballOptions) {
         super();
 
         this.field = field;
@@ -82,7 +82,7 @@ class Paintball<ArrayType extends TypedArray, GridType extends DomainBufferGrid,
      * Update the field displayed as a paintball plot
      * @param field - The new field to display as a paintball plot
      */
-    public async updateField(field: ExpressionScalarField<ArrayType, GridType>) {
+    public async updateField(field: ExpressionScalarField<GridType>) {
         this.field = field;
 
         if (this.gl_elems === null) return;
