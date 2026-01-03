@@ -200,6 +200,7 @@ class Contour<ArrayType extends TypedArray, GridType extends StructuredGrid, Map
         const bearing = gl_elems.map.getBearing();
         const pitch = gl_elems.map.getPitch();
 
+        // XXX: This will compile another shader each time updateField() is called. Is there a way to not do that?
         this.contours.forEach(cnt => cnt.render(gl, arg, [map_width, map_height], zoom, bearing, pitch));
     }
 }
@@ -412,6 +413,7 @@ class ContourLabels<ArrayType extends TypedArray, GridType extends StructuredGri
         const map_height = gl_elems.map.getCanvas().height;
         const map_zoom = gl_elems.map.getZoom();
 
+        // XXX: This will compile another shader each time updateField() is called. Is there a way to not do that?
         this.text_collection.render(gl, arg, [map_width, map_height], map_zoom);
     }
 }

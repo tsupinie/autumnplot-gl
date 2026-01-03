@@ -223,7 +223,7 @@ class PlotComponentFill<GridType extends DomainBufferGrid, MapType extends MapLi
  * // Create a raster plot with the provided color map
  * const raster = new Raster(wind_speed_field, {cmap: color_map});
  */
-class Raster<ArrayType extends TypedArray, GridType extends DomainBufferGrid, MapType extends MapLikeType> extends PlotComponentFill<GridType, MapType> {
+class Raster<GridType extends DomainBufferGrid, MapType extends MapLikeType> extends PlotComponentFill<GridType, MapType> {
 
     /**
      * Create a raster plot
