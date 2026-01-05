@@ -29,10 +29,7 @@ abstract class ExpressionScalarField<GridType extends Grid> {
 
     private operand(other: ExpressionScalarField<GridType> | number, operand: string): ComputedScalarField<GridType> {
         if (typeof other === 'number') {
-            let other_str = other.toFixed();
-            if (!other_str.includes('.')) other_str = `${other_str}.0`;
-
-            return new ComputedScalarField([this], `{0} ${operand} ${other_str}`);
+            return new ComputedScalarField([this], `{0} ${operand} ${other.toFixed(100)}`);
         }
 
         return new ComputedScalarField([this, other], `{0} ${operand} {1}`);
