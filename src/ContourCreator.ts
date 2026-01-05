@@ -1,23 +1,7 @@
 
-import Module from './cpp/marchingsquares';
-import { MarchingSquaresModule } from './cpp/marchingsquares';
-import './cpp/marchingsquares.wasm';
 import { Grid } from "./grids/Grid";
 import { ContourData, TypedArray } from "./AutumnTypes";
-
-let msm_promise: Promise<MarchingSquaresModule> | null = null;
-
-interface InitMSModuleOpts {
-    document_script?: string;
-}
-
-function initMSModule(opts: InitMSModuleOpts) {
-    if (msm_promise === null) {
-        msm_promise = Module({'locateFile': (fname: string, dir: string) => (opts.document_script === undefined ? dir : opts.document_script) + fname});
-    }
-
-    return msm_promise;
-}
+import { initMSModule } from "./WasmInterface";
 
 /** Options for contouring data via {@link RawScalarField.getContours | RawScalarField.getContours()} */
 interface FieldContourOpts {
@@ -58,5 +42,5 @@ async function contourCreator<ArrayType extends TypedArray>(data: ArrayType, gri
     return contours as ContourData;
 }
 
-export {contourCreator, initMSModule};
+export {contourCreator};
 export type {FieldContourOpts};
