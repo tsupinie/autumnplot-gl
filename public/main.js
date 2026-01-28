@@ -166,15 +166,19 @@ async function makeGFSLayers() {
     }
 
     const t2m_field = new apgl.RawScalarField(grid_gfs, t2m_data_pad);
-    const t2m_contour = new apgl.ContourFill(t2m_field, {'cmap': colormap});
-    const t2m_layer = new apgl.PlotLayer('nh_probs', t2m_contour);
+    const t2m_fill = new apgl.ContourFill(t2m_field, {'cmap': colormap});
+    const t2m_filllayer = new apgl.PlotLayer('t2m_fill', t2m_fill);
 
+    const t2m_contour = new apgl.Contour(t2m_field, {levels: [32], line_width: 4});
+    const t2m_contourlayer = new apgl.PlotLayer('t2m_contour', t2m_contour);
+    const labels = new apgl.ContourLabels(t2m_contour, {text_color: '#ffffff', halo: true, font_url_template: 'https://autumnsky.us/glyphs/{fontstack}/{range}.pbf'});
+    const label_layer = new apgl.PlotLayer('label', labels);
 
     const svg = apgl.makeColorBar(colormap, {label: "Temperature", fontface: 'Trebuchet MS', 
                                              ticks: [-60, -50, -40, -30, -20, -10, 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120],
                                              orientation: 'horizontal', tick_direction: 'bottom'});
 
-    return {layers: [t2m_layer], colorbar: [svg]};
+    return {layers: [t2m_filllayer, t2m_contourlayer, label_layer], colorbar: [svg]};
 }
 
 function makeHodoLayers() {
