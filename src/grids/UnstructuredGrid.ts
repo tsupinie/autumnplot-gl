@@ -53,7 +53,8 @@ class UnstructuredGrid extends autoZoomGridMixin(Grid) {
                 }
             }
 
-            recursiveThin(0.5, 0.5, 0);
+            // Start at -1 zoom depth, which should handle longitudes > 180 degrees.
+            recursiveThin(0.5, 0.5, -1);
 
             return new Uint8Array(kd_nodes.map(n => n.min_zoom));
         });
