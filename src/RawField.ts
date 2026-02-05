@@ -1,11 +1,11 @@
 
 import { Float16Array } from "@petamoriken/float16";
 import { ContourData, TypedArray, TypedArrayStr, WebGLAnyRenderingContext, WindProfile, isStormRelativeWindProfile } from "./AutumnTypes";
-import { contourCreator, FieldContourOpts } from "./ContourCreator";
+import { FieldContourOpts } from "./PlotLayer.worker";
 import { Grid } from "./grids/Grid";
 import { Cache, getArrayConstructor, zip } from "./utils";
 import { WGLTextureSpec } from "autumn-wgl";
-import { getGLFormatTypeAlignment } from "./PlotComponent";
+import { getGLFormatTypeAlignment, layer_worker } from "./PlotComponent";
 import { AutoZoomGrid } from "./grids/AutoZoom";
 
 type TextureDataType<ArrayType> = ArrayType extends Float32Array ? Float32Array : (ArrayType extends Uint8Array ? Uint8Array : Uint16Array);
@@ -41,7 +41,18 @@ class RawScalarField<ArrayType extends TypedArray, GridType extends Grid> {
         }
 
         this.contour_cache = new Cache(async (opts: FieldContourOpts) => {
-            return await contourCreator(this.data, this.grid, opts);
+            const contour_data = await layer_worker.contourCreator(this.getTextureData(), grid.getGridCoords(), opts);
+
+            for (const v in contour_data) {
+                for (let ic = 0; ic < contour_data[v].length; ic++) {
+                    for (let ip = 0; ip < contour_data[v][ic].length; ip++) {
+                        const [x, y] = contour_data[v][ic][ip];
+                        contour_data[v][ic][ip] = grid.transform(x, y, {inverse: true});
+                    }
+                }
+            }
+
+            return contour_data;
         });
     }
 
