@@ -20,40 +20,50 @@ function getArrayDType(ary: TypedArray) : TypedArrayStr {
     return 'float16';
 }
 
-abstract class ExpressionScalarField<GridType extends Grid> {
+abstract class ExpressionScalarField<ArrayType extends TypedArray, GridType extends Grid> {
     public abstract updateTexImageData(gl: WebGLAnyRenderingContext, image_mag_filter: number, fill_textures: Map<string, WGLTexture> | null) : Map<string, WGLTexture>;
     public abstract getSamplerIds(): string[];
     public abstract getExpression(): string;
+    public abstract renderCPU(): RawScalarField<ArrayType, GridType>;
+    public abstract iterateCPU(): Generator<number, void, unknown>;
 
     abstract get grid() : GridType;
+    abstract get aryConstructor() : new(...args: any[]) => ArrayType;
 
-    private operand(other: ExpressionScalarField<GridType> | number, operand: string): ComputedScalarField<GridType> {
+    private operand(other: ExpressionScalarField<ArrayType, GridType> | number, operand: string): ComputedScalarField<ArrayType, GridType> {
+        const FUNCS = {
+            '+': (a: number, b: number) => a + b,
+            '-': (a: number, b: number) => a - b,
+            '*': (a: number, b: number) => a * b,
+            '/': (a: number, b: number) => a / b,
+        };
+
         if (typeof other === 'number') {
-            return new ComputedScalarField([this], `{0} ${operand} ${other.toFixed(100)}`);
+            return new ComputedScalarField([this], `{0} ${operand} ${other.toFixed(100)}`, v => FUNCS[operand as keyof typeof FUNCS](v, other));
         }
 
-        return new ComputedScalarField([this, other], `{0} ${operand} {1}`);
+        return new ComputedScalarField([this, other], `{0} ${operand} {1}`, FUNCS[operand as keyof typeof FUNCS]);
     }
 
-    public multiply(other: ExpressionScalarField<GridType> | number): ComputedScalarField<GridType> {
+    public multiply(other: ExpressionScalarField<ArrayType, GridType> | number): ComputedScalarField<ArrayType, GridType> {
         return this.operand(other, '*');
     }
 
-    public divide(other: ExpressionScalarField<GridType> | number): ComputedScalarField<GridType> {
+    public divide(other: ExpressionScalarField<ArrayType, GridType> | number): ComputedScalarField<ArrayType, GridType> {
         return this.operand(other, '/');
     }
 
-    public add(other: ExpressionScalarField<GridType> | number): ComputedScalarField<GridType> {
+    public add(other: ExpressionScalarField<ArrayType, GridType> | number): ComputedScalarField<ArrayType, GridType> {
         return this.operand(other, '+');
     }
 
-    public subtract(other: ExpressionScalarField<GridType> | number): ComputedScalarField<GridType> {
+    public subtract(other: ExpressionScalarField<ArrayType, GridType> | number): ComputedScalarField<ArrayType, GridType> {
         return this.operand(other, '-');
     }
 }
 
 /** A class representing a raw 2D field of gridded data, such as height or u wind. */
-class RawScalarField<ArrayType extends TypedArray, GridType extends Grid> extends ExpressionScalarField<GridType> {
+class RawScalarField<ArrayType extends TypedArray, GridType extends Grid> extends ExpressionScalarField<ArrayType, GridType> {
     public readonly grid: GridType;
     public readonly data: ArrayType;
 
@@ -77,6 +87,10 @@ class RawScalarField<ArrayType extends TypedArray, GridType extends Grid> extend
         this.contour_cache = new Cache(async (opts: FieldContourOpts) => {
             return await contourCreator(this.data, this.grid, opts);
         });
+    }
+
+    get aryConstructor() {
+        return getArrayConstructor(this.data);
     }
 
     /** @internal */
@@ -168,6 +182,16 @@ class RawScalarField<ArrayType extends TypedArray, GridType extends Grid> extend
         return new RawScalarField(args[0].grid, agg_data);
     }
 
+    public renderCPU(): RawScalarField<ArrayType, GridType> {
+        return this;
+    }
+
+    public *iterateCPU() {
+        for (let i = 0; i < this.data.length; i++) {
+            yield this.data[i];
+        }
+    }
+
     public sampleField(lon: number, lat: number) {
         return this.grid.sampleNearestGridPoint(lon, lat, this.data).sample;
     }
@@ -175,19 +199,25 @@ class RawScalarField<ArrayType extends TypedArray, GridType extends Grid> extend
 
 const chars = 'abcdefghijklmnopqrstuvwxyz';
 
-class ComputedScalarField<GridType extends Grid> extends ExpressionScalarField<GridType> {
-    private readonly raw_fields: ExpressionScalarField<GridType>[];
+class ComputedScalarField<ArrayType extends TypedArray, GridType extends Grid> extends ExpressionScalarField<ArrayType, GridType> {
+    private readonly raw_fields: ExpressionScalarField<ArrayType, GridType>[];
     private readonly expression: string;
+    private readonly cpu_func: (...arg: number[]) => number;
 
-    constructor(raw_fields: ExpressionScalarField<GridType>[], expression: string) {
+    constructor(raw_fields: ExpressionScalarField<ArrayType, GridType>[], expression: string, cpu_func: (...arg: number[]) => number) {
         super();
 
         this.raw_fields = raw_fields;
         this.expression = expression;
+        this.cpu_func = cpu_func;
     }
 
     get grid(): GridType {
         return this.raw_fields[0].grid;
+    }
+
+    get aryConstructor() {
+        return this.raw_fields[0].aryConstructor;
     }
 
     public updateTexImageData(gl: WebGLAnyRenderingContext, image_mag_filter: number, fill_textures: Map<string, WGLTexture> | null) {
@@ -232,6 +262,25 @@ class ComputedScalarField<GridType extends Grid> extends ExpressionScalarField<G
         });
 
         return `(${expression})`;
+    }
+
+    public renderCPU(): RawScalarField<ArrayType, GridType> {
+        const ary = new this.aryConstructor([...this.iterateCPU()]);
+        return new RawScalarField<ArrayType, GridType>(this.grid, ary);
+    }
+
+    public *iterateCPU(): Generator<number, void, unknown> {
+        function* mapGenerator<T extends any[], U>(gen: Generator<T>, func: (...arg: T) => U) {
+            for (const elem of gen) {
+                yield func(...elem);
+            }
+        }
+
+        const zipped_args = zip(...this.raw_fields.map(a => a.iterateCPU()));
+
+        for (const elem of mapGenerator(zipped_args, this.cpu_func)) {
+            yield elem;
+        }
     }
 }
 
@@ -302,7 +351,7 @@ class RawVectorField<ArrayType extends TypedArray, GridType extends AutoZoomGrid
     }
 
     public magnitude() {
-        return new ComputedScalarField([this.u, this.v], 'length(vec2({0}, {1}))');
+        return new ComputedScalarField([this.u, this.v], 'length(vec2({0}, {1}))', Math.hypot);
     }
 
     /** @internal */
