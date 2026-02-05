@@ -3,11 +3,15 @@ import * as Comlink from 'comlink';
 
 import { getOS } from "./utils";
 import { PlotLayerWorker } from './PlotLayer.worker';
+import { ContourCreatorWorker } from './ContourCreator.worker';
 import { MapLikeType } from './Map';
 import { RenderMethodArg, TypedArrayStr, WebGLAnyRenderingContext, isWebGL2Ctx } from './AutumnTypes';
 
 const worker = new Worker(new URL('./PlotLayer.worker', import.meta.url));
 const layer_worker = Comlink.wrap<PlotLayerWorker>(worker);
+
+const c_worker = new Worker(new URL('./ContourCreator.worker', import.meta.url));
+const contour_worker = Comlink.wrap<ContourCreatorWorker>(c_worker);
 
 /** Base class for all plot components */
 abstract class PlotComponent<MapType extends MapLikeType> {
@@ -65,4 +69,4 @@ function getGLFormatTypeAlignment(gl: WebGLAnyRenderingContext, array_dtype: Typ
     return {format: format, type: type, row_alignment: row_alignment};
 }
 
-export { PlotComponent, layer_worker, getGLFormatTypeAlignment };
+export { PlotComponent, layer_worker, contour_worker, getGLFormatTypeAlignment };

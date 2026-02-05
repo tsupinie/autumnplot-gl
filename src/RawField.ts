@@ -1,11 +1,11 @@
 
 import { Float16Array } from "@petamoriken/float16";
 import { ContourData, TypedArray, TypedArrayStr, WebGLAnyRenderingContext, WindProfile, isStormRelativeWindProfile } from "./AutumnTypes";
-import { FieldContourOpts } from "./PlotLayer.worker";
+import { FieldContourOpts } from "./ContourCreator.worker";
 import { Grid } from "./grids/Grid";
 import { Cache, getArrayConstructor, zip } from "./utils";
 import { WGLTextureSpec } from "autumn-wgl";
-import { getGLFormatTypeAlignment, layer_worker } from "./PlotComponent";
+import { contour_worker, getGLFormatTypeAlignment } from "./PlotComponent";
 import { AutoZoomGrid } from "./grids/AutoZoom";
 
 type TextureDataType<ArrayType> = ArrayType extends Float32Array ? Float32Array : (ArrayType extends Uint8Array ? Uint8Array : Uint16Array);
@@ -41,7 +41,7 @@ class RawScalarField<ArrayType extends TypedArray, GridType extends Grid> {
         }
 
         this.contour_cache = new Cache(async (opts: FieldContourOpts) => {
-            const contour_data = await layer_worker.contourCreator(this.getTextureData(), grid.getGridCoords(), opts);
+            const contour_data = await contour_worker.contourCreator(this.getTextureData(), grid.getGridCoords(), opts);
 
             for (const v in contour_data) {
                 for (let ic = 0; ic < contour_data[v].length; ic++) {

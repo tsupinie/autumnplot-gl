@@ -24,8 +24,7 @@ import { RadarSweepGrid } from "./grids/RadarSweepGrid";
 import { GeostationaryImage } from "./grids/Geostationary";
 import { UnstructuredGrid } from "./grids/UnstructuredGrid";
 
-import { initMSModule } from './ContourCreator';
-import { FieldContourOpts } from "./PlotLayer.worker";
+import { initMSModule, FieldContourOpts } from './ContourCreator.worker';
 
 /** All built-in colormaps */
 const colormaps = {
