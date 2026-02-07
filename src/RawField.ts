@@ -180,17 +180,7 @@ class RawScalarField<ArrayType extends TypedArray, GridType extends Grid> extend
      * wind_speed_field = RawScalarField.aggreateFields(Math.hypot, u_field, v_field);
      */
     public static aggregateFields<ArrayType extends TypedArray, GridType extends Grid>(func: (...args: number[]) => number, ...args: RawScalarField<ArrayType, GridType>[]) {
-        function* mapGenerator<T, U>(gen: Generator<T>, func: (arg: T) => U) {
-            for (const elem of gen) {
-                yield func(elem);
-            }
-        }
-
-        const arrayType = getArrayConstructor(args[0].data);
-        const zipped_args = zip(...args.map(a => a.data));
-        const agg_data = new arrayType(mapGenerator(zipped_args, (a: number[]): number => func(...a)));
-
-        return new RawScalarField(args[0].grid, agg_data);
+        return (new ComputedScalarField(args, '', func)).renderCPU();
     }
 
     public renderCPU(): RawScalarField<ArrayType, GridType> {
