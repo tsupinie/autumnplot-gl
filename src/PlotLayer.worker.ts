@@ -1,9 +1,11 @@
 
 import { getMinZoom } from "./utils";
-import { LineData, Polyline } from "./AutumnTypes";
+import { ContourData, LineData, Polyline, TypedArray } from "./AutumnTypes";
 
 import * as Comlink from 'comlink';
 import { LngLat } from "./Map";
+import { initMSModule } from "./WasmInterface";
+import { GridCoords } from "./grids/Grid";
 
 function makeBBElements(field_lats: Float32Array, field_lons: Float32Array, min_zoom: Uint8Array, field_ni: number, field_nj: number, map_max_zoom: number) {
         
@@ -372,10 +374,11 @@ function makePolylines(lines: LineData[]) : Polyline {
     return ret;
 }
 
+
 const ep_interface = {
     'makeBBElements': makeBBElements, 
     'makeDomainVerticesAndTexCoords': makeDomainVerticesAndTexCoords,
-    'makePolyLines': makePolylines
+    'makePolyLines': makePolylines,
 }
 
 type PlotLayerWorker = typeof ep_interface;

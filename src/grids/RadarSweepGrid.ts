@@ -27,11 +27,11 @@ class RadarSweepGrid extends gridCoordinateMixin(StructuredGrid) {
         this.setupCoordinateCaches(start_az, end_az, start_rn, end_rn);
     }
 
-    public copy(opts?: {nt?: number, nr?: number, start_az?: number, end_az?: number, start_rn?: number, end_rn?: number, longitude?: number, latitude?: number}): RadarSweepGrid {
+    public copy(opts?: {ni?: number, nj?: number, start_az?: number, end_az?: number, start_rn?: number, end_rn?: number, longitude?: number, latitude?: number}): RadarSweepGrid {
         opts = opts === undefined ? {} : opts;
 
-        const nt = opts.nt === undefined ? this.ni : opts.nt;
-        const nr = opts.nr === undefined ? this.nj : opts.nr;
+        const nt = opts.ni === undefined ? this.ni : opts.ni;
+        const nr = opts.nj === undefined ? this.nj : opts.nj;
         const longitude = opts.longitude === undefined ? this.longitude : opts.longitude;
         const latitude = opts.latitude === undefined ? this.latitude : opts.latitude;
         const start_az = opts.start_az === undefined ? this.start_az : opts.start_az;

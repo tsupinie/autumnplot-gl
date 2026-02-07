@@ -1,6 +1,8 @@
 
-import { Grid } from "./grids/Grid";
-import { ContourData, TypedArray } from "./AutumnTypes";
+import * as Comlink from 'comlink';
+
+import { GridCoords } from './grids/Grid';
+import { ContourData } from "./AutumnTypes";
 import { initMSModule } from "./WasmInterface";
 
 /** Options for contouring data via {@link RawScalarField.getContours | RawScalarField.getContours()} */
@@ -21,7 +23,7 @@ interface FieldContourOpts {
     quad_as_tri?: boolean;
 }
 
-async function contourCreator<ArrayType extends TypedArray>(data: ArrayType, grid: Grid, opts: FieldContourOpts) {
+async function contourCreator(data: Float32Array | Uint16Array | Uint8Array, grid_coords: GridCoords, opts: FieldContourOpts) {
     if (opts.interval === undefined && opts.levels === undefined) {
         throw "Must supply either an interval or levels to contourCreator()"
     }
@@ -31,16 +33,21 @@ async function contourCreator<ArrayType extends TypedArray>(data: ArrayType, gri
 
     const msm = await initMSModule({});
 
-    const grid_coords = grid.getGridCoords();
-
     const getContourLevels = data instanceof Float32Array ? msm.getContourLevelsFloat32 : msm.getContourLevelsFloat16;
     const makeContours = data instanceof Float32Array ? msm.makeContoursFloat32 : msm.makeContoursFloat16;
 
-    const levels = opts.levels === undefined ? getContourLevels(data, grid.ni, grid.nj, interval) : opts.levels;
-    const contours = makeContours(data, grid_coords.x, grid_coords.y, levels, (x: number, y: number) => grid.transform(x, y, {inverse: true}), quad_as_tri);
+    const levels = opts.levels === undefined ? getContourLevels(data, grid_coords.x.length, grid_coords.y.length, interval) : opts.levels;
+    const contours = makeContours(data, grid_coords.x, grid_coords.y, levels, quad_as_tri);
 
     return contours as ContourData;
 }
 
-export {contourCreator};
-export type {FieldContourOpts};
+const ep_interface = {
+    'contourCreator': contourCreator
+}
+
+type ContourCreatorWorker = typeof ep_interface;
+
+Comlink.expose(ep_interface);
+
+export type {ContourCreatorWorker, FieldContourOpts}

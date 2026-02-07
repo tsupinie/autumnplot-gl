@@ -3,12 +3,18 @@ import { AbstractConstructor, EarthCoords, Grid, GridCoords } from "./Grid";
 
 type GridElement = 'center' | 'edge';
 
-function gridCoordinateMixin<G extends AbstractConstructor<Grid>>(base: G) {
+interface GridCoordinateIntf {
+    setupCoordinateCaches(start_i: number, end_i: number, start_j: number, end_j: number): void;
+    getEarthCoords(ni?: number, nj?: number, which_i?: GridElement, which_j?: GridElement): EarthCoords;
+    getGridCoords(): GridCoords;
+}
+
+function gridCoordinateMixin<G extends AbstractConstructor<Grid>>(base: G) : AbstractConstructor<GridCoordinateIntf> & G {
     abstract class GridCoordinates extends base {
         private ll_cache: Cache<[number, number, GridElement, GridElement], EarthCoords> | null = null;
         private gc_cache: Cache<[], GridCoords> | null = null;
 
-        protected setupCoordinateCaches(start_i: number, end_i: number, start_j: number, end_j: number) {
+        public setupCoordinateCaches(start_i: number, end_i: number, start_j: number, end_j: number) {
             const di = (end_i - start_i) / (this.ni - 1);
             const dj = (end_j - start_j) / (this.nj - 1);
 
@@ -76,4 +82,4 @@ function gridCoordinateMixin<G extends AbstractConstructor<Grid>>(base: G) {
 }
 
 export {gridCoordinateMixin};
-export type {GridElement};
+export type {GridElement, GridCoordinateIntf};
