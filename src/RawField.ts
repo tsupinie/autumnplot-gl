@@ -30,7 +30,7 @@ abstract class ExpressionScalarField<ArrayType extends TypedArray, GridType exte
     abstract get grid() : GridType;
     abstract get aryConstructor() : new(...args: any[]) => ArrayType;
 
-    private operand(other: ExpressionScalarField<ArrayType, GridType> | number, operand: string): ComputedScalarField<ArrayType, GridType> {
+    private operand(other: ExpressionScalarField<ArrayType, GridType> | number, operand: '+' | '-' | '*' | '/'): ComputedScalarField<ArrayType, GridType> {
         const FUNCS = {
             '+': (a: number, b: number) => a + b,
             '-': (a: number, b: number) => a - b,
@@ -39,10 +39,10 @@ abstract class ExpressionScalarField<ArrayType extends TypedArray, GridType exte
         };
 
         if (typeof other === 'number') {
-            return new ComputedScalarField([this], `{0} ${operand} ${other.toFixed(100)}`, v => FUNCS[operand as keyof typeof FUNCS](v, other));
+            return new ComputedScalarField([this], `{0} ${operand} ${other.toFixed(100)}`, v => FUNCS[operand](v, other));
         }
 
-        return new ComputedScalarField([this, other], `{0} ${operand} {1}`, FUNCS[operand as keyof typeof FUNCS]);
+        return new ComputedScalarField([this, other], `{0} ${operand} {1}`, FUNCS[operand]);
     }
 
     public multiply(other: ExpressionScalarField<ArrayType, GridType> | number): ComputedScalarField<ArrayType, GridType> {
