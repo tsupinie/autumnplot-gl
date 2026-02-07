@@ -49,7 +49,16 @@ function makeVectorRotationTexture(gl: WebGLAnyRenderingContext, grid: AutoZoomG
     return {'rotation': rot_tex};
 }
 
-function autoZoomGridMixin<G extends AbstractConstructor<Grid>>(base: G) {
+interface AutoZoomGridIntf {
+    getWGLBillboardBuffers(gl: WebGLAnyRenderingContext, thin_fac: number, max_zoom: number) : Promise<{'vertices': WGLBuffer, 'texcoords': WGLBuffer}>;
+    getVectorRotationTexture(gl: WebGLAnyRenderingContext, data_are_earth_relative: boolean) : {'rotation': WGLTexture};
+    getVectorRotationAtPoint(lon: number, lat: number) : number;
+    getThinnedGrid(thin_fac: number, map_max_zoom: number): AutoZoomGrid;
+    thinDataArray<ArrayType extends TypedArray>(original_grid: AutoZoomGrid, ary: ArrayType): ArrayType;
+    getMinVisibleZoom(thin_fac: number): Uint8Array;
+}
+
+function autoZoomGridMixin<G extends AbstractConstructor<Grid>>(base: G) : AbstractConstructor<AutoZoomGridIntf> & G {
     abstract class AutoZoomGrid extends base {
         private readonly billboard_buffer_cache: Cache<[WebGLAnyRenderingContext, number, number], Promise<{'vertices': WGLBuffer, 'texcoords': WGLBuffer}>>;
         private readonly vector_rotation_cache: Cache<[WebGLAnyRenderingContext, boolean], {'rotation': WGLTexture}>
@@ -91,4 +100,4 @@ function autoZoomGridMixin<G extends AbstractConstructor<Grid>>(base: G) {
 type AutoZoomGrid<T extends Grid = Grid> = InstanceType<ReturnType<typeof autoZoomGridMixin<AbstractConstructor<T>>>>;
 
 export {autoZoomGridMixin};
-export type {AutoZoomGrid};
+export type {AutoZoomGrid, AutoZoomGridIntf};

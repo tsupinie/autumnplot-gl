@@ -5,7 +5,11 @@ import { AbstractConstructor, Grid } from "./Grid";
 
 type DomainBuffers = {vertices: WGLBuffer, texcoords: WGLBuffer};
 
-function domainBufferMixin<G extends AbstractConstructor<Grid>>(base: G) {
+interface DomainBufferIntf {
+    getDomainBuffers(gl: WebGLAnyRenderingContext) : Promise<DomainBuffers>;
+}
+
+function domainBufferMixin<G extends AbstractConstructor<Grid>>(base: G) : AbstractConstructor<DomainBufferIntf> & G {
     abstract class DomainBufferMixin extends base {
         private readonly buffer_cache: Cache<[WebGLAnyRenderingContext], Promise<DomainBuffers>>;
 
@@ -30,4 +34,4 @@ function domainBufferMixin<G extends AbstractConstructor<Grid>>(base: G) {
 type DomainBufferGrid<T extends Grid = Grid> = InstanceType<ReturnType<typeof domainBufferMixin<AbstractConstructor<T>>>>;
 
 export {domainBufferMixin};
-export type {DomainBuffers, DomainBufferGrid};
+export type {DomainBuffers, DomainBufferGrid, DomainBufferIntf};
