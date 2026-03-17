@@ -261,6 +261,60 @@ async function makeObsLayers() {
     return {layers: [station_plot_layer]};
 }
 
+async function makeObsColorLayers() {
+    const skyc_choices = ['0/8', '1/8', '2/8', '3/8', '4/8', '5/8', '6/8', '7/8', '8/8', 'obsc', null];
+    const preswx_choices = ['fu', 'hz', 'du', 'bldu', 'po', 'vcds',
+                            'br', 'bc', 'mifg', 'vcts', 'virga', 'vcsh', 'ts', 
+                            'sq', 'fc', 'ds', '+ds', 'drsn', '+drsn', '-blsn', '+blsn',
+                            'vcfg', 'bcfg', 'prfg', 'fg', 'fzfg', 
+                            '-vctsdz', '-dz', '-dzbr', 'vctsdz', 'dz', '+vctsdz', '+dz', '-fzdz', 'fzdz', '-dzra', '+dzra', 
+                            '-ra', 'ra', '+ra', '-fzra',  'fzra',  '-rasn', 'rasn', '-sn', 'sn', '+sn', 'ic',  'pl',
+                            '-sh', 'sh', '-shsnra', '+shrabr', '-shsn', 'shsn', '-gs', '-sngs', '-gr', 'gr', 
+                            'tsrasn', 'tsra',  'tspl',  'tsgr', '+tsfzrapl', '+tsra', '+tssn', 'tssa', '+tsgr', 
+                            '-up', '+up', '-fzup', '+fzup']
+
+    const resp = await fetch('data/surface_20240823_1500.json');
+    const obs = await resp.json();
+
+    obs.forEach((ob, iob) => {
+        ob.data.skyc = skyc_choices[iob % skyc_choices.length];
+        ob.data.preswx = preswx_choices[iob % preswx_choices.length];
+    });
+
+    const obs_grid = new apgl.UnstructuredGrid(obs.map(o => o.coord));
+    const obs_field = new apgl.RawObsField(obs_grid, obs.map(o => o.data));
+
+    const wx_category_colors = {
+        rain: '#2ca25f',
+        freezing_rain: '#e31a1c',
+        sleet: '#6a51a3',
+        snow: '#3182bd',
+        blowing_dust: '#a6611a',
+        thunder: '#ff7f00',
+        fog: '#bdbdbd'
+    };
+
+    const station_plot_locs = {
+        tmpf: {type: 'number', pos: 'ul', halo: false, cmap: apgl.colormaps.pw_t2m, formatter: val => val === null ? '' : val.toFixed(0)},
+        dwpf: {type: 'number', pos: 'll', halo: false, cmap: apgl.colormaps.pw_td2m, formatter: val => val === null ? '' : val.toFixed(0)}, 
+        wind: {type: 'barb', pos: 'c', halo: false, color: '#e6e1e1'},
+        preswx: {type: 'symbol', pos: 'cl', symbol_category_colors: wx_category_colors, halo: false},
+        // skyc: {type: 'symbol', pos: 'c', halo: false},
+    };
+
+    const station_plot = new apgl.StationPlot(obs_field, {config: station_plot_locs, thin_fac: 8, font_size: 14});
+    const station_plot_layer = new apgl.PlotLayer('station-plots-colored', station_plot);
+
+    const temp_cbar = apgl.makeColorBar(apgl.colormaps.pw_t2m, {label: "Temperature (F)", fontface: 'Trebuchet MS',
+                                                               ticks: [-60, -40, -20, 0, 20, 40, 60, 80, 100, 120],
+                                                               orientation: 'horizontal', tick_direction: 'bottom'});
+    const dew_cbar = apgl.makeColorBar(apgl.colormaps.pw_td2m, {label: "Dewpoint (F)", fontface: 'Trebuchet MS',
+                                                               ticks: [-60, -40, -20, 0, 20, 40, 60, 80],
+                                                               orientation: 'horizontal', tick_direction: 'bottom'});
+
+    return {layers: [station_plot_layer], colorbar: [temp_cbar, dew_cbar]};
+}
+
 async function makeMRMSLayer() {
     const grid_mrms = new apgl.PlateCarreeGrid(7000, 3500, -129.995, 20.005, -60.005, 54.995);
     const data = await fetchBinary('data/mrms.202112152259.cref.bin.gz');
@@ -462,15 +516,25 @@ function makeLightningLayers() {
     const strike_age_colors = ['#ffffb2', '#fed976', '#feb24c', '#fd8d3c', '#fc4e2a', '#e31a1c', '#b10026'];
     const strike_age_cmap = new apgl.ColorMap(strike_age_levels, strike_age_colors, {overflow_color: '#4d0014'});
 
-    const strikes = [
-        {lon: -99.7, lat: 35.1, polarity: '+', age: 3},
-        {lon: -99.1, lat: 35.2, polarity: '-', age: 7},
-        {lon: -98.6, lat: 35.3, polarity: '+', age: 12},
-        {lon: -98.1, lat: 35.4, polarity: '-', age: 18},
-        {lon: -97.6, lat: 35.5, polarity: '+', age: 26},
-        {lon: -97.1, lat: 35.6, polarity: '-', age: 38},
-        {lon: -96.6, lat: 35.7, polarity: '+', age: 52}
-    ];
+    const strikes = [];
+    const lon0 = -100.3;
+    const lat0 = 34.7;
+    const n_lon = 28;
+    const n_lat = 12;
+    const dlon = 0.18;
+    const dlat = 0.12;
+
+    for (let j = 0; j < n_lat; j++) {
+        for (let i = 0; i < n_lon; i++) {
+            const jitter = 0.03 * Math.sin(i * 0.7 + j * 1.3);
+            const lon = lon0 + i * dlon + jitter;
+            const lat = lat0 + j * dlat + 0.5 * jitter;
+            const polarity = (i + j) % 2 === 0 ? '+' : '-';
+            const age = (i * 3 + j * 5) % 60;
+
+            strikes.push({lon: lon, lat: lat, polarity: polarity, age: age});
+        }
+    }
 
     const strike_feature = {
         geometry: {
@@ -533,6 +597,11 @@ const views = {
     'obs': {
         name: "Observations",
         makeLayers: makeObsLayers,
+        maxZoom: 8.5,
+    },
+    'obs-colored': {
+        name: "Obs Colored",
+        makeLayers: makeObsColorLayers,
         maxZoom: 8.5,
     },
     'mrms': {
