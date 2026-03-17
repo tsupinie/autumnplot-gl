@@ -105,6 +105,9 @@ interface GeometryStyle {
     /** Font face for text labels. */
     text_font_face?: string;
 
+    /** Optional colormap for text labels (requires text data values). */
+    text_cmap?: ColorMap | null;
+
     /** Horizontal text alignment. */
     text_horizontal_align?: HorizontalAlign;
 
@@ -146,8 +149,10 @@ interface GeometryFeature {
      * Optional per-vertex data for line features.
      * - LineString: number[] matching the number of vertices
      * - MultiLineString: number[][] matching each line
+        * - Point: number used for text colormaps
+        * - MultiPoint: number[] matching each point
      */
-    data?: number[] | number[][];
+    data?: number | number[] | number[][];
 
     /** Optional per-feature minimum zoom (primarily for text). */
     min_zoom?: number;
@@ -189,7 +194,7 @@ const line_style_defaults: Required<Pick<GeometryStyle,
 };
 
 const text_style_defaults: Required<Pick<GeometryStyle,
-    'text_color' | 'text_halo_color' | 'text_halo' | 'text_font_size' | 'text_font_face' |
+    'text_color' | 'text_halo_color' | 'text_halo' | 'text_font_size' | 'text_font_face' | 'text_cmap' |
     'text_horizontal_align' | 'text_vertical_align' | 'text_offset_x' | 'text_offset_y' | 'text_min_zoom'
 >> = {
     text_color: '#000000',
@@ -197,6 +202,7 @@ const text_style_defaults: Required<Pick<GeometryStyle,
     text_halo: false,
     text_font_size: 12,
     text_font_face: 'Trebuchet MS',
+    text_cmap: null,
     text_horizontal_align: 'center',
     text_vertical_align: 'middle',
     text_offset_x: 0,
@@ -353,6 +359,65 @@ function resolveColor(color: string | null | undefined, opacity: number | undefi
     return base.withOpacity(base.a * opacity);
 }
 
+function lerpNumber(a: number, b: number, t: number) {
+    return a + (b - a) * t;
+}
+
+function lerpColor(a: Color, b: Color, t: number) {
+    const a_rgba = a.toRGBATuple();
+    const b_rgba = b.toRGBATuple();
+    return new Color([
+        lerpNumber(a_rgba[0], b_rgba[0], t),
+        lerpNumber(a_rgba[1], b_rgba[1], t),
+        lerpNumber(a_rgba[2], b_rgba[2], t),
+        lerpNumber(a_rgba[3], b_rgba[3], t),
+    ]);
+}
+
+function colorFromCmap(cmap: ColorMap, value: number) {
+    const levels = cmap.levels;
+    const n_bins = levels.length - 1;
+
+    if (n_bins <= 0) return new Color([0, 0, 0, 1]);
+
+    if (value <= levels[0]) {
+        return cmap.underflow_color === null ? cmap.colors[0] : cmap.underflow_color;
+    }
+
+    if (value >= levels[n_bins]) {
+        return cmap.overflow_color === null ? cmap.colors[n_bins - 1] : cmap.overflow_color;
+    }
+
+    const level_min = levels[0];
+    const level_max = levels[n_bins];
+    const value_norm = (value - level_min) / (level_max - level_min);
+
+    // Invert the non-linear level spacing to the colormap index space.
+    let band = 0;
+    for (; band < n_bins; band++) {
+        const lev0 = (levels[band] - level_min) / (level_max - level_min);
+        const lev1 = (levels[band + 1] - level_min) / (level_max - level_min);
+        if (lev0 <= value_norm && value_norm <= lev1) break;
+    }
+
+    if (band >= n_bins) return cmap.colors[n_bins - 1];
+
+    const lev0 = (levels[band] - level_min) / (level_max - level_min);
+    const lev1 = (levels[band + 1] - level_min) / (level_max - level_min);
+    const alpha = (value_norm - lev0) / Math.max(lev1 - lev0, EPSILON);
+
+    const idx0 = band / n_bins;
+    const idx1 = (band + 1) / n_bins;
+    const idx_norm = idx0 * (1 - alpha) + idx1 * alpha;
+
+    const color_index = idx_norm * Math.max(cmap.colors.length - 1, 0);
+    const i0 = Math.floor(color_index);
+    const i1 = Math.min(i0 + 1, cmap.colors.length - 1);
+    const frac = color_index - i0;
+
+    return lerpColor(cmap.colors[i0], cmap.colors[i1], frac);
+}
+
 function toLineData(vertices: Position[], data?: number[]) : LineData | null {
     if (vertices.length < 2) return null;
 
@@ -471,7 +536,9 @@ class GeometryComponent<MapType extends MapLikeType> extends PlotComponent<MapTy
 
         const font_url_template = this.opts.font_url_template !== '' ? this.opts.font_url_template : map.getStyle().glyphs;
 
-        const addText = (lon: number, lat: number, text: string, style: GeometryStyle, min_zoom_override?: number) => {
+        let text_cmap_warned = false;
+
+        const addText = (lon: number, lat: number, text: string, style: GeometryStyle, text_value?: number, min_zoom_override?: number) => {
             if (font_url_template === undefined) {
                 console.warn('No font URL template available; text labels will not render.');
                 return;
@@ -479,12 +546,26 @@ class GeometryComponent<MapType extends MapLikeType> extends PlotComponent<MapTy
 
             const text_style = mergeStyle(base_text_style, style);
             const font_face = text_style.text_font_face;
+
+            let text_color = Color.fromHex(text_style.text_color);
+            if (text_style.text_cmap !== null) {
+                if (text_value === undefined || isNaN(text_value)) {
+                    if (!text_cmap_warned) {
+                        console.warn('Text colormap provided without numeric data; using text_color instead.');
+                        text_cmap_warned = true;
+                    }
+                }
+                else {
+                    text_color = colorFromCmap(text_style.text_cmap, text_value);
+                }
+            }
+
             const text_opts: TextCollectionOptions = {
                 horizontal_align: text_style.text_horizontal_align,
                 vertical_align: text_style.text_vertical_align,
                 font_size: text_style.text_font_size,
                 halo: text_style.text_halo,
-                text_color: Color.fromHex(text_style.text_color),
+                text_color: text_color,
                 halo_color: Color.fromHex(text_style.text_halo_color),
                 offset_x: text_style.text_offset_x,
                 offset_y: text_style.text_offset_y,
@@ -500,6 +581,7 @@ class GeometryComponent<MapType extends MapLikeType> extends PlotComponent<MapTy
                 offset_y: text_opts.offset_y,
                 h_align: text_opts.horizontal_align,
                 v_align: text_opts.vertical_align,
+                color: text_color.toRGBAHex(),
             });
 
             if (!text_buckets.has(key)) {
@@ -655,14 +737,17 @@ class GeometryComponent<MapType extends MapLikeType> extends PlotComponent<MapTy
 
                 case 'Point': {
                     const text = typeof feature.text === 'string' ? feature.text : undefined;
+                    const text_value = typeof feature.data === 'number' ? feature.data : undefined;
                     if (text !== undefined && text.length > 0) {
-                        addText(geometry.coordinates[0], geometry.coordinates[1], text, feature.style === undefined ? {} : feature.style, feature.min_zoom);
+                        addText(geometry.coordinates[0], geometry.coordinates[1], text, feature.style === undefined ? {} : feature.style, text_value, feature.min_zoom);
                     }
                     break;
                 }
 
                 case 'MultiPoint': {
                     const text_array = Array.isArray(feature.text) ? feature.text : undefined;
+                    const data_array = Array.isArray(feature.data) ? feature.data as number[] : undefined;
+                    const data_value = typeof feature.data === 'number' ? feature.data : undefined;
                     geometry.coordinates.forEach((coord, idx) => {
                         let text = '';
                         if (text_array !== undefined) {
@@ -673,7 +758,8 @@ class GeometryComponent<MapType extends MapLikeType> extends PlotComponent<MapTy
                         }
 
                         if (text.length > 0) {
-                            addText(coord[0], coord[1], text, feature.style === undefined ? {} : feature.style, feature.min_zoom);
+                            const text_value = data_array !== undefined ? data_array[idx] : data_value;
+                            addText(coord[0], coord[1], text, feature.style === undefined ? {} : feature.style, text_value, feature.min_zoom);
                         }
                     });
                     break;

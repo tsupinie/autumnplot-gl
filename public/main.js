@@ -348,6 +348,8 @@ async function makeGOESLayer() {
 }
 
 function makeGeometryLayers() {
+    const text_cmap = apgl.colormaps.pw_t2m;
+
     const watch_box = apgl.createWatchBox(
         [
             [-99.8, 35.0],
@@ -399,11 +401,11 @@ function makeGeometryLayers() {
     ];
 
     const track_feature = apgl.createTrack(track_points, {
-        line_cmap: apgl.colormaps.pw_t2m,
+        line_cmap: text_cmap,
         line_width: 3
     });
 
-   const label_feature = {
+    const title_feature = {
         geometry: {type: 'Point', coordinates: [-98.3, 35.5]},
         text: 'Geometry Demo',
         style: {
@@ -414,10 +416,33 @@ function makeGeometryLayers() {
         }
     };
 
+    const label_points = [
+        {lon: -99.2, lat: 35.2, label: '60', value: 60},
+        {lon: -98.6, lat: 35.1, label: '70', value: 70},
+        {lon: -98.0, lat: 35.3, label: '80', value: 80},
+        {lon: -97.5, lat: 35.5, label: '90', value: 90}
+    ];
+
+    const label_feature = {
+        geometry: {
+            type: 'MultiPoint',
+            coordinates: label_points.map(pt => [pt.lon, pt.lat])
+        },
+        text: label_points.map(pt => pt.label),
+        data: label_points.map(pt => pt.value),
+        style: {
+            text_cmap: text_cmap,
+            text_halo: true,
+            text_halo_color: '#000000',
+            text_font_size: 14
+        }
+    };
+
     const features = [
         watch_box,
         warning_poly,
         track_feature,
+        title_feature,
         label_feature,
         ...spaghetti_features
     ];
@@ -425,7 +450,62 @@ function makeGeometryLayers() {
     const geometry = new apgl.GeometryComponent(features);
     const geom_layer = new apgl.PlotLayer('geometry-demo', geometry);
 
-    return {layers: [geom_layer]};
+    const text_cbar = apgl.makeColorBar(text_cmap, {label: 'Text/Track Value (F)', fontface: 'Trebuchet MS',
+                                                   ticks: [-60, -40, -20, 0, 20, 40, 60, 80, 100, 120],
+                                                   orientation: 'horizontal', tick_direction: 'bottom'});
+
+    return {layers: [geom_layer], colorbar: [text_cbar]};
+}
+
+function makeLightningLayers() {
+    const strike_age_levels = [0, 5, 10, 15, 20, 30, 45, 60];
+    const strike_age_colors = ['#ffffb2', '#fed976', '#feb24c', '#fd8d3c', '#fc4e2a', '#e31a1c', '#b10026'];
+    const strike_age_cmap = new apgl.ColorMap(strike_age_levels, strike_age_colors, {overflow_color: '#4d0014'});
+
+    const strikes = [
+        {lon: -99.7, lat: 35.1, polarity: '+', age: 3},
+        {lon: -99.1, lat: 35.2, polarity: '-', age: 7},
+        {lon: -98.6, lat: 35.3, polarity: '+', age: 12},
+        {lon: -98.1, lat: 35.4, polarity: '-', age: 18},
+        {lon: -97.6, lat: 35.5, polarity: '+', age: 26},
+        {lon: -97.1, lat: 35.6, polarity: '-', age: 38},
+        {lon: -96.6, lat: 35.7, polarity: '+', age: 52}
+    ];
+
+    const strike_feature = {
+        geometry: {
+            type: 'MultiPoint',
+            coordinates: strikes.map(s => [s.lon, s.lat])
+        },
+        text: strikes.map(s => s.polarity),
+        data: strikes.map(s => s.age),
+        style: {
+            text_cmap: strike_age_cmap,
+            text_halo: true,
+            text_halo_color: '#000000',
+            text_font_size: 18
+        }
+    };
+
+    const title_feature = {
+        geometry: {type: 'Point', coordinates: [-98.6, 36.0]},
+        text: 'Lightning Polarity (+/-) by Age',
+        style: {
+            text_color: '#ffffff',
+            text_halo: true,
+            text_halo_color: '#000000',
+            text_font_size: 14
+        }
+    };
+
+    const geometry = new apgl.GeometryComponent([strike_feature, title_feature]);
+    const geom_layer = new apgl.PlotLayer('lightning-demo', geometry);
+
+    const cbar = apgl.makeColorBar(strike_age_cmap, {label: 'Strike Age (min)', fontface: 'Trebuchet MS',
+                                                     ticks: strike_age_levels,
+                                                     orientation: 'horizontal', tick_direction: 'bottom'});
+
+    return {layers: [geom_layer], colorbar: [cbar]};
 }
 
 
@@ -474,6 +554,11 @@ const views = {
         name: "Geometry Demo",
         makeLayers: makeGeometryLayers,
         maxZoom: 9,
+    },
+    'lightning': {
+        name: "Lightning",
+        makeLayers: makeLightningLayers,
+        maxZoom: 10,
     },
 };
 
