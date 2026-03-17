@@ -1,4 +1,3 @@
-
 function makeSynthetic500mbLayers() {
     const nx = 121, ny = 61;
     const grid = new apgl.PlateCarreeGrid(nx, ny, -130, 20, -65, 55);
@@ -70,7 +69,7 @@ function makeSynthetic500mbLayers() {
     const filled = new apgl.ContourFill(raw_ws_field, {'cmap': colormap, 'opacity': 0.8});
     const barbs = new apgl.Barbs(raw_wind_field, {color: '#000000', thin_fac: 16});
 
-    const labels = new apgl.ContourLabels(cntr, {text_color: '#ffffff', halo: true, font_url_template: 'https://autumnsky.us/glyphs/{fontstack}/{range}.pbf'});
+    const labels = new apgl.ContourLabels(cntr, {text_color: '#ffffff', halo: true, font_url_template: 'font/{fontstack}/{range}.pbf'});
 
     const hght_layer = new apgl.PlotLayer('height', cntr);
     const ws_layer = new apgl.PlotLayer('wind-speed', filled);
@@ -124,8 +123,8 @@ async function makeHREFLayers() {
     const nh_prob_layer = new apgl.PlotLayer('nh_probs', nh_prob_contour);
 
     const labels = new apgl.ContourLabels(nh_prob_contour, {text_color: '#ffffff', halo: true, 
-                                                            label_formatter: val => Math.round(val * 100).toString(),
-                                                            font_url_template: 'https://autumnsky.us/glyphs/{fontstack}/{range}.pbf'});
+                                                           label_formatter: val => Math.round(val * 100).toString(),
+                                                            font_url_template: 'font/{fontstack}/{range}.pbf'});
     const label_layer = new apgl.PlotLayer('nh_prob_labels', labels);
 
 
@@ -186,7 +185,7 @@ async function makeGFSLayers() {
 
     const t2m_contour = new apgl.Contour(t2m_field, {levels: [32], line_width: 4});
     const t2m_contourlayer = new apgl.PlotLayer('t2m_contour', t2m_contour);
-    const labels = new apgl.ContourLabels(t2m_contour, {text_color: '#ffffff', halo: true, font_url_template: 'https://autumnsky.us/glyphs/{fontstack}/{range}.pbf'});
+    const labels = new apgl.ContourLabels(t2m_contour, {text_color: '#ffffff', halo: true, font_url_template: 'font/{fontstack}/{range}.pbf'});
     const label_layer = new apgl.PlotLayer('label', labels);
 
     const svg = apgl.makeColorBar(colormap, {label: "Temperature", fontface: 'Trebuchet MS', 
@@ -348,6 +347,88 @@ async function makeGOESLayer() {
     return {layers: [sat_layer], colorbar: [cbar]};
 }
 
+function makeGeometryLayers() {
+    const watch_box = apgl.createWatchBox(
+        [
+            [-99.8, 35.0],
+            [-97.2, 35.0],
+            [-97.2, 36.3],
+            [-99.8, 36.3]
+        ],
+        {
+            fill_color: '#ffe100',
+            fill_opacity: 0.2,
+            outline_color: '#c9a200',
+            outline_width: 2,
+            outline_style: '--'
+        }
+    );
+
+    const warning_poly = apgl.createWarningBox(
+        [
+            [-98.7, 35.3],
+            [-97.9, 35.2],
+            [-97.3, 35.6],
+            [-98.0, 35.9]
+        ],
+        {
+            fill_color: '#ff3b30',
+            fill_opacity: 0.25,
+            outline_color: '#ff3b30',
+            outline_width: 2
+        }
+    );
+
+    const spaghetti_lines = [
+        [[-101.0, 36.1], [-99.5, 36.6], [-98.0, 37.3]],
+        [[-100.6, 35.8], [-99.1, 36.4], [-97.6, 37.1]],
+        [[-100.2, 35.6], [-98.8, 36.2], [-97.4, 36.9]]
+    ];
+
+    const spaghetti_features = apgl.createSpaghettiPlot(spaghetti_lines, {
+        line_color: '#e600ff',
+        line_width: 2,
+        line_style: '--'
+    });
+
+    const track_points = [
+        {lon: -99.6, lat: 34.8, value: 60},
+        {lon: -98.8, lat: 35.0, value: 70},
+        {lon: -98.1, lat: 35.3, value: 80},
+        {lon: -97.4, lat: 35.6, value: 90}
+    ];
+
+    const track_feature = apgl.createTrack(track_points, {
+        line_cmap: apgl.colormaps.pw_t2m,
+        line_width: 3
+    });
+
+   const label_feature = {
+        geometry: {type: 'Point', coordinates: [-98.3, 35.5]},
+        text: 'Geometry Demo',
+        style: {
+            text_color: '#ffffff',
+            text_halo: true,
+            text_halo_color: '#000000',
+            text_font_size: 14
+        }
+    };
+
+    const features = [
+        watch_box,
+        warning_poly,
+        track_feature,
+        label_feature,
+        ...spaghetti_features
+    ];
+
+    const geometry = new apgl.GeometryComponent(features);
+    const geom_layer = new apgl.PlotLayer('geometry-demo', geometry);
+
+    return {layers: [geom_layer]};
+}
+
+
 const views = {
     'default': {
         name: "Synthetic 500mb",
@@ -387,6 +468,11 @@ const views = {
     'goes': {
         name: "GOES",
         makeLayers: makeGOESLayer,
+        maxZoom: 9,
+    },
+    'geometry': {
+        name: "Geometry Demo",
+        makeLayers: makeGeometryLayers,
         maxZoom: 9,
     },
 };
@@ -458,7 +544,13 @@ window.addEventListener('load', () => {
         });
 
         layers.forEach(lyr => {
-            map.addLayer(lyr, use_mapbox ? 'aeroway-polygon' : 'coastline');
+            // Always add on top for visibility
+            try {
+                map.addLayer(lyr);
+            } catch (e) {
+                // If a reference layer is required and missing, log a warning
+                console.warn('Could not add layer', lyr.id, e);
+            }
         });
 
         const colorbar_container = document.querySelector('#colorbar');
@@ -484,3 +576,4 @@ window.addEventListener('load', () => {
     map.on('load', updateMap);
     menu.addEventListener('change', updateMap);
 });
+

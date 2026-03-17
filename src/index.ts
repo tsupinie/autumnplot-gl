@@ -1,4 +1,3 @@
-
 import { PlotComponent } from "./PlotComponent";
 import Contour, {ContourOptions, ContourLabels, ContourLabelOptions} from "./Contour";
 import {ContourFill, Raster, ContourFillOptions, RasterOptions} from "./Fill";
@@ -25,6 +24,7 @@ import { GeostationaryImage } from "./grids/Geostationary";
 import { UnstructuredGrid } from "./grids/UnstructuredGrid";
 import { initMSModule } from "./WasmInterface";
 import { FieldContourOpts } from './ContourCreator.worker';
+import { GeometryComponent, GeometryFeature, GeometryComponentOptions, GeometryStyle, createWatchBox, createWarningBox, createTrack, createSpaghettiPlot } from "./Geometry";
 
 /** All built-in colormaps */
 const colormaps = {
@@ -68,4 +68,5 @@ export {PlotComponent,
         RawScalarField, RawVectorField, RawProfileField, RawObsField, ObsRawData,
         Grid, GridType, StructuredGrid, VectorRelativeTo, RawVectorFieldOptions, PlateCarreeGrid, PlateCarreeRotatedGrid, LambertGrid, UnstructuredGrid, RadarSweepGrid, GeostationaryImage,
         WebGLAnyRenderingContext, TypedArray, ContourData,
-        initAutumnPlot, InitAutumnPlotOpts, FieldContourOpts};
+        initAutumnPlot, InitAutumnPlotOpts, FieldContourOpts,
+        GeometryComponent, GeometryFeature, GeometryComponentOptions, GeometryStyle, createWatchBox, createWarningBox, createTrack, createSpaghettiPlot};
