@@ -16,8 +16,12 @@ class WorkerPool_<T> {
 
     private queue: Map<string, WorkerQueueData[]>;
 
-    constructor(workers: Worker[]) {
+    constructor(workers: Worker[], init?: (wkr: Comlink.Remote<T>) => void) {
         this.workers = workers.map(wkr => ({worker: Comlink.wrap<T>(wkr), is_busy: false}));
+
+        if (init) {
+            this.workers.forEach(wkr => init(wkr.worker));
+        }
 
         this.queue = new Map();
     }
@@ -105,8 +109,8 @@ type Promisify<T> = (T extends (...args: infer TArguments) => infer TReturn
 
 type WorkerPool<T> = {[K in keyof T]: Promisify<T[K]>};
 
-function createWorkerPool<T>(workers: Worker[]) : WorkerPool<T> {
-    const pool = new WorkerPool_<T>(workers);
+function createWorkerPool<T>(workers: Worker[], init?: (wkr: Comlink.Remote<T>) => void) : WorkerPool<T> {
+    const pool = new WorkerPool_<T>(workers, init);
 
     return createProxy(pool, [], () => {}) as WorkerPool<T>;
 }

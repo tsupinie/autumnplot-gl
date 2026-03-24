@@ -12,7 +12,7 @@ const worker = new Worker(new URL('./PlotLayer.worker', import.meta.url));
 const layer_worker = Comlink.wrap<PlotLayerWorker>(worker);
 
 let c_worker_pool: WorkerPool<ContourCreatorWorker> | null = null;
-function getContourWorkerPool(n_workers: number) {
+function getContourWorkerPool(wasm_base_url: string | undefined, n_workers: number) {
     if (c_worker_pool !== null) {
         return c_worker_pool;
     }
@@ -22,7 +22,7 @@ function getContourWorkerPool(n_workers: number) {
         c_workers.push(new Worker(new URL('./ContourCreator.worker', import.meta.url)));
     }
 
-    const pool = createWorkerPool<ContourCreatorWorker>(c_workers);
+    const pool = createWorkerPool<ContourCreatorWorker>(c_workers, wkr => wkr.init(wasm_base_url));
     c_worker_pool = pool;
     return pool;
 }

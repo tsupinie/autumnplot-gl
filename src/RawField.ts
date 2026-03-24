@@ -85,7 +85,7 @@ class RawScalarField<ArrayType extends TypedArray, GridType extends Grid> extend
         }
 
         this.contour_cache = new Cache(async (opts: FieldContourOpts) => {
-            const pool = getContourWorkerPool(1); // 1 worker is the default; if the user requests more, the pool will be pre-created with the correct number of workers
+            const pool = getContourWorkerPool(undefined, 1); // 1 worker is the default; if the user requests more, the pool will be pre-created with the correct number of workers
             const contour_data = await pool.contourCreator(this.getTextureData(), grid.getGridCoords(), opts);
 
             for (const v in contour_data) {

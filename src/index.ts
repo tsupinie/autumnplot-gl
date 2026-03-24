@@ -23,7 +23,6 @@ import { LambertGrid } from "./grids/LambertGrid";
 import { RadarSweepGrid } from "./grids/RadarSweepGrid";
 import { GeostationaryImage } from "./grids/Geostationary";
 import { UnstructuredGrid } from "./grids/UnstructuredGrid";
-import { initMSModule } from "./WasmInterface";
 import { FieldContourOpts } from './ContourCreator.worker';
 
 /** All built-in colormaps */
@@ -54,12 +53,9 @@ interface InitAutumnPlotOpts {
  */
 function initAutumnPlot(opts?: InitAutumnPlotOpts) {
     opts = opts === undefined ? {} : opts;
+    const contour_workers = opts.contour_workers === undefined ? 1 : opts.contour_workers;
 
-    initMSModule({document_script: opts.wasm_base_url});
-
-    if (opts.contour_workers !== undefined) {
-        getContourWorkerPool(opts.contour_workers);
-    }
+    getContourWorkerPool(opts.wasm_base_url, contour_workers);
 }
 
 export {PlotComponent,
