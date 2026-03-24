@@ -5,7 +5,7 @@ import { FieldContourOpts } from "./ContourCreator.worker";
 import { Grid } from "./grids/Grid";
 import { Cache, getArrayConstructor, zip } from "./utils";
 import { WGLTexture, WGLTextureSpec } from "autumn-wgl";
-import { contour_worker, getGLFormatTypeAlignment } from "./PlotComponent";
+import { getContourWorkerPool, getGLFormatTypeAlignment } from "./PlotComponent";
 import { AutoZoomGrid } from "./grids/AutoZoom";
 
 type TextureDataType<ArrayType> = ArrayType extends Float32Array ? Float32Array : (ArrayType extends Uint8Array ? Uint8Array : Uint16Array);
@@ -85,7 +85,8 @@ class RawScalarField<ArrayType extends TypedArray, GridType extends Grid> extend
         }
 
         this.contour_cache = new Cache(async (opts: FieldContourOpts) => {
-            const contour_data = await contour_worker.contourCreator(this.getTextureData(), grid.getGridCoords(), opts);
+            const pool = getContourWorkerPool(1); // 1 worker is the default; if the user requests more, the pool will be pre-created with the correct number of workers
+            const contour_data = await pool.contourCreator(this.getTextureData(), grid.getGridCoords(), opts);
 
             for (const v in contour_data) {
                 for (let ic = 0; ic < contour_data[v].length; ic++) {

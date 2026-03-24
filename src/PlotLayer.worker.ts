@@ -1,11 +1,8 @@
 
-import { getMinZoom } from "./utils";
-import { ContourData, LineData, Polyline, TypedArray } from "./AutumnTypes";
+import { LineData, Polyline } from "./AutumnTypes";
 
 import * as Comlink from 'comlink';
 import { LngLat } from "./Map";
-import { initMSModule } from "./WasmInterface";
-import { GridCoords } from "./grids/Grid";
 
 function makeBBElements(field_lats: Float32Array, field_lons: Float32Array, min_zoom: Uint8Array, field_ni: number, field_nj: number, map_max_zoom: number) {
         

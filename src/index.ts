@@ -1,5 +1,5 @@
 
-import { PlotComponent } from "./PlotComponent";
+import { PlotComponent, getContourWorkerPool } from "./PlotComponent";
 import Contour, {ContourOptions, ContourLabels, ContourLabelOptions} from "./Contour";
 import {ContourFill, Raster, ContourFillOptions, RasterOptions} from "./Fill";
 import Barbs, {BarbsOptions} from "./Barbs";
@@ -43,6 +43,9 @@ const colormaps = {
 interface InitAutumnPlotOpts {
     /** Base URL at which to find the WASM module (change with caution!) */
     wasm_base_url?: string;
+
+    /** Number of worker threads to use for contouring */
+    contour_workers?: number;
 }
 
 /**
@@ -53,6 +56,10 @@ function initAutumnPlot(opts?: InitAutumnPlotOpts) {
     opts = opts === undefined ? {} : opts;
 
     initMSModule({document_script: opts.wasm_base_url});
+
+    if (opts.contour_workers !== undefined) {
+        getContourWorkerPool(opts.contour_workers);
+    }
 }
 
 export {PlotComponent,

@@ -395,6 +395,8 @@ window.addEventListener('load', () => {
     const menu = document.querySelector('#selection select');
     menu.innerHTML = Object.entries(views).map(([k, v]) => `<option value="${k}">${v.name}</option>`).join('');
 
+    apgl.initAutumnPlot({contour_workers: 4});
+
     const use_mapbox = false;
     const use_globe = true;
     let map;

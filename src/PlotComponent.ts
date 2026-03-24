@@ -6,12 +6,26 @@ import { PlotLayerWorker } from './PlotLayer.worker';
 import { ContourCreatorWorker } from './ContourCreator.worker';
 import { MapLikeType } from './Map';
 import { RenderMethodArg, TypedArrayStr, WebGLAnyRenderingContext, isWebGL2Ctx } from './AutumnTypes';
+import { WorkerPool, createWorkerPool } from './WorkerPool';
 
 const worker = new Worker(new URL('./PlotLayer.worker', import.meta.url));
 const layer_worker = Comlink.wrap<PlotLayerWorker>(worker);
 
-const c_worker = new Worker(new URL('./ContourCreator.worker', import.meta.url));
-const contour_worker = Comlink.wrap<ContourCreatorWorker>(c_worker);
+let c_worker_pool: WorkerPool<ContourCreatorWorker> | null = null;
+function getContourWorkerPool(n_workers: number) {
+    if (c_worker_pool !== null) {
+        return c_worker_pool;
+    }
+
+    const c_workers = [];
+    for (let iw = 0; iw < n_workers; iw++) {
+        c_workers.push(new Worker(new URL('./ContourCreator.worker', import.meta.url)));
+    }
+
+    const pool = createWorkerPool<ContourCreatorWorker>(c_workers);
+    c_worker_pool = pool;
+    return pool;
+}
 
 /** Base class for all plot components */
 abstract class PlotComponent<MapType extends MapLikeType> {
@@ -69,4 +83,4 @@ function getGLFormatTypeAlignment(gl: WebGLAnyRenderingContext, array_dtype: Typ
     return {format: format, type: type, row_alignment: row_alignment};
 }
 
-export { PlotComponent, layer_worker, contour_worker, getGLFormatTypeAlignment };
+export { PlotComponent, layer_worker, getContourWorkerPool, getGLFormatTypeAlignment };
