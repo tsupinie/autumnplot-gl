@@ -97,7 +97,9 @@ function makeSynthetic500mbLayers() {
             sampler: (lon, lat) => {
                 const hght_val = raw_hght_field.sampleField(lon, lat);
                 const barb_val = raw_wind_field.sampleField(lon, lat);
+                const spd_val = raw_ws_field.sampleField(lon, lat);
                 return {hght: hght_val.toFixed(1), 
+                        spd: spd_val.toFixed(1),
                         barb: `${barb_val[0].toFixed(0)}/${barb_val[1].toFixed(0)}`}
             }};
 }

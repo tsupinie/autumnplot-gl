@@ -60,6 +60,8 @@ abstract class ExpressionScalarField<ArrayType extends TypedArray, GridType exte
     public subtract(other: ExpressionScalarField<ArrayType, GridType> | number): ComputedScalarField<ArrayType, GridType> {
         return this.operand(other, '-');
     }
+
+    public abstract sampleField(lon: number, lat: number) : number;
 }
 
 /** A class representing a raw 2D field of gridded data, such as height or u wind. */
@@ -264,6 +266,11 @@ class ComputedScalarField<ArrayType extends TypedArray, GridType extends Grid> e
         });
 
         return `(${expression})`;
+    }
+
+    public sampleField(lon: number, lat: number) {
+        const field_samples = this.raw_fields.map(f => f.sampleField(lon, lat));
+        return this.cpu_func(...field_samples);
     }
 
     public renderCPU(): RawScalarField<ArrayType, GridType> {
