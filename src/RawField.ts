@@ -326,37 +326,21 @@ class RawVectorField<ArrayType extends TypedArray, GridType extends AutoZoomGrid
         this.relative_to = opts.relative_to === undefined ? 'grid' : opts.relative_to;
     }
 
-    /** @internal */
-    private getTextureData() {
-        // Need to give float16 data as uint16s to make WebGL happy: https://github.com/petamoriken/float16/issues/105
-        const raw_u = this.u.data;
-        const raw_v = this.v.data;
+    public updateTexImageData(gl: WebGLAnyRenderingContext, image_mag_filter: number, fill_textures: {u: Map<string, WGLTexture>, v: Map<string, WGLTexture>} | null) {
+        const tex_u = this.u.updateTexImageData(gl, image_mag_filter, fill_textures === null ? null : fill_textures.u);
+        const tex_v = this.v.updateTexImageData(gl, image_mag_filter, fill_textures === null ? null : fill_textures.v);
 
-        const u_raw_data_type = getArrayDType(raw_u);
-        const v_raw_data_type = getArrayDType(raw_u);
+        const translateKeys = <V>(map: Map<string, V>, component: 'u' | 'v') => {
+            const map_trans = new Map<string, V>();
 
-        const u: any = (u_raw_data_type == 'float32' || u_raw_data_type == 'uint8') ? raw_u : new Uint16Array(raw_u.buffer);
-        const v: any = (v_raw_data_type == 'float32' || v_raw_data_type == 'uint8') ? raw_v : new Uint16Array(raw_v.buffer);
+            map.forEach((value, key) => {
+                map_trans.set(`_${component}${key.slice(1)}`, value);
+            })
 
-        return {u: u as TextureDataType<ArrayType>, v: v as TextureDataType<ArrayType>};
-    }
+            return map_trans;
+        }
 
-    public getWGLTextureSpecs(gl: WebGLAnyRenderingContext, mag_filter: number) : {u: WGLTextureSpec, v: WGLTextureSpec} {
-        const {u: u_thin, v: v_thin} = this.getTextureData();
-
-        const {format, type, row_alignment} = getGLFormatTypeAlignment(gl, getArrayDType(this.u.data));
-
-        const u_image = {'format': format, 'type': type,
-            'width': this.grid.ni, 'height': this.grid.nj, 'image': u_thin,
-            'mag_filter': mag_filter, 'row_alignment': row_alignment,
-        };
-
-        const v_image = {'format': format, 'type': type,
-            'width': this.grid.ni, 'height': this.grid.nj, 'image': v_thin,
-            'mag_filter': mag_filter, 'row_alignment': row_alignment,
-        };
-
-        return {u: u_image, v: v_image};
+        return {u: translateKeys(tex_u, 'u'), v: translateKeys(tex_v, 'v')};
     }
 
     public magnitude() {
@@ -390,6 +374,14 @@ class RawVectorField<ArrayType extends TypedArray, GridType extends AutoZoomGrid
         if (brg < 0) brg += 360;
 
         return [brg, mag];
+    }
+
+    public getSamplerIds() : {u: string[], v: string[]} {
+        return {u: ['_u0'], v: ['_v0']};
+    }
+
+    public getExpressions() : {u: string, v: string} {
+        return {u: '_u0', v: '_v0'};
     }
 }
 

@@ -6,7 +6,7 @@ import { MapLikeType } from "./Map";
 import { PlotComponent, getGLFormatTypeAlignment } from "./PlotComponent";
 import { ExpressionScalarField } from "./RawField";
 import { ShaderProgramManager } from "./ShaderManager";
-import { applySamplerCode, normalizeOptions } from "./utils";
+import { applySamplerCodeScalar, normalizeOptions } from "./utils";
 import { WGLBuffer, WGLFramebuffer, WGLProgram, WGLTexture } from "autumn-wgl";
 
 const paintball_step1_vertex_shader_src = require('./glsl/paintball_step1_vertex.glsl');
@@ -106,7 +106,7 @@ class Paintball<ArrayType extends TypedArray, GridType extends DomainBufferGrid,
         const sampler_keys = this.field.getSamplerIds();
         let sampler_expression = this.field.getExpression();
 
-        const step1_frag_shader_src = applySamplerCode(paintball_step1_fragment_shader_src, sampler_keys, sampler_expression);
+        const step1_frag_shader_src = applySamplerCodeScalar(paintball_step1_fragment_shader_src, sampler_keys, sampler_expression);
 
         const shader_program_step1 = new WGLProgram(gl, paintball_step1_vertex_shader_src, step1_frag_shader_src);
         const shader_manager_step2 = new ShaderProgramManager(paintball_step2_vertex_shader_src, paintball_step2_fragment_shader_src, []);
