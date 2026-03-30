@@ -49,19 +49,8 @@ class PlateCarreeGrid extends autoZoomGridMixin(gridCoordinateMixin(StructuredGr
 
     /** @internal */
     public getThinnedGrid(thin_fac: number, map_max_zoom: number) {
-        const [thin_x, thin_y] = this.xyThinFromMaxZoom(thin_fac, map_max_zoom);
-
-        const dlon = (this.ur_lon - this.ll_lon) / this.ni;
-        const dlat = (this.ur_lat - this.ll_lat) / this.nj;
-
-        const ni = Math.ceil(this.ni / thin_x);
-        const nj = Math.ceil(this.nj / thin_y);
-        const ni_remove = (this.ni - 1) % thin_x;
-        const nj_remove = (this.nj - 1) % thin_y;
-        const ll_lon = this.ll_lon;
-        const ll_lat = this.ll_lat;
-        const ur_lon = this.ur_lon - ni_remove * dlon;
-        const ur_lat = this.ur_lat - nj_remove * dlat;
+        const {ni, nj, thin_x, thin_y, ll_x: ll_lon, ll_y: ll_lat, ur_x: ur_lon, ur_y: ur_lat} = 
+            this.thinnedGridParameters(thin_fac, map_max_zoom, this.ll_lon, this.ll_lat, this.ur_lon, this.ur_lat);
 
         return new PlateCarreeGrid(ni, nj, ll_lon, ll_lat, ur_lon, ur_lat, this.thin_x * thin_x, this.thin_y * thin_y);
     }

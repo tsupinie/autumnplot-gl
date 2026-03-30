@@ -52,6 +52,23 @@ abstract class StructuredGrid extends domainBufferMixin(Grid) {
         return [xy_thin, xy_thin] as [number, number];
     }
 
+    protected thinnedGridParameters(thin_fac: number, map_max_zoom: number, ll_x: number, ll_y: number, ur_x: number, ur_y: number) {
+        const [thin_x, thin_y] = this.xyThinFromMaxZoom(thin_fac, map_max_zoom);
+
+        const dx = (ur_x - ll_x) / this.ni;
+        const dy = (ur_y - ll_y) / this.nj;
+
+        const ni = Math.ceil(this.ni / thin_x);
+        const nj = Math.ceil(this.nj / thin_y);
+        const ni_remove = (this.ni - 1) % thin_x;
+        const nj_remove = (this.nj - 1) % thin_y;
+        const new_ll_x = ll_x;
+        const new_ll_y = ll_y;
+        const new_ur_x = ur_x - ni_remove * dx;
+        const new_ur_y = ur_y - nj_remove * dy;
+        return {ni, nj, thin_x, thin_y, ll_x: new_ll_x, ll_y: new_ll_y, ur_x: new_ur_x, ur_y: new_ur_y};
+    }
+
     /** @internal */
     public getMinVisibleZoom(thin_fac: number) {
         const min_zoom = new Uint8Array(this.ni * this.nj);
