@@ -79,7 +79,7 @@ function makeSynthetic500mbLayers() {
 
     function updateTime(time) {
         cntr.updateField(makeHeight(time));
-        const raw_wind_field = makeWinds(time);
+        const raw_wind_field = makeWinds(time).multiply(1.15);
         barbs.updateField(raw_wind_field);
         filled.updateField(raw_wind_field.magnitude());
         labels.updateField();

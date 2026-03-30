@@ -354,6 +354,10 @@ function scalarIdToVectorComponentId(id: string, component: 'u' | 'v') {
     return `_${component}${id.slice(1)}`;
 }
 
+function vectorComponentIdToScalarId(id: string) {
+    return `_${id.slice(2)}`;
+}
+
 abstract class ExpressionVectorField<ArrayType extends TypedArray, GridType extends AutoZoomGrid> {
     protected readonly u: ExpressionScalarField<ArrayType, GridType>;
     protected readonly v: ExpressionScalarField<ArrayType, GridType>;
@@ -412,20 +416,22 @@ abstract class ExpressionVectorField<ArrayType extends TypedArray, GridType exte
     }
 
     public updateTexImageData(gl: WebGLAnyRenderingContext, image_mag_filter: number, fill_textures: {u: Map<string, WGLTexture>, v: Map<string, WGLTexture>} | null) {
-        const tex_u = this.u.updateTexImageData(gl, image_mag_filter, fill_textures === null ? null : fill_textures.u);
-        const tex_v = this.v.updateTexImageData(gl, image_mag_filter, fill_textures === null ? null : fill_textures.v);
-
-        const translateKeys = <V>(map: Map<string, V>, component: 'u' | 'v') => {
+        const translateKeys = <V>(map: Map<string, V>, component: 'u' | 'v', reverse: boolean) => {
             const map_trans = new Map<string, V>();
 
+            const translator = reverse ? vectorComponentIdToScalarId : scalarIdToVectorComponentId;
+
             map.forEach((value, key) => {
-                map_trans.set(scalarIdToVectorComponentId(key, component), value);
+                map_trans.set(translator(key, component), value);
             })
 
             return map_trans;
         }
 
-        return {u: translateKeys(tex_u, 'u'), v: translateKeys(tex_v, 'v')};
+        const tex_u = this.u.updateTexImageData(gl, image_mag_filter, fill_textures === null ? null : translateKeys(fill_textures.u, 'u', true));
+        const tex_v = this.v.updateTexImageData(gl, image_mag_filter, fill_textures === null ? null : translateKeys(fill_textures.v, 'v', true));
+
+        return {u: translateKeys(tex_u, 'u', false), v: translateKeys(tex_v, 'v', false)};
     }
 
     public magnitude() {
