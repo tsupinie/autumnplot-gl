@@ -61,7 +61,10 @@ abstract class ExpressionScalarField<ArrayType extends TypedArray, GridType exte
         return this.operand(other, '-');
     }
 
+    public abstract getThinnedField(thin_fac: number, map_max_zoom: number) : this;
+
     public abstract sampleField(lon: number, lat: number) : number;
+    public abstract sampleFieldWithCoord(lon: number, lat: number) : {sample: number, sample_lon: number, sample_lat: number};
 }
 
 /** A class representing a raw 2D field of gridded data, such as height or u wind. */
@@ -196,8 +199,19 @@ class RawScalarField<ArrayType extends TypedArray, GridType extends Grid> extend
         }
     }
 
+    public getThinnedField(thin_fac: number, map_max_zoom: number) {
+        const new_grid = this.grid.getThinnedGrid(thin_fac, map_max_zoom)
+        const thin_data = new_grid.thinDataArray(this.grid, this.data);
+
+        return new RawScalarField(new_grid, thin_data) as this;
+    }
+
+    public sampleFieldWithCoord(lon: number, lat: number) {
+        return this.grid.sampleNearestGridPoint(lon, lat, this.data);
+    }
+
     public sampleField(lon: number, lat: number) {
-        return this.grid.sampleNearestGridPoint(lon, lat, this.data).sample;
+        return this.sampleFieldWithCoord(lon, lat).sample;
     }
 }
 
@@ -268,9 +282,17 @@ class ComputedScalarField<ArrayType extends TypedArray, GridType extends Grid> e
         return `(${expression})`;
     }
 
+    public getThinnedField(thin_fac: number, map_max_zoom: number) {
+        return new ComputedScalarField(this.raw_fields.map(f => f.getThinnedField(thin_fac, map_max_zoom)), this.expression, this.cpu_func) as this;
+    }
+
+    public sampleFieldWithCoord(lon: number, lat: number) {
+        const field_samples = this.raw_fields.map(f => f.sampleFieldWithCoord(lon, lat));
+        return {sample: this.cpu_func(...field_samples.map(s => s.sample)), sample_lon: field_samples[0].sample_lon, sample_lat: field_samples[0].sample_lat};
+    }
+
     public sampleField(lon: number, lat: number) {
-        const field_samples = this.raw_fields.map(f => f.sampleField(lon, lat));
-        return this.cpu_func(...field_samples);
+        return this.sampleFieldWithCoord(lon, lat).sample;
     }
 
     public renderCPU(): RawScalarField<ArrayType, GridType> {
@@ -305,25 +327,65 @@ interface RawVectorFieldOptions {
     relative_to?: VectorRelativeTo;
 }
 
-/** A class representing a 2D gridded field of vectors */
-class RawVectorField<ArrayType extends TypedArray, GridType extends AutoZoomGrid> {
-    public readonly u: RawScalarField<ArrayType, GridType>;
-    public readonly v: RawScalarField<ArrayType, GridType>;
+function scalarIdToVectorComponentId(id: string, component: 'u' | 'v') {
+    return `_${component}${id.slice(1)}`;
+}
+
+abstract class ExpressionVectorField<ArrayType extends TypedArray, GridType extends AutoZoomGrid> {
+    protected readonly u: ExpressionScalarField<ArrayType, GridType>;
+    protected readonly v: ExpressionScalarField<ArrayType, GridType>;
     public readonly relative_to: VectorRelativeTo;
 
-    /**
-     * Create a vector field.
-     * @param grid - The grid on which the vector components are defined
-     * @param u    - The u (east/west) component of the vectors, which should be given as a 1D array in row-major order, with the first element being at the lower-left corner of the grid
-     * @param v    - The v (north/south) component of the vectors, which should be given as a 1D array in row-major order, with the first element being at the lower-left corner of the grid
-     * @param opts - Options for creating the vector field.
-     */
-    constructor(grid: GridType, u: ArrayType, v: ArrayType, opts?: RawVectorFieldOptions) {
-        opts = opts === undefined ? {}: opts;
+    constructor(u: ExpressionScalarField<ArrayType, GridType>, v: ExpressionScalarField<ArrayType, GridType>, opts?: RawVectorFieldOptions) {
+        this.u = u;
+        this.v = v;
 
-        this.u = new RawScalarField(grid, u);
-        this.v = new RawScalarField(grid, v);
+        opts = opts === undefined ? {}: opts;
         this.relative_to = opts.relative_to === undefined ? 'grid' : opts.relative_to;
+    }
+
+    private operandScalar(other: ExpressionScalarField<ArrayType, GridType> | number, operand: '*' | '/'): ComputedVectorField<ArrayType, GridType> {
+        const FUNCS = {
+            '*': (a: number, b: number) => a * b,
+            '/': (a: number, b: number) => a / b,
+        };
+
+        if (typeof other === 'number') {
+            const u = new ComputedScalarField([this.u], `{0} ${operand} ${other.toFixed(100)}`, v => FUNCS[operand](v, other));
+            const v = new ComputedScalarField([this.v], `{0} ${operand} ${other.toFixed(100)}`, v => FUNCS[operand](v, other));
+            return new ComputedVectorField(u, v, {relative_to: this.relative_to});
+        }
+
+        const u = new ComputedScalarField([this.u, other], `{0} ${operand} {1}`, FUNCS[operand]);
+        const v = new ComputedScalarField([this.v, other], `{0} ${operand} {1}`, FUNCS[operand]);
+        return new ComputedVectorField(u, v, {relative_to: this.relative_to});
+    }
+
+    private operandVector(other: ExpressionVectorField<ArrayType, GridType>, operand: '+' | '-'): ComputedVectorField<ArrayType, GridType> {
+        const FUNCS = {
+            '+': (a: number, b: number) => a + b,
+            '-': (a: number, b: number) => a - b,
+        };
+
+        const u = new ComputedScalarField([this.u, other.u], `{0} ${operand} {1}`, FUNCS[operand]);
+        const v = new ComputedScalarField([this.v, other.v], `{0} ${operand} {1}`, FUNCS[operand]);
+        return new ComputedVectorField(u, v, {relative_to: this.relative_to});
+    }
+
+    public multiply(other: ExpressionScalarField<ArrayType, GridType> | number): ComputedVectorField<ArrayType, GridType> {
+        return this.operandScalar(other, '*');
+    }
+
+    public divide(other: ExpressionScalarField<ArrayType, GridType> | number): ComputedVectorField<ArrayType, GridType> {
+        return this.operandScalar(other, '/');
+    }
+
+    public add(other: ExpressionVectorField<ArrayType, GridType>): ComputedVectorField<ArrayType, GridType> {
+        return this.operandVector(other, '+');
+    }
+
+    public subtract(other: ExpressionVectorField<ArrayType, GridType>): ComputedVectorField<ArrayType, GridType> {
+        return this.operandVector(other, '-');
     }
 
     public updateTexImageData(gl: WebGLAnyRenderingContext, image_mag_filter: number, fill_textures: {u: Map<string, WGLTexture>, v: Map<string, WGLTexture>} | null) {
@@ -334,7 +396,7 @@ class RawVectorField<ArrayType extends TypedArray, GridType extends AutoZoomGrid
             const map_trans = new Map<string, V>();
 
             map.forEach((value, key) => {
-                map_trans.set(`_${component}${key.slice(1)}`, value);
+                map_trans.set(scalarIdToVectorComponentId(key, component), value);
             })
 
             return map_trans;
@@ -349,12 +411,10 @@ class RawVectorField<ArrayType extends TypedArray, GridType extends AutoZoomGrid
 
     /** @internal */
     public getThinnedField(thin_fac: number, map_max_zoom: number) {
-        const new_grid = this.grid.getThinnedGrid(thin_fac, map_max_zoom);
+        const thin_u = this.u.getThinnedField(thin_fac, map_max_zoom);
+        const thin_v = this.v.getThinnedField(thin_fac, map_max_zoom);
 
-        const thin_u = new_grid.thinDataArray(this.grid, this.u.data);
-        const thin_v = new_grid.thinDataArray(this.grid, this.v.data);
-
-        return new RawVectorField(new_grid, thin_u, thin_v, {relative_to: this.relative_to});
+        return new ComputedVectorField(thin_u, thin_v, {relative_to: this.relative_to});
     }
 
     /** @internal */
@@ -363,8 +423,8 @@ class RawVectorField<ArrayType extends TypedArray, GridType extends AutoZoomGrid
     }
 
     public sampleField(lon: number, lat: number) : [number, number] {
-        const u_sample = this.grid.sampleNearestGridPoint(lon, lat, this.u.data);
-        const v_sample = this.grid.sampleNearestGridPoint(lon, lat, this.v.data);
+        const u_sample = this.u.sampleFieldWithCoord(lon, lat);
+        const v_sample = this.v.sampleFieldWithCoord(lon, lat);
 
         const rot = this.relative_to == 'earth' ? 0 : this.grid.getVectorRotationAtPoint(u_sample.sample_lon, u_sample.sample_lat);
         const mag = Math.hypot(u_sample.sample, v_sample.sample);
@@ -377,6 +437,51 @@ class RawVectorField<ArrayType extends TypedArray, GridType extends AutoZoomGrid
     }
 
     public getSamplerIds() : {u: string[], v: string[]} {
+        return {
+            u: this.u.getSamplerIds().map(id => scalarIdToVectorComponentId(id, 'u')), 
+            v: this.v.getSamplerIds().map(id => scalarIdToVectorComponentId(id, 'v')),
+        };
+    }
+
+    public getExpressions() : {u: string, v: string} {
+        const translateVariables = (expr: string, component: 'u' | 'v') => {
+            const matches = expr.match(/_0[a-z]*/g);
+            if (matches === null)
+                throw `Field expression not found`;
+
+            matches.forEach(m => expr = expr.replace(m, scalarIdToVectorComponentId(m, component)));
+            return expr;
+        }
+
+        return {
+            u: translateVariables(this.u.getExpression(), 'u'), 
+            v: translateVariables(this.v.getExpression(), 'v'),
+        };
+    }
+}
+
+/** A class representing a 2D gridded field of vectors */
+class RawVectorField<ArrayType extends TypedArray, GridType extends AutoZoomGrid> extends ExpressionVectorField<ArrayType, GridType> {
+    private readonly u_ary: ArrayType;
+    private readonly v_ary: ArrayType;
+
+    /**
+     * Create a vector field.
+     * @param grid - The grid on which the vector components are defined
+     * @param u    - The u (east/west) component of the vectors, which should be given as a 1D array in row-major order, with the first element being at the lower-left corner of the grid
+     * @param v    - The v (north/south) component of the vectors, which should be given as a 1D array in row-major order, with the first element being at the lower-left corner of the grid
+     * @param opts - Options for creating the vector field.
+     */
+    constructor(grid: GridType, u_ary: ArrayType, v_ary: ArrayType, opts?: RawVectorFieldOptions) {
+        const u = new RawScalarField(grid, u_ary);
+        const v = new RawScalarField(grid, v_ary);
+        super(u, v, opts);
+
+        this.u_ary = u_ary;
+        this.v_ary = v_ary;
+    }
+
+    public getSamplerIds() : {u: string[], v: string[]} {
         return {u: ['_u0'], v: ['_v0']};
     }
 
@@ -384,6 +489,8 @@ class RawVectorField<ArrayType extends TypedArray, GridType extends AutoZoomGrid
         return {u: '_u0', v: '_v0'};
     }
 }
+
+class ComputedVectorField<ArrayType extends TypedArray, GridType extends AutoZoomGrid> extends ExpressionVectorField<ArrayType, GridType> {}
 
 /** A class grid of wind profiles */
 class RawProfileField<GridType extends AutoZoomGrid> {
@@ -520,5 +627,5 @@ class RawObsField<GridType extends AutoZoomGrid, ObsFieldName extends string> {
     }
 }
 
-export {RawScalarField, ComputedScalarField, RawVectorField, RawProfileField, RawObsField};
-export type {ExpressionScalarField, RawVectorFieldOptions, VectorRelativeTo, TextureDataType, ObsRawData};
+export {RawScalarField, ComputedScalarField, RawVectorField, ComputedVectorField, RawProfileField, RawObsField};
+export type {ExpressionScalarField, RawVectorFieldOptions, ExpressionVectorField, VectorRelativeTo, TextureDataType, ObsRawData};

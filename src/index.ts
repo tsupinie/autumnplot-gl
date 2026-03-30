@@ -14,7 +14,7 @@ import { ColorMap, ColorMapOptions, bluered, redblue, pw_speed500mb, pw_speed850
 import { Color } from "./Color";
 import { makeColorBar, makePaintballKey, ColorbarOrientation, ColorbarTickDirection, ColorBarOptions, PaintballKeyOptions } from "./ColorBar";
 import { LineStyle } from "./PolylineCollection";
-import { RawScalarField, RawVectorField, RawProfileField, VectorRelativeTo, RawVectorFieldOptions, RawObsField, ObsRawData} from "./RawField";
+import { RawScalarField, ExpressionScalarField, RawVectorField, ExpressionVectorField, RawProfileField, VectorRelativeTo, RawVectorFieldOptions, RawObsField, ObsRawData} from "./RawField";
 import { Grid, GridType } from "./grids/Grid";
 import { StructuredGrid } from "./grids/StructuredGrid";
 import { PlateCarreeGrid } from "./grids/PlateCarreeGrid";
@@ -68,7 +68,7 @@ export {PlotComponent,
         PlotLayer, MultiPlotLayer, 
         MapLikeType, LineStyle,
         ColorMap, ColorMapOptions, colormaps, makeColorBar, makePaintballKey, Color, ColorbarOrientation, ColorbarTickDirection, ColorBarOptions, PaintballKeyOptions,
-        RawScalarField, RawVectorField, RawProfileField, RawObsField, ObsRawData,
+        RawScalarField, ExpressionScalarField, RawVectorField, ExpressionVectorField, RawProfileField, RawObsField, ObsRawData,
         Grid, GridType, StructuredGrid, VectorRelativeTo, RawVectorFieldOptions, PlateCarreeGrid, PlateCarreeRotatedGrid, LambertGrid, UnstructuredGrid, RadarSweepGrid, GeostationaryImage,
         WebGLAnyRenderingContext, TypedArray, ContourData,
         initAutumnPlot, InitAutumnPlotOpts, FieldContourOpts};
