@@ -83,6 +83,16 @@ function getGLFormatTypeAlignment(gl: WebGLAnyRenderingContext, array_dtype: Typ
         type = gl.UNSIGNED_INT;
         row_alignment = 4;
     }
+    else if (array_dtype == 'int16') {
+        format = is_webgl2 ? gl.R16I : gl.LUMINANCE;
+        type = gl.SHORT;
+        row_alignment = 2;
+    }
+    else if (array_dtype == 'int32') {
+        format = is_webgl2 ? gl.R32I : gl.LUMINANCE;
+        type = gl.INT;
+        row_alignment = 4;
+    }
     else {
         format = is_webgl2 ? gl.R8 : gl.LUMINANCE;
         type = gl.UNSIGNED_BYTE;

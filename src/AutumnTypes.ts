@@ -83,8 +83,8 @@ function isWebGL2Ctx(gl: WebGLAnyRenderingContext) : gl is WebGL2RenderingContex
 }
 
 /** Javascript typed arrays for use in raw fields */
-type TypedArray = Float16Array | Float32Array | Uint8Array | Uint16Array | Uint32Array;
-type TypedArrayStr = 'float16' | 'float32' | 'uint8' | 'uint16' | 'uint32';
+type TypedArray = Float16Array | Float32Array | Uint8Array | Uint16Array | Uint32Array | Int16Array | Int32Array;
+type TypedArrayStr = 'float16' | 'float32' | 'uint8' | 'uint16' | 'uint32' | 'int16' | 'int32';
 type ContourableTypedArray = Float16Array | Float32Array;
 
 function isContourable(ary: any) : ary is ContourableTypedArray {

@@ -122,6 +122,8 @@ async function fetchBinary(fname, dtype) {
         'float16': float16.Float16Array,
         'uint16': Uint16Array,
         'uint32': Uint32Array,
+        'int16': Int16Array,
+        'int32': Int32Array,
     }
 
     return new DTYPES[dtype](data_f32);

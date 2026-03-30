@@ -10,7 +10,9 @@ import { AutoZoomGrid } from "./grids/AutoZoom";
 
 type TextureDataType<ArrayType> = ArrayType extends Float32Array ? Float32Array : 
                                  (ArrayType extends Uint8Array ? Uint8Array : 
-                                 (ArrayType extends Uint32Array ? Uint32Array : Uint16Array));
+                                 (ArrayType extends Uint32Array ? Uint32Array : 
+                                 (ArrayType extends Int32Array ? Int32Array : 
+                                 (ArrayType extends Int16Array ? Int16Array : Uint16Array))));
 
 function getArrayDType(ary: TypedArray) : TypedArrayStr {
     if (ary instanceof Float32Array) {
@@ -24,6 +26,12 @@ function getArrayDType(ary: TypedArray) : TypedArrayStr {
     }
     else if (ary instanceof Uint32Array) {
         return 'uint32';
+    }
+    else if (ary instanceof Int16Array) {
+        return 'int16';
+    }
+    else if (ary instanceof Int32Array) {
+        return 'int32';
     }
     return 'float16';
 }
@@ -134,7 +142,7 @@ class RawScalarField<ArrayType extends TypedArray, GridType extends Grid> extend
         // Need to give float16 data as uint16s to make WebGL happy: https://github.com/petamoriken/float16/issues/105
         const raw_data = this.data;
         const raw_data_type = getArrayDType(raw_data);
-        const data: any = (raw_data_type == 'float32' || raw_data_type == 'uint8' || raw_data_type == 'uint32' || raw_data_type == 'uint16') ? raw_data : new Uint16Array(raw_data.buffer);
+        const data: any = ['float32', 'uint8', 'uint32', 'uint16', 'int32', 'int16'].includes(raw_data_type) ? raw_data : new Uint16Array(raw_data.buffer);
         return data as TextureDataType<ArrayType>;
     }
 

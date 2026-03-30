@@ -104,11 +104,20 @@ function mergeShaderCode(snippet: string, main: string) {
 
 function applySamplerCodeScalar(src: string, sampler_names: string[], sampler_expression: string, dtypes: TypedArrayStr[]) {
     // TAS: find a better place for this to live.
-    const sampler_dtypes = dtypes.map(dt => dt.includes('uint') ? 'highp usampler2D' : 'sampler2D');
-    const shader_dtypes = dtypes.map(dt => dt.includes('uint') ? 'uint' : 'highp float');
+    const SAMPLER_DTYPES = {
+        'float16': 'sampler2D', 'float32': 'sampler2D', 
+        'uint8': 'lowp usampler2D', 'uint16': 'mediump usampler2D', 'uint32': 'highp usampler2D',
+        'int16': 'mediump isampler2D', 'int32': 'highp isampler2D',
+    };
 
-    const samplers = sampler_names.map((v, i) => `uniform ${sampler_dtypes[i]} ${v};`).join("\n");
-    const sampler_get = sampler_names.map((v, i) => `    ${shader_dtypes[i]} ${v}_val = texture(${v}, tex_coord).r;`).join("\n");
+    const SHADER_DTYPES = {
+        'float16': 'highp float', 'float32': 'highp float',
+        'uint8': 'uint', 'uint16': 'uint', 'uint32': 'uint',
+        'int16': 'int', 'int32': 'int',
+    }
+
+    const samplers = sampler_names.map((v, i) => `uniform ${SAMPLER_DTYPES[dtypes[i]]} ${v};`).join("\n");
+    const sampler_get = sampler_names.map((v, i) => `    ${SHADER_DTYPES[dtypes[i]]} ${v}_val = texture(${v}, tex_coord).r;`).join("\n");
 
     sampler_names.forEach(v => sampler_expression = sampler_expression.replaceAll(v, `${v}_val`));
 
@@ -116,7 +125,7 @@ function applySamplerCodeScalar(src: string, sampler_names: string[], sampler_ex
     const sampler_code = `
 ${samplers}
 
-${shader_dtypes[0]} get_field_value(lowp vec2 tex_coord) {
+${SHADER_DTYPES[dtypes[0]]} get_field_value(lowp vec2 tex_coord) {
 ${sampler_get}
     return ${sampler_expression};
 }`;
