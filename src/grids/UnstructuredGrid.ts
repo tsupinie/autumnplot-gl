@@ -91,7 +91,7 @@ class UnstructuredGrid extends autoZoomGridMixin(Grid) {
     /** @internal */
     public getThinnedGrid(thin_fac: number, map_max_zoom: number) {
         const min_zoom = this.getMinVisibleZoom(thin_fac);
-        return new UnstructuredGrid(this.coords.filter((ll, ill) => min_zoom[ill] <= map_max_zoom), min_zoom.filter(ll => ll <= map_max_zoom))
+        return new UnstructuredGrid(this.coords.filter((ll, ill) => min_zoom[ill] <= map_max_zoom), min_zoom.filter(ll => ll <= map_max_zoom)) as this;
     }
 
     /** @internal */

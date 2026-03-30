@@ -53,8 +53,6 @@ interface AutoZoomGridIntf {
     getWGLBillboardBuffers(gl: WebGLAnyRenderingContext, thin_fac: number, max_zoom: number) : Promise<{'vertices': WGLBuffer, 'texcoords': WGLBuffer}>;
     getVectorRotationTexture(gl: WebGLAnyRenderingContext, data_are_earth_relative: boolean) : {'rotation': WGLTexture};
     getVectorRotationAtPoint(lon: number, lat: number) : number;
-    getThinnedGrid(thin_fac: number, map_max_zoom: number): AutoZoomGrid;
-    thinDataArray<ArrayType extends TypedArray>(original_grid: AutoZoomGrid, ary: ArrayType): ArrayType;
     getMinVisibleZoom(thin_fac: number): Uint8Array;
 }
 
@@ -89,8 +87,6 @@ function autoZoomGridMixin<G extends AbstractConstructor<Grid>>(base: G) : Abstr
             return Math.atan2(y_pertlon - y, x_pertlon - x);
         }
 
-        public abstract getThinnedGrid(thin_fac: number, map_max_zoom: number): AutoZoomGrid;
-        public abstract thinDataArray<ArrayType extends TypedArray>(original_grid: AutoZoomGrid, ary: ArrayType): ArrayType;
         public abstract getMinVisibleZoom(thin_fac: number): Uint8Array;
     }
 

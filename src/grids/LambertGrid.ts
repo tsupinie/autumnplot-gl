@@ -103,7 +103,7 @@ class LambertGrid extends autoZoomGridMixin(gridCoordinateMixin(StructuredGrid))
         const {ni, nj, thin_x, thin_y, ll_x, ll_y, ur_x, ur_y} = 
             this.thinnedGridParameters(thin_fac, map_max_zoom, this.ll_x, this.ll_y, this.ur_x, this.ur_y);
 
-        return new LambertGrid(ni, nj, this.lon_0, this.lat_0, this.lat_std, ll_x, ll_y, ur_x, ur_y, this.a, this.b, this.thin_x * thin_x, this.thin_y * thin_y);
+        return new LambertGrid(ni, nj, this.lon_0, this.lat_0, this.lat_std, ll_x, ll_y, ur_x, ur_y, this.a, this.b, this.thin_x * thin_x, this.thin_y * thin_y) as this;
     }
 }
 

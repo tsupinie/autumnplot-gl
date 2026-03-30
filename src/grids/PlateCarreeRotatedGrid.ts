@@ -68,7 +68,7 @@ class PlateCarreeRotatedGrid extends autoZoomGridMixin(gridCoordinateMixin(Struc
         const {ni, nj, thin_x, thin_y, ll_x: ll_lon, ll_y: ll_lat, ur_x: ur_lon, ur_y: ur_lat} = 
             this.thinnedGridParameters(thin_fac, map_max_zoom, this.ll_lon, this.ll_lat, this.ur_lon, this.ur_lat);
 
-        return new PlateCarreeRotatedGrid(ni, nj, this.np_lon, this.np_lat, this.lon_shift, ll_lon, ll_lat, ur_lon, ur_lat, this.thin_x * thin_x, this.thin_y * thin_y);
+        return new PlateCarreeRotatedGrid(ni, nj, this.np_lon, this.np_lat, this.lon_shift, ll_lon, ll_lat, ur_lon, ur_lat, this.thin_x * thin_x, this.thin_y * thin_y) as this;
     }
 }
 

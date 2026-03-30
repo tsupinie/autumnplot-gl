@@ -13,8 +13,8 @@ class GeostationaryImage extends gridCoordinateMixin(StructuredGrid) {
 
     private readonly vpp: (a: number, b: number, opts?: {inverse: boolean}) => [number, number];
 
-    constructor(ni: number, nj: number, ll_x: number, ll_y: number, ur_x: number, ur_y: number, satellite_lon: number) {
-        super('geostationary', false, ni, nj);
+    constructor(ni: number, nj: number, ll_x: number, ll_y: number, ur_x: number, ur_y: number, satellite_lon: number, thin_x?: number, thin_y?: number) {
+        super('geostationary', false, ni, nj, thin_x, thin_y);
 
         this.satellite_lon = satellite_lon;
         this.ll_x = ll_x;
@@ -42,6 +42,14 @@ class GeostationaryImage extends gridCoordinateMixin(StructuredGrid) {
 
     public copy() {
         return new GeostationaryImage(this.ni, this.nj, this.ll_x, this.ll_y, this.ur_x, this.ur_y, this.satellite_lon);
+    }
+
+    /** @internal */
+    public getThinnedGrid(thin_fac: number, map_max_zoom: number) {
+        const {ni, nj, thin_x, thin_y, ll_x, ll_y, ur_x, ur_y} = 
+            this.thinnedGridParameters(thin_fac, map_max_zoom, this.ll_x, this.ll_y, this.ur_x, this.ur_y);
+
+        return new GeostationaryImage(ni, nj, ll_x, ll_y, ur_x, ur_y, this.satellite_lon, this.thin_x * thin_x, this.thin_y * thin_y) as this;
     }
 }
 
