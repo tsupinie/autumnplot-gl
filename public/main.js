@@ -62,13 +62,13 @@ function makeSynthetic500mbLayers() {
 
     const colormap = apgl.colormaps.pw_speed500mb;
 
-    const raw_hght_field = makeHeight(0);
-    const raw_wind_field = makeWinds(0).multiply(1.15);
-    const raw_ws_field = raw_wind_field.magnitude();
+    const hght_field = makeHeight(0);
+    const wind_field = makeWinds(0).multiply(1.15);
+    const wind_speed_field = wind_field.magnitude();
 
-    const cntr = new apgl.Contour(raw_hght_field, {interval: 1, color: '#000000', line_width: lev => lev < 565 ? 2 : 4, line_style: lev => lev < 555 ? '--' : '-'});
-    const filled = new apgl.ContourFill(raw_ws_field, {'cmap': colormap, 'opacity': 0.8});
-    const barbs = new apgl.Barbs(raw_wind_field, {color: '#000000', thin_fac: 16});
+    const cntr = new apgl.Contour(hght_field, {interval: 1, color: '#000000', line_width: lev => lev < 565 ? 2 : 4, line_style: lev => lev < 555 ? '--' : '-'});
+    const filled = new apgl.ContourFill(wind_speed_field, {'cmap': colormap, 'opacity': 0.8});
+    const barbs = new apgl.Barbs(wind_field, {color: '#000000', thin_fac: 16});
 
     const labels = new apgl.ContourLabels(cntr, {text_color: '#ffffff', halo: true, font_url_template: 'https://autumnsky.us/glyphs/{fontstack}/{range}.pbf'});
 
@@ -89,15 +89,15 @@ function makeSynthetic500mbLayers() {
 
     //updateTime(0);
 
-    const svg = apgl.makeColorBar(colormap, {label: "Wind Speed (kts)", fontface: 'Trebuchet MS', 
+    const svg = apgl.makeColorBar(colormap, {label: "Wind Speed (mph)", fontface: 'Trebuchet MS', 
                                              ticks: [20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140],
                                              orientation: 'horizontal', tick_direction: 'bottom'});
 
     return {layers: [ws_layer, hght_layer, barb_layer, label_layer], colorbar: [svg], 
             sampler: (lon, lat) => {
-                const hght_val = raw_hght_field.sampleField(lon, lat);
-                const barb_val = raw_wind_field.sampleField(lon, lat);
-                const spd_val = raw_ws_field.sampleField(lon, lat);
+                const hght_val = hght_field.sampleField(lon, lat);
+                const barb_val = wind_field.sampleField(lon, lat);
+                const spd_val = wind_speed_field.sampleField(lon, lat);
                 return {hght: hght_val.toFixed(1), 
                         spd: spd_val.toFixed(1),
                         barb: `${barb_val[0].toFixed(0)}/${barb_val[1].toFixed(0)}`}
