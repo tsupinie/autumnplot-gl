@@ -12,8 +12,8 @@ class RadarSweepGrid extends gridCoordinateMixin(StructuredGrid) {
     readonly end_rn: number;
     readonly geod: GeodesicClass;
 
-    constructor(nt: number, nr: number, start_az: number, end_az: number, start_rn: number, end_rn: number, longitude: number, latitude: number) {
-        super('radar', true, nt, nr);
+    constructor(nt: number, nr: number, start_az: number, end_az: number, start_rn: number, end_rn: number, longitude: number, latitude: number, thin_x?: number, thin_y?: number) {
+        super('radar', true, nt, nr, thin_x, thin_y);
 
         this.longitude = longitude;
         this.latitude = latitude;
@@ -72,6 +72,14 @@ class RadarSweepGrid extends gridCoordinateMixin(StructuredGrid) {
             while (az1 >= this.end_az + half_dt) az1 -= 360;
             return [az1, ret.s12];
         }
+    }
+
+    /** @internal */
+    public getThinnedGrid(thin_fac: number, map_max_zoom: number) {
+        const {ni: nt, nj: nr, thin_x, thin_y, ll_x: start_az, ll_y: start_rn, ur_x: end_az, ur_y: end_rn} = 
+            this.thinnedGridParameters(thin_fac, map_max_zoom, this.start_az, this.start_rn, this.end_az, this.end_rn);
+
+        return new RadarSweepGrid(nt, nr, start_az, end_az, start_rn, end_rn, this.longitude, this.latitude, thin_x * this.thin_x, thin_y * this.thin_y) as this;
     }
 }
 

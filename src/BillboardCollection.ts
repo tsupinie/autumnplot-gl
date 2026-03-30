@@ -2,11 +2,11 @@
 import { BillboardSpec, RenderMethodArg, TypedArray, WebGLAnyRenderingContext, getRendererData } from "./AutumnTypes";
 import { Color } from "./Color";
 import { ColorMap, ColorMapGPUInterface } from "./Colormap";
-import { Grid } from "./grids/Grid";
 import { AutoZoomGrid } from "./grids/AutoZoom";
 import { RawVectorField } from "./RawField";
 import { WGLBuffer, WGLTexture, WGLTextureSpec } from "autumn-wgl";
 import { ShaderProgramManager } from "./ShaderManager";
+import { applySamplerCodeVector } from "./utils";
 
 const billboard_vertex_shader_src = require('./glsl/billboard_vertex.glsl');
 const billboard_fragment_shader_src = require('./glsl/billboard_fragment.glsl');
@@ -40,7 +40,7 @@ class BillboardCollection<ArrayType extends TypedArray, GridType extends AutoZoo
     public readonly billboard_image: WGLTextureSpec;
 
     private gl_elems: BillboardCollectionGLElems | null;
-    private wind_textures: {u: WGLTexture, v: WGLTexture} | null;
+    private wind_textures: {u: Map<string, WGLTexture>, v: Map<string, WGLTexture>} | null;
 
     constructor(field: RawVectorField<ArrayType, GridType>, thin_fac: number, max_zoom: number, 
                 billboard_image: WGLTextureSpec, billboard_spec: BillboardSpec, billboard_size_mult: number, opts?: BillboardCollectionOpts) {
@@ -68,15 +68,7 @@ class BillboardCollection<ArrayType extends TypedArray, GridType extends AutoZoo
         const gl = this.gl_elems.gl;
         const data = this.field.getThinnedField(this.thin_fac, this.max_zoom);
 
-        const {u: u_image, v: v_image} = data.getWGLTextureSpecs(gl, gl.NEAREST);
-
-        if (this.wind_textures === null) {
-            this.wind_textures = {u: new WGLTexture(gl, u_image), v: new WGLTexture(gl, v_image)};
-        }
-        else {
-            this.wind_textures.u.setImageData(u_image);
-            this.wind_textures.v.setImageData(v_image);
-        }
+        this.wind_textures = data.updateTexImageData(gl, gl.NEAREST, this.wind_textures);
     }
 
     public async setup(gl: WebGLAnyRenderingContext) {
@@ -102,7 +94,11 @@ class BillboardCollection<ArrayType extends TypedArray, GridType extends AutoZoo
             shader_defines.push('COLORMAP');
         }
 
-        const shader_manager = new ShaderProgramManager(billboard_vertex_shader_src, fragment_src, shader_defines);
+        const sampler_keys = this.field.getSamplerIds();
+        const sampler_expressions = this.field.getExpressions();
+
+        const vertex_shader_src = applySamplerCodeVector(billboard_vertex_shader_src, sampler_keys, sampler_expressions);
+        const shader_manager = new ShaderProgramManager(vertex_shader_src, fragment_src, shader_defines);
 
         this.gl_elems = {gl: gl, shader_manager: shader_manager, geom_vertices: geom_buffer, vertices: vertices, texcoords: texcoords, texture: texture, 
                          proj_rot_texture: proj_rotation_tex, cmap_gpu: cmap_gpu};
@@ -120,13 +116,19 @@ class BillboardCollection<ArrayType extends TypedArray, GridType extends AutoZoo
         const bb_width = this.spec.BB_WIDTH / this.spec.BB_TEX_WIDTH;
         const bb_height = this.spec.BB_HEIGHT / this.spec.BB_TEX_HEIGHT;
 
+        const samplers = {
+            'u_sampler': gl_elems.texture, 'u_rot_sampler': gl_elems.proj_rot_texture, 
+            ...Object.fromEntries([...this.wind_textures.u.entries()]),
+            ...Object.fromEntries([...this.wind_textures.v.entries()])
+        };
+
         program.use(
             {'a_geom': gl_elems.geom_vertices, 'a_pos': gl_elems.vertices, 'a_tex_coord': gl_elems.texcoords},
             {'u_bb_size': bb_size, 'u_bb_width': bb_width, 'u_bb_height': bb_height,
              'u_bb_mag_bin_size': this.spec.BB_MAG_BIN_SIZE, 'u_bb_mag_wrap': this.spec.BB_MAG_WRAP, 'u_offset': 0,
              'u_map_aspect': map_height / map_width, 'u_zoom': map_zoom, 'u_rotate_with_map': this.rotate_with_map ? 1 : 0,
               ...this.gl_elems.shader_manager.getShaderUniforms(render_data)},
-            {'u_sampler': gl_elems.texture, 'u_u_sampler': this.wind_textures.u, 'u_v_sampler': this.wind_textures.v, 'u_rot_sampler': gl_elems.proj_rot_texture}
+            samplers
         );
 
         if (gl_elems.cmap_gpu !== null) {

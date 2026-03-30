@@ -2,8 +2,15 @@
 import * as Comlink from 'comlink';
 
 import { GridCoords } from './grids/Grid';
-import { ContourData } from "./AutumnTypes";
+import { ContourData, ContourableTypedArray } from "./AutumnTypes";
 import { initMSModule } from "./WasmInterface";
+import { MarchingSquaresModule } from './cpp/marchingsquares';
+
+let _msm: MarchingSquaresModule | null = null;
+
+async function init(wasm_base_url: string | undefined) {
+    _msm = await initMSModule({document_script: wasm_base_url});
+}
 
 /** Options for contouring data via {@link RawScalarField.getContours | RawScalarField.getContours()} */
 interface FieldContourOpts {
@@ -23,7 +30,7 @@ interface FieldContourOpts {
     quad_as_tri?: boolean;
 }
 
-async function contourCreator(data: Float32Array | Uint16Array | Uint8Array, grid_coords: GridCoords, opts: FieldContourOpts) {
+async function contourCreator(data: ContourableTypedArray, grid_coords: GridCoords, opts: FieldContourOpts) {
     if (opts.interval === undefined && opts.levels === undefined) {
         throw "Must supply either an interval or levels to contourCreator()"
     }
@@ -31,7 +38,8 @@ async function contourCreator(data: Float32Array | Uint16Array | Uint8Array, gri
     const interval = opts.interval === undefined ? 0 : opts.interval;
     const quad_as_tri = opts.quad_as_tri === undefined ? false : opts.quad_as_tri;
 
-    const msm = await initMSModule({});
+    const msm = _msm === null ? await initMSModule({}) : _msm;
+    _msm = msm;
 
     const getContourLevels = data instanceof Float32Array ? msm.getContourLevelsFloat32 : msm.getContourLevelsFloat16;
     const makeContours = data instanceof Float32Array ? msm.makeContoursFloat32 : msm.makeContoursFloat16;
@@ -43,7 +51,8 @@ async function contourCreator(data: Float32Array | Uint16Array | Uint8Array, gri
 }
 
 const ep_interface = {
-    'contourCreator': contourCreator
+    'contourCreator': contourCreator,
+    'init': init,
 }
 
 type ContourCreatorWorker = typeof ep_interface;

@@ -62,8 +62,8 @@ function makeSynthetic500mbLayers() {
     const colormap = apgl.colormaps.pw_speed500mb;
 
     const raw_hght_field = makeHeight(0);
-    const raw_wind_field = makeWinds(0);
-    const raw_ws_field = raw_wind_field.magnitude().multiply(1.15);
+    const raw_wind_field = makeWinds(0).multiply(1.15);
+    const raw_ws_field = raw_wind_field.magnitude();
 
     const cntr = new apgl.Contour(raw_hght_field, {interval: 1, color: '#000000', line_width: lev => lev < 565 ? 2 : 4, line_style: lev => lev < 555 ? '--' : '-'});
     const filled = new apgl.ContourFill(raw_ws_field, {'cmap': colormap, 'opacity': 0.8});
@@ -78,7 +78,7 @@ function makeSynthetic500mbLayers() {
 
     function updateTime(time) {
         cntr.updateField(makeHeight(time));
-        const raw_wind_field = makeWinds(time);
+        const raw_wind_field = makeWinds(time).multiply(1.15);
         barbs.updateField(raw_wind_field);
         filled.updateField(raw_wind_field.magnitude());
         labels.updateField();
@@ -96,7 +96,9 @@ function makeSynthetic500mbLayers() {
             sampler: (lon, lat) => {
                 const hght_val = raw_hght_field.sampleField(lon, lat);
                 const barb_val = raw_wind_field.sampleField(lon, lat);
+                const spd_val = raw_ws_field.sampleField(lon, lat);
                 return {hght: hght_val.toFixed(1), 
+                        spd: spd_val.toFixed(1),
                         barb: `${barb_val[0].toFixed(0)}/${barb_val[1].toFixed(0)}`}
             }};
 }
@@ -111,7 +113,19 @@ async function fetchBinary(fname, dtype) {
 
     if (dtype == 'uint8') return ary_inflated;
 
-    return new float16.Float16Array(new Float32Array(ary_inflated.buffer));
+    const data_f32 = new Float32Array(ary_inflated.buffer)
+    
+    if (dtype == 'float32') return data_f32;
+
+    const DTYPES = {
+        'float16': float16.Float16Array,
+        'uint16': Uint16Array,
+        'uint32': Uint32Array,
+        'int16': Int16Array,
+        'int32': Int32Array,
+    }
+
+    return new DTYPES[dtype](data_f32);
 }
 
 async function makeHREFLayers() {
@@ -128,7 +142,7 @@ async function makeHREFLayers() {
     const label_layer = new apgl.PlotLayer('nh_prob_labels', labels);
 
 
-    const pb_data = await fetchBinary('data/hrefv3.2023051100.f036.mxuphl5000_2000m.086400.pb75.bin.gz');
+    const pb_data = await fetchBinary('data/hrefv3.2023051100.f036.mxuphl5000_2000m.086400.pb75.bin.gz', 'uint16');
     const href_pb_colors = ['#9d4c1c', '#f2b368', '#792394', '#d99cf9', '#1e3293', '#aabee3', '#bc373b', '#f0928f', '#397d21', '#b5f0ab'];
 
     // For this example field, the members are packed in reverse order from what the library now expects. So I'm doing the lazy thing and reversing
@@ -634,6 +648,8 @@ const views = {
 window.addEventListener('load', () => {
     const menu = document.querySelector('#selection select');
     menu.innerHTML = Object.entries(views).map(([k, v]) => `<option value="${k}">${v.name}</option>`).join('');
+
+    apgl.initAutumnPlot({contour_workers: 4});
 
     const use_mapbox = false;
     const use_globe = true;

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 rm -rf lib/*
-npx -p typescript tsc --declaration --outDir lib --target es2020 --sourceMap false --allowJs false 
+npx -p typescript tsc --declaration --outDir lib --target es2021 --sourceMap false --allowJs false 
 cp -r src/glsl lib/.
 
 cpp_files=(marchingsquares_embind.d.ts marchingsquares.d.ts marchingsquares.js marchingsquares.wasm)

@@ -100,21 +100,10 @@ class LambertGrid extends autoZoomGridMixin(gridCoordinateMixin(StructuredGrid))
 
     /** @internal */
     public getThinnedGrid(thin_fac: number, map_max_zoom: number) {
-        const [thin_x, thin_y] = this.xyThinFromMaxZoom(thin_fac, map_max_zoom);
+        const {ni, nj, thin_x, thin_y, ll_x, ll_y, ur_x, ur_y} = 
+            this.thinnedGridParameters(thin_fac, map_max_zoom, this.ll_x, this.ll_y, this.ur_x, this.ur_y);
 
-        const dx = (this.ur_x - this.ll_x) / this.ni;
-        const dy = (this.ur_y - this.ll_y) / this.nj;
-
-        const ni = Math.ceil(this.ni / thin_x);
-        const nj = Math.ceil(this.nj / thin_y);
-        const ni_remove = (this.ni - 1) % thin_x;
-        const nj_remove = (this.nj - 1) % thin_y;
-        const ll_x = this.ll_x;
-        const ll_y = this.ll_y;
-        const ur_x = this.ur_x - ni_remove * dx;
-        const ur_y = this.ur_y - nj_remove * dy;
-
-        return new LambertGrid(ni, nj, this.lon_0, this.lat_0, this.lat_std, ll_x, ll_y, ur_x, ur_y, this.a, this.b, this.thin_x * thin_x, this.thin_y * thin_y);
+        return new LambertGrid(ni, nj, this.lon_0, this.lat_0, this.lat_std, ll_x, ll_y, ur_x, ur_y, this.a, this.b, this.thin_x * thin_x, this.thin_y * thin_y) as this;
     }
 }
 

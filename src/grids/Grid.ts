@@ -34,6 +34,9 @@ abstract class Grid {
     public abstract transform(x: number, y: number, opts?: {inverse?: boolean}): [number, number];
     public abstract sampleNearestGridPoint(lon: number, lat: number, ary: TypedArray): {sample: number, sample_lon: number, sample_lat: number};
 
+    public abstract getThinnedGrid(thin_fac: number, map_max_zoom: number): this;
+    public abstract thinDataArray<ArrayType extends TypedArray>(original_grid: Grid, ary: ArrayType): ArrayType;
+
     public abstract copy(): Grid;
 }
 

@@ -1,4 +1,4 @@
-import { PlotComponent } from "./PlotComponent";
+import { PlotComponent, getContourWorkerPool } from "./PlotComponent";
 import Contour, {ContourOptions, ContourLabels, ContourLabelOptions} from "./Contour";
 import {ContourFill, Raster, ContourFillOptions, RasterOptions} from "./Fill";
 import Barbs, {BarbsOptions} from "./Barbs";
@@ -13,7 +13,7 @@ import { ColorMap, ColorMapOptions, bluered, redblue, pw_speed500mb, pw_speed850
 import { Color } from "./Color";
 import { makeColorBar, makePaintballKey, ColorbarOrientation, ColorbarTickDirection, ColorBarOptions, PaintballKeyOptions } from "./ColorBar";
 import { LineStyle } from "./PolylineCollection";
-import { RawScalarField, RawVectorField, RawProfileField, VectorRelativeTo, RawVectorFieldOptions, RawObsField, ObsRawData} from "./RawField";
+import { RawScalarField, ExpressionScalarField, RawVectorField, ExpressionVectorField, RawProfileField, VectorRelativeTo, RawVectorFieldOptions, RawObsField, ObsRawData} from "./RawField";
 import { Grid, GridType } from "./grids/Grid";
 import { StructuredGrid } from "./grids/StructuredGrid";
 import { PlateCarreeGrid } from "./grids/PlateCarreeGrid";
@@ -22,7 +22,6 @@ import { LambertGrid } from "./grids/LambertGrid";
 import { RadarSweepGrid } from "./grids/RadarSweepGrid";
 import { GeostationaryImage } from "./grids/Geostationary";
 import { UnstructuredGrid } from "./grids/UnstructuredGrid";
-import { initMSModule } from "./WasmInterface";
 import { FieldContourOpts } from './ContourCreator.worker';
 import { GeometryComponent, GeometryFeature, GeometryComponentOptions, GeometryStyle, createWatchBox, createWarningBox, createTrack, createSpaghettiPlot } from "./Geometry";
 
@@ -43,6 +42,9 @@ const colormaps = {
 interface InitAutumnPlotOpts {
     /** Base URL at which to find the WASM module (change with caution!) */
     wasm_base_url?: string;
+
+    /** Number of worker threads to use for contouring */
+    contour_workers?: number;
 }
 
 /**
@@ -51,8 +53,9 @@ interface InitAutumnPlotOpts {
  */
 function initAutumnPlot(opts?: InitAutumnPlotOpts) {
     opts = opts === undefined ? {} : opts;
+    const contour_workers = opts.contour_workers === undefined ? 1 : opts.contour_workers;
 
-    initMSModule({document_script: opts.wasm_base_url});
+    getContourWorkerPool(opts.wasm_base_url, contour_workers);
 }
 
 export {PlotComponent,
@@ -65,7 +68,7 @@ export {PlotComponent,
         PlotLayer, MultiPlotLayer, 
         MapLikeType, LineStyle,
         ColorMap, ColorMapOptions, colormaps, makeColorBar, makePaintballKey, Color, ColorbarOrientation, ColorbarTickDirection, ColorBarOptions, PaintballKeyOptions,
-        RawScalarField, RawVectorField, RawProfileField, RawObsField, ObsRawData,
+        RawScalarField, ExpressionScalarField, RawVectorField, ExpressionVectorField, RawProfileField, RawObsField, ObsRawData,
         Grid, GridType, StructuredGrid, VectorRelativeTo, RawVectorFieldOptions, PlateCarreeGrid, PlateCarreeRotatedGrid, LambertGrid, UnstructuredGrid, RadarSweepGrid, GeostationaryImage,
         WebGLAnyRenderingContext, TypedArray, ContourData,
         initAutumnPlot, InitAutumnPlotOpts, FieldContourOpts,

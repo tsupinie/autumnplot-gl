@@ -1,14 +1,18 @@
 
 import { Float16Array } from "@petamoriken/float16";
-import { ContourData, TypedArray, TypedArrayStr, WebGLAnyRenderingContext, WindProfile, isStormRelativeWindProfile } from "./AutumnTypes";
+import { ContourData, TypedArray, TypedArrayStr, WebGLAnyRenderingContext, WindProfile, isContourable, isStormRelativeWindProfile } from "./AutumnTypes";
 import { FieldContourOpts } from "./ContourCreator.worker";
 import { Grid } from "./grids/Grid";
 import { Cache, getArrayConstructor, zip } from "./utils";
 import { WGLTexture, WGLTextureSpec } from "autumn-wgl";
-import { contour_worker, getGLFormatTypeAlignment } from "./PlotComponent";
+import { getContourWorkerPool, getGLFormatTypeAlignment } from "./PlotComponent";
 import { AutoZoomGrid } from "./grids/AutoZoom";
 
-type TextureDataType<ArrayType> = ArrayType extends Float32Array ? Float32Array : (ArrayType extends Uint8Array ? Uint8Array : Uint16Array);
+type TextureDataType<ArrayType> = ArrayType extends Float32Array ? Float32Array : 
+                                 (ArrayType extends Uint8Array ? Uint8Array : 
+                                 (ArrayType extends Uint32Array ? Uint32Array : 
+                                 (ArrayType extends Int32Array ? Int32Array : 
+                                 (ArrayType extends Int16Array ? Int16Array : Uint16Array))));
 
 function getArrayDType(ary: TypedArray) : TypedArrayStr {
     if (ary instanceof Float32Array) {
@@ -16,6 +20,18 @@ function getArrayDType(ary: TypedArray) : TypedArrayStr {
     }
     else if (ary instanceof Uint8Array) {
         return 'uint8';
+    }
+    else if (ary instanceof Uint16Array) {
+        return 'uint16';
+    }
+    else if (ary instanceof Uint32Array) {
+        return 'uint32';
+    }
+    else if (ary instanceof Int16Array) {
+        return 'int16';
+    }
+    else if (ary instanceof Int32Array) {
+        return 'int32';
     }
     return 'float16';
 }
@@ -29,6 +45,7 @@ abstract class ExpressionScalarField<ArrayType extends TypedArray, GridType exte
 
     abstract get grid() : GridType;
     abstract get aryConstructor() : new(...args: any[]) => ArrayType;
+    abstract get dtypes() : TypedArrayStr[];
 
     private operand(other: ExpressionScalarField<ArrayType, GridType> | number, operand: '+' | '-' | '*' | '/'): ComputedScalarField<ArrayType, GridType> {
         const FUNCS = {
@@ -60,6 +77,11 @@ abstract class ExpressionScalarField<ArrayType extends TypedArray, GridType exte
     public subtract(other: ExpressionScalarField<ArrayType, GridType> | number): ComputedScalarField<ArrayType, GridType> {
         return this.operand(other, '-');
     }
+
+    public abstract getThinnedField(thin_fac: number, map_max_zoom: number) : this;
+
+    public abstract sampleField(lon: number, lat: number) : number;
+    public abstract sampleFieldWithCoord(lon: number, lat: number) : {sample: number, sample_lon: number, sample_lat: number};
 }
 
 /** A class representing a raw 2D field of gridded data, such as height or u wind. */
@@ -85,7 +107,14 @@ class RawScalarField<ArrayType extends TypedArray, GridType extends Grid> extend
         }
 
         this.contour_cache = new Cache(async (opts: FieldContourOpts) => {
-            const contour_data = await contour_worker.contourCreator(this.getTextureData(), grid.getGridCoords(), opts);
+            if (getArrayDType(this.data) != 'float16' && getArrayDType(this.data) != 'float32') 
+                throw `Grid is of type ${getArrayDType(this.data)}, which is not contourable (should be either float16 or float32)`;
+
+            const tex_data = this.getTextureData();
+            if (!isContourable(tex_data)) throw `Type check for contourable array failed`;
+
+            const pool = getContourWorkerPool(undefined, 1); // 1 worker is the default; if the user requests more, the pool will be pre-created with the correct number of workers
+            const contour_data = await pool.contourCreator(tex_data, grid.getGridCoords(), opts);
 
             for (const v in contour_data) {
                 for (let ic = 0; ic < contour_data[v].length; ic++) {
@@ -104,12 +133,16 @@ class RawScalarField<ArrayType extends TypedArray, GridType extends Grid> extend
         return getArrayConstructor(this.data);
     }
 
+    get dtypes() {
+        return [getArrayDType(this.data)];
+    }
+
     /** @internal */
     private getTextureData() : TextureDataType<ArrayType> {
         // Need to give float16 data as uint16s to make WebGL happy: https://github.com/petamoriken/float16/issues/105
         const raw_data = this.data;
         const raw_data_type = getArrayDType(raw_data);
-        const data: any = (raw_data_type == 'float32' || raw_data_type == 'uint8') ? raw_data : new Uint16Array(raw_data.buffer);
+        const data: any = ['float32', 'uint8', 'uint32', 'uint16', 'int32', 'int16'].includes(raw_data_type) ? raw_data : new Uint16Array(raw_data.buffer);
         return data as TextureDataType<ArrayType>;
     }
 
@@ -119,7 +152,7 @@ class RawScalarField<ArrayType extends TypedArray, GridType extends Grid> extend
     
         return new Map([['_0', {'format': format, 'type': type,
             'width': this.grid.ni, 'height': this.grid.nj, 'image': tex_data,
-            'mag_filter': image_mag_filter, 'row_alignment': row_alignment,
+            'mag_filter': image_mag_filter, 'min_filter': image_mag_filter, 'row_alignment': row_alignment,
         }]]);
     }
 
@@ -193,8 +226,19 @@ class RawScalarField<ArrayType extends TypedArray, GridType extends Grid> extend
         }
     }
 
+    public getThinnedField(thin_fac: number, map_max_zoom: number) {
+        const new_grid = this.grid.getThinnedGrid(thin_fac, map_max_zoom)
+        const thin_data = new_grid.thinDataArray(this.grid, this.data);
+
+        return new RawScalarField(new_grid, thin_data) as this;
+    }
+
+    public sampleFieldWithCoord(lon: number, lat: number) {
+        return this.grid.sampleNearestGridPoint(lon, lat, this.data);
+    }
+
     public sampleField(lon: number, lat: number) {
-        return this.grid.sampleNearestGridPoint(lon, lat, this.data).sample;
+        return this.sampleFieldWithCoord(lon, lat).sample;
     }
 }
 
@@ -219,6 +263,10 @@ class ComputedScalarField<ArrayType extends TypedArray, GridType extends Grid> e
 
     get aryConstructor() {
         return this.raw_fields[0].aryConstructor;
+    }
+
+    get dtypes(): TypedArrayStr[] {
+        return this.raw_fields.map(f => f.dtypes).flat();
     }
 
     public updateTexImageData(gl: WebGLAnyRenderingContext, image_mag_filter: number, fill_textures: Map<string, WGLTexture> | null) {
@@ -265,6 +313,19 @@ class ComputedScalarField<ArrayType extends TypedArray, GridType extends Grid> e
         return `(${expression})`;
     }
 
+    public getThinnedField(thin_fac: number, map_max_zoom: number) {
+        return new ComputedScalarField(this.raw_fields.map(f => f.getThinnedField(thin_fac, map_max_zoom)), this.expression, this.cpu_func) as this;
+    }
+
+    public sampleFieldWithCoord(lon: number, lat: number) {
+        const field_samples = this.raw_fields.map(f => f.sampleFieldWithCoord(lon, lat));
+        return {sample: this.cpu_func(...field_samples.map(s => s.sample)), sample_lon: field_samples[0].sample_lon, sample_lat: field_samples[0].sample_lat};
+    }
+
+    public sampleField(lon: number, lat: number) {
+        return this.sampleFieldWithCoord(lon, lat).sample;
+    }
+
     public renderCPU(): RawScalarField<ArrayType, GridType> {
         const ary = new this.aryConstructor([...this.iterateCPU()]);
         return new RawScalarField<ArrayType, GridType>(this.grid, ary);
@@ -297,58 +358,88 @@ interface RawVectorFieldOptions {
     relative_to?: VectorRelativeTo;
 }
 
-/** A class representing a 2D gridded field of vectors */
-class RawVectorField<ArrayType extends TypedArray, GridType extends AutoZoomGrid> {
-    public readonly u: RawScalarField<ArrayType, GridType>;
-    public readonly v: RawScalarField<ArrayType, GridType>;
+function scalarIdToVectorComponentId(id: string, component: 'u' | 'v') {
+    return `_${component}${id.slice(1)}`;
+}
+
+function vectorComponentIdToScalarId(id: string) {
+    return `_${id.slice(2)}`;
+}
+
+abstract class ExpressionVectorField<ArrayType extends TypedArray, GridType extends AutoZoomGrid> {
+    protected readonly u: ExpressionScalarField<ArrayType, GridType>;
+    protected readonly v: ExpressionScalarField<ArrayType, GridType>;
     public readonly relative_to: VectorRelativeTo;
 
-    /**
-     * Create a vector field.
-     * @param grid - The grid on which the vector components are defined
-     * @param u    - The u (east/west) component of the vectors, which should be given as a 1D array in row-major order, with the first element being at the lower-left corner of the grid
-     * @param v    - The v (north/south) component of the vectors, which should be given as a 1D array in row-major order, with the first element being at the lower-left corner of the grid
-     * @param opts - Options for creating the vector field.
-     */
-    constructor(grid: GridType, u: ArrayType, v: ArrayType, opts?: RawVectorFieldOptions) {
-        opts = opts === undefined ? {}: opts;
+    constructor(u: ExpressionScalarField<ArrayType, GridType>, v: ExpressionScalarField<ArrayType, GridType>, opts?: RawVectorFieldOptions) {
+        this.u = u;
+        this.v = v;
 
-        this.u = new RawScalarField(grid, u);
-        this.v = new RawScalarField(grid, v);
+        opts = opts === undefined ? {}: opts;
         this.relative_to = opts.relative_to === undefined ? 'grid' : opts.relative_to;
     }
 
-    /** @internal */
-    private getTextureData() {
-        // Need to give float16 data as uint16s to make WebGL happy: https://github.com/petamoriken/float16/issues/105
-        const raw_u = this.u.data;
-        const raw_v = this.v.data;
+    private operandScalar(other: ExpressionScalarField<ArrayType, GridType> | number, operand: '*' | '/'): ComputedVectorField<ArrayType, GridType> {
+        const FUNCS = {
+            '*': (a: number, b: number) => a * b,
+            '/': (a: number, b: number) => a / b,
+        };
 
-        const u_raw_data_type = getArrayDType(raw_u);
-        const v_raw_data_type = getArrayDType(raw_u);
+        if (typeof other === 'number') {
+            const u = new ComputedScalarField([this.u], `{0} ${operand} ${other.toFixed(100)}`, v => FUNCS[operand](v, other));
+            const v = new ComputedScalarField([this.v], `{0} ${operand} ${other.toFixed(100)}`, v => FUNCS[operand](v, other));
+            return new ComputedVectorField(u, v, {relative_to: this.relative_to});
+        }
 
-        const u: any = (u_raw_data_type == 'float32' || u_raw_data_type == 'uint8') ? raw_u : new Uint16Array(raw_u.buffer);
-        const v: any = (v_raw_data_type == 'float32' || v_raw_data_type == 'uint8') ? raw_v : new Uint16Array(raw_v.buffer);
-
-        return {u: u as TextureDataType<ArrayType>, v: v as TextureDataType<ArrayType>};
+        const u = new ComputedScalarField([this.u, other], `{0} ${operand} {1}`, FUNCS[operand]);
+        const v = new ComputedScalarField([this.v, other], `{0} ${operand} {1}`, FUNCS[operand]);
+        return new ComputedVectorField(u, v, {relative_to: this.relative_to});
     }
 
-    public getWGLTextureSpecs(gl: WebGLAnyRenderingContext, mag_filter: number) : {u: WGLTextureSpec, v: WGLTextureSpec} {
-        const {u: u_thin, v: v_thin} = this.getTextureData();
-
-        const {format, type, row_alignment} = getGLFormatTypeAlignment(gl, getArrayDType(this.u.data));
-
-        const u_image = {'format': format, 'type': type,
-            'width': this.grid.ni, 'height': this.grid.nj, 'image': u_thin,
-            'mag_filter': mag_filter, 'row_alignment': row_alignment,
+    private operandVector(other: ExpressionVectorField<ArrayType, GridType>, operand: '+' | '-'): ComputedVectorField<ArrayType, GridType> {
+        const FUNCS = {
+            '+': (a: number, b: number) => a + b,
+            '-': (a: number, b: number) => a - b,
         };
 
-        const v_image = {'format': format, 'type': type,
-            'width': this.grid.ni, 'height': this.grid.nj, 'image': v_thin,
-            'mag_filter': mag_filter, 'row_alignment': row_alignment,
-        };
+        const u = new ComputedScalarField([this.u, other.u], `{0} ${operand} {1}`, FUNCS[operand]);
+        const v = new ComputedScalarField([this.v, other.v], `{0} ${operand} {1}`, FUNCS[operand]);
+        return new ComputedVectorField(u, v, {relative_to: this.relative_to});
+    }
 
-        return {u: u_image, v: v_image};
+    public multiply(other: ExpressionScalarField<ArrayType, GridType> | number): ComputedVectorField<ArrayType, GridType> {
+        return this.operandScalar(other, '*');
+    }
+
+    public divide(other: ExpressionScalarField<ArrayType, GridType> | number): ComputedVectorField<ArrayType, GridType> {
+        return this.operandScalar(other, '/');
+    }
+
+    public add(other: ExpressionVectorField<ArrayType, GridType>): ComputedVectorField<ArrayType, GridType> {
+        return this.operandVector(other, '+');
+    }
+
+    public subtract(other: ExpressionVectorField<ArrayType, GridType>): ComputedVectorField<ArrayType, GridType> {
+        return this.operandVector(other, '-');
+    }
+
+    public updateTexImageData(gl: WebGLAnyRenderingContext, image_mag_filter: number, fill_textures: {u: Map<string, WGLTexture>, v: Map<string, WGLTexture>} | null) {
+        const translateKeys = <V>(map: Map<string, V>, component: 'u' | 'v', reverse: boolean) => {
+            const map_trans = new Map<string, V>();
+
+            const translator = reverse ? vectorComponentIdToScalarId : scalarIdToVectorComponentId;
+
+            map.forEach((value, key) => {
+                map_trans.set(translator(key, component), value);
+            })
+
+            return map_trans;
+        }
+
+        const tex_u = this.u.updateTexImageData(gl, image_mag_filter, fill_textures === null ? null : translateKeys(fill_textures.u, 'u', true));
+        const tex_v = this.v.updateTexImageData(gl, image_mag_filter, fill_textures === null ? null : translateKeys(fill_textures.v, 'v', true));
+
+        return {u: translateKeys(tex_u, 'u', false), v: translateKeys(tex_v, 'v', false)};
     }
 
     public magnitude() {
@@ -357,12 +448,10 @@ class RawVectorField<ArrayType extends TypedArray, GridType extends AutoZoomGrid
 
     /** @internal */
     public getThinnedField(thin_fac: number, map_max_zoom: number) {
-        const new_grid = this.grid.getThinnedGrid(thin_fac, map_max_zoom);
+        const thin_u = this.u.getThinnedField(thin_fac, map_max_zoom);
+        const thin_v = this.v.getThinnedField(thin_fac, map_max_zoom);
 
-        const thin_u = new_grid.thinDataArray(this.grid, this.u.data);
-        const thin_v = new_grid.thinDataArray(this.grid, this.v.data);
-
-        return new RawVectorField(new_grid, thin_u, thin_v, {relative_to: this.relative_to});
+        return new ComputedVectorField(thin_u, thin_v, {relative_to: this.relative_to});
     }
 
     /** @internal */
@@ -371,8 +460,8 @@ class RawVectorField<ArrayType extends TypedArray, GridType extends AutoZoomGrid
     }
 
     public sampleField(lon: number, lat: number) : [number, number] {
-        const u_sample = this.grid.sampleNearestGridPoint(lon, lat, this.u.data);
-        const v_sample = this.grid.sampleNearestGridPoint(lon, lat, this.v.data);
+        const u_sample = this.u.sampleFieldWithCoord(lon, lat);
+        const v_sample = this.v.sampleFieldWithCoord(lon, lat);
 
         const rot = this.relative_to == 'earth' ? 0 : this.grid.getVectorRotationAtPoint(u_sample.sample_lon, u_sample.sample_lat);
         const mag = Math.hypot(u_sample.sample, v_sample.sample);
@@ -383,7 +472,62 @@ class RawVectorField<ArrayType extends TypedArray, GridType extends AutoZoomGrid
 
         return [brg, mag];
     }
+
+    public getSamplerIds() : {u: string[], v: string[]} {
+        return {
+            u: this.u.getSamplerIds().map(id => scalarIdToVectorComponentId(id, 'u')), 
+            v: this.v.getSamplerIds().map(id => scalarIdToVectorComponentId(id, 'v')),
+        };
+    }
+
+    public getExpressions() : {u: string, v: string} {
+        const translateVariables = (expr: string, component: 'u' | 'v') => {
+            const matches = expr.match(/_0[a-z]*/g);
+            if (matches === null)
+                throw `Field expression not found`;
+
+            matches.forEach(m => expr = expr.replace(m, scalarIdToVectorComponentId(m, component)));
+            return expr;
+        }
+
+        return {
+            u: translateVariables(this.u.getExpression(), 'u'), 
+            v: translateVariables(this.v.getExpression(), 'v'),
+        };
+    }
 }
+
+/** A class representing a 2D gridded field of vectors */
+class RawVectorField<ArrayType extends TypedArray, GridType extends AutoZoomGrid> extends ExpressionVectorField<ArrayType, GridType> {
+    private readonly u_ary: ArrayType;
+    private readonly v_ary: ArrayType;
+
+    /**
+     * Create a vector field.
+     * @param grid - The grid on which the vector components are defined
+     * @param u    - The u (east/west) component of the vectors, which should be given as a 1D array in row-major order, with the first element being at the lower-left corner of the grid
+     * @param v    - The v (north/south) component of the vectors, which should be given as a 1D array in row-major order, with the first element being at the lower-left corner of the grid
+     * @param opts - Options for creating the vector field.
+     */
+    constructor(grid: GridType, u_ary: ArrayType, v_ary: ArrayType, opts?: RawVectorFieldOptions) {
+        const u = new RawScalarField(grid, u_ary);
+        const v = new RawScalarField(grid, v_ary);
+        super(u, v, opts);
+
+        this.u_ary = u_ary;
+        this.v_ary = v_ary;
+    }
+
+    public getSamplerIds() : {u: string[], v: string[]} {
+        return {u: ['_u0'], v: ['_v0']};
+    }
+
+    public getExpressions() : {u: string, v: string} {
+        return {u: '_u0', v: '_v0'};
+    }
+}
+
+class ComputedVectorField<ArrayType extends TypedArray, GridType extends AutoZoomGrid> extends ExpressionVectorField<ArrayType, GridType> {}
 
 /** A class grid of wind profiles */
 class RawProfileField<GridType extends AutoZoomGrid> {
@@ -520,5 +664,5 @@ class RawObsField<GridType extends AutoZoomGrid, ObsFieldName extends string> {
     }
 }
 
-export {RawScalarField, ComputedScalarField, RawVectorField, RawProfileField, RawObsField};
-export type {ExpressionScalarField, RawVectorFieldOptions, VectorRelativeTo, TextureDataType, ObsRawData};
+export {RawScalarField, ComputedScalarField, RawVectorField, ComputedVectorField, RawProfileField, RawObsField};
+export type {ExpressionScalarField, RawVectorFieldOptions, ExpressionVectorField, VectorRelativeTo, TextureDataType, ObsRawData};
