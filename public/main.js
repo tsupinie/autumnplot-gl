@@ -714,12 +714,19 @@ window.addEventListener('load', () => {
         });
 
         layers.forEach(lyr => {
-            // Always add on top for visibility
             try {
-                map.addLayer(lyr);
+                // Insert custom plotting layers beneath the country/state/county outlines
+                // so the geographic outlines remain visible on top of large rasters.
+                if (map.getLayer && map.getLayer('countries')) {
+                    map.addLayer(lyr, 'countries');
+                }
+                else {
+                    map.addLayer(lyr);
+                }
             } catch (e) {
-                // If a reference layer is required and missing, log a warning
+                // If insertion before 'countries' failed, fall back to adding normally and log a warning
                 console.warn('Could not add layer', lyr.id, e);
+                try { map.addLayer(lyr); } catch (e2) { /* ignore */ }
             }
         });
 
