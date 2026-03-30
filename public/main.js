@@ -114,7 +114,17 @@ async function fetchBinary(fname, dtype) {
 
     if (dtype == 'uint8') return ary_inflated;
 
-    return new float16.Float16Array(new Float32Array(ary_inflated.buffer));
+    const data_f32 = new Float32Array(ary_inflated.buffer)
+    
+    if (dtype == 'float32') return data_f32;
+
+    const DTYPES = {
+        'float16': float16.Float16Array,
+        'uint16': Uint16Array,
+        'uint32': Uint32Array,
+    }
+
+    return new DTYPES[dtype](data_f32);
 }
 
 async function makeHREFLayers() {
@@ -131,7 +141,7 @@ async function makeHREFLayers() {
     const label_layer = new apgl.PlotLayer('nh_prob_labels', labels);
 
 
-    const pb_data = await fetchBinary('data/hrefv3.2023051100.f036.mxuphl5000_2000m.086400.pb75.bin.gz');
+    const pb_data = await fetchBinary('data/hrefv3.2023051100.f036.mxuphl5000_2000m.086400.pb75.bin.gz', 'uint16');
     const href_pb_colors = ['#9d4c1c', '#f2b368', '#792394', '#d99cf9', '#1e3293', '#aabee3', '#bc373b', '#f0928f', '#397d21', '#b5f0ab'];
 
     // For this example field, the members are packed in reverse order from what the library now expects. So I'm doing the lazy thing and reversing

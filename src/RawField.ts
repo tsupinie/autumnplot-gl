@@ -1,6 +1,6 @@
 
 import { Float16Array } from "@petamoriken/float16";
-import { ContourData, TypedArray, TypedArrayStr, WebGLAnyRenderingContext, WindProfile, isStormRelativeWindProfile } from "./AutumnTypes";
+import { ContourData, TypedArray, TypedArrayStr, WebGLAnyRenderingContext, WindProfile, isContourable, isStormRelativeWindProfile } from "./AutumnTypes";
 import { FieldContourOpts } from "./ContourCreator.worker";
 import { Grid } from "./grids/Grid";
 import { Cache, getArrayConstructor, zip } from "./utils";
@@ -8,7 +8,9 @@ import { WGLTexture, WGLTextureSpec } from "autumn-wgl";
 import { getContourWorkerPool, getGLFormatTypeAlignment } from "./PlotComponent";
 import { AutoZoomGrid } from "./grids/AutoZoom";
 
-type TextureDataType<ArrayType> = ArrayType extends Float32Array ? Float32Array : (ArrayType extends Uint8Array ? Uint8Array : Uint16Array);
+type TextureDataType<ArrayType> = ArrayType extends Float32Array ? Float32Array : 
+                                 (ArrayType extends Uint8Array ? Uint8Array : 
+                                 (ArrayType extends Uint32Array ? Uint32Array : Uint16Array));
 
 function getArrayDType(ary: TypedArray) : TypedArrayStr {
     if (ary instanceof Float32Array) {
@@ -16,6 +18,12 @@ function getArrayDType(ary: TypedArray) : TypedArrayStr {
     }
     else if (ary instanceof Uint8Array) {
         return 'uint8';
+    }
+    else if (ary instanceof Uint16Array) {
+        return 'uint16';
+    }
+    else if (ary instanceof Uint32Array) {
+        return 'uint32';
     }
     return 'float16';
 }
@@ -29,6 +37,7 @@ abstract class ExpressionScalarField<ArrayType extends TypedArray, GridType exte
 
     abstract get grid() : GridType;
     abstract get aryConstructor() : new(...args: any[]) => ArrayType;
+    abstract get dtypes() : TypedArrayStr[];
 
     private operand(other: ExpressionScalarField<ArrayType, GridType> | number, operand: '+' | '-' | '*' | '/'): ComputedScalarField<ArrayType, GridType> {
         const FUNCS = {
@@ -90,8 +99,14 @@ class RawScalarField<ArrayType extends TypedArray, GridType extends Grid> extend
         }
 
         this.contour_cache = new Cache(async (opts: FieldContourOpts) => {
+            if (getArrayDType(this.data) != 'float16' && getArrayDType(this.data) != 'float32') 
+                throw `Grid is of type ${getArrayDType(this.data)}, which is not contourable (should be either float16 or float32)`;
+
+            const tex_data = this.getTextureData();
+            if (!isContourable(tex_data)) throw `Type check for contourable array failed`;
+
             const pool = getContourWorkerPool(undefined, 1); // 1 worker is the default; if the user requests more, the pool will be pre-created with the correct number of workers
-            const contour_data = await pool.contourCreator(this.getTextureData(), grid.getGridCoords(), opts);
+            const contour_data = await pool.contourCreator(tex_data, grid.getGridCoords(), opts);
 
             for (const v in contour_data) {
                 for (let ic = 0; ic < contour_data[v].length; ic++) {
@@ -110,12 +125,16 @@ class RawScalarField<ArrayType extends TypedArray, GridType extends Grid> extend
         return getArrayConstructor(this.data);
     }
 
+    get dtypes() {
+        return [getArrayDType(this.data)];
+    }
+
     /** @internal */
     private getTextureData() : TextureDataType<ArrayType> {
         // Need to give float16 data as uint16s to make WebGL happy: https://github.com/petamoriken/float16/issues/105
         const raw_data = this.data;
         const raw_data_type = getArrayDType(raw_data);
-        const data: any = (raw_data_type == 'float32' || raw_data_type == 'uint8') ? raw_data : new Uint16Array(raw_data.buffer);
+        const data: any = (raw_data_type == 'float32' || raw_data_type == 'uint8' || raw_data_type == 'uint32' || raw_data_type == 'uint16') ? raw_data : new Uint16Array(raw_data.buffer);
         return data as TextureDataType<ArrayType>;
     }
 
@@ -125,7 +144,7 @@ class RawScalarField<ArrayType extends TypedArray, GridType extends Grid> extend
     
         return new Map([['_0', {'format': format, 'type': type,
             'width': this.grid.ni, 'height': this.grid.nj, 'image': tex_data,
-            'mag_filter': image_mag_filter, 'row_alignment': row_alignment,
+            'mag_filter': image_mag_filter, 'min_filter': image_mag_filter, 'row_alignment': row_alignment,
         }]]);
     }
 
@@ -236,6 +255,10 @@ class ComputedScalarField<ArrayType extends TypedArray, GridType extends Grid> e
 
     get aryConstructor() {
         return this.raw_fields[0].aryConstructor;
+    }
+
+    get dtypes(): TypedArrayStr[] {
+        return this.raw_fields.map(f => f.dtypes).flat();
     }
 
     public updateTexImageData(gl: WebGLAnyRenderingContext, image_mag_filter: number, fill_textures: Map<string, WGLTexture> | null) {

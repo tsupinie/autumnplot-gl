@@ -73,6 +73,16 @@ function getGLFormatTypeAlignment(gl: WebGLAnyRenderingContext, array_dtype: Typ
         type = gl.FLOAT;
         row_alignment = 4;
     }
+    else if (array_dtype == 'uint16') {
+        format = is_webgl2 ? gl.R16UI : gl.LUMINANCE;
+        type = gl.UNSIGNED_SHORT;
+        row_alignment = 2;
+    }
+    else if (array_dtype == 'uint32') {
+        format = is_webgl2 ? gl.R32UI : gl.LUMINANCE;
+        type = gl.UNSIGNED_INT;
+        row_alignment = 4;
+    }
     else {
         format = is_webgl2 ? gl.R8 : gl.LUMINANCE;
         type = gl.UNSIGNED_BYTE;

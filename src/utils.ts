@@ -1,4 +1,4 @@
-import { TypedArray } from "./AutumnTypes";
+import { TypedArray, TypedArrayStr } from "./AutumnTypes";
 
 function getMinZoom(jlat: number, ilon: number, thin_fac_base: number) {
     const zoom_base = 1;
@@ -102,17 +102,21 @@ function mergeShaderCode(snippet: string, main: string) {
     return snippet + "\n" + main;
 }
 
-function applySamplerCodeScalar(src: string, sampler_names: string[], sampler_expression: string) {
+function applySamplerCodeScalar(src: string, sampler_names: string[], sampler_expression: string, dtypes: TypedArrayStr[]) {
     // TAS: find a better place for this to live.
-    const samplers = sampler_names.map(v => `uniform sampler2D ${v};`).join("\n");
-    const sampler_get = sampler_names.map(v => `    highp float ${v}_val = texture(${v}, tex_coord).r;`).join("\n");
+    const sampler_dtypes = dtypes.map(dt => dt.includes('uint') ? 'highp usampler2D' : 'sampler2D');
+    const shader_dtypes = dtypes.map(dt => dt.includes('uint') ? 'uint' : 'highp float');
+
+    const samplers = sampler_names.map((v, i) => `uniform ${sampler_dtypes[i]} ${v};`).join("\n");
+    const sampler_get = sampler_names.map((v, i) => `    ${shader_dtypes[i]} ${v}_val = texture(${v}, tex_coord).r;`).join("\n");
 
     sampler_names.forEach(v => sampler_expression = sampler_expression.replaceAll(v, `${v}_val`));
 
+    // TAS: This assumes that the return type of the expression is the same as the type of the inputs. May need to revisit this later.
     const sampler_code = `
 ${samplers}
 
-highp float get_field_value(lowp vec2 tex_coord) {
+${shader_dtypes[0]} get_field_value(lowp vec2 tex_coord) {
 ${sampler_get}
     return ${sampler_expression};
 }`;

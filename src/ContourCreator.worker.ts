@@ -2,7 +2,7 @@
 import * as Comlink from 'comlink';
 
 import { GridCoords } from './grids/Grid';
-import { ContourData } from "./AutumnTypes";
+import { ContourData, ContourableTypedArray } from "./AutumnTypes";
 import { initMSModule } from "./WasmInterface";
 import { MarchingSquaresModule } from './cpp/marchingsquares';
 
@@ -30,7 +30,7 @@ interface FieldContourOpts {
     quad_as_tri?: boolean;
 }
 
-async function contourCreator(data: Float32Array | Uint16Array | Uint8Array, grid_coords: GridCoords, opts: FieldContourOpts) {
+async function contourCreator(data: ContourableTypedArray, grid_coords: GridCoords, opts: FieldContourOpts) {
     if (opts.interval === undefined && opts.levels === undefined) {
         throw "Must supply either an interval or levels to contourCreator()"
     }

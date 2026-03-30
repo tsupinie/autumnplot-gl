@@ -83,8 +83,13 @@ function isWebGL2Ctx(gl: WebGLAnyRenderingContext) : gl is WebGL2RenderingContex
 }
 
 /** Javascript typed arrays for use in raw fields */
-type TypedArray = Float16Array | Float32Array | Uint8Array;
-type TypedArrayStr = 'float16' | 'float32' | 'uint8'
+type TypedArray = Float16Array | Float32Array | Uint8Array | Uint16Array | Uint32Array;
+type TypedArrayStr = 'float16' | 'float32' | 'uint8' | 'uint16' | 'uint32';
+type ContourableTypedArray = Float16Array | Float32Array;
+
+function isContourable(ary: any) : ary is ContourableTypedArray {
+    return ary instanceof Uint16Array || ary instanceof Float32Array;
+}
 
 /** 
  * The result of contouring a field
@@ -172,6 +177,6 @@ function getRendererData(arg: RenderMethodArg) : RendererData{
     return {type: 'autumn', mainMatrix: [...arg], shaderData: null};
 }
 
-export {isWebGL2Ctx, getRendererData, isStormRelativeWindProfile};
+export {isWebGL2Ctx, isContourable, getRendererData, isStormRelativeWindProfile};
 export type {WindProfile, StormRelativeWindProfile, GroundRelativeWindProfile, BillboardSpec, Polyline, LineData, WebGLAnyRenderingContext, 
-             TypedArray, TypedArrayStr, ContourData, RenderMethodArg, RendererData, RenderShaderData};
+             TypedArray, TypedArrayStr, ContourableTypedArray, ContourData, RenderMethodArg, RendererData, RenderShaderData};
