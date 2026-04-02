@@ -8,7 +8,7 @@ type ColorbarOrientation = 'horizontal' | 'vertical';
 /** Which side of a color bar the ticks are on */
 type ColorbarTickDirection = 'top' | 'bottom' | 'left' | 'right';
 
-/** Options for {@link ColorBar}s */
+/** Options for {@link makeColorBar} */
 interface ColorBarOptions {
     /** The label to place along the color bar */
     label?: string;

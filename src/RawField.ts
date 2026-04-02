@@ -505,8 +505,8 @@ class RawVectorField<ArrayType extends TypedArray, GridType extends AutoZoomGrid
     /**
      * Create a vector field.
      * @param grid - The grid on which the vector components are defined
-     * @param u    - The u (east/west) component of the vectors, which should be given as a 1D array in row-major order, with the first element being at the lower-left corner of the grid
-     * @param v    - The v (north/south) component of the vectors, which should be given as a 1D array in row-major order, with the first element being at the lower-left corner of the grid
+     * @param u_ary - The u (east/west) component of the vectors, which should be given as a 1D array in row-major order, with the first element being at the lower-left corner of the grid
+     * @param v_ary - The v (north/south) component of the vectors, which should be given as a 1D array in row-major order, with the first element being at the lower-left corner of the grid
      * @param opts - Options for creating the vector field.
      */
     constructor(grid: GridType, u_ary: ArrayType, v_ary: ArrayType, opts?: RawVectorFieldOptions) {

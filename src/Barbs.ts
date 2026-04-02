@@ -7,7 +7,6 @@ import { MapLikeType } from "./Map";
 import { BillboardSpec, RenderMethodArg, TypedArray, WebGLAnyRenderingContext } from "./AutumnTypes";
 import { Color } from "./Color";
 import { ColorMap } from "./Colormap";
-import { Grid } from "./grids/Grid";
 import { AutoZoomGrid } from "./grids/AutoZoom";
 
 const BASE_BARB_DIMS: BillboardSpec = {

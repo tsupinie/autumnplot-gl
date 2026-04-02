@@ -93,6 +93,9 @@ function autoZoomGridMixin<G extends AbstractConstructor<Grid>>(base: G) : Abstr
     return AutoZoomGrid;
 }
 
+/**
+ * Grids of this type can be used with wind barbs, observations, and anything that needs automatic thinning.
+ */
 type AutoZoomGrid<T extends Grid = Grid> = InstanceType<ReturnType<typeof autoZoomGridMixin<AbstractConstructor<T>>>>;
 
 export {autoZoomGridMixin};
