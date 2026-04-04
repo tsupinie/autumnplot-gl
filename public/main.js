@@ -69,7 +69,7 @@ function makeSynthetic500mbLayers() {
     const filled = new apgl.ContourFill(raw_ws_field, {'cmap': colormap, 'opacity': 0.8});
     const barbs = new apgl.Barbs(raw_wind_field, {color: '#000000', thin_fac: 16});
 
-    const labels = new apgl.ContourLabels(cntr, {text_color: '#ffffff', halo: true, font_url_template: 'font/{fontstack}/{range}.pbf'});
+    const labels = new apgl.ContourLabels(cntr, {text_color: '#ffffff', halo: true, font_url_template: 'https://autumnsky.us/glyphs/{fontstack}/{range}.pbf'});
 
     const hght_layer = new apgl.PlotLayer('height', cntr);
     const ws_layer = new apgl.PlotLayer('wind-speed', filled);
@@ -137,8 +137,8 @@ async function makeHREFLayers() {
     const nh_prob_layer = new apgl.PlotLayer('nh_probs', nh_prob_contour);
 
     const labels = new apgl.ContourLabels(nh_prob_contour, {text_color: '#ffffff', halo: true, 
-                                                           label_formatter: val => Math.round(val * 100).toString(),
-                                                            font_url_template: 'font/{fontstack}/{range}.pbf'});
+                                                            label_formatter: val => Math.round(val * 100).toString(),
+                                                            font_url_template: 'https://autumnsky.us/glyphs/{fontstack}/{range}.pbf'});
     const label_layer = new apgl.PlotLayer('nh_prob_labels', labels);
 
 
@@ -199,7 +199,7 @@ async function makeGFSLayers() {
 
     const t2m_contour = new apgl.Contour(t2m_field, {levels: [32], line_width: 4});
     const t2m_contourlayer = new apgl.PlotLayer('t2m_contour', t2m_contour);
-    const labels = new apgl.ContourLabels(t2m_contour, {text_color: '#ffffff', halo: true, font_url_template: 'font/{fontstack}/{range}.pbf'});
+    const labels = new apgl.ContourLabels(t2m_contour, {text_color: '#ffffff', halo: true, font_url_template: 'https://autumnsky.us/glyphs/{fontstack}/{range}.pbf'});
     const label_layer = new apgl.PlotLayer('label', labels);
 
     const svg = apgl.makeColorBar(colormap, {label: "Temperature", fontface: 'Trebuchet MS', 
