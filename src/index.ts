@@ -23,7 +23,6 @@ import { RadarSweepGrid } from "./grids/RadarSweepGrid";
 import { GeostationaryImage } from "./grids/Geostationary";
 import { UnstructuredGrid } from "./grids/UnstructuredGrid";
 import { FieldContourOpts } from './ContourCreator.worker';
-import { GeometryComponent, GeometryFeature, GeometryComponentOptions, GeometryStyle, createWatchBox, createWarningBox, createTrack, createSpaghettiPlot } from "./Geometry";
 
 /** All built-in colormaps */
 const colormaps = {
@@ -71,5 +70,4 @@ export {PlotComponent,
         RawScalarField, ExpressionScalarField, RawVectorField, ExpressionVectorField, RawProfileField, RawObsField, ObsRawData,
         Grid, GridType, StructuredGrid, VectorRelativeTo, RawVectorFieldOptions, PlateCarreeGrid, PlateCarreeRotatedGrid, LambertGrid, UnstructuredGrid, RadarSweepGrid, GeostationaryImage,
         WebGLAnyRenderingContext, TypedArray, ContourData,
-        initAutumnPlot, InitAutumnPlotOpts, FieldContourOpts,
-        GeometryComponent, GeometryFeature, GeometryComponentOptions, GeometryStyle, createWatchBox, createWarningBox, createTrack, createSpaghettiPlot};
+        initAutumnPlot, InitAutumnPlotOpts, FieldContourOpts};
