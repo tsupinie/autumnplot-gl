@@ -248,45 +248,6 @@ async function makeObsLayers() {
                             'tsrasn', 'tsra',  'tspl',  'tsgr', '+tsfzrapl', '+tsra', '+tssn', 'tssa', '+tsgr', 
                             '-up', '+up', '-fzup', '+fzup']
 
-    //const resp = await fetch('data/okmeso.json');
-    const resp = await fetch('data/surface_20240823_1500.json');
-    const obs = await resp.json();
-
-    obs.forEach((ob, iob) => {
-        ob.data.skyc = skyc_choices[iob % skyc_choices.length];
-        ob.data.preswx = preswx_choices[iob % preswx_choices.length];
-    });
-
-    const obs_grid = new apgl.UnstructuredGrid(obs.map(o => o.coord));
-    const obs_field = new apgl.RawObsField(obs_grid, obs.map(o => o.data));
-
-    // Should missing be NaN or null? Also, the function formatter isn't transferrable to JSON. Is that easy enough to fix?
-    const station_plot_locs = {
-        //id: {type: 'string', pos: 'lr'},
-        tmpf: {type: 'number', pos: 'ul', color: '#cc0000', formatter: val => val === null ? '' : val.toFixed(0)},
-        dwpf: {type: 'number', pos: 'll', color: '#00aa00', formatter: val => val === null ? '' : val.toFixed(0)}, 
-        wind: {type: 'barb', pos: 'c'},
-        preswx: {type: 'symbol', pos: 'cl', color: '#ff00ff'},
-        skyc: {type: 'symbol', pos: 'c'},
-    };
-    const station_plot = new apgl.StationPlot(obs_field, {config: station_plot_locs, thin_fac: 8, font_size: 14});
-    const station_plot_layer = new apgl.PlotLayer('station-plots', station_plot);
-
-    return {layers: [station_plot_layer]};
-}
-
-async function makeObsColorLayers() {
-    const skyc_choices = ['0/8', '1/8', '2/8', '3/8', '4/8', '5/8', '6/8', '7/8', '8/8', 'obsc', null];
-    const preswx_choices = ['fu', 'hz', 'du', 'bldu', 'po', 'vcds',
-                            'br', 'bc', 'mifg', 'vcts', 'virga', 'vcsh', 'ts', 
-                            'sq', 'fc', 'ds', '+ds', 'drsn', '+drsn', '-blsn', '+blsn',
-                            'vcfg', 'bcfg', 'prfg', 'fg', 'fzfg', 
-                            '-vctsdz', '-dz', '-dzbr', 'vctsdz', 'dz', '+vctsdz', '+dz', '-fzdz', 'fzdz', '-dzra', '+dzra', 
-                            '-ra', 'ra', '+ra', '-fzra',  'fzra',  '-rasn', 'rasn', '-sn', 'sn', '+sn', 'ic',  'pl',
-                            '-sh', 'sh', '-shsnra', '+shrabr', '-shsn', 'shsn', '-gs', '-sngs', '-gr', 'gr', 
-                            'tsrasn', 'tsra',  'tspl',  'tsgr', '+tsfzrapl', '+tsra', '+tssn', 'tssa', '+tsgr', 
-                            '-up', '+up', '-fzup', '+fzup']
-
     const resp = await fetch('data/surface_20240823_1500.json');
     const obs = await resp.json();
 
@@ -314,11 +275,11 @@ async function makeObsColorLayers() {
     }
 
     const station_plot_locs = {
-        tmpf: {type: 'number', pos: 'ul', halo: false, cmap: apgl.colormaps.pw_t2m, formatter: val => val === null ? '' : val.toFixed(0)},
-        dwpf: {type: 'number', pos: 'll', halo: false, cmap: apgl.colormaps.pw_td2m, formatter: val => val === null ? '' : val.toFixed(0)}, 
-        wind: {type: 'barb', pos: 'c', halo: false, color: '#e6e1e1'},
-        preswx: {type: 'symbol', pos: 'cl', color: symbolColor, halo: false},
-        // skyc: {type: 'symbol', pos: 'c', halo: false},
+        tmpf: {type: 'number', pos: 'ul', cmap: apgl.colormaps.pw_t2m, formatter: val => val === null ? '' : val.toFixed(0)},
+        dwpf: {type: 'number', pos: 'll', color: '#00aa00', formatter: val => val === null ? '' : val.toFixed(0)}, 
+        wind: {type: 'barb', pos: 'c'},
+        preswx: {type: 'symbol', pos: 'cl', color: symbolColor},
+        skyc: {type: 'symbol', pos: 'c'},
     };
 
     const station_plot = new apgl.StationPlot(obs_field, {config: station_plot_locs, thin_fac: 8, font_size: 14});
@@ -327,11 +288,8 @@ async function makeObsColorLayers() {
     const temp_cbar = apgl.makeColorBar(apgl.colormaps.pw_t2m, {label: "Temperature (F)", fontface: 'Trebuchet MS',
                                                                ticks: [-60, -40, -20, 0, 20, 40, 60, 80, 100, 120],
                                                                orientation: 'horizontal', tick_direction: 'bottom'});
-    const dew_cbar = apgl.makeColorBar(apgl.colormaps.pw_td2m, {label: "Dewpoint (F)", fontface: 'Trebuchet MS',
-                                                               ticks: [-60, -40, -20, 0, 20, 40, 60, 80],
-                                                               orientation: 'horizontal', tick_direction: 'bottom'});
 
-    return {layers: [station_plot_layer], colorbar: [temp_cbar, dew_cbar]};
+    return {layers: [station_plot_layer], colorbar: [temp_cbar]};
 }
 
 async function makeMRMSLayer() {
@@ -445,11 +403,6 @@ const views = {
     'obs': {
         name: "Observations",
         makeLayers: makeObsLayers,
-        maxZoom: 8.5,
-    },
-    'obs-colored': {
-        name: "Obs Colored",
-        makeLayers: makeObsColorLayers,
         maxZoom: 8.5,
     },
     'mrms': {
