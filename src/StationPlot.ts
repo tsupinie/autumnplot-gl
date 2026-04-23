@@ -51,13 +51,6 @@ interface SPNumberConfig {
     cmap?: ColorMap | null;
 
     /**
-     * Control how values map to the colormap. Discrete uses the colormap bins
-     * (faster, fewer text collections). Continuous interpolates between colors.
-     * @default 'discrete'
-     */
-    cmap_mode?: 'discrete' | 'continuous';
-
-    /**
      * Whether to draw a halo (outline) around the number
      * @default true;
      */
@@ -197,30 +190,9 @@ interface SPSymbolConfig {
      * The color to use to draw the symbol
      * @default '#000000'
      */
-    color?: string;
+    color?: string | ((symbol: SPSymbol | null, category: SPSymbolCategory) => string);
 
     /**
-     * Direct per-symbol color overrides (keyed by symbol code)
-     */
-    symbol_colors?: Record<string, string | Color>;
-
-    /**
-     * Category colors for symbols. Categories are determined by symbol_category_fn
-     * (or a built-in heuristic if the function is omitted).
-     */
-    symbol_category_colors?: Record<string, string | Color>;
-
-    /**
-     * Optional function to map a symbol code to a category name
-     */
-    symbol_category_fn?: (symbol: SPSymbol) => string | null;
-
-    /**
-     * Optional function to pick a symbol color directly
-     */
-    symbol_color_fn?: (symbol: SPSymbol | null) => string | Color | null;
-
-        /**
      * Whether to draw a halo (outline) around the string
      * @default true;
      */
@@ -313,71 +285,9 @@ function positionToAlignmentAndOffset(pos: SPPosition, off_size?: number) {
     return {horizontal_align: ha, vertical_align: va, offset_x: xoff, offset_y: yoff};
 }
 
-const EPSILON = 1e-10;
+type SPSymbolCategory = 'freezing_rain' | 'sleet' | 'snow' | 'rain' | 'blowing_dust' | 'thunder' | 'fog' | 'none';
 
-function lerpNumber(a: number, b: number, t: number) {
-    return a + (b - a) * t;
-}
-
-function lerpColor(a: Color, b: Color, t: number) {
-    const a_rgba = a.toRGBATuple();
-    const b_rgba = b.toRGBATuple();
-    return new Color([
-        lerpNumber(a_rgba[0], b_rgba[0], t),
-        lerpNumber(a_rgba[1], b_rgba[1], t),
-        lerpNumber(a_rgba[2], b_rgba[2], t),
-        lerpNumber(a_rgba[3], b_rgba[3], t),
-    ]);
-}
-
-function colorFromCmap(cmap: ColorMap, value: number, mode: 'discrete' | 'continuous') {
-    const levels = cmap.levels;
-    const n_bins = levels.length - 1;
-
-    if (n_bins <= 0) return new Color([0, 0, 0, 1]);
-
-    if (value <= levels[0]) {
-        return cmap.underflow_color === null ? cmap.colors[0] : cmap.underflow_color;
-    }
-
-    if (value >= levels[n_bins]) {
-        return cmap.overflow_color === null ? cmap.colors[n_bins - 1] : cmap.overflow_color;
-    }
-
-    const level_min = levels[0];
-    const level_max = levels[n_bins];
-    const value_norm = (value - level_min) / (level_max - level_min);
-
-    let band = 0;
-    for (; band < n_bins; band++) {
-        const lev0 = (levels[band] - level_min) / (level_max - level_min);
-        const lev1 = (levels[band + 1] - level_min) / (level_max - level_min);
-        if (lev0 <= value_norm && value_norm <= lev1) break;
-    }
-
-    if (band >= n_bins) return cmap.colors[n_bins - 1];
-
-    if (mode == 'discrete') {
-        return cmap.colors[band];
-    }
-
-    const lev0 = (levels[band] - level_min) / (level_max - level_min);
-    const lev1 = (levels[band + 1] - level_min) / (level_max - level_min);
-    const alpha = (value_norm - lev0) / Math.max(lev1 - lev0, EPSILON);
-
-    const idx0 = band / n_bins;
-    const idx1 = (band + 1) / n_bins;
-    const idx_norm = idx0 * (1 - alpha) + idx1 * alpha;
-
-    const color_index = idx_norm * Math.max(cmap.colors.length - 1, 0);
-    const i0 = Math.floor(color_index);
-    const i1 = Math.min(i0 + 1, cmap.colors.length - 1);
-    const frac = color_index - i0;
-
-    return lerpColor(cmap.colors[i0], cmap.colors[i1], frac);
-}
-
-function defaultSymbolCategory(symbol: SPSymbol) {
+function symbolCategory(symbol: SPSymbol) : SPSymbolCategory {
     const sym = symbol.toLowerCase();
 
     if (sym.includes('fzra') || (sym.includes('fz') && sym.includes('ra'))) return 'freezing_rain';
@@ -388,10 +298,8 @@ function defaultSymbolCategory(symbol: SPSymbol) {
     if (sym.includes('ts') || sym.includes('thdr')) return 'thunder';
     if (sym.includes('fg')) return 'fog';
 
-    return null;
+    return 'none';
 }
-
-type ColoredTextSpec = TextSpec & {color: Color};
 
 /** 
  * Station model plots for observed data
@@ -412,7 +320,7 @@ class StationPlot<GridType extends AutoZoomGrid, MapType extends MapLikeType, Ob
     private field: RawObsField<GridType, ObsFieldName>;
     public readonly opts: Required<StationPlotOptions<ObsFieldName>>;
     private gl_elems: StationPlotGLElems<GridType, MapType> | null;
-    private text_components: (TextCollection[] | null)[] | null;
+    private text_components: TextCollection[] | null;
 
     /**
      * Create station plots
@@ -454,61 +362,36 @@ class StationPlot<GridType extends AutoZoomGrid, MapType extends MapLikeType, Ob
 
         let ibarb = 0;
 
-        const makeTextCollections = async (specs: ColoredTextSpec[], tc_opts_base: TextCollectionOptions, font_url: string) => {
-            const buckets = new Map<string, {color: Color, specs: TextSpec[]}>();
+        let sub_component_promises: Promise<TextCollection>[] = [];
 
-            specs.forEach(spec => {
-                if (spec.text === '') return;
-
-                const key = spec.color.toRGBAHex();
-                if (!buckets.has(key)) {
-                    buckets.set(key, {color: spec.color, specs: []});
-                }
-
-                buckets.get(key)!.specs.push({text: spec.text, lat: spec.lat, lon: spec.lon, min_zoom: spec.min_zoom});
-            });
-
-            const promises = [...buckets.values()].map(bucket => {
-                const tc_opts: TextCollectionOptions = {
-                    ...tc_opts_base,
-                    text_color: bucket.color,
-                };
-
-                return TextCollection.make(gl, bucket.specs, font_url, tc_opts);
-            });
-
-            return await Promise.all(promises);
-        };
-
-        const sub_component_promises = Object.entries<SPConfig>(this.opts.config).map(async ([k_, config]) => {
+        Object.entries<SPConfig>(this.opts.config).forEach(async ([k_, config]) => {
             const k = k_ as ObsFieldName;
 
             if (config.type == 'number' || config.type == 'string') {
                 const pos = config.pos;
-                const base_color = config.color === undefined ? Color.fromHex('#000000') : Color.normalizeColor(config.color);
+                const color = config.color === undefined ? Color.fromHex('#000000') : Color.normalizeColor(config.color);
                 const halo_color = config.halo_color === undefined ? Color.fromHex('#ffffff') : Color.normalizeColor(config.halo_color);
                 const halo = config.halo === undefined ? true : config.halo;
+                let cmap: ColorMap | null = null;
 
-                let text_specs: ColoredTextSpec[];
+                let text_specs: TextSpec[];
                 if (config.type == 'number') {
+                    cmap = config.cmap === undefined ? null : config.cmap;
                     const comp = this.field.getScalar(k);
                     const formatter = config.formatter === undefined ? (val: number | null) => val === null ? 'null' : val.toString() : config.formatter;
-                    const cmap = config.cmap === undefined ? null : config.cmap;
-                    const cmap_mode = config.cmap_mode === undefined ? 'discrete' : config.cmap_mode;
 
                     text_specs = comp.map((v, i) => {
-                        let color = base_color;
-                        if (cmap !== null && v !== null && !isNaN(v)) {
-                            color = colorFromCmap(cmap, v, cmap_mode);
-                        }
-
-                        return {
+                        const spec: TextSpec = {
                             text: formatter(v),
                             lat: coords.lats[i],
                             lon: coords.lons[i],
                             min_zoom: zoom[i],
-                            color: color,
                         };
+
+                        if (v !== null) 
+                            spec.data_value = v;
+
+                        return spec;
                     });
                 }
                 else {
@@ -518,85 +401,68 @@ class StationPlot<GridType extends AutoZoomGrid, MapType extends MapLikeType, Ob
                         lat: coords.lats[i],
                         lon: coords.lons[i],
                         min_zoom: zoom[i],
-                        color: base_color,
                     }));
                 }
 
-                const tc_opts_base: TextCollectionOptions = {
+                const tc_opts: TextCollectionOptions = {
                     ...positionToAlignmentAndOffset(pos),
-                    font_size: this.opts.font_size,
-                    halo: halo,
-                    halo_color: halo_color,
+                    font_size: this.opts.font_size, halo: halo, 
+                    text_color: color, halo_color: halo_color,
+                    cmap: cmap
                 };
 
-                return await makeTextCollections(text_specs, tc_opts_base, font_url);
+                sub_component_promises.push(TextCollection.make(gl, text_specs, font_url, tc_opts));
             }
             else if (config.type == 'barb') {
                 const comp = this.field.getVector(k);
                 const barb_comp = barb_components[ibarb++];
                 barb_comp.updateField(comp);
-                return null;
             }
             else if (config.type == 'symbol') {
                 const pos = config.pos;
-                const base_color = config.color === undefined ? Color.fromHex('#000000') : Color.normalizeColor(config.color);
+                const color = config.color === undefined ? '#000000' : config.color;
                 const halo_color = config.halo_color === undefined ? Color.fromHex('#ffffff') : Color.normalizeColor(config.halo_color);
                 const halo = config.halo === undefined ? true : config.halo;
-                const symbol_color_fn = config.symbol_color_fn;
-                const symbol_colors = config.symbol_colors;
-                const category_colors = config.symbol_category_colors;
-                const category_fn = config.symbol_category_fn === undefined ? defaultSymbolCategory : config.symbol_category_fn;
 
                 const comp = this.field.getStrings(k) as (SPSymbol | null)[];
-
                 const wxsym_font_url = font_url_template.replace('{fontstack}', 'wx_symbols');
-                const text_specs: ColoredTextSpec[] = comp.map((v, i) => {
-                    let color = base_color;
+                
+                type TextSpecDataColor = {specs: TextSpec[], color: string};
+                const text_spec_data: TextSpecDataColor[] = [];
 
-                    if (v !== null) {
-                        let override_color: string | Color | null = null;
+                comp.forEach((v, i) => {
+                    const v_cat: SPSymbolCategory = v === null ? 'none' : symbolCategory(v);
+                    const text_color = typeof color === 'string' ? color : color(v, v_cat);
+                    const text_spec_data_filtered = text_spec_data.filter(tsd => tsd.color == text_color)
 
-                        if (symbol_color_fn !== undefined) {
-                            override_color = symbol_color_fn(v);
-                        }
-
-                        if (override_color === null && symbol_colors !== undefined) {
-                            if (Object.prototype.hasOwnProperty.call(symbol_colors, v)) {
-                                override_color = symbol_colors[v];
-                            }
-                        }
-
-                        if (override_color === null && category_colors !== undefined) {
-                            const category = category_fn(v);
-                            if (category !== null && Object.prototype.hasOwnProperty.call(category_colors, category)) {
-                                override_color = category_colors[category];
-                            }
-                        }
-
-                        if (override_color !== null) {
-                            color = Color.normalizeColor(override_color);
-                        }
+                    let text_spec_color : TextSpecDataColor;
+                    if (text_spec_data_filtered.length == 0) {
+                        text_spec_color = {specs: [], color: text_color};
+                        text_spec_data.push(text_spec_color);
+                    }
+                    else {
+                        text_spec_color = text_spec_data_filtered[0];
                     }
 
-                    return {
+                    text_spec_color.specs.push({
                         text: v === null ? '' : String.fromCharCode(SYMBOLS[v]),
                         lat: coords.lats[i],
                         lon: coords.lons[i],
                         min_zoom: zoom[i],
-                        color: color,
-                    };
+                    });
                 });
-                
-                const tc_opts_base: TextCollectionOptions = {
-                    ...positionToAlignmentAndOffset(pos),
-                    font_size: this.opts.font_size,
-                    halo: halo,
-                    halo_color: halo_color,
-                };
 
-                if (tc_opts_base.offset_x !== undefined) tc_opts_base.offset_x -= 3;
+                text_spec_data.forEach(tsd => {
+                    const tc_opts: TextCollectionOptions = {
+                        ...positionToAlignmentAndOffset(pos),
+                        font_size: this.opts.font_size, halo: halo, 
+                        text_color: Color.normalizeColor(tsd.color), halo_color: halo_color,
+                    };
 
-                return await makeTextCollections(text_specs, tc_opts_base, wxsym_font_url);
+                    if (tc_opts.offset_x !== undefined) tc_opts.offset_x -= 3;
+
+                    sub_component_promises.push(TextCollection.make(gl, tsd.specs, wxsym_font_url, tc_opts));
+                });
             }
             else {
                 throw `Unknown station plot configuration type ${(config as any).type}`;
@@ -645,16 +511,13 @@ class StationPlot<GridType extends AutoZoomGrid, MapType extends MapLikeType, Ob
         const map_height = gl_elems.map.getCanvas().height;
         const map_zoom = gl_elems.map.getZoom();
 
-        let ibarb = 0;
+        let itext = 0, ibarb = 0;
         Object.values<SPConfig>(this.opts.config).forEach((comp, idx) => {
             if (comp.type == 'barb') {
                 barb_components[ibarb++].render(gl, arg);
             }
             else {
-                const group = text_components[idx];
-                if (group !== null) {
-                    group.forEach(tc => tc.render(gl, arg, [map_width, map_height], map_zoom));
-                }
+                text_components[itext++].render(gl, arg, [map_width, map_height], map_zoom);
             }
         });
     }

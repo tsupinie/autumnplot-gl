@@ -305,14 +305,19 @@ async function makeObsColorLayers() {
         snow: '#3182bd',
         blowing_dust: '#a6611a',
         thunder: '#ff7f00',
-        fog: '#bdbdbd'
+        fog: '#bdbdbd',
+        none: '#000000'
     };
+
+    function symbolColor(sym, cat) {
+        return wx_category_colors[cat];
+    }
 
     const station_plot_locs = {
         tmpf: {type: 'number', pos: 'ul', halo: false, cmap: apgl.colormaps.pw_t2m, formatter: val => val === null ? '' : val.toFixed(0)},
         dwpf: {type: 'number', pos: 'll', halo: false, cmap: apgl.colormaps.pw_td2m, formatter: val => val === null ? '' : val.toFixed(0)}, 
         wind: {type: 'barb', pos: 'c', halo: false, color: '#e6e1e1'},
-        preswx: {type: 'symbol', pos: 'cl', symbol_category_colors: wx_category_colors, halo: false},
+        preswx: {type: 'symbol', pos: 'cl', color: symbolColor, halo: false},
         // skyc: {type: 'symbol', pos: 'c', halo: false},
     };
 
