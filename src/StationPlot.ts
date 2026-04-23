@@ -320,7 +320,7 @@ class StationPlot<GridType extends AutoZoomGrid, MapType extends MapLikeType, Ob
     private field: RawObsField<GridType, ObsFieldName>;
     public readonly opts: Required<StationPlotOptions<ObsFieldName>>;
     private gl_elems: StationPlotGLElems<GridType, MapType> | null;
-    private text_components: TextCollection[] | null;
+    private text_components: TextCollection[][] | null;
 
     /**
      * Create station plots
@@ -362,7 +362,7 @@ class StationPlot<GridType extends AutoZoomGrid, MapType extends MapLikeType, Ob
 
         let ibarb = 0;
 
-        let sub_component_promises: Promise<TextCollection>[] = [];
+        let sub_component_promises: Promise<TextCollection>[][] = [];
 
         Object.entries<SPConfig>(this.opts.config).forEach(async ([k_, config]) => {
             const k = k_ as ObsFieldName;
@@ -411,7 +411,7 @@ class StationPlot<GridType extends AutoZoomGrid, MapType extends MapLikeType, Ob
                     cmap: cmap
                 };
 
-                sub_component_promises.push(TextCollection.make(gl, text_specs, font_url, tc_opts));
+                sub_component_promises.push([TextCollection.make(gl, text_specs, font_url, tc_opts)]);
             }
             else if (config.type == 'barb') {
                 const comp = this.field.getVector(k);
@@ -452,6 +452,8 @@ class StationPlot<GridType extends AutoZoomGrid, MapType extends MapLikeType, Ob
                     });
                 });
 
+                const promises: Promise<TextCollection>[] = []
+
                 text_spec_data.forEach(tsd => {
                     const tc_opts: TextCollectionOptions = {
                         ...positionToAlignmentAndOffset(pos),
@@ -461,15 +463,17 @@ class StationPlot<GridType extends AutoZoomGrid, MapType extends MapLikeType, Ob
 
                     if (tc_opts.offset_x !== undefined) tc_opts.offset_x -= 3;
 
-                    sub_component_promises.push(TextCollection.make(gl, tsd.specs, wxsym_font_url, tc_opts));
+                    promises.push(TextCollection.make(gl, tsd.specs, wxsym_font_url, tc_opts));
                 });
+
+                sub_component_promises.push(promises);
             }
             else {
                 throw `Unknown station plot configuration type ${(config as any).type}`;
             }
         });
 
-        this.text_components = await Promise.all(sub_component_promises);
+        this.text_components = await Promise.all(sub_component_promises.map(p => Promise.all(p)));
         map.triggerRepaint();
     }
 
@@ -517,7 +521,7 @@ class StationPlot<GridType extends AutoZoomGrid, MapType extends MapLikeType, Ob
                 barb_components[ibarb++].render(gl, arg);
             }
             else {
-                text_components[itext++].render(gl, arg, [map_width, map_height], map_zoom);
+                text_components[itext++].forEach(tc => tc.render(gl, arg, [map_width, map_height], map_zoom));
             }
         });
     }
