@@ -160,7 +160,7 @@ function makeColorBar(colormap: ColorMap, opts: ColorBarOptions) {
 
     const n_colors = colormap.colors.length;
 
-    const root = createElement('svg', {width: width, height: height});
+    const root = createElement('svg', {viewBox: `0 0 ${width} ${height}`});
     const gbar = createElement('g', {}, root);
 
     let gtickattrs;
@@ -336,7 +336,7 @@ function makePaintballKey(colors: (Color | string)[], labels: string[], opts?: P
     width = (swatch_width + swatch_text_pad + swatch_text_space) * n_cols + swatch_width_pad * (n_cols + 1);
     height = swatch_height * n_rows + swatch_height_pad * (n_rows + 1);
 
-    const root = createElement('svg', {width: width, height: height});
+    const root = createElement('svg', {viewBox: `0 0 ${width} ${height}`});
     const gbar = createElement('g', {}, root);
 
     colors.forEach((color, icolor) => {
