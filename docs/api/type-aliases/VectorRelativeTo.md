@@ -6,6 +6,6 @@ title: VectorRelativeTo
 
 > **VectorRelativeTo** = `"earth"` \| `"grid"`
 
-Defined in: [RawField.ts:104](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/RawField.ts#L104)
+Defined in: [RawField.ts:420](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/RawField.ts#L420)
 
 The basis vectors for vector fields (i.e, whether vectors a relative to Earth or the grid)

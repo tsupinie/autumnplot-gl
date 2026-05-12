@@ -4,13 +4,22 @@ title: UnstructuredGrid
 
 # Class: UnstructuredGrid
 
-Defined in: [Grid.ts:667](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/Grid.ts#L667)
+Defined in: [grids/UnstructuredGrid.ts:20](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/UnstructuredGrid.ts#L20)
 
-An unstructured grid defined by a list of latitudes and longitudes
+An unstructured grid defined by a list of latitudes and longitudes 
+
+## Plot Component Compatibility
+- :x:                `Fill`
+- :x:                `Raster`
+- :x:                `Contour`
+- :x:                `Paintball`
+- :white_check_mark: `Barbs`
+- :white_check_mark: `Hodographs`
+- :white_check_mark: `StationPlot`
 
 ## Extends
 
-- [`Grid`](Grid.md)
+- `AutoZoomGridIntf` & [`Grid`](Grid.md)\<`this`\>
 
 ## Constructors
 
@@ -18,7 +27,7 @@ An unstructured grid defined by a list of latitudes and longitudes
 
 > **new UnstructuredGrid**(`coords`, `zoom?`): `UnstructuredGrid`
 
-Defined in: [Grid.ts:676](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/Grid.ts#L676)
+Defined in: [grids/UnstructuredGrid.ts:29](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/UnstructuredGrid.ts#L29)
 
 Create an unstructured grid
 
@@ -35,17 +44,17 @@ Create an unstructured grid
 
 #### Overrides
 
-[`Grid`](Grid.md).[`constructor`](Grid.md#constructor)
+`autoZoomGridMixin(Grid).constructor`
 
 ## Properties
 
 | Property | Modifier | Type | Inherited from | Defined in |
 | ------ | ------ | ------ | ------ | ------ |
-| <a id="coords"></a> `coords` | `readonly` | `object`[] | - | [Grid.ts:668](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/Grid.ts#L668) |
-| <a id="is_conformal"></a> `is_conformal` | `readonly` | `boolean` | [`Grid`](Grid.md).[`is_conformal`](Grid.md#is_conformal) | [Grid.ts:104](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/Grid.ts#L104) |
-| <a id="ni"></a> `ni` | `readonly` | `number` | [`Grid`](Grid.md).[`ni`](Grid.md#ni) | [Grid.ts:102](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/Grid.ts#L102) |
-| <a id="nj"></a> `nj` | `readonly` | `number` | [`Grid`](Grid.md).[`nj`](Grid.md#nj) | [Grid.ts:103](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/Grid.ts#L103) |
-| <a id="type"></a> `type` | `readonly` | [`GridType`](../type-aliases/GridType.md) | [`Grid`](Grid.md).[`type`](Grid.md#type) | [Grid.ts:101](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/Grid.ts#L101) |
+| <a id="coords"></a> `coords` | `readonly` | `object`[] | - | [grids/UnstructuredGrid.ts:21](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/UnstructuredGrid.ts#L21) |
+| <a id="is_conformal"></a> `is_conformal` | `readonly` | `boolean` | `autoZoomGridMixin(Grid).is_conformal` | [grids/Grid.ts:23](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/Grid.ts#L23) |
+| <a id="ni"></a> `ni` | `readonly` | `number` | `autoZoomGridMixin(Grid).ni` | [grids/Grid.ts:21](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/Grid.ts#L21) |
+| <a id="nj"></a> `nj` | `readonly` | `number` | `autoZoomGridMixin(Grid).nj` | [grids/Grid.ts:22](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/Grid.ts#L22) |
+| <a id="type"></a> `type` | `readonly` | [`GridType`](../type-aliases/GridType.md) | `autoZoomGridMixin(Grid).type` | [grids/Grid.ts:20](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/Grid.ts#L20) |
 
 ## Methods
 
@@ -53,7 +62,7 @@ Create an unstructured grid
 
 > **getVectorRotationAtPoint**(`lon`, `lat`): `number`
 
-Defined in: [Grid.ts:138](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/Grid.ts#L138)
+Defined in: [grids/AutoZoom.ts:55](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/AutoZoom.ts#L55)
 
 #### Parameters
 
@@ -68,7 +77,7 @@ Defined in: [Grid.ts:138](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a6
 
 #### Inherited from
 
-[`Grid`](Grid.md).[`getVectorRotationAtPoint`](Grid.md#getvectorrotationatpoint)
+`autoZoomGridMixin(Grid).getVectorRotationAtPoint`
 
 ***
 
@@ -76,7 +85,7 @@ Defined in: [Grid.ts:138](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a6
 
 > **getVectorRotationTexture**(`gl`, `data_are_earth_relative`): `object`
 
-Defined in: [Grid.ts:144](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/Grid.ts#L144)
+Defined in: [grids/AutoZoom.ts:54](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/AutoZoom.ts#L54)
 
 #### Parameters
 
@@ -95,7 +104,7 @@ Defined in: [Grid.ts:144](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a6
 
 #### Inherited from
 
-[`Grid`](Grid.md).[`getVectorRotationTexture`](Grid.md#getvectorrotationtexture)
+`autoZoomGridMixin(Grid).getVectorRotationTexture`
 
 ***
 
@@ -103,7 +112,7 @@ Defined in: [Grid.ts:144](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a6
 
 > **getWGLBillboardBuffers**(`gl`, `thin_fac`, `max_zoom`): `Promise`\<\{ `texcoords`: `WGLBuffer`; `vertices`: `WGLBuffer`; \}\>
 
-Defined in: [Grid.ts:132](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/Grid.ts#L132)
+Defined in: [grids/AutoZoom.ts:53](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/AutoZoom.ts#L53)
 
 #### Parameters
 
@@ -119,7 +128,7 @@ Defined in: [Grid.ts:132](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a6
 
 #### Inherited from
 
-[`Grid`](Grid.md).[`getWGLBillboardBuffers`](Grid.md#getwglbillboardbuffers)
+`autoZoomGridMixin(Grid).getWGLBillboardBuffers`
 
 ***
 
@@ -127,7 +136,7 @@ Defined in: [Grid.ts:132](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a6
 
 > **sampleNearestGridPoint**(`lon`, `lat`, `ary`): `object`
 
-Defined in: [Grid.ts:772](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/Grid.ts#L772)
+Defined in: [grids/UnstructuredGrid.ts:126](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/UnstructuredGrid.ts#L126)
 
 #### Parameters
 
@@ -155,4 +164,4 @@ Defined in: [Grid.ts:772](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a6
 
 #### Overrides
 
-[`Grid`](Grid.md).[`sampleNearestGridPoint`](Grid.md#samplenearestgridpoint)
+`autoZoomGridMixin(Grid).sampleNearestGridPoint`

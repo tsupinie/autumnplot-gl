@@ -4,9 +4,17 @@ title: Hodographs
 
 # Class: Hodographs\<GridType, MapType\>
 
-Defined in: [Hodographs.ts:122](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/Hodographs.ts#L122)
+Defined in: [Hodographs.ts:133](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/Hodographs.ts#L133)
 
-A class representing a field of hodograph plots
+A class representing a field of hodograph plots 
+
+## Grid Compatibility
+- :white_check_mark: `PlateCarreeGrid`
+- :white_check_mark: `PlateCarreeRotatedGrid`
+- :white_check_mark: `LambertGrid`
+- :white_check_mark: `UnstructuredGrid`
+- :x:                `RadarSweepGrid`
+- :x:                `Geostationary`
 
 ## Extends
 
@@ -16,7 +24,7 @@ A class representing a field of hodograph plots
 
 | Type Parameter |
 | ------ |
-| `GridType` *extends* [`Grid`](Grid.md) |
+| `GridType` *extends* [`AutoZoomGrid`](../type-aliases/AutoZoomGrid.md) |
 | `MapType` *extends* [`MapLikeType`](../type-aliases/MapLikeType.md) |
 
 ## Constructors
@@ -25,7 +33,7 @@ A class representing a field of hodograph plots
 
 > **new Hodographs**\<`GridType`, `MapType`\>(`profile_field`, `opts?`): `Hodographs`\<`GridType`, `MapType`\>
 
-Defined in: [Hodographs.ts:137](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/Hodographs.ts#L137)
+Defined in: [Hodographs.ts:148](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/Hodographs.ts#L148)
 
 Create a field of hodographs
 
@@ -48,7 +56,7 @@ Create a field of hodographs
 
 | Property | Modifier | Type | Defined in |
 | ------ | ------ | ------ | ------ |
-| <a id="opts"></a> `opts` | `readonly` | `Required`\<[`HodographOptions`](../interfaces/HodographOptions.md)\> | [Hodographs.ts:124](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/Hodographs.ts#L124) |
+| <a id="opts"></a> `opts` | `readonly` | `Required`\<[`HodographOptions`](../interfaces/HodographOptions.md)\> | [Hodographs.ts:135](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/Hodographs.ts#L135) |
 
 ## Methods
 
@@ -56,7 +64,7 @@ Create a field of hodographs
 
 > **updateField**(`field`): `Promise`\<`void`\>
 
-Defined in: [Hodographs.ts:155](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/Hodographs.ts#L155)
+Defined in: [Hodographs.ts:166](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/Hodographs.ts#L166)
 
 Update the profiles displayed
 

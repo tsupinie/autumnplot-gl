@@ -6,7 +6,7 @@ title: ContourData
 
 > **ContourData** = `Record`\<`number`, \[`number`, `number`\][][]\>
 
-Defined in: [AutumnTypes.ts:94](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/AutumnTypes.ts#L94)
+Defined in: [AutumnTypes.ts:99](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/AutumnTypes.ts#L99)
 
 The result of contouring a field
 

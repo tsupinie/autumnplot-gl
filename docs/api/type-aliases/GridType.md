@@ -4,6 +4,6 @@ title: GridType
 
 # Type Alias: GridType
 
-> **GridType** = `"latlon"` \| `"latlonrot"` \| `"lcc"` \| `"unstructured"`
+> **GridType** = `"latlon"` \| `"latlonrot"` \| `"lcc"` \| `"unstructured"` \| `"radar"` \| `"geostationary"`
 
-Defined in: [Grid.ts:97](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/Grid.ts#L97)
+Defined in: [grids/Grid.ts:13](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/Grid.ts#L13)

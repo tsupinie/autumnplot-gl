@@ -4,10 +4,18 @@ title: Barbs
 
 # Class: Barbs\<ArrayType, GridType, MapType\>
 
-Defined in: [Barbs.ts:184](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/Barbs.ts#L184)
+Defined in: [Barbs.ts:193](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/Barbs.ts#L193)
 
 A class representing a field of wind barbs. The barbs are automatically thinned based on the zoom level on the map; the user only has to provide a
 thinning factor at zoom level 1.
+
+## Grid Compatibility
+- :white_check_mark: `PlateCarreeGrid`
+- :white_check_mark: `PlateCarreeRotatedGrid`
+- :white_check_mark: `LambertGrid`
+- :white_check_mark: `UnstructuredGrid`
+- :x:                `RadarSweepGrid`
+- :x:                `Geostationary`
 
 ## Example
 
@@ -26,7 +34,7 @@ const barbs = new Barbs(vector_field, {color: '#000000', thin_fac: 16});
 | Type Parameter |
 | ------ |
 | `ArrayType` *extends* [`TypedArray`](../type-aliases/TypedArray.md) |
-| `GridType` *extends* [`Grid`](Grid.md) |
+| `GridType` *extends* [`AutoZoomGrid`](../type-aliases/AutoZoomGrid.md) |
 | `MapType` *extends* [`MapLikeType`](../type-aliases/MapLikeType.md) |
 
 ## Constructors
@@ -35,7 +43,7 @@ const barbs = new Barbs(vector_field, {color: '#000000', thin_fac: 16});
 
 > **new Barbs**\<`ArrayType`, `GridType`, `MapType`\>(`fields`, `opts`): `Barbs`\<`ArrayType`, `GridType`, `MapType`\>
 
-Defined in: [Barbs.ts:198](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/Barbs.ts#L198)
+Defined in: [Barbs.ts:207](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/Barbs.ts#L207)
 
 Create a field of wind barbs
 
@@ -58,7 +66,7 @@ Create a field of wind barbs
 
 | Property | Modifier | Type | Defined in |
 | ------ | ------ | ------ | ------ |
-| <a id="opts"></a> `opts` | `readonly` | `Required`\<[`BarbsOptions`](../interfaces/BarbsOptions.md)\> | [Barbs.ts:187](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/Barbs.ts#L187) |
+| <a id="opts"></a> `opts` | `readonly` | `Required`\<[`BarbsOptions`](../interfaces/BarbsOptions.md)\> | [Barbs.ts:196](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/Barbs.ts#L196) |
 
 ## Methods
 
@@ -66,7 +74,7 @@ Create a field of wind barbs
 
 > **updateField**(`fields`): `Promise`\<`void`\>
 
-Defined in: [Barbs.ts:214](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/Barbs.ts#L214)
+Defined in: [Barbs.ts:223](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/Barbs.ts#L223)
 
 Update the field displayed as barbs
 

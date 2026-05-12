@@ -4,9 +4,13 @@ title: RawScalarField
 
 # Class: RawScalarField\<ArrayType, GridType\>
 
-Defined in: [RawField.ts:23](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/RawField.ts#L23)
+Defined in: [RawField.ts:112](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/RawField.ts#L112)
 
 A class representing a raw 2D field of gridded data, such as height or u wind.
+
+## Extends
+
+- [`ExpressionScalarField`](ExpressionScalarField.md)\<`ArrayType`, `GridType`\>
 
 ## Type Parameters
 
@@ -21,7 +25,7 @@ A class representing a raw 2D field of gridded data, such as height or u wind.
 
 > **new RawScalarField**\<`ArrayType`, `GridType`\>(`grid`, `data`): `RawScalarField`\<`ArrayType`, `GridType`\>
 
-Defined in: [RawField.ts:34](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/RawField.ts#L34)
+Defined in: [RawField.ts:123](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/RawField.ts#L123)
 
 Create a data field.
 
@@ -36,20 +40,78 @@ Create a data field.
 
 `RawScalarField`\<`ArrayType`, `GridType`\>
 
+#### Overrides
+
+[`ExpressionScalarField`](ExpressionScalarField.md).[`constructor`](ExpressionScalarField.md#constructor)
+
 ## Properties
 
-| Property | Modifier | Type | Defined in |
-| ------ | ------ | ------ | ------ |
-| <a id="data"></a> `data` | `readonly` | `ArrayType` | [RawField.ts:25](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/RawField.ts#L25) |
-| <a id="grid"></a> `grid` | `readonly` | `GridType` | [RawField.ts:24](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/RawField.ts#L24) |
+| Property | Modifier | Type | Overrides | Defined in |
+| ------ | ------ | ------ | ------ | ------ |
+| <a id="data"></a> `data` | `readonly` | `ArrayType` | - | [RawField.ts:114](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/RawField.ts#L114) |
+| <a id="grid"></a> `grid` | `readonly` | `GridType` | [`ExpressionScalarField`](ExpressionScalarField.md).[`grid`](ExpressionScalarField.md#grid) | [RawField.ts:113](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/RawField.ts#L113) |
 
 ## Methods
+
+### add()
+
+> **add**(`other`): [`ComputedScalarField`](ComputedScalarField.md)\<`ArrayType`, `GridType`\>
+
+Defined in: [RawField.ts:91](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/RawField.ts#L91)
+
+Add this field to another scalar. The computation occurs on the GPU if the resulting field is used in a plot component or on the CPU if 
+ [renderCPU()](ComputedScalarField.md#rendercpu) is called on the resulting field.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `other` | `number` \| [`ExpressionScalarField`](ExpressionScalarField.md)\<`ArrayType`, `GridType`\> | Scalar to add to this field |
+
+#### Returns
+
+[`ComputedScalarField`](ComputedScalarField.md)\<`ArrayType`, `GridType`\>
+
+A `ComputedScalarField` representing the added field
+
+#### Inherited from
+
+[`ExpressionScalarField`](ExpressionScalarField.md).[`add`](ExpressionScalarField.md#add)
+
+***
+
+### divide()
+
+> **divide**(`other`): [`ComputedScalarField`](ComputedScalarField.md)\<`ArrayType`, `GridType`\>
+
+Defined in: [RawField.ts:81](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/RawField.ts#L81)
+
+Divide this field by another scalar. The computation occurs on the GPU if the resulting field is used in a plot component or on the CPU if
+[renderCPU()](ComputedScalarField.md#rendercpu) is called on the resulting field.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `other` | `number` \| [`ExpressionScalarField`](ExpressionScalarField.md)\<`ArrayType`, `GridType`\> | Scalar to divide this field by |
+
+#### Returns
+
+[`ComputedScalarField`](ComputedScalarField.md)\<`ArrayType`, `GridType`\>
+
+A `ComputedScalarField` representing the divided field
+
+#### Inherited from
+
+[`ExpressionScalarField`](ExpressionScalarField.md).[`divide`](ExpressionScalarField.md#divide)
+
+***
 
 ### getContours()
 
 > **getContours**(`opts`): `Promise`\<[`ContourData`](../type-aliases/ContourData.md)\>
 
-Defined in: [RawField.ts:71](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/RawField.ts#L71)
+Defined in: [RawField.ts:230](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/RawField.ts#L230)
 
 Get contour data as an object with each contour level being a separate property.
 
@@ -67,22 +129,50 @@ contour data as an object
 
 ***
 
-### getWGLTextureSpec()
+### multiply()
 
-> **getWGLTextureSpec**(`gl`, `image_mag_filter`): `WGLTextureSpec`
+> **multiply**(`other`): [`ComputedScalarField`](ComputedScalarField.md)\<`ArrayType`, `GridType`\>
 
-Defined in: [RawField.ts:56](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/RawField.ts#L56)
+Defined in: [RawField.ts:71](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/RawField.ts#L71)
+
+Multiply this field by another scalar. The computation occurs on the GPU if the resulting field is used in a plot component or on the CPU if 
+ [renderCPU()](ComputedScalarField.md#rendercpu) is called on the resulting field.
 
 #### Parameters
 
-| Parameter | Type |
-| ------ | ------ |
-| `gl` | [`WebGLAnyRenderingContext`](../type-aliases/WebGLAnyRenderingContext.md) |
-| `image_mag_filter` | `number` |
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `other` | `number` \| [`ExpressionScalarField`](ExpressionScalarField.md)\<`ArrayType`, `GridType`\> | Scalar to multiply this field by |
 
 #### Returns
 
-`WGLTextureSpec`
+[`ComputedScalarField`](ComputedScalarField.md)\<`ArrayType`, `GridType`\>
+
+A `ComputedScalarField` representing the multiplied field
+
+#### Inherited from
+
+[`ExpressionScalarField`](ExpressionScalarField.md).[`multiply`](ExpressionScalarField.md#multiply)
+
+***
+
+### renderCPU()
+
+> **renderCPU**(): `RawScalarField`\<`ArrayType`, `GridType`\>
+
+Defined in: [RawField.ts:251](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/RawField.ts#L251)
+
+Run computations on a scalar field on the CPU (for a `RawScalarField`, this is a no-op). The function blocks the main thread, so avoid calling it if possible.
+
+#### Returns
+
+`RawScalarField`\<`ArrayType`, `GridType`\>
+
+The computed grid in a `RawScalarField`
+
+#### Overrides
+
+[`ExpressionScalarField`](ExpressionScalarField.md).[`renderCPU`](ExpressionScalarField.md#rendercpu)
 
 ***
 
@@ -90,18 +180,116 @@ Defined in: [RawField.ts:56](https://github.com/tsupinie/autumnplot-gl/blob/b59c
 
 > **sampleField**(`lon`, `lat`): `number`
 
-Defined in: [RawField.ts:98](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/RawField.ts#L98)
+Defined in: [RawField.ts:286](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/RawField.ts#L286)
+
+Sample this field at a given latitude and longitude.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `lon` | `number` | Longitude of the sample in degrees east |
+| `lat` | `number` | Latitude of the sample in degrees north |
+
+#### Returns
+
+`number`
+
+The value of the nearest grid point, or NaN if the point is outside the grid.
+
+#### Overrides
+
+[`ExpressionScalarField`](ExpressionScalarField.md).[`sampleField`](ExpressionScalarField.md#samplefield)
+
+***
+
+### sampleFieldWithCoord()
+
+> **sampleFieldWithCoord**(`lon`, `lat`): `object`
+
+Defined in: [RawField.ts:276](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/RawField.ts#L276)
+
+Sample this field at a given latitude and longitude.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `lon` | `number` | Longitude of the sample in degrees east |
+| `lat` | `number` | Latitude of the sample in degrees north |
+
+#### Returns
+
+`object`
+
+The value of the nearest grid point along with the grid point latitude and longitude, or NaNs if the point is outside the grid.
+
+##### sample
+
+> **sample**: `number`
+
+##### sample\_lat
+
+> **sample\_lat**: `number`
+
+##### sample\_lon
+
+> **sample\_lon**: `number`
+
+#### Overrides
+
+[`ExpressionScalarField`](ExpressionScalarField.md).[`sampleFieldWithCoord`](ExpressionScalarField.md#samplefieldwithcoord)
+
+***
+
+### subtract()
+
+> **subtract**(`other`): [`ComputedScalarField`](ComputedScalarField.md)\<`ArrayType`, `GridType`\>
+
+Defined in: [RawField.ts:101](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/RawField.ts#L101)
+
+Subtract another scalar from this field. The computation occurs on the GPU if the resulting field is used in a plot component or on the CPU if
+ [renderCPU()](ComputedScalarField.md#rendercpu) is called on the resulting field.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `other` | `number` \| [`ExpressionScalarField`](ExpressionScalarField.md)\<`ArrayType`, `GridType`\> | Scalar to subtract from this field |
+
+#### Returns
+
+[`ComputedScalarField`](ComputedScalarField.md)\<`ArrayType`, `GridType`\>
+
+A `ComputedScalarField` representing the subtracted field
+
+#### Inherited from
+
+[`ExpressionScalarField`](ExpressionScalarField.md).[`subtract`](ExpressionScalarField.md#subtract)
+
+***
+
+### updateTexImageData()
+
+> **updateTexImageData**(`gl`, `image_mag_filter`, `fill_textures`): `Map`\<`string`, `WGLTexture`\>
+
+Defined in: [RawField.ts:185](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/RawField.ts#L185)
 
 #### Parameters
 
 | Parameter | Type |
 | ------ | ------ |
-| `lon` | `number` |
-| `lat` | `number` |
+| `gl` | [`WebGLAnyRenderingContext`](../type-aliases/WebGLAnyRenderingContext.md) |
+| `image_mag_filter` | `number` |
+| `fill_textures` | `null` \| `Map`\<`string`, `WGLTexture`\> |
 
 #### Returns
 
-`number`
+`Map`\<`string`, `WGLTexture`\>
+
+#### Overrides
+
+[`ExpressionScalarField`](ExpressionScalarField.md).[`updateTexImageData`](ExpressionScalarField.md#updateteximagedata)
 
 ***
 
@@ -109,9 +297,9 @@ Defined in: [RawField.ts:98](https://github.com/tsupinie/autumnplot-gl/blob/b59c
 
 > `static` **aggregateFields**\<`ArrayType`, `GridType`\>(`func`, ...`args`): `RawScalarField`\<`ArrayType`, `GridType`\>
 
-Defined in: [RawField.ts:84](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/RawField.ts#L84)
+Defined in: [RawField.ts:243](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/RawField.ts#L243)
 
-Create a new field by aggregating a number of fields using a specific function
+Create a new field by aggregating a number of fields using a specific function. This computation occurs on the CPU.
 
 #### Type Parameters
 

@@ -1,12 +1,10 @@
 ---
-title: RawVectorField
+title: ComputedVectorField
 ---
 
-# Class: RawVectorField\<ArrayType, GridType\>
+# Class: ComputedVectorField\<ArrayType, GridType\>
 
-Defined in: [RawField.ts:605](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/RawField.ts#L605)
-
-A class representing a 2D gridded field of vectors
+Defined in: [RawField.ts:636](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/RawField.ts#L636)
 
 ## Extends
 
@@ -23,26 +21,23 @@ A class representing a 2D gridded field of vectors
 
 ### Constructor
 
-> **new RawVectorField**\<`ArrayType`, `GridType`\>(`grid`, `u_ary`, `v_ary`, `opts?`): `RawVectorField`\<`ArrayType`, `GridType`\>
+> **new ComputedVectorField**\<`ArrayType`, `GridType`\>(`u`, `v`, `opts?`): `ComputedVectorField`\<`ArrayType`, `GridType`\>
 
-Defined in: [RawField.ts:616](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/RawField.ts#L616)
-
-Create a vector field.
+Defined in: [RawField.ts:444](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/RawField.ts#L444)
 
 #### Parameters
 
-| Parameter | Type | Description |
-| ------ | ------ | ------ |
-| `grid` | `GridType` | The grid on which the vector components are defined |
-| `u_ary` | `ArrayType` | The u (east/west) component of the vectors, which should be given as a 1D array in row-major order, with the first element being at the lower-left corner of the grid |
-| `v_ary` | `ArrayType` | The v (north/south) component of the vectors, which should be given as a 1D array in row-major order, with the first element being at the lower-left corner of the grid |
-| `opts?` | [`RawVectorFieldOptions`](../interfaces/RawVectorFieldOptions.md) | Options for creating the vector field. |
+| Parameter | Type |
+| ------ | ------ |
+| `u` | [`ExpressionScalarField`](ExpressionScalarField.md)\<`ArrayType`, `GridType`\> |
+| `v` | [`ExpressionScalarField`](ExpressionScalarField.md)\<`ArrayType`, `GridType`\> |
+| `opts?` | [`RawVectorFieldOptions`](../interfaces/RawVectorFieldOptions.md) |
 
 #### Returns
 
-`RawVectorField`\<`ArrayType`, `GridType`\>
+`ComputedVectorField`\<`ArrayType`, `GridType`\>
 
-#### Overrides
+#### Inherited from
 
 [`ExpressionVectorField`](ExpressionVectorField.md).[`constructor`](ExpressionVectorField.md#constructor)
 
@@ -58,7 +53,7 @@ Create a vector field.
 
 ### add()
 
-> **add**(`other`): [`ComputedVectorField`](ComputedVectorField.md)\<`ArrayType`, `GridType`\>
+> **add**(`other`): `ComputedVectorField`\<`ArrayType`, `GridType`\>
 
 Defined in: [RawField.ts:503](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/RawField.ts#L503)
 
@@ -72,7 +67,7 @@ Add this vector field to another vector field. The addition occurs on the GPU if
 
 #### Returns
 
-[`ComputedVectorField`](ComputedVectorField.md)\<`ArrayType`, `GridType`\>
+`ComputedVectorField`\<`ArrayType`, `GridType`\>
 
 A `ComputedVectorField` representing the added vector field
 
@@ -84,7 +79,7 @@ A `ComputedVectorField` representing the added vector field
 
 ### divide()
 
-> **divide**(`other`): [`ComputedVectorField`](ComputedVectorField.md)\<`ArrayType`, `GridType`\>
+> **divide**(`other`): `ComputedVectorField`\<`ArrayType`, `GridType`\>
 
 Defined in: [RawField.ts:494](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/RawField.ts#L494)
 
@@ -98,7 +93,7 @@ Divide this vector field by a scalar. The division occurs on the GPU if the resu
 
 #### Returns
 
-[`ComputedVectorField`](ComputedVectorField.md)\<`ArrayType`, `GridType`\>
+`ComputedVectorField`\<`ArrayType`, `GridType`\>
 
 A `ComputedVectorField` representing the divided vector field
 
@@ -130,7 +125,7 @@ A `ComputedScalarField` representing the subtracted vector field
 
 ### multiply()
 
-> **multiply**(`other`): [`ComputedVectorField`](ComputedVectorField.md)\<`ArrayType`, `GridType`\>
+> **multiply**(`other`): `ComputedVectorField`\<`ArrayType`, `GridType`\>
 
 Defined in: [RawField.ts:485](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/RawField.ts#L485)
 
@@ -144,7 +139,7 @@ Multiply this vector field by a scalar. The multiplication occurs on the GPU if 
 
 #### Returns
 
-[`ComputedVectorField`](ComputedVectorField.md)\<`ArrayType`, `GridType`\>
+`ComputedVectorField`\<`ArrayType`, `GridType`\>
 
 A `ComputedVectorField` representing the multiplied vector field
 
@@ -184,7 +179,7 @@ A tuple containing the [`bearing`, `magnitude`] of the vector field at the neare
 
 ### subtract()
 
-> **subtract**(`other`): [`ComputedVectorField`](ComputedVectorField.md)\<`ArrayType`, `GridType`\>
+> **subtract**(`other`): `ComputedVectorField`\<`ArrayType`, `GridType`\>
 
 Defined in: [RawField.ts:512](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/RawField.ts#L512)
 
@@ -198,7 +193,7 @@ Subtract another vector field from this vector field. The subtraction occurs on 
 
 #### Returns
 
-[`ComputedVectorField`](ComputedVectorField.md)\<`ArrayType`, `GridType`\>
+`ComputedVectorField`\<`ArrayType`, `GridType`\>
 
 A `ComputedVectorField` representing the subtracted vector field
 

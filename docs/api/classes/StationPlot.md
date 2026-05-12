@@ -4,9 +4,17 @@ title: StationPlot
 
 # Class: StationPlot\<GridType, MapType, ObsFieldName\>
 
-Defined in: [StationPlot.ts:295](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/StationPlot.ts#L295)
+Defined in: [StationPlot.ts:305](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/StationPlot.ts#L305)
 
 Station model plots for observed data
+
+## Grid Compatibility
+- :white_check_mark: `PlateCarreeGrid`
+- :white_check_mark: `PlateCarreeRotatedGrid`
+- :white_check_mark: `LambertGrid`
+- :white_check_mark: `UnstructuredGrid`
+- :x:                `RadarSweepGrid`
+- :x:                `Geostationary`
 
 ## Example
 
@@ -32,7 +40,7 @@ const station_plot = new StationPlot(obs_field, {config: station_plot_locs, thin
 
 | Type Parameter |
 | ------ |
-| `GridType` *extends* [`Grid`](Grid.md) |
+| `GridType` *extends* [`AutoZoomGrid`](../type-aliases/AutoZoomGrid.md) |
 | `MapType` *extends* [`MapLikeType`](../type-aliases/MapLikeType.md) |
 | `ObsFieldName` *extends* `string` |
 
@@ -42,7 +50,7 @@ const station_plot = new StationPlot(obs_field, {config: station_plot_locs, thin
 
 > **new StationPlot**\<`GridType`, `MapType`, `ObsFieldName`\>(`field`, `opts`): `StationPlot`\<`GridType`, `MapType`, `ObsFieldName`\>
 
-Defined in: [StationPlot.ts:306](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/StationPlot.ts#L306)
+Defined in: [StationPlot.ts:316](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/StationPlot.ts#L316)
 
 Create station plots
 
@@ -65,7 +73,7 @@ Create station plots
 
 | Property | Modifier | Type | Defined in |
 | ------ | ------ | ------ | ------ |
-| <a id="opts"></a> `opts` | `readonly` | `Required`\<[`StationPlotOptions`](../interfaces/StationPlotOptions.md)\<`ObsFieldName`\>\> | [StationPlot.ts:297](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/StationPlot.ts#L297) |
+| <a id="opts"></a> `opts` | `readonly` | `Required`\<[`StationPlotOptions`](../interfaces/StationPlotOptions.md)\<`ObsFieldName`\>\> | [StationPlot.ts:307](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/StationPlot.ts#L307) |
 
 ## Methods
 
@@ -73,7 +81,7 @@ Create station plots
 
 > **updateField**(`field`): `Promise`\<`void`\>
 
-Defined in: [StationPlot.ts:319](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/StationPlot.ts#L319)
+Defined in: [StationPlot.ts:329](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/StationPlot.ts#L329)
 
 Update the data displayed as station plots
 

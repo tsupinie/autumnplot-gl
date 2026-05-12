@@ -11,9 +11,14 @@ title: API Reference
 | [Barbs](classes/Barbs.md) | A class representing a field of wind barbs. The barbs are automatically thinned based on the zoom level on the map; the user only has to provide a thinning factor at zoom level 1. |
 | [Color](classes/Color.md) | A class for handling colors and translations between different color spaces |
 | [ColorMap](classes/ColorMap.md) | A mapping from values to colors |
+| [ComputedScalarField](classes/ComputedScalarField.md) | - |
+| [ComputedVectorField](classes/ComputedVectorField.md) | - |
 | [Contour](classes/Contour.md) | A field of contoured data. |
 | [ContourFill](classes/ContourFill.md) | A filled contoured field |
 | [ContourLabels](classes/ContourLabels.md) | Label the contours on a plot |
+| [ExpressionScalarField](classes/ExpressionScalarField.md) | - |
+| [ExpressionVectorField](classes/ExpressionVectorField.md) | - |
+| [GeostationaryImage](classes/GeostationaryImage.md) | Grid for geostationary satellite images |
 | [Grid](classes/Grid.md) | The base class for grid types |
 | [Hodographs](classes/Hodographs.md) | A class representing a field of hodograph plots |
 | [LambertGrid](classes/LambertGrid.md) | A Lambert conformal conic grid with uniform grid spacing |
@@ -23,6 +28,7 @@ title: API Reference
 | [PlateCarreeRotatedGrid](classes/PlateCarreeRotatedGrid.md) | A rotated lat-lon (plate carree) grid with uniform grid spacing |
 | [PlotComponent](classes/PlotComponent.md) | Base class for all plot components |
 | [PlotLayer](classes/PlotLayer.md) | A static map layer. The data are assumed to be static in time. If the data have a time component (e.g., a model forecast), a [MultiPlotLayer](classes/MultiPlotLayer.md) may be more appropriate. |
+| [RadarSweepGrid](classes/RadarSweepGrid.md) | A grid for a radar sweep centered at a certain latitude and longitude. |
 | [Raster](classes/Raster.md) | A raster (i.e. pixel) plot |
 | [RawObsField](classes/RawObsField.md) | Raw observation data, given as a list of objects |
 | [RawProfileField](classes/RawProfileField.md) | A class grid of wind profiles |
@@ -37,7 +43,7 @@ title: API Reference
 | Interface | Description |
 | ------ | ------ |
 | [BarbsOptions](interfaces/BarbsOptions.md) | Options for [Barbs](classes/Barbs.md) components |
-| [ColorBarOptions](interfaces/ColorBarOptions.md) | Options for ColorBars |
+| [ColorBarOptions](interfaces/ColorBarOptions.md) | Options for [makeColorBar](functions/makeColorBar.md) |
 | [ColorMapOptions](interfaces/ColorMapOptions.md) | Options for [ColorMap](classes/ColorMap.md)s |
 | [ContourFillOptions](interfaces/ContourFillOptions.md) | Options for [ContourFill](classes/ContourFill.md) components |
 | [ContourLabelOptions](interfaces/ContourLabelOptions.md) | Options for [ContourLabels](classes/ContourLabels.md) |
@@ -61,6 +67,7 @@ title: API Reference
 
 | Type Alias | Description |
 | ------ | ------ |
+| [AutoZoomGrid](type-aliases/AutoZoomGrid.md) | Grids of this type can be used with wind barbs, observations, and anything that needs automatic thinning. |
 | [ColorbarOrientation](type-aliases/ColorbarOrientation.md) | The orientation for color bars (horizontal or vertical) |
 | [ColorbarTickDirection](type-aliases/ColorbarTickDirection.md) | Which side of a color bar the ticks are on |
 | [ContourData](type-aliases/ContourData.md) | The result of contouring a field |

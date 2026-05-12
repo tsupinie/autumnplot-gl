@@ -6,7 +6,7 @@ title: colormaps
 
 > `const` **colormaps**: `object`
 
-Defined in: [index.ts:23](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/index.ts#L23)
+Defined in: [index.ts:31](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/index.ts#L31)
 
 All built-in colormaps
 
@@ -75,3 +75,7 @@ Create a diverging red/blue colormap, where red corresponds to the lowest value 
 [`ColorMap`](../classes/ColorMap.md)
 
 a Colormap object
+
+### wv\_cimss
+
+> **wv\_cimss**: [`ColorMap`](../classes/ColorMap.md)

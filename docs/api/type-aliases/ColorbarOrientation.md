@@ -6,6 +6,6 @@ title: ColorbarOrientation
 
 > **ColorbarOrientation** = `"horizontal"` \| `"vertical"`
 
-Defined in: [ColorBar.ts:6](https://github.com/tsupinie/autumnplot-gl/blob/b59c6a647bbca9e48b763c34d4ef9e92b3f89bd7/src/ColorBar.ts#L6)
+Defined in: [ColorBar.ts:7](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/ColorBar.ts#L7)
 
 The orientation for color bars (horizontal or vertical)

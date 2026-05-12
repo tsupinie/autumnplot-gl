@@ -1,16 +1,15 @@
 ---
-title: RawVectorField
+title: ExpressionVectorField
 ---
 
-# Class: RawVectorField\<ArrayType, GridType\>
+# Abstract Class: ExpressionVectorField\<ArrayType, GridType\>
 
-Defined in: [RawField.ts:605](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/RawField.ts#L605)
+Defined in: [RawField.ts:439](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/RawField.ts#L439)
 
-A class representing a 2D gridded field of vectors
+## Extended by
 
-## Extends
-
-- [`ExpressionVectorField`](ExpressionVectorField.md)\<`ArrayType`, `GridType`\>
+- [`RawVectorField`](RawVectorField.md)
+- [`ComputedVectorField`](ComputedVectorField.md)
 
 ## Type Parameters
 
@@ -23,36 +22,29 @@ A class representing a 2D gridded field of vectors
 
 ### Constructor
 
-> **new RawVectorField**\<`ArrayType`, `GridType`\>(`grid`, `u_ary`, `v_ary`, `opts?`): `RawVectorField`\<`ArrayType`, `GridType`\>
+> **new ExpressionVectorField**\<`ArrayType`, `GridType`\>(`u`, `v`, `opts?`): `ExpressionVectorField`\<`ArrayType`, `GridType`\>
 
-Defined in: [RawField.ts:616](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/RawField.ts#L616)
-
-Create a vector field.
+Defined in: [RawField.ts:444](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/RawField.ts#L444)
 
 #### Parameters
 
-| Parameter | Type | Description |
-| ------ | ------ | ------ |
-| `grid` | `GridType` | The grid on which the vector components are defined |
-| `u_ary` | `ArrayType` | The u (east/west) component of the vectors, which should be given as a 1D array in row-major order, with the first element being at the lower-left corner of the grid |
-| `v_ary` | `ArrayType` | The v (north/south) component of the vectors, which should be given as a 1D array in row-major order, with the first element being at the lower-left corner of the grid |
-| `opts?` | [`RawVectorFieldOptions`](../interfaces/RawVectorFieldOptions.md) | Options for creating the vector field. |
+| Parameter | Type |
+| ------ | ------ |
+| `u` | [`ExpressionScalarField`](ExpressionScalarField.md)\<`ArrayType`, `GridType`\> |
+| `v` | [`ExpressionScalarField`](ExpressionScalarField.md)\<`ArrayType`, `GridType`\> |
+| `opts?` | [`RawVectorFieldOptions`](../interfaces/RawVectorFieldOptions.md) |
 
 #### Returns
 
-`RawVectorField`\<`ArrayType`, `GridType`\>
-
-#### Overrides
-
-[`ExpressionVectorField`](ExpressionVectorField.md).[`constructor`](ExpressionVectorField.md#constructor)
+`ExpressionVectorField`\<`ArrayType`, `GridType`\>
 
 ## Properties
 
-| Property | Modifier | Type | Inherited from | Defined in |
-| ------ | ------ | ------ | ------ | ------ |
-| <a id="relative_to"></a> `relative_to` | `readonly` | [`VectorRelativeTo`](../type-aliases/VectorRelativeTo.md) | [`ExpressionVectorField`](ExpressionVectorField.md).[`relative_to`](ExpressionVectorField.md#relative_to) | [RawField.ts:442](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/RawField.ts#L442) |
-| <a id="u"></a> `u` | `readonly` | [`ExpressionScalarField`](ExpressionScalarField.md)\<`ArrayType`, `GridType`\> | [`ExpressionVectorField`](ExpressionVectorField.md).[`u`](ExpressionVectorField.md#u) | [RawField.ts:440](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/RawField.ts#L440) |
-| <a id="v"></a> `v` | `readonly` | [`ExpressionScalarField`](ExpressionScalarField.md)\<`ArrayType`, `GridType`\> | [`ExpressionVectorField`](ExpressionVectorField.md).[`v`](ExpressionVectorField.md#v) | [RawField.ts:441](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/RawField.ts#L441) |
+| Property | Modifier | Type | Defined in |
+| ------ | ------ | ------ | ------ |
+| <a id="relative_to"></a> `relative_to` | `readonly` | [`VectorRelativeTo`](../type-aliases/VectorRelativeTo.md) | [RawField.ts:442](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/RawField.ts#L442) |
+| <a id="u"></a> `u` | `readonly` | [`ExpressionScalarField`](ExpressionScalarField.md)\<`ArrayType`, `GridType`\> | [RawField.ts:440](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/RawField.ts#L440) |
+| <a id="v"></a> `v` | `readonly` | [`ExpressionScalarField`](ExpressionScalarField.md)\<`ArrayType`, `GridType`\> | [RawField.ts:441](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/RawField.ts#L441) |
 
 ## Methods
 
@@ -68,17 +60,13 @@ Add this vector field to another vector field. The addition occurs on the GPU if
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `other` | [`ExpressionVectorField`](ExpressionVectorField.md)\<`ArrayType`, `GridType`\> | Vector field to add. |
+| `other` | `ExpressionVectorField`\<`ArrayType`, `GridType`\> | Vector field to add. |
 
 #### Returns
 
 [`ComputedVectorField`](ComputedVectorField.md)\<`ArrayType`, `GridType`\>
 
 A `ComputedVectorField` representing the added vector field
-
-#### Inherited from
-
-[`ExpressionVectorField`](ExpressionVectorField.md).[`add`](ExpressionVectorField.md#add)
 
 ***
 
@@ -102,10 +90,6 @@ Divide this vector field by a scalar. The division occurs on the GPU if the resu
 
 A `ComputedVectorField` representing the divided vector field
 
-#### Inherited from
-
-[`ExpressionVectorField`](ExpressionVectorField.md).[`divide`](ExpressionVectorField.md#divide)
-
 ***
 
 ### magnitude()
@@ -121,10 +105,6 @@ Get the magnitude of the vector field as a scalar field. The magnitude calculati
 [`ComputedScalarField`](ComputedScalarField.md)\<`ArrayType`, `GridType`\>
 
 A `ComputedScalarField` representing the subtracted vector field
-
-#### Inherited from
-
-[`ExpressionVectorField`](ExpressionVectorField.md).[`magnitude`](ExpressionVectorField.md#magnitude)
 
 ***
 
@@ -147,10 +127,6 @@ Multiply this vector field by a scalar. The multiplication occurs on the GPU if 
 [`ComputedVectorField`](ComputedVectorField.md)\<`ArrayType`, `GridType`\>
 
 A `ComputedVectorField` representing the multiplied vector field
-
-#### Inherited from
-
-[`ExpressionVectorField`](ExpressionVectorField.md).[`multiply`](ExpressionVectorField.md#multiply)
 
 ***
 
@@ -176,10 +152,6 @@ Sample this field at a given latitude and longitude.
 A tuple containing the [`bearing`, `magnitude`] of the vector field at the nearest grid point. The bearing is given as degrees from north, increasing clockwise. 
  If the point is outside the grid, it returns [NaN, NaN] instead.
 
-#### Inherited from
-
-[`ExpressionVectorField`](ExpressionVectorField.md).[`sampleField`](ExpressionVectorField.md#samplefield)
-
 ***
 
 ### subtract()
@@ -194,14 +166,10 @@ Subtract another vector field from this vector field. The subtraction occurs on 
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `other` | [`ExpressionVectorField`](ExpressionVectorField.md)\<`ArrayType`, `GridType`\> | Vector field to subtract. |
+| `other` | `ExpressionVectorField`\<`ArrayType`, `GridType`\> | Vector field to subtract. |
 
 #### Returns
 
 [`ComputedVectorField`](ComputedVectorField.md)\<`ArrayType`, `GridType`\>
 
 A `ComputedVectorField` representing the subtracted vector field
-
-#### Inherited from
-
-[`ExpressionVectorField`](ExpressionVectorField.md).[`subtract`](ExpressionVectorField.md#subtract)
