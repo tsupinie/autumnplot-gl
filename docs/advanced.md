@@ -24,8 +24,23 @@ for (let i = 0; i < n_grid_points; i++) {
 
 where `member1`, `member2`, etc. are the member data for each member.
 
+:::note[New in v4.1]
+The type of `paintball_data` can be an integer or unsigned integer array, which allows for more efficient representation of the ensemble data.
+:::
+
 :::warning
-For now, `paintball_data` must be either a `Float32Array` or `Float16Array`, which puts a cap on the maximum number of members that are possible with this configuration. For 32-bit floats, the number of bits in the mantissa (significand; see https://en.wikipedia.org/wiki/Single-precision_floating-point_format) is 23, so you can represent up to 23 members in a 32-bit float. For `Float16Array`s, that number is 10.
+The type of `paintball_data` puts a limit on the number of members that can be represented.
+
+| Type           | # of Members |
+| ---------------|--------------|
+| `UInt32Array`  | 32           |
+| `Int32Array`   | 31           |
+| `UInt16Array`  | 16           |
+| `Int16Array`   | 15           |
+| `Float32Array` | 23           |
+| `Float16Array` | 10           |
+
+For floating-point values, the number of bits in the mantissa (significand; see, for example https://en.wikipedia.org/wiki/Single-precision_floating-point_format) is the determining factor for how many members can be represented.
 :::
 
 Colors are specified in member order:
