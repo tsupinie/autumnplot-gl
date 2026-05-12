@@ -280,6 +280,15 @@ function positionToAlignmentAndOffset(pos: SPPosition, off_size?: number) {
 
 /** 
  * Station model plots for observed data
+ * 
+ * ## Grid Compatibility
+ * - :white_check_mark: `PlateCarreeGrid`
+ * - :white_check_mark: `PlateCarreeRotatedGrid`
+ * - :white_check_mark: `LambertGrid`
+ * - :white_check_mark: `UnstructuredGrid`
+ * - :x:                `RadarSweepGrid`
+ * - :x:                `Geostationary`
+ * 
  * @example
  * // Specify how to set up the station plot
  * const station_plot_locs = {

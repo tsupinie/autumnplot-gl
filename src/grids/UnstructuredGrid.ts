@@ -5,7 +5,18 @@ import { Grid, GridCoords } from "./Grid";
 import { LngLat } from "../Map";
 import { TypedArray } from "../AutumnTypes";
 
-/** An unstructured grid defined by a list of latitudes and longitudes */
+/**
+ * An unstructured grid defined by a list of latitudes and longitudes 
+ *
+ * ## Plot Component Compatibility
+ * - :x:                `Fill`
+ * - :x:                `Raster`
+ * - :x:                `Contour`
+ * - :x:                `Paintball`
+ * - :white_check_mark: `Barbs`
+ * - :white_check_mark: `Hodographs`
+ * - :white_check_mark: `StationPlot`
+ */
 class UnstructuredGrid extends autoZoomGridMixin(Grid) {
     public readonly coords: {lon: number, lat: number}[];
     private readonly zoom_cache: Cache<[number], Uint8Array>

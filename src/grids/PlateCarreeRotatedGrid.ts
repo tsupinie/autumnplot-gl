@@ -3,7 +3,18 @@ import { autoZoomGridMixin } from "./AutoZoom";
 import { gridCoordinateMixin } from "./GridCoordinates";
 import { StructuredGrid } from "./StructuredGrid";
 
-/** A rotated lat-lon (plate carree) grid with uniform grid spacing */
+/** 
+ * A rotated lat-lon (plate carree) grid with uniform grid spacing 
+ *
+ * ## Plot Component Compatibility
+ * - :white_check_mark: `Fill`
+ * - :white_check_mark: `Raster`
+ * - :white_check_mark: `Contour`
+ * - :white_check_mark: `Paintball`
+ * - :white_check_mark: `Barbs`
+ * - :white_check_mark: `Hodographs`
+ * - :white_check_mark: `StationPlot`
+ */
 class PlateCarreeRotatedGrid extends autoZoomGridMixin(gridCoordinateMixin(StructuredGrid)) {
     public readonly np_lon: number;
     public readonly np_lat: number;

@@ -78,6 +78,15 @@ interface ContourGLElems<MapType extends MapLikeType> {
 
 /** 
  * A field of contoured data.
+ * 
+ *  ## Grid Compatibility
+ * - :white_check_mark: `PlateCarreeGrid`
+ * - :white_check_mark: `PlateCarreeRotatedGrid`
+ * - :white_check_mark: `LambertGrid`
+ * - :x:                `UnstructuredGrid`
+ * - :white_check_mark: `RadarSweepGrid`
+ * - :white_check_mark: `Geostationary`
+ * 
  * @example
  * // Create a contoured height field, with black contours every 30 m (assuming the height field is in 
  * // meters).

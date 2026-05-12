@@ -3,6 +3,18 @@ import { gridCoordinateMixin } from "./GridCoordinates";
 import { StructuredGrid, makeCartesianDomainBuffers } from "./StructuredGrid";
 import { WebGLAnyRenderingContext } from "../AutumnTypes";
 
+/**
+ * A grid for a radar sweep centered at a certain latitude and longitude.
+ * 
+ * ## Plot Component Compatibility
+ * - :white_check_mark: `Fill`
+ * - :white_check_mark: `Raster`
+ * - :white_check_mark: `Contour`
+ * - :white_check_mark: `Paintball`
+ * - :x:                `Barbs`
+ * - :x:                `Hodographs`
+ * - :x:                `StationPlot`
+ */
 class RadarSweepGrid extends gridCoordinateMixin(StructuredGrid) {
     readonly longitude: number;
     readonly latitude: number;

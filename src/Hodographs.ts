@@ -119,7 +119,17 @@ interface HodographGLElems<ArrayType extends TypedArray, GridType extends AutoZo
     bg_billboard: BillboardCollection<ArrayType, GridType>;
 }
 
-/** A class representing a field of hodograph plots */
+/** 
+ * A class representing a field of hodograph plots 
+ * 
+ * ## Grid Compatibility
+ * - :white_check_mark: `PlateCarreeGrid`
+ * - :white_check_mark: `PlateCarreeRotatedGrid`
+ * - :white_check_mark: `LambertGrid`
+ * - :white_check_mark: `UnstructuredGrid`
+ * - :x:                `RadarSweepGrid`
+ * - :x:                `Geostationary`
+ */
 class Hodographs<GridType extends AutoZoomGrid, MapType extends MapLikeType> extends PlotComponent<MapType> {
     private profile_field: RawProfileField<GridType>;
     public readonly opts: Required<HodographOptions>;

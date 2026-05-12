@@ -50,6 +50,14 @@ interface PaintballGLElems<MapType extends MapLikeType> {
  * the data for the paintball plot is given as a single field with the objects from each member encoded as "bits" in the field. Because the field is made up
  * of single-precision floats, this works for up to 24 members. (Technically speaking, I don't need the quotes around "bits", as they're bits of the 
  * significand of an IEEE 754 float.)
+ * 
+ * ## Grid Compatibility
+ * - :white_check_mark: `PlateCarreeGrid`
+ * - :white_check_mark: `PlateCarreeRotatedGrid`
+ * - :white_check_mark: `LambertGrid`
+ * - :x:                `UnstructuredGrid`
+ * - :white_check_mark: `RadarSweepGrid`
+ * - :white_check_mark: `Geostationary`
  */
 class Paintball<ArrayType extends TypedArray, GridType extends DomainBufferGrid, MapType extends MapLikeType> extends PlotComponent<MapType> {
     private field: ExpressionScalarField<ArrayType, GridType>;

@@ -176,6 +176,15 @@ interface BarbsGLElems<ArrayType extends TypedArray, GridType extends AutoZoomGr
 /** 
  * A class representing a field of wind barbs. The barbs are automatically thinned based on the zoom level on the map; the user only has to provide a
  * thinning factor at zoom level 1.
+ * 
+ * ## Grid Compatibility
+ * - :white_check_mark: `PlateCarreeGrid`
+ * - :white_check_mark: `PlateCarreeRotatedGrid`
+ * - :white_check_mark: `LambertGrid`
+ * - :white_check_mark: `UnstructuredGrid`
+ * - :x:                `RadarSweepGrid`
+ * - :x:                `Geostationary`
+ * 
  * @example
  * // Create a barb field with black barbs and plotting every 16th wind barb in both i and j at zoom level 1
  * const vector_field = new RawVectorField(grid, u_data, v_data);

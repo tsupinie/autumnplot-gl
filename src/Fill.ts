@@ -220,6 +220,15 @@ class PlotComponentFill<ArrayType extends TypedArray, GridType extends DomainBuf
 
 /** 
  * A raster (i.e. pixel) plot 
+ * 
+ * ## Grid Compatibility
+ * - :white_check_mark: `PlateCarreeGrid`
+ * - :white_check_mark: `PlateCarreeRotatedGrid`
+ * - :white_check_mark: `LambertGrid`
+ * - :x:                `UnstructuredGrid`
+ * - :white_check_mark: `RadarSweepGrid`
+ * - :white_check_mark: `Geostationary`
+ * 
  * @example
  * // Create a raster plot with the provided color map
  * const raster = new Raster(wind_speed_field, {cmap: color_map});
@@ -264,6 +273,15 @@ class Raster<ArrayType extends TypedArray, GridType extends DomainBufferGrid, Ma
 
 /** 
  * A filled contoured field 
+ * 
+ * ## Grid Compatibility
+ * - :white_check_mark: `PlateCarreeGrid`
+ * - :white_check_mark: `PlateCarreeRotatedGrid`
+ * - :white_check_mark: `LambertGrid`
+ * - :x:                `UnstructuredGrid`
+ * - :white_check_mark: `RadarSweepGrid`
+ * - :white_check_mark: `Geostationary`
+ * 
  * @example
  * // Create a field of filled contours with the provided color map
  * const fill = new ContourFill(wind_speed_field, {cmap: color_map});

@@ -4,7 +4,18 @@ import { WGS84_SEMIMAJOR, WGS84_SEMIMINOR } from "./Grid";
 import { gridCoordinateMixin } from "./GridCoordinates";
 import { StructuredGrid } from "./StructuredGrid";
 
-/** A Lambert conformal conic grid with uniform grid spacing */
+/** 
+ * A Lambert conformal conic grid with uniform grid spacing 
+ *
+ * ## Plot Component Compatibility
+ * - :white_check_mark: `Fill`
+ * - :white_check_mark: `Raster`
+ * - :white_check_mark: `Contour`
+ * - :white_check_mark: `Paintball`
+ * - :white_check_mark: `Barbs`
+ * - :white_check_mark: `Hodographs`
+ * - :white_check_mark: `StationPlot`
+ */
 class LambertGrid extends autoZoomGridMixin(gridCoordinateMixin(StructuredGrid)) {
     public readonly lon_0: number;
     public readonly lat_0: number;

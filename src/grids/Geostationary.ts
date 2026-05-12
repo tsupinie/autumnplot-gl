@@ -3,7 +3,18 @@ import { verticalPerspective } from "../Map";
 import { gridCoordinateMixin } from "./GridCoordinates";
 import { StructuredGrid, makeCartesianDomainBuffers } from "./StructuredGrid";
 
-// Maybe this shouldn't be called "geostationary" but something like "image" ... for all the non-geostationary satellites out there.
+/**
+ * Grid for geostationary satellite images
+ * 
+ * ## Plot Component Compatibility
+ * - :white_check_mark: `Fill`
+ * - :white_check_mark: `Raster`
+ * - :white_check_mark: `Contour`
+ * - :white_check_mark: `Paintball`
+ * - :x:                `Barbs`
+ * - :x:                `Hodographs`
+ * - :x:                `StationPlot`
+ */
 class GeostationaryImage extends gridCoordinateMixin(StructuredGrid) {
     public readonly satellite_lon: number;
     public readonly ll_x: number;
