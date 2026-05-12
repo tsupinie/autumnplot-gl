@@ -62,18 +62,42 @@ abstract class ExpressionScalarField<ArrayType extends TypedArray, GridType exte
         return new ComputedScalarField([this, other], `{0} ${operand} {1}`, FUNCS[operand]);
     }
 
+    /**
+     * Multiply this field by another scalar. The computation occurs on the GPU if the resulting field is used in a plot component or on the CPU if 
+     *  {@link ComputedScalarField.renderCPU | renderCPU()} is called on the resulting field.
+     * @param other - Scalar to multiply this field by
+     * @returns A `ComputedScalarField` representing the multiplied field
+     */
     public multiply(other: ExpressionScalarField<ArrayType, GridType> | number): ComputedScalarField<ArrayType, GridType> {
         return this.operand(other, '*');
     }
 
+    /**
+     * Divide this field by another scalar. The computation occurs on the GPU if the resulting field is used in a plot component or on the CPU if
+     * {@link ComputedScalarField.renderCPU | renderCPU()} is called on the resulting field.
+     * @param other - Scalar to divide this field by
+     * @returns A `ComputedScalarField` representing the divided field
+     */
     public divide(other: ExpressionScalarField<ArrayType, GridType> | number): ComputedScalarField<ArrayType, GridType> {
         return this.operand(other, '/');
     }
 
+    /**
+     * Add this field to another scalar. The computation occurs on the GPU if the resulting field is used in a plot component or on the CPU if 
+     *  {@link ComputedScalarField.renderCPU | renderCPU()} is called on the resulting field.
+     * @param other - Scalar to add to this field
+     * @returns A `ComputedScalarField` representing the added field
+     */
     public add(other: ExpressionScalarField<ArrayType, GridType> | number): ComputedScalarField<ArrayType, GridType> {
         return this.operand(other, '+');
     }
 
+    /**
+     * Subtract another scalar from this field. The computation occurs on the GPU if the resulting field is used in a plot component or on the CPU if
+     *  {@link ComputedScalarField.renderCPU | renderCPU()} is called on the resulting field.
+     * @param other - Scalar to subtract from this field
+     * @returns A `ComputedScalarField` representing the subtracted field
+     */
     public subtract(other: ExpressionScalarField<ArrayType, GridType> | number): ComputedScalarField<ArrayType, GridType> {
         return this.operand(other, '-');
     }
@@ -129,10 +153,12 @@ class RawScalarField<ArrayType extends TypedArray, GridType extends Grid> extend
         });
     }
 
+    /** @internal */
     get aryConstructor() {
         return getArrayConstructor(this.data);
     }
 
+    /** @internal */
     get dtypes() {
         return [getArrayDType(this.data)];
     }
@@ -186,10 +212,12 @@ class RawScalarField<ArrayType extends TypedArray, GridType extends Grid> extend
         return fill_textures;
     }
 
+    /** @internal */
     public getSamplerIds() : string[] {
         return ['_0'];
     }
 
+    /** @internal */
     public getExpression() : string {
         return '_0';
     }
@@ -204,7 +232,7 @@ class RawScalarField<ArrayType extends TypedArray, GridType extends Grid> extend
     }
 
     /**
-     * Create a new field by aggregating a number of fields using a specific function
+     * Create a new field by aggregating a number of fields using a specific function. This computation occurs on the CPU.
      * @param func - A function that will be applied each element of the field. It should take the same number of arguments as fields you have and return a single number.
      * @param args - The RawScalarFields to aggregate
      * @returns a new gridded field
@@ -216,16 +244,22 @@ class RawScalarField<ArrayType extends TypedArray, GridType extends Grid> extend
         return (new ComputedScalarField(args, '', func)).renderCPU();
     }
 
+    /**
+     * Run computations on a scalar field on the CPU (for a `RawScalarField`, this is a no-op). The function blocks the main thread, so avoid calling it if possible.
+     * @returns The computed grid in a `RawScalarField`
+     */
     public renderCPU(): RawScalarField<ArrayType, GridType> {
         return this;
     }
 
+    /** @internal */
     public *iterateCPU() {
         for (let i = 0; i < this.data.length; i++) {
             yield this.data[i];
         }
     }
 
+    /** @internal */
     public getThinnedField(thin_fac: number, map_max_zoom: number) {
         const new_grid = this.grid.getThinnedGrid(thin_fac, map_max_zoom)
         const thin_data = new_grid.thinDataArray(this.grid, this.data);
@@ -233,10 +267,22 @@ class RawScalarField<ArrayType extends TypedArray, GridType extends Grid> extend
         return new RawScalarField(new_grid, thin_data) as this;
     }
 
+    /**
+     * Sample this field at a given latitude and longitude.
+     * @param lon - Longitude of the sample in degrees east
+     * @param lat - Latitude of the sample in degrees north
+     * @returns The value of the nearest grid point along with the grid point latitude and longitude, or NaNs if the point is outside the grid.
+     */
     public sampleFieldWithCoord(lon: number, lat: number) {
         return this.grid.sampleNearestGridPoint(lon, lat, this.data);
     }
 
+    /**
+     * Sample this field at a given latitude and longitude.
+     * @param lon - Longitude of the sample in degrees east
+     * @param lat - Latitude of the sample in degrees north
+     * @returns The value of the nearest grid point, or NaN if the point is outside the grid.
+     */
     public sampleField(lon: number, lat: number) {
         return this.sampleFieldWithCoord(lon, lat).sample;
     }
@@ -257,18 +303,22 @@ class ComputedScalarField<ArrayType extends TypedArray, GridType extends Grid> e
         this.cpu_func = cpu_func;
     }
 
+    /** @internal */
     get grid(): GridType {
         return this.raw_fields[0].grid;
     }
 
+    /** @internal */
     get aryConstructor() {
         return this.raw_fields[0].aryConstructor;
     }
 
+    /** @internal */
     get dtypes(): TypedArrayStr[] {
         return this.raw_fields.map(f => f.dtypes).flat();
     }
 
+    /** @internal */
     public updateTexImageData(gl: WebGLAnyRenderingContext, image_mag_filter: number, fill_textures: Map<string, WGLTexture> | null) {
         const fill_textures_ret: Map<string, WGLTexture> = new Map();
 
@@ -294,10 +344,12 @@ class ComputedScalarField<ArrayType extends TypedArray, GridType extends Grid> e
         return fill_textures_ret;
     }
 
+    /** @internal */
     public getSamplerIds(): string[] {
         return this.raw_fields.map((f, i) => f.getSamplerIds().map(id => `${id}${chars[i]}`)).flat();
     }
 
+    /** @internal */
     public getExpression(): string {
         let expression = this.expression;
         this.raw_fields.forEach((field, idx) => {
@@ -313,24 +365,42 @@ class ComputedScalarField<ArrayType extends TypedArray, GridType extends Grid> e
         return `(${expression})`;
     }
 
+    /** @internal */
     public getThinnedField(thin_fac: number, map_max_zoom: number) {
         return new ComputedScalarField(this.raw_fields.map(f => f.getThinnedField(thin_fac, map_max_zoom)), this.expression, this.cpu_func) as this;
     }
 
+    /**
+     * Sample this field at a given latitude and longitude.
+     * @param lon - Longitude of the sample in degrees east
+     * @param lat - Latitude of the sample in degrees north
+     * @returns The value of the nearest grid point along with the grid point latitude and longitude, or NaNs if the point is outside the grid.
+     */
     public sampleFieldWithCoord(lon: number, lat: number) {
         const field_samples = this.raw_fields.map(f => f.sampleFieldWithCoord(lon, lat));
         return {sample: this.cpu_func(...field_samples.map(s => s.sample)), sample_lon: field_samples[0].sample_lon, sample_lat: field_samples[0].sample_lat};
     }
 
+    /**
+     * Sample this field at a given latitude and longitude.
+     * @param lon - Longitude of the sample in degrees east
+     * @param lat - Latitude of the sample in degrees north
+     * @returns The value of the nearest grid point, or NaN if the point is outside the grid.
+     */
     public sampleField(lon: number, lat: number) {
         return this.sampleFieldWithCoord(lon, lat).sample;
     }
 
+    /**
+     * Run computations on a scalar field on the CPU. The function blocks the main thread, so avoid calling it if possible.
+     * @returns The computed grid in a `RawScalarField`
+     */
     public renderCPU(): RawScalarField<ArrayType, GridType> {
         const ary = new this.aryConstructor([...this.iterateCPU()]);
         return new RawScalarField<ArrayType, GridType>(this.grid, ary);
     }
 
+    /** @internal */
     public *iterateCPU(): Generator<number, void, unknown> {
         function* mapGenerator<T extends any[], U>(gen: Generator<T>, func: (...arg: T) => U) {
             for (const elem of gen) {
@@ -407,22 +477,43 @@ abstract class ExpressionVectorField<ArrayType extends TypedArray, GridType exte
         return new ComputedVectorField(u, v, {relative_to: this.relative_to});
     }
 
+    /**
+     * Multiply this vector field by a scalar. The multiplication occurs on the GPU if the resulting field is used in a plot component.
+     * @param other - Scalar to multiply by. Can be either a number or a scalar field.
+     * @returns A `ComputedVectorField` representing the multiplied vector field
+     */
     public multiply(other: ExpressionScalarField<ArrayType, GridType> | number): ComputedVectorField<ArrayType, GridType> {
         return this.operandScalar(other, '*');
     }
 
+    /**
+     * Divide this vector field by a scalar. The division occurs on the GPU if the resulting field is used in a plot component.
+     * @param other - Scalar to divide by. Can be either a number or a scalar field.
+     * @returns A `ComputedVectorField` representing the divided vector field
+     */
     public divide(other: ExpressionScalarField<ArrayType, GridType> | number): ComputedVectorField<ArrayType, GridType> {
         return this.operandScalar(other, '/');
     }
 
+    /**
+     * Add this vector field to another vector field. The addition occurs on the GPU if the resulting field is used in a plot component.
+     * @param other Vector field to add.
+     * @returns A `ComputedVectorField` representing the added vector field
+     */
     public add(other: ExpressionVectorField<ArrayType, GridType>): ComputedVectorField<ArrayType, GridType> {
         return this.operandVector(other, '+');
     }
 
+    /**
+     * Subtract another vector field from this vector field. The subtraction occurs on the GPU if the resulting field is used in a plot component.
+     * @param other Vector field to subtract.
+     * @returns A `ComputedVectorField` representing the subtracted vector field
+     */
     public subtract(other: ExpressionVectorField<ArrayType, GridType>): ComputedVectorField<ArrayType, GridType> {
         return this.operandVector(other, '-');
     }
 
+    /** @internal */
     public updateTexImageData(gl: WebGLAnyRenderingContext, image_mag_filter: number, fill_textures: {u: Map<string, WGLTexture>, v: Map<string, WGLTexture>} | null) {
         const translateKeys = <V>(map: Map<string, V>, component: 'u' | 'v', reverse: boolean) => {
             const map_trans = new Map<string, V>();
@@ -442,6 +533,10 @@ abstract class ExpressionVectorField<ArrayType extends TypedArray, GridType exte
         return {u: translateKeys(tex_u, 'u', false), v: translateKeys(tex_v, 'v', false)};
     }
 
+    /**
+     * Get the magnitude of the vector field as a scalar field. The magnitude calculation occurs on the GPU if this field is used in a plot component.
+     * @returns A `ComputedScalarField` representing the subtracted vector field
+     */
     public magnitude() {
         return new ComputedScalarField([this.u, this.v], 'length(vec2({0}, {1}))', Math.hypot);
     }
@@ -459,6 +554,13 @@ abstract class ExpressionVectorField<ArrayType extends TypedArray, GridType exte
         return this.u.grid
     }
 
+    /**
+     * Sample this field at a given latitude and longitude.
+     * @param lon - Longitude of the sample in degrees east
+     * @param lat - Latitude of the sample in degrees north
+     * @returns A tuple containing the [`bearing`, `magnitude`] of the vector field at the nearest grid point. The bearing is given as degrees from north, increasing clockwise. 
+     *  If the point is outside the grid, it returns [NaN, NaN] instead.
+     */
     public sampleField(lon: number, lat: number) : [number, number] {
         const u_sample = this.u.sampleFieldWithCoord(lon, lat);
         const v_sample = this.v.sampleFieldWithCoord(lon, lat);
@@ -473,6 +575,7 @@ abstract class ExpressionVectorField<ArrayType extends TypedArray, GridType exte
         return [brg, mag];
     }
 
+    /** @internal */
     public getSamplerIds() : {u: string[], v: string[]} {
         return {
             u: this.u.getSamplerIds().map(id => scalarIdToVectorComponentId(id, 'u')), 
@@ -480,6 +583,7 @@ abstract class ExpressionVectorField<ArrayType extends TypedArray, GridType exte
         };
     }
 
+    /** @internal */
     public getExpressions() : {u: string, v: string} {
         const translateVariables = (expr: string, component: 'u' | 'v') => {
             const matches = expr.match(/_0[a-z]*/g);
@@ -518,10 +622,12 @@ class RawVectorField<ArrayType extends TypedArray, GridType extends AutoZoomGrid
         this.v_ary = v_ary;
     }
 
+    /** @internal */
     public getSamplerIds() : {u: string[], v: string[]} {
         return {u: ['_u0'], v: ['_v0']};
     }
 
+    /** @internal */
     public getExpressions() : {u: string, v: string} {
         return {u: '_u0', v: '_v0'};
     }
