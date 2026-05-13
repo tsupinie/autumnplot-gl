@@ -20,7 +20,7 @@ marchingsquares.exe: $(TEST_OBJ_FILES)
 	g++ $(TEST_OBJ_FILES) -o marchingsquares.exe
 
 marchingsquares.js: $(JS_OBJ_FILES)
-	em++ -lembind $(JS_OBJ_FILES) -o marchingsquares.js -sENVIRONMENT=web -sMODULARIZE=1 -sALLOW_MEMORY_GROWTH -sNO_DISABLE_EXCEPTION_CATCHING --emit-tsd marchingsquares_embind.d.ts
+	em++ -lembind $(JS_OBJ_FILES) -o marchingsquares.js -sENVIRONMENT=web,worker -sMODULARIZE=1 -sALLOW_MEMORY_GROWTH -sNO_DISABLE_EXCEPTION_CATCHING -sEXPORTED_RUNTIME_METHODS=HEAPU8,HEAPF32,HEAPF64,ccall,cwrap --emit-tsd marchingsquares_embind.d.ts
 
 check: marchingsquares.exe
 js: marchingsquares.js

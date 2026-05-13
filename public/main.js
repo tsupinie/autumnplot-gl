@@ -1,4 +1,3 @@
-
 function makeSynthetic500mbLayers() {
     const nx = 121, ny = 61;
     const grid = new apgl.PlateCarreeGrid(nx, ny, -130, 20, -65, 55);
@@ -249,7 +248,6 @@ async function makeObsLayers() {
                             'tsrasn', 'tsra',  'tspl',  'tsgr', '+tsfzrapl', '+tsra', '+tssn', 'tssa', '+tsgr', 
                             '-up', '+up', '-fzup', '+fzup']
 
-    //const resp = await fetch('data/okmeso.json');
     const resp = await fetch('data/surface_20240823_1500.json');
     const obs = await resp.json();
 
@@ -261,19 +259,37 @@ async function makeObsLayers() {
     const obs_grid = new apgl.UnstructuredGrid(obs.map(o => o.coord));
     const obs_field = new apgl.RawObsField(obs_grid, obs.map(o => o.data));
 
-    // Should missing be NaN or null? Also, the function formatter isn't transferrable to JSON. Is that easy enough to fix?
+    const wx_category_colors = {
+        rain: '#2ca25f',
+        freezing_rain: '#e31a1c',
+        sleet: '#6a51a3',
+        snow: '#3182bd',
+        blowing_dust: '#a6611a',
+        thunder: '#ff7f00',
+        fog: '#bdbdbd',
+        none: '#000000'
+    };
+
+    function symbolColor(sym, cat) {
+        return wx_category_colors[cat];
+    }
+
     const station_plot_locs = {
-        //id: {type: 'string', pos: 'lr'},
-        tmpf: {type: 'number', pos: 'ul', color: '#cc0000', formatter: val => val === null ? '' : val.toFixed(0)},
+        tmpf: {type: 'number', pos: 'ul', cmap: apgl.colormaps.pw_t2m, formatter: val => val === null ? '' : val.toFixed(0)},
         dwpf: {type: 'number', pos: 'll', color: '#00aa00', formatter: val => val === null ? '' : val.toFixed(0)}, 
         wind: {type: 'barb', pos: 'c'},
-        preswx: {type: 'symbol', pos: 'cl', color: '#ff00ff'},
+        preswx: {type: 'symbol', pos: 'cl', color: symbolColor},
         skyc: {type: 'symbol', pos: 'c'},
     };
-    const station_plot = new apgl.StationPlot(obs_field, {config: station_plot_locs, thin_fac: 8, font_size: 14});
-    const station_plot_layer = new apgl.PlotLayer('station-plots', station_plot);
 
-    return {layers: [station_plot_layer]};
+    const station_plot = new apgl.StationPlot(obs_field, {config: station_plot_locs, thin_fac: 8, font_size: 14});
+    const station_plot_layer = new apgl.PlotLayer('station-plots-colored', station_plot);
+
+    const temp_cbar = apgl.makeColorBar(apgl.colormaps.pw_t2m, {label: "Temperature (F)", fontface: 'Trebuchet MS',
+                                                               ticks: [-60, -40, -20, 0, 20, 40, 60, 80, 100, 120],
+                                                               orientation: 'horizontal', tick_direction: 'bottom'});
+
+    return {layers: [station_plot_layer], colorbar: [temp_cbar]};
 }
 
 async function makeMRMSLayer() {
@@ -361,6 +377,7 @@ async function makeGOESLayer() {
     
     return {layers: [sat_layer], colorbar: [cbar]};
 }
+
 
 const views = {
     'default': {
@@ -500,3 +517,4 @@ window.addEventListener('load', () => {
     map.on('load', updateMap);
     menu.addEventListener('change', updateMap);
 });
+

@@ -65,6 +65,28 @@ class ColorMap {
     }
 
     /**
+     * Sample from the color map
+     * @param val - The value to sample from the color map
+     * @returns A color as an RGBA hex string
+     */
+    public getColor(val: number) : string {
+        if (val < this.levels[0]) {
+            return this.underflow_color === null ? '#00000000' : this.underflow_color.toRGBAHex();
+        }
+
+        if (val > this.levels[this.levels.length - 1]) {
+            return this.overflow_color === null ? '#00000000' : this.overflow_color.toRGBAHex();
+        }
+
+        let ilev = -1;
+        for (ilev = 0; ilev < this.levels.length - 1; ilev++) {
+            if (this.levels[ilev] <= val && val < this.levels[ilev + 1]) break;
+        }
+
+        return this.colors[Math.min(ilev, this.levels.length - 2)].toRGBAHex();
+    }
+
+    /**
      * Make a new color map with different opacities. The opacities are set by func.
      * @param func - A function which takes the two levels associated with a color (an upper and lower bound) and returns an opacity in the range from 0 to 1.
      * @returns A new color map

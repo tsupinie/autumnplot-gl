@@ -1,4 +1,3 @@
-
 import { PlotComponent, getContourWorkerPool } from "./PlotComponent";
 import Contour, {ContourOptions, ContourLabels, ContourLabelOptions} from "./Contour";
 import {ContourFill, Raster, ContourFillOptions, RasterOptions} from "./Fill";
