@@ -491,20 +491,7 @@ window.addEventListener('load', () => {
         });
 
         layers.forEach(lyr => {
-            try {
-                // Insert custom plotting layers beneath the country/state/county outlines
-                // so the geographic outlines remain visible on top of large rasters.
-                if (map.getLayer && map.getLayer('countries')) {
-                    map.addLayer(lyr, 'countries');
-                }
-                else {
-                    map.addLayer(lyr);
-                }
-            } catch (e) {
-                // If insertion before 'countries' failed, fall back to adding normally and log a warning
-                console.warn('Could not add layer', lyr.id, e);
-                try { map.addLayer(lyr); } catch (e2) { /* ignore */ }
-            }
+            map.addLayer(lyr, use_mapbox ? 'aeroway-polygon' : 'coastline');
         });
 
         const colorbar_container = document.querySelector('#colorbar');
