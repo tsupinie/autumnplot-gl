@@ -69,7 +69,7 @@ function makeSynthetic500mbLayers() {
     const filled = new apgl.ContourFill(raw_ws_field, {'cmap': colormap, 'opacity': 0.8});
     const barbs = new apgl.Barbs(raw_wind_field, {color: '#000000', thin_fac: 16});
 
-    const labels = new apgl.ContourLabels(cntr, {text_color: '#ffffff', halo: true, font_url_template: 'font/{fontstack}/{range}.pbf'});
+    const labels = new apgl.ContourLabels(cntr, {text_color: '#ffffff', halo: true, font_url_template: 'https://autumnsky.us/glyphs/{fontstack}/{range}.pbf'});
 
     const hght_layer = new apgl.PlotLayer('height', cntr);
     const ws_layer = new apgl.PlotLayer('wind-speed', filled);
@@ -137,8 +137,8 @@ async function makeHREFLayers() {
     const nh_prob_layer = new apgl.PlotLayer('nh_probs', nh_prob_contour);
 
     const labels = new apgl.ContourLabels(nh_prob_contour, {text_color: '#ffffff', halo: true, 
-                                                           label_formatter: val => Math.round(val * 100).toString(),
-                                                            font_url_template: 'font/{fontstack}/{range}.pbf'});
+                                                            label_formatter: val => Math.round(val * 100).toString(),
+                                                            font_url_template: 'https://autumnsky.us/glyphs/{fontstack}/{range}.pbf'});
     const label_layer = new apgl.PlotLayer('nh_prob_labels', labels);
 
 
@@ -199,7 +199,7 @@ async function makeGFSLayers() {
 
     const t2m_contour = new apgl.Contour(t2m_field, {levels: [32], line_width: 4});
     const t2m_contourlayer = new apgl.PlotLayer('t2m_contour', t2m_contour);
-    const labels = new apgl.ContourLabels(t2m_contour, {text_color: '#ffffff', halo: true, font_url_template: 'font/{fontstack}/{range}.pbf'});
+    const labels = new apgl.ContourLabels(t2m_contour, {text_color: '#ffffff', halo: true, font_url_template: 'https://autumnsky.us/glyphs/{fontstack}/{range}.pbf'});
     const label_layer = new apgl.PlotLayer('label', labels);
 
     const svg = apgl.makeColorBar(colormap, {label: "Temperature", fontface: 'Trebuchet MS', 
@@ -248,45 +248,6 @@ async function makeObsLayers() {
                             'tsrasn', 'tsra',  'tspl',  'tsgr', '+tsfzrapl', '+tsra', '+tssn', 'tssa', '+tsgr', 
                             '-up', '+up', '-fzup', '+fzup']
 
-    //const resp = await fetch('data/okmeso.json');
-    const resp = await fetch('data/surface_20240823_1500.json');
-    const obs = await resp.json();
-
-    obs.forEach((ob, iob) => {
-        ob.data.skyc = skyc_choices[iob % skyc_choices.length];
-        ob.data.preswx = preswx_choices[iob % preswx_choices.length];
-    });
-
-    const obs_grid = new apgl.UnstructuredGrid(obs.map(o => o.coord));
-    const obs_field = new apgl.RawObsField(obs_grid, obs.map(o => o.data));
-
-    // Should missing be NaN or null? Also, the function formatter isn't transferrable to JSON. Is that easy enough to fix?
-    const station_plot_locs = {
-        //id: {type: 'string', pos: 'lr'},
-        tmpf: {type: 'number', pos: 'ul', color: '#cc0000', formatter: val => val === null ? '' : val.toFixed(0)},
-        dwpf: {type: 'number', pos: 'll', color: '#00aa00', formatter: val => val === null ? '' : val.toFixed(0)}, 
-        wind: {type: 'barb', pos: 'c'},
-        preswx: {type: 'symbol', pos: 'cl', color: '#ff00ff'},
-        skyc: {type: 'symbol', pos: 'c'},
-    };
-    const station_plot = new apgl.StationPlot(obs_field, {config: station_plot_locs, thin_fac: 8, font_size: 14});
-    const station_plot_layer = new apgl.PlotLayer('station-plots', station_plot);
-
-    return {layers: [station_plot_layer]};
-}
-
-async function makeObsColorLayers() {
-    const skyc_choices = ['0/8', '1/8', '2/8', '3/8', '4/8', '5/8', '6/8', '7/8', '8/8', 'obsc', null];
-    const preswx_choices = ['fu', 'hz', 'du', 'bldu', 'po', 'vcds',
-                            'br', 'bc', 'mifg', 'vcts', 'virga', 'vcsh', 'ts', 
-                            'sq', 'fc', 'ds', '+ds', 'drsn', '+drsn', '-blsn', '+blsn',
-                            'vcfg', 'bcfg', 'prfg', 'fg', 'fzfg', 
-                            '-vctsdz', '-dz', '-dzbr', 'vctsdz', 'dz', '+vctsdz', '+dz', '-fzdz', 'fzdz', '-dzra', '+dzra', 
-                            '-ra', 'ra', '+ra', '-fzra',  'fzra',  '-rasn', 'rasn', '-sn', 'sn', '+sn', 'ic',  'pl',
-                            '-sh', 'sh', '-shsnra', '+shrabr', '-shsn', 'shsn', '-gs', '-sngs', '-gr', 'gr', 
-                            'tsrasn', 'tsra',  'tspl',  'tsgr', '+tsfzrapl', '+tsra', '+tssn', 'tssa', '+tsgr', 
-                            '-up', '+up', '-fzup', '+fzup']
-
     const resp = await fetch('data/surface_20240823_1500.json');
     const obs = await resp.json();
 
@@ -305,15 +266,20 @@ async function makeObsColorLayers() {
         snow: '#3182bd',
         blowing_dust: '#a6611a',
         thunder: '#ff7f00',
-        fog: '#bdbdbd'
+        fog: '#bdbdbd',
+        none: '#000000'
     };
 
+    function symbolColor(sym, cat) {
+        return wx_category_colors[cat];
+    }
+
     const station_plot_locs = {
-        tmpf: {type: 'number', pos: 'ul', halo: false, cmap: apgl.colormaps.pw_t2m, formatter: val => val === null ? '' : val.toFixed(0)},
-        dwpf: {type: 'number', pos: 'll', halo: false, cmap: apgl.colormaps.pw_td2m, formatter: val => val === null ? '' : val.toFixed(0)}, 
-        wind: {type: 'barb', pos: 'c', halo: false, color: '#e6e1e1'},
-        preswx: {type: 'symbol', pos: 'cl', symbol_category_colors: wx_category_colors, halo: false},
-        // skyc: {type: 'symbol', pos: 'c', halo: false},
+        tmpf: {type: 'number', pos: 'ul', cmap: apgl.colormaps.pw_t2m, formatter: val => val === null ? '' : val.toFixed(0)},
+        dwpf: {type: 'number', pos: 'll', color: '#00aa00', formatter: val => val === null ? '' : val.toFixed(0)}, 
+        wind: {type: 'barb', pos: 'c'},
+        preswx: {type: 'symbol', pos: 'cl', color: symbolColor},
+        skyc: {type: 'symbol', pos: 'c'},
     };
 
     const station_plot = new apgl.StationPlot(obs_field, {config: station_plot_locs, thin_fac: 8, font_size: 14});
@@ -322,11 +288,8 @@ async function makeObsColorLayers() {
     const temp_cbar = apgl.makeColorBar(apgl.colormaps.pw_t2m, {label: "Temperature (F)", fontface: 'Trebuchet MS',
                                                                ticks: [-60, -40, -20, 0, 20, 40, 60, 80, 100, 120],
                                                                orientation: 'horizontal', tick_direction: 'bottom'});
-    const dew_cbar = apgl.makeColorBar(apgl.colormaps.pw_td2m, {label: "Dewpoint (F)", fontface: 'Trebuchet MS',
-                                                               ticks: [-60, -40, -20, 0, 20, 40, 60, 80],
-                                                               orientation: 'horizontal', tick_direction: 'bottom'});
 
-    return {layers: [station_plot_layer], colorbar: [temp_cbar, dew_cbar]};
+    return {layers: [station_plot_layer], colorbar: [temp_cbar]};
 }
 
 async function makeMRMSLayer() {
@@ -415,177 +378,6 @@ async function makeGOESLayer() {
     return {layers: [sat_layer], colorbar: [cbar]};
 }
 
-function makeGeometryLayers() {
-    const text_cmap = apgl.colormaps.pw_t2m;
-
-    const watch_box = apgl.createWatchBox(
-        [
-            [-99.8, 35.0],
-            [-97.2, 35.0],
-            [-97.2, 36.3],
-            [-99.8, 36.3]
-        ],
-        {
-            fill_color: '#ffe100',
-            fill_opacity: 0.2,
-            outline_color: '#c9a200',
-            outline_width: 2,
-            outline_style: '--'
-        }
-    );
-
-    const warning_poly = apgl.createWarningBox(
-        [
-            [-98.7, 35.3],
-            [-97.9, 35.2],
-            [-97.3, 35.6],
-            [-98.0, 35.9]
-        ],
-        {
-            fill_color: '#ff3b30',
-            fill_opacity: 0.25,
-            outline_color: '#ff3b30',
-            outline_width: 2
-        }
-    );
-
-    const spaghetti_lines = [
-        [[-101.0, 36.1], [-99.5, 36.6], [-98.0, 37.3]],
-        [[-100.6, 35.8], [-99.1, 36.4], [-97.6, 37.1]],
-        [[-100.2, 35.6], [-98.8, 36.2], [-97.4, 36.9]]
-    ];
-
-    const spaghetti_features = apgl.createSpaghettiPlot(spaghetti_lines, {
-        line_color: '#e600ff',
-        line_width: 2,
-        line_style: '--'
-    });
-
-    const track_points = [
-        {lon: -99.6, lat: 34.8, value: 60},
-        {lon: -98.8, lat: 35.0, value: 70},
-        {lon: -98.1, lat: 35.3, value: 80},
-        {lon: -97.4, lat: 35.6, value: 90}
-    ];
-
-    const track_feature = apgl.createTrack(track_points, {
-        line_cmap: text_cmap,
-        line_width: 3
-    });
-
-    const title_feature = {
-        geometry: {type: 'Point', coordinates: [-98.3, 35.5]},
-        text: 'Geometry Demo',
-        style: {
-            text_color: '#ffffff',
-            text_halo: true,
-            text_halo_color: '#000000',
-            text_font_size: 14
-        }
-    };
-
-    const label_points = [
-        {lon: -99.2, lat: 35.2, label: '60', value: 60},
-        {lon: -98.6, lat: 35.1, label: '70', value: 70},
-        {lon: -98.0, lat: 35.3, label: '80', value: 80},
-        {lon: -97.5, lat: 35.5, label: '90', value: 90}
-    ];
-
-    const label_feature = {
-        geometry: {
-            type: 'MultiPoint',
-            coordinates: label_points.map(pt => [pt.lon, pt.lat])
-        },
-        text: label_points.map(pt => pt.label),
-        data: label_points.map(pt => pt.value),
-        style: {
-            text_cmap: text_cmap,
-            text_halo: true,
-            text_halo_color: '#000000',
-            text_font_size: 14
-        }
-    };
-
-    const features = [
-        watch_box,
-        warning_poly,
-        track_feature,
-        title_feature,
-        label_feature,
-        ...spaghetti_features
-    ];
-
-    const geometry = new apgl.GeometryComponent(features);
-    const geom_layer = new apgl.PlotLayer('geometry-demo', geometry);
-
-    const text_cbar = apgl.makeColorBar(text_cmap, {label: 'Text/Track Value (F)', fontface: 'Trebuchet MS',
-                                                   ticks: [-60, -40, -20, 0, 20, 40, 60, 80, 100, 120],
-                                                   orientation: 'horizontal', tick_direction: 'bottom'});
-
-    return {layers: [geom_layer], colorbar: [text_cbar]};
-}
-
-function makeLightningLayers() {
-    const strike_age_levels = [0, 5, 10, 15, 20, 30, 45, 60];
-    const strike_age_colors = ['#ffffb2', '#fed976', '#feb24c', '#fd8d3c', '#fc4e2a', '#e31a1c', '#b10026'];
-    const strike_age_cmap = new apgl.ColorMap(strike_age_levels, strike_age_colors, {overflow_color: '#4d0014'});
-
-    const strikes = [];
-    const lon0 = -100.3;
-    const lat0 = 34.7;
-    const n_lon = 28;
-    const n_lat = 12;
-    const dlon = 0.18;
-    const dlat = 0.12;
-
-    for (let j = 0; j < n_lat; j++) {
-        for (let i = 0; i < n_lon; i++) {
-            const jitter = 0.03 * Math.sin(i * 0.7 + j * 1.3);
-            const lon = lon0 + i * dlon + jitter;
-            const lat = lat0 + j * dlat + 0.5 * jitter;
-            const polarity = (i + j) % 2 === 0 ? '+' : '-';
-            const age = (i * 3 + j * 5) % 60;
-
-            strikes.push({lon: lon, lat: lat, polarity: polarity, age: age});
-        }
-    }
-
-    const strike_feature = {
-        geometry: {
-            type: 'MultiPoint',
-            coordinates: strikes.map(s => [s.lon, s.lat])
-        },
-        text: strikes.map(s => s.polarity),
-        data: strikes.map(s => s.age),
-        style: {
-            text_cmap: strike_age_cmap,
-            text_halo: true,
-            text_halo_color: '#000000',
-            text_font_size: 18
-        }
-    };
-
-    const title_feature = {
-        geometry: {type: 'Point', coordinates: [-98.6, 36.0]},
-        text: 'Lightning Polarity (+/-) by Age',
-        style: {
-            text_color: '#ffffff',
-            text_halo: true,
-            text_halo_color: '#000000',
-            text_font_size: 14
-        }
-    };
-
-    const geometry = new apgl.GeometryComponent([strike_feature, title_feature]);
-    const geom_layer = new apgl.PlotLayer('lightning-demo', geometry);
-
-    const cbar = apgl.makeColorBar(strike_age_cmap, {label: 'Strike Age (min)', fontface: 'Trebuchet MS',
-                                                     ticks: strike_age_levels,
-                                                     orientation: 'horizontal', tick_direction: 'bottom'});
-
-    return {layers: [geom_layer], colorbar: [cbar]};
-}
-
 
 const views = {
     'default': {
@@ -613,11 +405,6 @@ const views = {
         makeLayers: makeObsLayers,
         maxZoom: 8.5,
     },
-    'obs-colored': {
-        name: "Obs Colored",
-        makeLayers: makeObsColorLayers,
-        maxZoom: 8.5,
-    },
     'mrms': {
         name: "MRMS",
         makeLayers: makeMRMSLayer,
@@ -632,16 +419,6 @@ const views = {
         name: "GOES",
         makeLayers: makeGOESLayer,
         maxZoom: 9,
-    },
-    'geometry': {
-        name: "Geometry Demo",
-        makeLayers: makeGeometryLayers,
-        maxZoom: 9,
-    },
-    'lightning': {
-        name: "Lightning",
-        makeLayers: makeLightningLayers,
-        maxZoom: 10,
     },
 };
 
@@ -714,20 +491,7 @@ window.addEventListener('load', () => {
         });
 
         layers.forEach(lyr => {
-            try {
-                // Insert custom plotting layers beneath the country/state/county outlines
-                // so the geographic outlines remain visible on top of large rasters.
-                if (map.getLayer && map.getLayer('countries')) {
-                    map.addLayer(lyr, 'countries');
-                }
-                else {
-                    map.addLayer(lyr);
-                }
-            } catch (e) {
-                // If insertion before 'countries' failed, fall back to adding normally and log a warning
-                console.warn('Could not add layer', lyr.id, e);
-                try { map.addLayer(lyr); } catch (e2) { /* ignore */ }
-            }
+            map.addLayer(lyr, use_mapbox ? 'aeroway-polygon' : 'coastline');
         });
 
         const colorbar_container = document.querySelector('#colorbar');

@@ -1,5 +1,6 @@
 import { getRendererData, isWebGL2Ctx, RenderMethodArg, WebGLAnyRenderingContext } from "./AutumnTypes";
 import { Color } from "./Color";
+import { ColorMap, ColorMapGPUInterface } from "./Colormap";
 import { LngLat } from "./Map";
 import { ShaderProgramManager } from "./ShaderManager";
 import { Cache, normalizeOptions } from "./utils";
@@ -169,6 +170,7 @@ interface TextSpec {
     lon: number;
     text: string;
     min_zoom?: number;
+    data_value?: number;
 }
 
 type HorizontalAlign = 'left' | 'center' | 'right';
@@ -179,6 +181,7 @@ interface TextCollectionOptions {
     vertical_align?: VerticalAlign;
     font_size?: number;
     text_color?: Color;
+    cmap?: ColorMap | null;
     halo_color?: Color;
     halo?: boolean;
     offset_x?: number;
@@ -190,6 +193,7 @@ const text_collection_opt_defaults: Required<TextCollectionOptions> = {
     vertical_align: 'baseline',
     font_size: 12,
     text_color: new Color([0, 0, 0, 1]),
+    cmap: null,
     halo_color: new Color([0, 0, 0, 1]),
     halo: false,
     offset_x: 0,
@@ -201,12 +205,17 @@ class TextCollection {
     readonly anchors: WGLBuffer;
     readonly offsets: WGLBuffer;
     readonly texcoords: WGLBuffer;
+    readonly data: WGLBuffer | null;
     readonly texture: WGLTexture;
+
+    readonly cmap_gpu: ColorMapGPUInterface | null;
 
     readonly opts: Required<TextCollectionOptions>;
 
     private constructor(gl: WebGLAnyRenderingContext, text_locs: TextSpec[], font_atlas: FontAtlas, opts?: TextCollectionOptions) {
         this.opts = normalizeOptions(opts, text_collection_opt_defaults);
+
+        const text_color_hex = this.opts.text_color === undefined ? new Color([0, 0, 0, 1]) : this.opts.text_color;
         
         const is_webgl2 = isWebGL2Ctx(gl);
         const format = is_webgl2 ? gl.R8 : gl.LUMINANCE;
@@ -230,13 +239,18 @@ class TextCollection {
         const anchor_data = new Float32Array(n_verts * 3);
         const offset_data = new Float32Array(n_verts * 2);
         const tc_data = new Float32Array(n_verts * 2);
+        const value_data = new Float32Array(n_verts);
 
-        let i_anch = 0, i_off = 0, i_tc = 0;
+        let i_anch = 0, i_off = 0, i_tc = 0, i_dat = 0;
+        let has_data = false;
 
         text_locs.forEach(loc => {
             const {lat, lon, text} = loc;
             const min_zoom = loc.min_zoom === undefined ? 0 : loc.min_zoom;
+            const data_value = loc.data_value === undefined ? NaN : loc.data_value;
             const {x: anchor_x, y: anchor_y} = new LngLat(lon, lat).toMercatorCoord();
+
+            has_data = has_data || loc.data_value !== undefined;
             
             let x_offset = this.opts.offset_x;
             let y_offset = this.opts.offset_y;
@@ -274,6 +288,13 @@ class TextCollection {
                 tc_data[i_tc++] = (glyph_info.atlas_i + glyph_info.width) / font_atlas.atlas_width; tc_data[i_tc++] = glyph_info.atlas_j / font_atlas.atlas_height;
                 tc_data[i_tc++] = (glyph_info.atlas_i + glyph_info.width) / font_atlas.atlas_width; tc_data[i_tc++] = glyph_info.atlas_j / font_atlas.atlas_height;
 
+                value_data[i_dat++] = data_value;
+                value_data[i_dat++] = data_value;
+                value_data[i_dat++] = data_value;
+                value_data[i_dat++] = data_value;
+                value_data[i_dat++] = data_value;
+                value_data[i_dat++] = data_value;
+
                 x_offset += glyph_info.advance - glyph_info.left;
             }
 
@@ -300,11 +321,31 @@ class TextCollection {
             }
         });
 
-        this.shader_manager = new ShaderProgramManager(text_vertex_shader_src, text_fragment_shader_src, []);
+        const shader_defines: string[] = [];
+        let fragment_src = text_fragment_shader_src;
+
+        if (has_data) {
+            shader_defines.push('DATA');
+
+            this.data = new WGLBuffer(gl, value_data, 1, gl.TRIANGLE_STRIP);
+
+            const cmap = this.opts.cmap === null ? new ColorMap([0, 1], [text_color_hex], {overflow_color: text_color_hex, underflow_color: text_color_hex}) : this.opts.cmap;
+            this.cmap_gpu = new ColorMapGPUInterface(cmap);
+            this.cmap_gpu.setupShaderVariables(gl, gl.NEAREST);
+
+            fragment_src = ColorMapGPUInterface.applyShader(fragment_src);
+        }
+        else {
+            this.data = null;
+            this.cmap_gpu = null;
+        }
+
+        this.shader_manager = new ShaderProgramManager(text_vertex_shader_src, fragment_src, shader_defines);
 
         this.anchors = new WGLBuffer(gl, anchor_data, 3, gl.TRIANGLE_STRIP);
         this.offsets = new WGLBuffer(gl, offset_data, 2, gl.TRIANGLE_STRIP);
         this.texcoords = new WGLBuffer(gl, tc_data, 2, gl.TRIANGLE_STRIP);
+        this.data = has_data ? new WGLBuffer(gl, value_data, 1, gl.TRIANGLE_STRIP) : null;
     }
 
     static async make(gl: WebGLAnyRenderingContext, text_locs: TextSpec[], fontstack_url_template: string, opts?: TextCollectionOptions) {
@@ -340,19 +381,32 @@ class TextCollection {
         const render_data = getRendererData(arg);
         const program = this.shader_manager.getShaderProgram(gl, render_data.shaderData);
 
+        const attributes: Record<string, any> = {'a_pos': this.anchors, 'a_offset': this.offsets, 'a_tex_coord': this.texcoords};
+
         const uniforms: Record<string, any> = {
             'u_map_width': map_width, 'u_map_height': map_height, 'u_map_zoom': map_zoom, 'u_font_size': this.opts.font_size,
-            'u_text_color': this.opts.text_color.toRGBATuple(), 'u_halo_color': this.opts.halo_color.toRGBATuple(), 'u_offset': 0,
+            'u_halo_color': this.opts.halo_color.toRGBATuple(), 'u_offset': 0,
             ...this.shader_manager.getShaderUniforms(render_data)
+        }
+
+        if (this.data !== null) {
+            attributes['a_value'] = this.data;
+        }
+        else {
+            uniforms['u_text_color'] = this.opts.text_color.toRGBATuple();
         }
 
         uniforms['u_is_halo'] = this.opts.halo ? 1 : 0;
 
         program.use(
-            {'a_pos': this.anchors, 'a_offset': this.offsets, 'a_tex_coord': this.texcoords},
+            attributes,
             uniforms,
             {'u_sdf_sampler': this.texture}
         );
+
+        if (this.cmap_gpu !== null) {
+            this.cmap_gpu.bindShaderVariables(program);
+        }
 
         gl.enable(gl.BLEND);
         gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
