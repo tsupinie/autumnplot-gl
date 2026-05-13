@@ -4,10 +4,7 @@ sidebar_position: 2
 import {DemoMap, DemoContourLayer, DemoBarbLayer, DemoContourFillLayer} from '@site/src/components/DemoMap';
 
 # Basic Data Plotting
-The first step in plotting data is to create a grid. Currently, these are the only supported grids:
-- `PlateCarreeGrid` (a.k.a. Lat/Lon)
-- `RotatedPlateCarreeGrid`
-- `LambertGrid` (a.k.a. Lambert Conformal Conic)
+The first step in plotting data is to create a grid. See [here](grids) for a list of supported grids.
 
 ```javascript
 // Create a grid object that covers the continental United States
