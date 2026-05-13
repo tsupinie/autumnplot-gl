@@ -195,6 +195,75 @@ interface VerticalPerspectiveParams {
     b: number,
 }
 
+// Changes to the geostationaryProjection to make sure the coastlines and satellite line up
+function geostationaryProjection(params: {
+    lon_0: number,
+    H: number,
+    a: number,
+    b: number
+}) {
+
+    const radians = Math.PI / 180;
+
+    const { lon_0, H, a, b } = params;
+    const lambda_0 = lon_0 * radians;
+
+    const a2 = a * a;
+    const b2 = b * b;
+
+    const forward = (lon: number, lat: number): [number, number] => {
+        lon *= radians;
+        lat *= radians;
+
+        const cos_lat = Math.cos(lat);
+        const sin_lat = Math.sin(lat);
+        const cos_lon = Math.cos(lon - lambda_0);
+        const sin_lon = Math.sin(lon - lambda_0);
+
+        const rc = b / Math.sqrt(1 - (1 - (b2 / a2)) * cos_lat * cos_lat);
+
+        const sx = rc * cos_lat * cos_lon;
+        const sy = rc * cos_lat * sin_lon;
+        const sz = rc * sin_lat;
+
+        const x = Math.atan(-sy / (H - sx));
+        const y = Math.atan(sz / Math.sqrt((H - sx)*(H - sx) + sy*sy));
+
+        return [x, y];
+    };
+
+    const inverse = (x: number, y: number): [number, number] => {
+        // x = E-W scan angle (radians), y = N-S scan angle (radians)
+        // GOES-R PUG-L1B-vol3 Section 4.2 / Table 4.2.8-1
+        const sin_x = Math.sin(x);
+        const cos_x = Math.cos(x);
+        const sin_y = Math.sin(y);
+        const cos_y = Math.cos(y);
+
+        const a_var = sin_x*sin_x + cos_x*cos_x * (cos_y*cos_y + (a2/b2)*sin_y*sin_y);
+        const b_var = -2 * H * cos_x * cos_y;
+        const c_var = H*H - a2;
+
+        const disc = b_var*b_var - 4*a_var*c_var;
+        if (disc < 0) return [NaN, NaN];   // off-Earth scan angle
+
+        const rs = (-b_var - Math.sqrt(disc)) / (2*a_var);
+
+        const sx = rs * cos_x * cos_y;
+        const sy = -rs * sin_x;              // no cos_y factor
+        const sz =  rs * cos_x * sin_y;     // needs cos_x factor
+
+        const lon = lambda_0 - Math.atan(sy / (H - sx));
+        const lat = Math.atan((a2/b2) * (sz / Math.sqrt((H - sx)*(H - sx) + sy*sy)));
+
+        return [lon / radians, lat / radians];
+    };
+
+    return (a: number, b: number, opts?: {inverse: boolean}) => {
+        return opts?.inverse ? inverse(a, b) : forward(a, b);
+    };
+}
+
 function verticalPerspective(params: VerticalPerspectiveParams) {
     // WGS 84 spheroid
     const semimajor = params.a;
@@ -327,5 +396,5 @@ function latFromMercatorY(y: number) {
     }
 }
 
-export {LngLat, lambertConformalConic, rotateSphere, verticalPerspective};
+export {LngLat, lambertConformalConic, rotateSphere, verticalPerspective, geostationaryProjection};
 export type {MapLikeType};
