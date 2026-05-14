@@ -360,7 +360,7 @@ async function makeNEXRADLayer() {
 
 async function makeGOESLayer() {
     // CONUS mid-level water vapor
-    const grid = new apgl.GeostationaryImage(2500, 1500, -3626269.332309611, 4589199.739172205, 1381769.939093754, 1583173.7143861316, -75.0);
+    const grid = new apgl.GeostationaryImage(2500, 1500, -0.10136, 0.12824, 0.03864, 0.04424, -75.0);
     const data = await fetchBinary('data/g19_conus_band9_20251028_160236.gz');
 
     const cmap = apgl.colormaps.wv_cimss;

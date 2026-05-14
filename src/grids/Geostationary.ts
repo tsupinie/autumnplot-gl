@@ -1,5 +1,5 @@
 import { WebGLAnyRenderingContext } from "../AutumnTypes";
-import { verticalPerspective } from "../Map";
+import { geostationaryProjection } from "../Map";
 import { gridCoordinateMixin } from "./GridCoordinates";
 import { StructuredGrid, makeCartesianDomainBuffers } from "./StructuredGrid";
 
@@ -33,7 +33,8 @@ class GeostationaryImage extends gridCoordinateMixin(StructuredGrid) {
         this.ur_x = ur_x;
         this.ur_y = ur_y;
 
-        this.vpp = verticalPerspective({lon_0: satellite_lon, lat_0: 0, alt: 35786023.0, a: 6378137.0, b: 6356752.31414});
+        //this.vpp = verticalPerspective({lon_0: satellite_lon, lat_0: 0, alt: 35786023.0, a: 6378137.0, b: 6356752.31414});
+        this.vpp = geostationaryProjection({lon_0: satellite_lon, alt: 35786023.0 + 6378137.0, a: 6378137.0, b: 6356752.31414});
 
         this.setupCoordinateCaches(ll_x, ur_x, ll_y, ur_y);
     }
