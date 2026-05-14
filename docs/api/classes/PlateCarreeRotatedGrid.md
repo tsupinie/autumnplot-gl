@@ -4,7 +4,7 @@ title: PlateCarreeRotatedGrid
 
 # Class: PlateCarreeRotatedGrid
 
-Defined in: [grids/PlateCarreeRotatedGrid.ts:18](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/PlateCarreeRotatedGrid.ts#L18)
+Defined in: [grids/PlateCarreeRotatedGrid.ts:18](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/PlateCarreeRotatedGrid.ts#L18)
 
 A rotated lat-lon (plate carree) grid with uniform grid spacing 
 
@@ -27,7 +27,7 @@ A rotated lat-lon (plate carree) grid with uniform grid spacing
 
 > **new PlateCarreeRotatedGrid**(`ni`, `nj`, `np_lon`, `np_lat`, `lon_shift`, `ll_lon`, `ll_lat`, `ur_lon`, `ur_lat`, `thin_x?`, `thin_y?`): `PlateCarreeRotatedGrid`
 
-Defined in: [grids/PlateCarreeRotatedGrid.ts:41](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/PlateCarreeRotatedGrid.ts#L41)
+Defined in: [grids/PlateCarreeRotatedGrid.ts:41](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/PlateCarreeRotatedGrid.ts#L41)
 
 Create a Lambert conformal conic grid
 
@@ -59,19 +59,19 @@ Create a Lambert conformal conic grid
 
 | Property | Modifier | Type | Inherited from | Defined in |
 | ------ | ------ | ------ | ------ | ------ |
-| <a id="is_conformal"></a> `is_conformal` | `readonly` | `boolean` | `autoZoomGridMixin(gridCoordinateMixin(StructuredGrid)).is_conformal` | [grids/Grid.ts:23](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/Grid.ts#L23) |
-| <a id="ll_lat"></a> `ll_lat` | `readonly` | `number` | - | [grids/PlateCarreeRotatedGrid.ts:23](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/PlateCarreeRotatedGrid.ts#L23) |
-| <a id="ll_lon"></a> `ll_lon` | `readonly` | `number` | - | [grids/PlateCarreeRotatedGrid.ts:22](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/PlateCarreeRotatedGrid.ts#L22) |
-| <a id="lon_shift"></a> `lon_shift` | `readonly` | `number` | - | [grids/PlateCarreeRotatedGrid.ts:21](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/PlateCarreeRotatedGrid.ts#L21) |
-| <a id="ni"></a> `ni` | `readonly` | `number` | `autoZoomGridMixin(gridCoordinateMixin(StructuredGrid)).ni` | [grids/Grid.ts:21](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/Grid.ts#L21) |
-| <a id="nj"></a> `nj` | `readonly` | `number` | `autoZoomGridMixin(gridCoordinateMixin(StructuredGrid)).nj` | [grids/Grid.ts:22](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/Grid.ts#L22) |
-| <a id="np_lat"></a> `np_lat` | `readonly` | `number` | - | [grids/PlateCarreeRotatedGrid.ts:20](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/PlateCarreeRotatedGrid.ts#L20) |
-| <a id="np_lon"></a> `np_lon` | `readonly` | `number` | - | [grids/PlateCarreeRotatedGrid.ts:19](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/PlateCarreeRotatedGrid.ts#L19) |
-| <a id="thin_x"></a> `thin_x` | `readonly` | `number` | `autoZoomGridMixin(gridCoordinateMixin(StructuredGrid)).thin_x` | [grids/StructuredGrid.ts:34](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/StructuredGrid.ts#L34) |
-| <a id="thin_y"></a> `thin_y` | `readonly` | `number` | `autoZoomGridMixin(gridCoordinateMixin(StructuredGrid)).thin_y` | [grids/StructuredGrid.ts:35](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/StructuredGrid.ts#L35) |
-| <a id="type"></a> `type` | `readonly` | [`GridType`](../type-aliases/GridType.md) | `autoZoomGridMixin(gridCoordinateMixin(StructuredGrid)).type` | [grids/Grid.ts:20](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/Grid.ts#L20) |
-| <a id="ur_lat"></a> `ur_lat` | `readonly` | `number` | - | [grids/PlateCarreeRotatedGrid.ts:25](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/PlateCarreeRotatedGrid.ts#L25) |
-| <a id="ur_lon"></a> `ur_lon` | `readonly` | `number` | - | [grids/PlateCarreeRotatedGrid.ts:24](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/PlateCarreeRotatedGrid.ts#L24) |
+| <a id="is_conformal"></a> `is_conformal` | `readonly` | `boolean` | `autoZoomGridMixin(gridCoordinateMixin(StructuredGrid)).is_conformal` | [grids/Grid.ts:23](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/Grid.ts#L23) |
+| <a id="ll_lat"></a> `ll_lat` | `readonly` | `number` | - | [grids/PlateCarreeRotatedGrid.ts:23](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/PlateCarreeRotatedGrid.ts#L23) |
+| <a id="ll_lon"></a> `ll_lon` | `readonly` | `number` | - | [grids/PlateCarreeRotatedGrid.ts:22](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/PlateCarreeRotatedGrid.ts#L22) |
+| <a id="lon_shift"></a> `lon_shift` | `readonly` | `number` | - | [grids/PlateCarreeRotatedGrid.ts:21](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/PlateCarreeRotatedGrid.ts#L21) |
+| <a id="ni"></a> `ni` | `readonly` | `number` | `autoZoomGridMixin(gridCoordinateMixin(StructuredGrid)).ni` | [grids/Grid.ts:21](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/Grid.ts#L21) |
+| <a id="nj"></a> `nj` | `readonly` | `number` | `autoZoomGridMixin(gridCoordinateMixin(StructuredGrid)).nj` | [grids/Grid.ts:22](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/Grid.ts#L22) |
+| <a id="np_lat"></a> `np_lat` | `readonly` | `number` | - | [grids/PlateCarreeRotatedGrid.ts:20](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/PlateCarreeRotatedGrid.ts#L20) |
+| <a id="np_lon"></a> `np_lon` | `readonly` | `number` | - | [grids/PlateCarreeRotatedGrid.ts:19](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/PlateCarreeRotatedGrid.ts#L19) |
+| <a id="thin_x"></a> `thin_x` | `readonly` | `number` | `autoZoomGridMixin(gridCoordinateMixin(StructuredGrid)).thin_x` | [grids/StructuredGrid.ts:34](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/StructuredGrid.ts#L34) |
+| <a id="thin_y"></a> `thin_y` | `readonly` | `number` | `autoZoomGridMixin(gridCoordinateMixin(StructuredGrid)).thin_y` | [grids/StructuredGrid.ts:35](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/StructuredGrid.ts#L35) |
+| <a id="type"></a> `type` | `readonly` | [`GridType`](../type-aliases/GridType.md) | `autoZoomGridMixin(gridCoordinateMixin(StructuredGrid)).type` | [grids/Grid.ts:20](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/Grid.ts#L20) |
+| <a id="ur_lat"></a> `ur_lat` | `readonly` | `number` | - | [grids/PlateCarreeRotatedGrid.ts:25](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/PlateCarreeRotatedGrid.ts#L25) |
+| <a id="ur_lon"></a> `ur_lon` | `readonly` | `number` | - | [grids/PlateCarreeRotatedGrid.ts:24](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/PlateCarreeRotatedGrid.ts#L24) |
 
 ## Methods
 
@@ -79,7 +79,7 @@ Create a Lambert conformal conic grid
 
 > **getDomainBuffers**(`gl`): `Promise`\<`DomainBuffers`\>
 
-Defined in: [grids/DomainBuffer.ts:9](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/DomainBuffer.ts#L9)
+Defined in: [grids/DomainBuffer.ts:9](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/DomainBuffer.ts#L9)
 
 #### Parameters
 
@@ -101,7 +101,7 @@ Defined in: [grids/DomainBuffer.ts:9](https://github.com/tsupinie/autumnplot-gl/
 
 > **getEarthCoords**(`ni?`, `nj?`, `which_i?`, `which_j?`): `EarthCoords`
 
-Defined in: [grids/GridCoordinates.ts:8](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/GridCoordinates.ts#L8)
+Defined in: [grids/GridCoordinates.ts:8](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/GridCoordinates.ts#L8)
 
 #### Parameters
 
@@ -126,7 +126,7 @@ Defined in: [grids/GridCoordinates.ts:8](https://github.com/tsupinie/autumnplot-
 
 > **getGridCoords**(): `GridCoords`
 
-Defined in: [grids/GridCoordinates.ts:9](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/GridCoordinates.ts#L9)
+Defined in: [grids/GridCoordinates.ts:9](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/GridCoordinates.ts#L9)
 
 #### Returns
 
@@ -142,7 +142,7 @@ Defined in: [grids/GridCoordinates.ts:9](https://github.com/tsupinie/autumnplot-
 
 > **getMinVisibleZoom**(`thin_fac`): `Uint8Array`
 
-Defined in: [grids/AutoZoom.ts:56](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/AutoZoom.ts#L56)
+Defined in: [grids/AutoZoom.ts:56](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/AutoZoom.ts#L56)
 
 #### Parameters
 
@@ -164,7 +164,7 @@ Defined in: [grids/AutoZoom.ts:56](https://github.com/tsupinie/autumnplot-gl/blo
 
 > **getVectorRotationAtPoint**(`lon`, `lat`): `number`
 
-Defined in: [grids/AutoZoom.ts:55](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/AutoZoom.ts#L55)
+Defined in: [grids/AutoZoom.ts:55](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/AutoZoom.ts#L55)
 
 #### Parameters
 
@@ -187,7 +187,7 @@ Defined in: [grids/AutoZoom.ts:55](https://github.com/tsupinie/autumnplot-gl/blo
 
 > **getVectorRotationTexture**(`gl`, `data_are_earth_relative`): `object`
 
-Defined in: [grids/AutoZoom.ts:54](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/AutoZoom.ts#L54)
+Defined in: [grids/AutoZoom.ts:54](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/AutoZoom.ts#L54)
 
 #### Parameters
 
@@ -214,7 +214,7 @@ Defined in: [grids/AutoZoom.ts:54](https://github.com/tsupinie/autumnplot-gl/blo
 
 > **getWGLBillboardBuffers**(`gl`, `thin_fac`, `max_zoom`): `Promise`\<\{ `texcoords`: `WGLBuffer`; `vertices`: `WGLBuffer`; \}\>
 
-Defined in: [grids/AutoZoom.ts:53](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/AutoZoom.ts#L53)
+Defined in: [grids/AutoZoom.ts:53](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/AutoZoom.ts#L53)
 
 #### Parameters
 
@@ -238,7 +238,7 @@ Defined in: [grids/AutoZoom.ts:53](https://github.com/tsupinie/autumnplot-gl/blo
 
 > `protected` **makeDomainBuffers**(`gl`): `Promise`\<\{ `texcoords`: `WGLBuffer`; `vertices`: `WGLBuffer`; \}\>
 
-Defined in: [grids/StructuredGrid.ts:105](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/StructuredGrid.ts#L105)
+Defined in: [grids/StructuredGrid.ts:105](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/StructuredGrid.ts#L105)
 
 #### Parameters
 
@@ -260,7 +260,7 @@ Defined in: [grids/StructuredGrid.ts:105](https://github.com/tsupinie/autumnplot
 
 > **sampleNearestGridPoint**(`lon`, `lat`, `ary`): `object`
 
-Defined in: [grids/StructuredGrid.ts:111](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/StructuredGrid.ts#L111)
+Defined in: [grids/StructuredGrid.ts:111](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/StructuredGrid.ts#L111)
 
 #### Parameters
 
@@ -296,7 +296,7 @@ Defined in: [grids/StructuredGrid.ts:111](https://github.com/tsupinie/autumnplot
 
 > **setupCoordinateCaches**(`start_i`, `end_i`, `start_j`, `end_j`): `void`
 
-Defined in: [grids/GridCoordinates.ts:7](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/GridCoordinates.ts#L7)
+Defined in: [grids/GridCoordinates.ts:7](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/GridCoordinates.ts#L7)
 
 #### Parameters
 
@@ -321,7 +321,7 @@ Defined in: [grids/GridCoordinates.ts:7](https://github.com/tsupinie/autumnplot-
 
 > `protected` **thinnedGridParameters**(`thin_fac`, `map_max_zoom`, `ll_x`, `ll_y`, `ur_x`, `ur_y`): `object`
 
-Defined in: [grids/StructuredGrid.ts:55](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/StructuredGrid.ts#L55)
+Defined in: [grids/StructuredGrid.ts:55](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/StructuredGrid.ts#L55)
 
 #### Parameters
 

@@ -4,7 +4,7 @@ title: StructuredGrid
 
 # Abstract Class: StructuredGrid
 
-Defined in: [grids/StructuredGrid.ts:33](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/StructuredGrid.ts#L33)
+Defined in: [grids/StructuredGrid.ts:33](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/StructuredGrid.ts#L33)
 
 A structured grid (in this case meaning a cartesian grid with i and j coordinates)
 
@@ -18,7 +18,7 @@ A structured grid (in this case meaning a cartesian grid with i and j coordinate
 
 > **new StructuredGrid**(`type`, `is_conformal`, `ni`, `nj`, `thin_x?`, `thin_y?`): `StructuredGrid`
 
-Defined in: [grids/StructuredGrid.ts:37](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/StructuredGrid.ts#L37)
+Defined in: [grids/StructuredGrid.ts:37](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/StructuredGrid.ts#L37)
 
 #### Parameters
 
@@ -43,12 +43,12 @@ Defined in: [grids/StructuredGrid.ts:37](https://github.com/tsupinie/autumnplot-
 
 | Property | Modifier | Type | Inherited from | Defined in |
 | ------ | ------ | ------ | ------ | ------ |
-| <a id="is_conformal"></a> `is_conformal` | `readonly` | `boolean` | `domainBufferMixin(Grid).is_conformal` | [grids/Grid.ts:23](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/Grid.ts#L23) |
-| <a id="ni"></a> `ni` | `readonly` | `number` | `domainBufferMixin(Grid).ni` | [grids/Grid.ts:21](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/Grid.ts#L21) |
-| <a id="nj"></a> `nj` | `readonly` | `number` | `domainBufferMixin(Grid).nj` | [grids/Grid.ts:22](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/Grid.ts#L22) |
-| <a id="thin_x"></a> `thin_x` | `readonly` | `number` | - | [grids/StructuredGrid.ts:34](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/StructuredGrid.ts#L34) |
-| <a id="thin_y"></a> `thin_y` | `readonly` | `number` | - | [grids/StructuredGrid.ts:35](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/StructuredGrid.ts#L35) |
-| <a id="type"></a> `type` | `readonly` | [`GridType`](../type-aliases/GridType.md) | `domainBufferMixin(Grid).type` | [grids/Grid.ts:20](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/Grid.ts#L20) |
+| <a id="is_conformal"></a> `is_conformal` | `readonly` | `boolean` | `domainBufferMixin(Grid).is_conformal` | [grids/Grid.ts:23](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/Grid.ts#L23) |
+| <a id="ni"></a> `ni` | `readonly` | `number` | `domainBufferMixin(Grid).ni` | [grids/Grid.ts:21](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/Grid.ts#L21) |
+| <a id="nj"></a> `nj` | `readonly` | `number` | `domainBufferMixin(Grid).nj` | [grids/Grid.ts:22](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/Grid.ts#L22) |
+| <a id="thin_x"></a> `thin_x` | `readonly` | `number` | - | [grids/StructuredGrid.ts:34](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/StructuredGrid.ts#L34) |
+| <a id="thin_y"></a> `thin_y` | `readonly` | `number` | - | [grids/StructuredGrid.ts:35](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/StructuredGrid.ts#L35) |
+| <a id="type"></a> `type` | `readonly` | [`GridType`](../type-aliases/GridType.md) | `domainBufferMixin(Grid).type` | [grids/Grid.ts:20](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/Grid.ts#L20) |
 
 ## Methods
 
@@ -56,7 +56,7 @@ Defined in: [grids/StructuredGrid.ts:37](https://github.com/tsupinie/autumnplot-
 
 > `abstract` **copy**(`opts?`): [`Grid`](Grid.md)
 
-Defined in: [grids/StructuredGrid.ts:103](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/StructuredGrid.ts#L103)
+Defined in: [grids/StructuredGrid.ts:103](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/StructuredGrid.ts#L103)
 
 #### Parameters
 
@@ -80,7 +80,7 @@ Defined in: [grids/StructuredGrid.ts:103](https://github.com/tsupinie/autumnplot
 
 > **getDomainBuffers**(`gl`): `Promise`\<`DomainBuffers`\>
 
-Defined in: [grids/DomainBuffer.ts:9](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/DomainBuffer.ts#L9)
+Defined in: [grids/DomainBuffer.ts:9](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/DomainBuffer.ts#L9)
 
 #### Parameters
 
@@ -102,7 +102,7 @@ Defined in: [grids/DomainBuffer.ts:9](https://github.com/tsupinie/autumnplot-gl/
 
 > `abstract` **getEarthCoords**(`ni?`, `nj?`, `which_i?`, `which_j?`): `EarthCoords`
 
-Defined in: [grids/StructuredGrid.ts:44](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/StructuredGrid.ts#L44)
+Defined in: [grids/StructuredGrid.ts:44](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/StructuredGrid.ts#L44)
 
 #### Parameters
 
@@ -127,7 +127,7 @@ Defined in: [grids/StructuredGrid.ts:44](https://github.com/tsupinie/autumnplot-
 
 > `abstract` **getGridCoords**(): `GridCoords`
 
-Defined in: [grids/Grid.ts:33](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/Grid.ts#L33)
+Defined in: [grids/Grid.ts:33](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/Grid.ts#L33)
 
 #### Returns
 
@@ -143,7 +143,7 @@ Defined in: [grids/Grid.ts:33](https://github.com/tsupinie/autumnplot-gl/blob/08
 
 > `abstract` **getThinnedGrid**(`thin_fac`, `map_max_zoom`): `this`
 
-Defined in: [grids/Grid.ts:37](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/Grid.ts#L37)
+Defined in: [grids/Grid.ts:37](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/Grid.ts#L37)
 
 #### Parameters
 
@@ -166,7 +166,7 @@ Defined in: [grids/Grid.ts:37](https://github.com/tsupinie/autumnplot-gl/blob/08
 
 > `protected` **makeDomainBuffers**(`gl`): `Promise`\<\{ `texcoords`: `WGLBuffer`; `vertices`: `WGLBuffer`; \}\>
 
-Defined in: [grids/StructuredGrid.ts:105](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/StructuredGrid.ts#L105)
+Defined in: [grids/StructuredGrid.ts:105](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/StructuredGrid.ts#L105)
 
 #### Parameters
 
@@ -184,7 +184,7 @@ Defined in: [grids/StructuredGrid.ts:105](https://github.com/tsupinie/autumnplot
 
 > **sampleNearestGridPoint**(`lon`, `lat`, `ary`): `object`
 
-Defined in: [grids/StructuredGrid.ts:111](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/StructuredGrid.ts#L111)
+Defined in: [grids/StructuredGrid.ts:111](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/StructuredGrid.ts#L111)
 
 #### Parameters
 
@@ -220,7 +220,7 @@ Defined in: [grids/StructuredGrid.ts:111](https://github.com/tsupinie/autumnplot
 
 > `protected` **thinnedGridParameters**(`thin_fac`, `map_max_zoom`, `ll_x`, `ll_y`, `ur_x`, `ur_y`): `object`
 
-Defined in: [grids/StructuredGrid.ts:55](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/StructuredGrid.ts#L55)
+Defined in: [grids/StructuredGrid.ts:55](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/StructuredGrid.ts#L55)
 
 #### Parameters
 
@@ -275,7 +275,7 @@ Defined in: [grids/StructuredGrid.ts:55](https://github.com/tsupinie/autumnplot-
 
 > `abstract` **transform**(`x`, `y`, `opts?`): \[`number`, `number`\]
 
-Defined in: [grids/Grid.ts:34](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/Grid.ts#L34)
+Defined in: [grids/Grid.ts:34](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/Grid.ts#L34)
 
 #### Parameters
 

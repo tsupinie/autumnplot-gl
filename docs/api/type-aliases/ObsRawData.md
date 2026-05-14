@@ -6,7 +6,7 @@ title: ObsRawData
 
 > **ObsRawData**\<`ObsFieldName`\> = `Record`\<`ObsFieldName`, `string` \| `number` \| \[`number`, `number`\] \| `null`\>
 
-Defined in: [RawField.ts:698](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/RawField.ts#L698)
+Defined in: [RawField.ts:698](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/RawField.ts#L698)
 
 Type for an observation data point
 

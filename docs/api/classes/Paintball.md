@@ -4,7 +4,7 @@ title: Paintball
 
 # Class: Paintball\<ArrayType, GridType, MapType\>
 
-Defined in: [Paintball.ts:62](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/Paintball.ts#L62)
+Defined in: [Paintball.ts:62](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/Paintball.ts#L62)
 
 A class representing a paintball plot, which is a plot of objects in every member of an ensemble. Objects are usually defined by a single threshold on
 a field (such as simulated reflectivity greater than 40 dBZ), but could in theory be defined by any arbitrarily complicated method. In autumnplot-gl,
@@ -38,7 +38,7 @@ significand of an IEEE 754 float.)
 
 > **new Paintball**\<`ArrayType`, `GridType`, `MapType`\>(`field`, `opts?`): `Paintball`\<`ArrayType`, `GridType`, `MapType`\>
 
-Defined in: [Paintball.ts:77](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/Paintball.ts#L77)
+Defined in: [Paintball.ts:77](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/Paintball.ts#L77)
 
 Create a paintball plot
 
@@ -61,7 +61,7 @@ Create a paintball plot
 
 | Property | Modifier | Type | Defined in |
 | ------ | ------ | ------ | ------ |
-| <a id="opts"></a> `opts` | `readonly` | `Required`\<[`PaintballOptions`](../interfaces/PaintballOptions.md)\> | [Paintball.ts:64](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/Paintball.ts#L64) |
+| <a id="opts"></a> `opts` | `readonly` | `Required`\<[`PaintballOptions`](../interfaces/PaintballOptions.md)\> | [Paintball.ts:64](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/Paintball.ts#L64) |
 
 ## Methods
 
@@ -69,7 +69,7 @@ Create a paintball plot
 
 > **updateField**(`field`): `Promise`\<`void`\>
 
-Defined in: [Paintball.ts:93](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/Paintball.ts#L93)
+Defined in: [Paintball.ts:93](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/Paintball.ts#L93)
 
 Update the field displayed as a paintball plot
 

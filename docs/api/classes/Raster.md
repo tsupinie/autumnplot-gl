@@ -4,7 +4,7 @@ title: Raster
 
 # Class: Raster\<ArrayType, GridType, MapType\>
 
-Defined in: [Fill.ts:236](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/Fill.ts#L236)
+Defined in: [Fill.ts:236](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/Fill.ts#L236)
 
 A raster (i.e. pixel) plot 
 
@@ -41,7 +41,7 @@ const raster = new Raster(wind_speed_field, {cmap: color_map});
 
 > **new Raster**\<`ArrayType`, `GridType`, `MapType`\>(`field`, `opts`): `Raster`\<`ArrayType`, `GridType`, `MapType`\>
 
-Defined in: [Fill.ts:243](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/Fill.ts#L243)
+Defined in: [Fill.ts:243](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/Fill.ts#L243)
 
 Create a raster plot
 
@@ -64,9 +64,9 @@ Create a raster plot
 
 | Property | Modifier | Type | Inherited from | Defined in |
 | ------ | ------ | ------ | ------ | ------ |
-| <a id="cmap_mag_filter"></a> `cmap_mag_filter` | `protected` | `null` \| `number` | `PlotComponentFill.cmap_mag_filter` | [Fill.ts:84](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/Fill.ts#L84) |
-| <a id="image_mag_filter"></a> `image_mag_filter` | `protected` | `null` \| `number` | `PlotComponentFill.image_mag_filter` | [Fill.ts:83](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/Fill.ts#L83) |
-| <a id="opts"></a> `opts` | `readonly` | `Required`\<[`ContourFillOptions`](../interfaces/ContourFillOptions.md)\> | `PlotComponentFill.opts` | [Fill.ts:76](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/Fill.ts#L76) |
+| <a id="cmap_mag_filter"></a> `cmap_mag_filter` | `protected` | `null` \| `number` | `PlotComponentFill.cmap_mag_filter` | [Fill.ts:84](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/Fill.ts#L84) |
+| <a id="image_mag_filter"></a> `image_mag_filter` | `protected` | `null` \| `number` | `PlotComponentFill.image_mag_filter` | [Fill.ts:83](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/Fill.ts#L83) |
+| <a id="opts"></a> `opts` | `readonly` | `Required`\<[`ContourFillOptions`](../interfaces/ContourFillOptions.md)\> | `PlotComponentFill.opts` | [Fill.ts:76](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/Fill.ts#L76) |
 
 ## Methods
 
@@ -74,7 +74,7 @@ Create a raster plot
 
 > **updateField**(`field`, `mask?`): `Promise`\<`void`\>
 
-Defined in: [Fill.ts:251](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/Fill.ts#L251)
+Defined in: [Fill.ts:251](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/Fill.ts#L251)
 
 Update the data displayed as a raster plot
 

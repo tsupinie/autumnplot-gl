@@ -37,6 +37,7 @@ If you'd rather use pre-built files and not mess with node.js or webpack or any 
 
 * <a href="/autumnplot-gl/assets/dist/autumnplot-gl.js" target="_blank" download>autumnplot-gl.js</a>
 * <a href="/autumnplot-gl/assets/dist/983.autumnplot-gl.js" target="_blank" download>983.autumnplot-gl.js</a>
+* <a href="/autumnplot-gl/assets/dist/812.autumnplot-gl.js" target="_blank" download>812.autumnplot-gl.js</a>
 * <a href="/autumnplot-gl/assets/dist/marchingsquares.wasm" target="_blank" download>marchingsquares.wasm</a>
 
 Then include the main `autumnplot-gl.js` file in your html as a Javascript source.

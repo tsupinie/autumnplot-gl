@@ -4,7 +4,7 @@ title: RadarSweepGrid
 
 # Class: RadarSweepGrid
 
-Defined in: [grids/RadarSweepGrid.ts:18](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/RadarSweepGrid.ts#L18)
+Defined in: [grids/RadarSweepGrid.ts:18](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/RadarSweepGrid.ts#L18)
 
 A grid for a radar sweep centered at a certain latitude and longitude.
 
@@ -27,7 +27,7 @@ A grid for a radar sweep centered at a certain latitude and longitude.
 
 > **new RadarSweepGrid**(`nr`, `nt`, `start_rn`, `end_rn`, `start_az`, `end_az`, `longitude`, `latitude`, `thin_x?`, `thin_y?`): `RadarSweepGrid`
 
-Defined in: [grids/RadarSweepGrid.ts:27](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/RadarSweepGrid.ts#L27)
+Defined in: [grids/RadarSweepGrid.ts:27](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/RadarSweepGrid.ts#L27)
 
 #### Parameters
 
@@ -56,19 +56,19 @@ Defined in: [grids/RadarSweepGrid.ts:27](https://github.com/tsupinie/autumnplot-
 
 | Property | Modifier | Type | Inherited from | Defined in |
 | ------ | ------ | ------ | ------ | ------ |
-| <a id="end_az"></a> `end_az` | `readonly` | `number` | - | [grids/RadarSweepGrid.ts:24](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/RadarSweepGrid.ts#L24) |
-| <a id="end_rn"></a> `end_rn` | `readonly` | `number` | - | [grids/RadarSweepGrid.ts:22](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/RadarSweepGrid.ts#L22) |
-| <a id="geod"></a> `geod` | `readonly` | `GeodesicClass` | - | [grids/RadarSweepGrid.ts:25](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/RadarSweepGrid.ts#L25) |
-| <a id="is_conformal"></a> `is_conformal` | `readonly` | `boolean` | `gridCoordinateMixin(StructuredGrid).is_conformal` | [grids/Grid.ts:23](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/Grid.ts#L23) |
-| <a id="latitude"></a> `latitude` | `readonly` | `number` | - | [grids/RadarSweepGrid.ts:20](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/RadarSweepGrid.ts#L20) |
-| <a id="longitude"></a> `longitude` | `readonly` | `number` | - | [grids/RadarSweepGrid.ts:19](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/RadarSweepGrid.ts#L19) |
-| <a id="ni"></a> `ni` | `readonly` | `number` | `gridCoordinateMixin(StructuredGrid).ni` | [grids/Grid.ts:21](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/Grid.ts#L21) |
-| <a id="nj"></a> `nj` | `readonly` | `number` | `gridCoordinateMixin(StructuredGrid).nj` | [grids/Grid.ts:22](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/Grid.ts#L22) |
-| <a id="start_az"></a> `start_az` | `readonly` | `number` | - | [grids/RadarSweepGrid.ts:23](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/RadarSweepGrid.ts#L23) |
-| <a id="start_rn"></a> `start_rn` | `readonly` | `number` | - | [grids/RadarSweepGrid.ts:21](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/RadarSweepGrid.ts#L21) |
-| <a id="thin_x"></a> `thin_x` | `readonly` | `number` | `gridCoordinateMixin(StructuredGrid).thin_x` | [grids/StructuredGrid.ts:34](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/StructuredGrid.ts#L34) |
-| <a id="thin_y"></a> `thin_y` | `readonly` | `number` | `gridCoordinateMixin(StructuredGrid).thin_y` | [grids/StructuredGrid.ts:35](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/StructuredGrid.ts#L35) |
-| <a id="type"></a> `type` | `readonly` | [`GridType`](../type-aliases/GridType.md) | `gridCoordinateMixin(StructuredGrid).type` | [grids/Grid.ts:20](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/Grid.ts#L20) |
+| <a id="end_az"></a> `end_az` | `readonly` | `number` | - | [grids/RadarSweepGrid.ts:24](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/RadarSweepGrid.ts#L24) |
+| <a id="end_rn"></a> `end_rn` | `readonly` | `number` | - | [grids/RadarSweepGrid.ts:22](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/RadarSweepGrid.ts#L22) |
+| <a id="geod"></a> `geod` | `readonly` | `GeodesicClass` | - | [grids/RadarSweepGrid.ts:25](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/RadarSweepGrid.ts#L25) |
+| <a id="is_conformal"></a> `is_conformal` | `readonly` | `boolean` | `gridCoordinateMixin(StructuredGrid).is_conformal` | [grids/Grid.ts:23](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/Grid.ts#L23) |
+| <a id="latitude"></a> `latitude` | `readonly` | `number` | - | [grids/RadarSweepGrid.ts:20](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/RadarSweepGrid.ts#L20) |
+| <a id="longitude"></a> `longitude` | `readonly` | `number` | - | [grids/RadarSweepGrid.ts:19](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/RadarSweepGrid.ts#L19) |
+| <a id="ni"></a> `ni` | `readonly` | `number` | `gridCoordinateMixin(StructuredGrid).ni` | [grids/Grid.ts:21](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/Grid.ts#L21) |
+| <a id="nj"></a> `nj` | `readonly` | `number` | `gridCoordinateMixin(StructuredGrid).nj` | [grids/Grid.ts:22](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/Grid.ts#L22) |
+| <a id="start_az"></a> `start_az` | `readonly` | `number` | - | [grids/RadarSweepGrid.ts:23](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/RadarSweepGrid.ts#L23) |
+| <a id="start_rn"></a> `start_rn` | `readonly` | `number` | - | [grids/RadarSweepGrid.ts:21](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/RadarSweepGrid.ts#L21) |
+| <a id="thin_x"></a> `thin_x` | `readonly` | `number` | `gridCoordinateMixin(StructuredGrid).thin_x` | [grids/StructuredGrid.ts:34](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/StructuredGrid.ts#L34) |
+| <a id="thin_y"></a> `thin_y` | `readonly` | `number` | `gridCoordinateMixin(StructuredGrid).thin_y` | [grids/StructuredGrid.ts:35](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/StructuredGrid.ts#L35) |
+| <a id="type"></a> `type` | `readonly` | [`GridType`](../type-aliases/GridType.md) | `gridCoordinateMixin(StructuredGrid).type` | [grids/Grid.ts:20](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/Grid.ts#L20) |
 
 ## Methods
 
@@ -76,7 +76,7 @@ Defined in: [grids/RadarSweepGrid.ts:27](https://github.com/tsupinie/autumnplot-
 
 > **copy**(`opts?`): `RadarSweepGrid`
 
-Defined in: [grids/RadarSweepGrid.ts:42](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/RadarSweepGrid.ts#L42)
+Defined in: [grids/RadarSweepGrid.ts:42](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/RadarSweepGrid.ts#L42)
 
 #### Parameters
 
@@ -106,7 +106,7 @@ Defined in: [grids/RadarSweepGrid.ts:42](https://github.com/tsupinie/autumnplot-
 
 > **getDomainBuffers**(`gl`): `Promise`\<`DomainBuffers`\>
 
-Defined in: [grids/DomainBuffer.ts:9](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/DomainBuffer.ts#L9)
+Defined in: [grids/DomainBuffer.ts:9](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/DomainBuffer.ts#L9)
 
 #### Parameters
 
@@ -128,7 +128,7 @@ Defined in: [grids/DomainBuffer.ts:9](https://github.com/tsupinie/autumnplot-gl/
 
 > **getEarthCoords**(`ni?`, `nj?`, `which_i?`, `which_j?`): `EarthCoords`
 
-Defined in: [grids/GridCoordinates.ts:8](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/GridCoordinates.ts#L8)
+Defined in: [grids/GridCoordinates.ts:8](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/GridCoordinates.ts#L8)
 
 #### Parameters
 
@@ -153,7 +153,7 @@ Defined in: [grids/GridCoordinates.ts:8](https://github.com/tsupinie/autumnplot-
 
 > **getGridCoords**(): `GridCoords`
 
-Defined in: [grids/GridCoordinates.ts:9](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/GridCoordinates.ts#L9)
+Defined in: [grids/GridCoordinates.ts:9](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/GridCoordinates.ts#L9)
 
 #### Returns
 
@@ -169,7 +169,7 @@ Defined in: [grids/GridCoordinates.ts:9](https://github.com/tsupinie/autumnplot-
 
 > `protected` **makeDomainBuffers**(`gl`): `Promise`\<\{ `texcoords`: `WGLBuffer`; `vertices`: `WGLBuffer`; \}\>
 
-Defined in: [grids/RadarSweepGrid.ts:57](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/RadarSweepGrid.ts#L57)
+Defined in: [grids/RadarSweepGrid.ts:57](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/RadarSweepGrid.ts#L57)
 
 #### Parameters
 
@@ -191,7 +191,7 @@ Defined in: [grids/RadarSweepGrid.ts:57](https://github.com/tsupinie/autumnplot-
 
 > **sampleNearestGridPoint**(`lon`, `lat`, `ary`): `object`
 
-Defined in: [grids/StructuredGrid.ts:111](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/StructuredGrid.ts#L111)
+Defined in: [grids/StructuredGrid.ts:111](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/StructuredGrid.ts#L111)
 
 #### Parameters
 
@@ -227,7 +227,7 @@ Defined in: [grids/StructuredGrid.ts:111](https://github.com/tsupinie/autumnplot
 
 > **setupCoordinateCaches**(`start_i`, `end_i`, `start_j`, `end_j`): `void`
 
-Defined in: [grids/GridCoordinates.ts:7](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/GridCoordinates.ts#L7)
+Defined in: [grids/GridCoordinates.ts:7](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/GridCoordinates.ts#L7)
 
 #### Parameters
 
@@ -252,7 +252,7 @@ Defined in: [grids/GridCoordinates.ts:7](https://github.com/tsupinie/autumnplot-
 
 > `protected` **thinnedGridParameters**(`thin_fac`, `map_max_zoom`, `ll_x`, `ll_y`, `ur_x`, `ur_y`): `object`
 
-Defined in: [grids/StructuredGrid.ts:55](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/StructuredGrid.ts#L55)
+Defined in: [grids/StructuredGrid.ts:55](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/StructuredGrid.ts#L55)
 
 #### Parameters
 
@@ -311,7 +311,7 @@ Defined in: [grids/StructuredGrid.ts:55](https://github.com/tsupinie/autumnplot-
 
 > **transform**(`a`, `b`, `opts?`): \[`number`, `number`\]
 
-Defined in: [grids/RadarSweepGrid.ts:61](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/RadarSweepGrid.ts#L61)
+Defined in: [grids/RadarSweepGrid.ts:61](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/RadarSweepGrid.ts#L61)
 
 #### Parameters
 

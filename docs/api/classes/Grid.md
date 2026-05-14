@@ -4,7 +4,7 @@ title: Grid
 
 # Abstract Class: Grid
 
-Defined in: [grids/Grid.ts:19](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/Grid.ts#L19)
+Defined in: [grids/Grid.ts:19](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/Grid.ts#L19)
 
 The base class for grid types
 
@@ -14,7 +14,7 @@ The base class for grid types
 
 > **new Grid**(`type`, `is_conformal`, `ni`, `nj`): `Grid`
 
-Defined in: [grids/Grid.ts:25](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/Grid.ts#L25)
+Defined in: [grids/Grid.ts:25](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/Grid.ts#L25)
 
 #### Parameters
 
@@ -33,10 +33,10 @@ Defined in: [grids/Grid.ts:25](https://github.com/tsupinie/autumnplot-gl/blob/08
 
 | Property | Modifier | Type | Defined in |
 | ------ | ------ | ------ | ------ |
-| <a id="is_conformal"></a> `is_conformal` | `readonly` | `boolean` | [grids/Grid.ts:23](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/Grid.ts#L23) |
-| <a id="ni"></a> `ni` | `readonly` | `number` | [grids/Grid.ts:21](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/Grid.ts#L21) |
-| <a id="nj"></a> `nj` | `readonly` | `number` | [grids/Grid.ts:22](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/Grid.ts#L22) |
-| <a id="type"></a> `type` | `readonly` | [`GridType`](../type-aliases/GridType.md) | [grids/Grid.ts:20](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/Grid.ts#L20) |
+| <a id="is_conformal"></a> `is_conformal` | `readonly` | `boolean` | [grids/Grid.ts:23](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/Grid.ts#L23) |
+| <a id="ni"></a> `ni` | `readonly` | `number` | [grids/Grid.ts:21](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/Grid.ts#L21) |
+| <a id="nj"></a> `nj` | `readonly` | `number` | [grids/Grid.ts:22](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/Grid.ts#L22) |
+| <a id="type"></a> `type` | `readonly` | [`GridType`](../type-aliases/GridType.md) | [grids/Grid.ts:20](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/Grid.ts#L20) |
 
 ## Methods
 
@@ -44,7 +44,7 @@ Defined in: [grids/Grid.ts:25](https://github.com/tsupinie/autumnplot-gl/blob/08
 
 > `abstract` **copy**(): `Grid`
 
-Defined in: [grids/Grid.ts:40](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/Grid.ts#L40)
+Defined in: [grids/Grid.ts:40](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/Grid.ts#L40)
 
 #### Returns
 
@@ -56,7 +56,7 @@ Defined in: [grids/Grid.ts:40](https://github.com/tsupinie/autumnplot-gl/blob/08
 
 > `abstract` **getEarthCoords**(): `EarthCoords`
 
-Defined in: [grids/Grid.ts:32](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/Grid.ts#L32)
+Defined in: [grids/Grid.ts:32](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/Grid.ts#L32)
 
 #### Returns
 
@@ -68,7 +68,7 @@ Defined in: [grids/Grid.ts:32](https://github.com/tsupinie/autumnplot-gl/blob/08
 
 > `abstract` **getGridCoords**(): `GridCoords`
 
-Defined in: [grids/Grid.ts:33](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/Grid.ts#L33)
+Defined in: [grids/Grid.ts:33](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/Grid.ts#L33)
 
 #### Returns
 
@@ -80,7 +80,7 @@ Defined in: [grids/Grid.ts:33](https://github.com/tsupinie/autumnplot-gl/blob/08
 
 > `abstract` **getThinnedGrid**(`thin_fac`, `map_max_zoom`): `this`
 
-Defined in: [grids/Grid.ts:37](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/Grid.ts#L37)
+Defined in: [grids/Grid.ts:37](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/Grid.ts#L37)
 
 #### Parameters
 
@@ -99,7 +99,7 @@ Defined in: [grids/Grid.ts:37](https://github.com/tsupinie/autumnplot-gl/blob/08
 
 > `abstract` **sampleNearestGridPoint**(`lon`, `lat`, `ary`): `object`
 
-Defined in: [grids/Grid.ts:35](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/Grid.ts#L35)
+Defined in: [grids/Grid.ts:35](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/Grid.ts#L35)
 
 #### Parameters
 
@@ -131,7 +131,7 @@ Defined in: [grids/Grid.ts:35](https://github.com/tsupinie/autumnplot-gl/blob/08
 
 > `abstract` **thinDataArray**\<`ArrayType`\>(`original_grid`, `ary`): `ArrayType`
 
-Defined in: [grids/Grid.ts:38](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/Grid.ts#L38)
+Defined in: [grids/Grid.ts:38](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/Grid.ts#L38)
 
 #### Type Parameters
 
@@ -156,7 +156,7 @@ Defined in: [grids/Grid.ts:38](https://github.com/tsupinie/autumnplot-gl/blob/08
 
 > `abstract` **transform**(`x`, `y`, `opts?`): \[`number`, `number`\]
 
-Defined in: [grids/Grid.ts:34](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/grids/Grid.ts#L34)
+Defined in: [grids/Grid.ts:34](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/grids/Grid.ts#L34)
 
 #### Parameters
 

@@ -4,7 +4,7 @@ title: SPSymbolConfig
 
 # Interface: SPSymbolConfig
 
-Defined in: [StationPlot.ts:174](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/StationPlot.ts#L174)
+Defined in: [StationPlot.ts:181](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/StationPlot.ts#L181)
 
 Configuration for symbols on station plots
 
@@ -12,8 +12,8 @@ Configuration for symbols on station plots
 
 | Property | Type | Description | Defined in |
 | ------ | ------ | ------ | ------ |
-| <a id="color"></a> `color?` | `string` | The color to use to draw the symbol **Default** `'#000000'` | [StationPlot.ts:186](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/StationPlot.ts#L186) |
-| <a id="halo"></a> `halo?` | `boolean` | Whether to draw a halo (outline) around the string **Default** `true;` | [StationPlot.ts:192](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/StationPlot.ts#L192) |
-| <a id="halo_color"></a> `halo_color?` | `string` | The color to use for the halo (outline) **Default** `'#ffffff'` | [StationPlot.ts:198](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/StationPlot.ts#L198) |
-| <a id="pos"></a> `pos` | [`SPPosition`](../type-aliases/SPPosition.md) | The position on the station plot at which to place the symbol | [StationPlot.ts:180](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/StationPlot.ts#L180) |
-| <a id="type"></a> `type` | `"symbol"` | - | [StationPlot.ts:175](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/StationPlot.ts#L175) |
+| <a id="color"></a> `color?` | `string` \| (`symbol`, `category`) => `string` | The color to use to draw the symbol **Default** `'#000000'` | [StationPlot.ts:193](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/StationPlot.ts#L193) |
+| <a id="halo"></a> `halo?` | `boolean` | Whether to draw a halo (outline) around the string **Default** `true;` | [StationPlot.ts:199](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/StationPlot.ts#L199) |
+| <a id="halo_color"></a> `halo_color?` | `string` | The color to use for the halo (outline) **Default** `'#ffffff'` | [StationPlot.ts:205](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/StationPlot.ts#L205) |
+| <a id="pos"></a> `pos` | [`SPPosition`](../type-aliases/SPPosition.md) | The position on the station plot at which to place the symbol | [StationPlot.ts:187](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/StationPlot.ts#L187) |
+| <a id="type"></a> `type` | `"symbol"` | - | [StationPlot.ts:182](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/StationPlot.ts#L182) |

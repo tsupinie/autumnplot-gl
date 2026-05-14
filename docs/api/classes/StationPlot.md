@@ -4,7 +4,7 @@ title: StationPlot
 
 # Class: StationPlot\<GridType, MapType, ObsFieldName\>
 
-Defined in: [StationPlot.ts:305](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/StationPlot.ts#L305)
+Defined in: [StationPlot.ts:328](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/StationPlot.ts#L328)
 
 Station model plots for observed data
 
@@ -50,7 +50,7 @@ const station_plot = new StationPlot(obs_field, {config: station_plot_locs, thin
 
 > **new StationPlot**\<`GridType`, `MapType`, `ObsFieldName`\>(`field`, `opts`): `StationPlot`\<`GridType`, `MapType`, `ObsFieldName`\>
 
-Defined in: [StationPlot.ts:316](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/StationPlot.ts#L316)
+Defined in: [StationPlot.ts:339](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/StationPlot.ts#L339)
 
 Create station plots
 
@@ -73,7 +73,7 @@ Create station plots
 
 | Property | Modifier | Type | Defined in |
 | ------ | ------ | ------ | ------ |
-| <a id="opts"></a> `opts` | `readonly` | `Required`\<[`StationPlotOptions`](../interfaces/StationPlotOptions.md)\<`ObsFieldName`\>\> | [StationPlot.ts:307](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/StationPlot.ts#L307) |
+| <a id="opts"></a> `opts` | `readonly` | `Required`\<[`StationPlotOptions`](../interfaces/StationPlotOptions.md)\<`ObsFieldName`\>\> | [StationPlot.ts:330](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/StationPlot.ts#L330) |
 
 ## Methods
 
@@ -81,7 +81,7 @@ Create station plots
 
 > **updateField**(`field`): `Promise`\<`void`\>
 
-Defined in: [StationPlot.ts:329](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/StationPlot.ts#L329)
+Defined in: [StationPlot.ts:352](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/StationPlot.ts#L352)
 
 Update the data displayed as station plots
 

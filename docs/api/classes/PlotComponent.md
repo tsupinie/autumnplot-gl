@@ -4,7 +4,7 @@ title: PlotComponent
 
 # Abstract Class: PlotComponent\<MapType\>
 
-Defined in: [PlotComponent.ts:31](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/PlotComponent.ts#L31)
+Defined in: [PlotComponent.ts:31](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/PlotComponent.ts#L31)
 
 Base class for all plot components
 
@@ -39,7 +39,7 @@ Base class for all plot components
 
 > `abstract` **onAdd**(`map`, `gl`): `Promise`\<`void`\>
 
-Defined in: [PlotComponent.ts:32](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/PlotComponent.ts#L32)
+Defined in: [PlotComponent.ts:32](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/PlotComponent.ts#L32)
 
 #### Parameters
 
@@ -58,7 +58,7 @@ Defined in: [PlotComponent.ts:32](https://github.com/tsupinie/autumnplot-gl/blob
 
 > `abstract` **render**(`gl`, `arg`): `void`
 
-Defined in: [PlotComponent.ts:33](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/PlotComponent.ts#L33)
+Defined in: [PlotComponent.ts:33](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/PlotComponent.ts#L33)
 
 #### Parameters
 

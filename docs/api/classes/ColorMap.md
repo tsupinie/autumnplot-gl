@@ -4,7 +4,7 @@ title: ColorMap
 
 # Class: ColorMap
 
-Defined in: [Colormap.ts:28](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/Colormap.ts#L28)
+Defined in: [Colormap.ts:28](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/Colormap.ts#L28)
 
 A mapping from values to colors
 
@@ -14,7 +14,7 @@ A mapping from values to colors
 
 > **new ColorMap**(`levels`, `colors`, `opts?`): `ColorMap`
 
-Defined in: [Colormap.ts:40](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/Colormap.ts#L40)
+Defined in: [Colormap.ts:40](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/Colormap.ts#L40)
 
 Create a color map
 
@@ -34,18 +34,40 @@ Create a color map
 
 | Property | Modifier | Type | Defined in |
 | ------ | ------ | ------ | ------ |
-| <a id="colors"></a> `colors` | `readonly` | [`Color`](Color.md)[] | [Colormap.ts:30](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/Colormap.ts#L30) |
-| <a id="levels"></a> `levels` | `readonly` | `number`[] | [Colormap.ts:29](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/Colormap.ts#L29) |
-| <a id="overflow_color"></a> `overflow_color` | `readonly` | `null` \| [`Color`](Color.md) | [Colormap.ts:31](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/Colormap.ts#L31) |
-| <a id="underflow_color"></a> `underflow_color` | `readonly` | `null` \| [`Color`](Color.md) | [Colormap.ts:32](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/Colormap.ts#L32) |
+| <a id="colors"></a> `colors` | `readonly` | [`Color`](Color.md)[] | [Colormap.ts:30](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/Colormap.ts#L30) |
+| <a id="levels"></a> `levels` | `readonly` | `number`[] | [Colormap.ts:29](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/Colormap.ts#L29) |
+| <a id="overflow_color"></a> `overflow_color` | `readonly` | `null` \| [`Color`](Color.md) | [Colormap.ts:31](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/Colormap.ts#L31) |
+| <a id="underflow_color"></a> `underflow_color` | `readonly` | `null` \| [`Color`](Color.md) | [Colormap.ts:32](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/Colormap.ts#L32) |
 
 ## Methods
+
+### getColor()
+
+> **getColor**(`val`): `string`
+
+Defined in: [Colormap.ts:72](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/Colormap.ts#L72)
+
+Sample from the color map
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `val` | `number` | The value to sample from the color map |
+
+#### Returns
+
+`string`
+
+A color as an RGBA hex string
+
+***
 
 ### getColors()
 
 > **getColors**(): `string`[]
 
-Defined in: [Colormap.ts:56](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/Colormap.ts#L56)
+Defined in: [Colormap.ts:56](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/Colormap.ts#L56)
 
 #### Returns
 
@@ -59,7 +81,7 @@ an array of hex color strings
 
 > **getOpacities**(): `number`[]
 
-Defined in: [Colormap.ts:63](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/Colormap.ts#L63)
+Defined in: [Colormap.ts:63](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/Colormap.ts#L63)
 
 #### Returns
 
@@ -73,7 +95,7 @@ an array of opacities, one for each color in the color map
 
 > **withOpacity**(`func`): `ColorMap`
 
-Defined in: [Colormap.ts:72](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/Colormap.ts#L72)
+Defined in: [Colormap.ts:94](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/Colormap.ts#L94)
 
 Make a new color map with different opacities. The opacities are set by func.
 
@@ -95,7 +117,7 @@ A new color map
 
 > `static` **diverging**(`color1`, `color2`, `level_min`, `level_max`, `n_colors`): `ColorMap`
 
-Defined in: [Colormap.ts:118](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/Colormap.ts#L118)
+Defined in: [Colormap.ts:140](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/Colormap.ts#L140)
 
 Create a diverging color map using two input colors
 

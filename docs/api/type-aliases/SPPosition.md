@@ -6,7 +6,7 @@ title: SPPosition
 
 > **SPPosition** = `"cl"` \| `"ll"` \| `"lc"` \| `"lr"` \| `"cr"` \| `"ur"` \| `"uc"` \| `"ul"` \| `"c"`
 
-Defined in: [StationPlot.ts:29](https://github.com/tsupinie/autumnplot-gl/blob/0822947f9111ebf4b3b48d4d1f9022809e8030c4/src/StationPlot.ts#L29)
+Defined in: [StationPlot.ts:30](https://github.com/tsupinie/autumnplot-gl/blob/9b0e49471dc640025d41a95ab47d6bd092421f17/src/StationPlot.ts#L30)
 
 Positions around the station plot at which to draw the various elements
 
