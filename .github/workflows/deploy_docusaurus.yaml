@@ -14,9 +14,9 @@ jobs:
         fetch-depth: 0 # fetch all history for all branches and tags
         token: ${{ secrets.PAT }}
 
-    - uses: mymindstorm/setup-emsdk@v14
+    - uses: emscripten-core/setup-emsdk@v15
       with: 
-        version: 3.1.64
+        version: 5.0.1
 
     - name: build
       run: .github/scripts/build_docusaurus.sh
