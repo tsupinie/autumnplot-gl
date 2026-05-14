@@ -4,6 +4,10 @@ DEVELOP_PATH=../autumplot-gl-develop
 DOCUSAURUS_CONFIG=docusaurus.config.ts
 VERSION=`cat package.json | grep '"version"' | sed 's/^.*"version": "\(.*\)".*$/\1/'`
 
+cd `which em++ | xargs dirname`
+npm i
+cd -
+
 echo "VERSION=$VERSION" > $GITHUB_ENV
 
 # Build autumnplot-gl first

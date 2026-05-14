@@ -13,7 +13,7 @@ npx docusaurus start
 ```
 
 This command starts a local development server and opens up a browser window. Most changes are reflected live without having to restart the server. The server will generate the API docs when it starts, but to regenerate them after having started the server, run
- 
+
 ```bash
 npx docusaurus generate-typedoc
 ```
