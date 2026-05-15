@@ -7,9 +7,10 @@
         "target": "es2021",
         "allowJs": true,
         "allowSyntheticDefaultImports": true,
-        "moduleResolution": "node",
-        "downlevelIteration": true,
+        "moduleResolution": "bundler",
         "resolveJsonModule": true,
-        "strict": true
+        "strict": true,
+        "types": ["node"],
+        "noUncheckedSideEffectImports": false
     }
 }
