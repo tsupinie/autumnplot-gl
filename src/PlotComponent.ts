@@ -3,11 +3,29 @@ import * as Comlink from 'comlink';
 
 import { getOS } from "./utils";
 import { PlotLayerWorker } from './PlotLayer.worker';
+import { ContourCreatorWorker } from './ContourCreator.worker';
 import { MapLikeType } from './Map';
 import { RenderMethodArg, TypedArrayStr, WebGLAnyRenderingContext, isWebGL2Ctx } from './AutumnTypes';
+import { WorkerPool, createWorkerPool } from './WorkerPool';
 
 const worker = new Worker(new URL('./PlotLayer.worker', import.meta.url));
 const layer_worker = Comlink.wrap<PlotLayerWorker>(worker);
+
+let c_worker_pool: WorkerPool<ContourCreatorWorker> | null = null;
+function getContourWorkerPool(wasm_base_url: string | undefined, n_workers: number) {
+    if (c_worker_pool !== null) {
+        return c_worker_pool;
+    }
+
+    const c_workers = [];
+    for (let iw = 0; iw < n_workers; iw++) {
+        c_workers.push(new Worker(new URL('./ContourCreator.worker', import.meta.url)));
+    }
+
+    const pool = createWorkerPool<ContourCreatorWorker>(c_workers, wkr => wkr.init(wasm_base_url));
+    c_worker_pool = pool;
+    return pool;
+}
 
 /** Base class for all plot components */
 abstract class PlotComponent<MapType extends MapLikeType> {
@@ -55,6 +73,26 @@ function getGLFormatTypeAlignment(gl: WebGLAnyRenderingContext, array_dtype: Typ
         type = gl.FLOAT;
         row_alignment = 4;
     }
+    else if (array_dtype == 'uint16') {
+        format = is_webgl2 ? gl.R16UI : gl.LUMINANCE;
+        type = gl.UNSIGNED_SHORT;
+        row_alignment = 2;
+    }
+    else if (array_dtype == 'uint32') {
+        format = is_webgl2 ? gl.R32UI : gl.LUMINANCE;
+        type = gl.UNSIGNED_INT;
+        row_alignment = 4;
+    }
+    else if (array_dtype == 'int16') {
+        format = is_webgl2 ? gl.R16I : gl.LUMINANCE;
+        type = gl.SHORT;
+        row_alignment = 2;
+    }
+    else if (array_dtype == 'int32') {
+        format = is_webgl2 ? gl.R32I : gl.LUMINANCE;
+        type = gl.INT;
+        row_alignment = 4;
+    }
     else {
         format = is_webgl2 ? gl.R8 : gl.LUMINANCE;
         type = gl.UNSIGNED_BYTE;
@@ -65,4 +103,4 @@ function getGLFormatTypeAlignment(gl: WebGLAnyRenderingContext, array_dtype: Typ
     return {format: format, type: type, row_alignment: row_alignment};
 }
 
-export { PlotComponent, layer_worker, getGLFormatTypeAlignment };
+export { PlotComponent, layer_worker, getContourWorkerPool, getGLFormatTypeAlignment };

@@ -1,13 +1,13 @@
 
-import { PlotComponent } from './PlotComponent';
+import { PlotComponent, getGLFormatTypeAlignment } from './PlotComponent';
 import { ColorMap, ColorMapGPUInterface} from './Colormap';
 import { WGLBuffer, WGLTexture } from 'autumn-wgl';
-import { RawScalarField } from './RawField';
+import { ExpressionScalarField } from './RawField';
 import { MapLikeType } from './Map';
 import { RenderMethodArg, TypedArray, WebGLAnyRenderingContext, getRendererData } from './AutumnTypes';
-import { normalizeOptions } from './utils';
-import { StructuredGrid } from './Grid';
+import { applySamplerCodeScalar, normalizeOptions } from './utils';
 import { ShaderProgramManager } from './ShaderManager';
+import { DomainBufferGrid } from './grids/DomainBuffer';
 
 const contourfill_vertex_shader_src = require('./glsl/contourfill_vertex.glsl');
 const contourfill_fragment_shader_src = require('./glsl/contourfill_fragment.glsl');
@@ -71,19 +71,19 @@ interface PlotComponentFillGLElems<MapType extends MapLikeType> {
     texcoords: WGLBuffer;
 }
 
-class PlotComponentFill<ArrayType extends TypedArray, GridType extends StructuredGrid, MapType extends MapLikeType> extends PlotComponent<MapType> {
-    private field: RawScalarField<ArrayType, GridType>;
+class PlotComponentFill<ArrayType extends TypedArray, GridType extends DomainBufferGrid, MapType extends MapLikeType> extends PlotComponent<MapType> {
+    private field: ExpressionScalarField<ArrayType, GridType>;
     public readonly opts: Required<ContourFillOptions>;
 
     private readonly cmap_gpu: ColorMapGPUInterface[];
 
     private gl_elems: PlotComponentFillGLElems<MapType> | null;
-    private fill_texture: WGLTexture | null;
+    private fill_texture: Map<string, WGLTexture> | null;
     private mask_texture: WGLTexture | null;
     protected image_mag_filter: number | null;
     protected cmap_mag_filter: number | null;
 
-    constructor(field: RawScalarField<ArrayType, GridType>, opts: ContourFillOptions) {
+    constructor(field: ExpressionScalarField<ArrayType, GridType>, opts: ContourFillOptions) {
         super();
 
         this.field = field;
@@ -99,7 +99,7 @@ class PlotComponentFill<ArrayType extends TypedArray, GridType extends Structure
         this.cmap_mag_filter = null;
     }
 
-    public async updateField(field: RawScalarField<ArrayType, GridType>, mask?: Uint8Array) {
+    public async updateField(field: ExpressionScalarField<ArrayType, GridType>, mask?: Uint8Array) {
         this.field = field;
 
         if (this.image_mag_filter === null || this.cmap_mag_filter === null) {
@@ -111,14 +111,7 @@ class PlotComponentFill<ArrayType extends TypedArray, GridType extends Structure
         const gl = this.gl_elems.gl;
         const map = this.gl_elems.map;
     
-        const fill_image = this.field.getWGLTextureSpec(gl, this.image_mag_filter);
-
-        if (this.fill_texture === null) {
-            this.fill_texture = new WGLTexture(gl, fill_image);
-        }
-        else {
-            this.fill_texture.setImageData(fill_image);
-        }
+        this.fill_texture = this.field.updateTexImageData(gl, this.image_mag_filter, this.fill_texture);
 
         if (mask !== undefined) {
             if (this.opts.cmap_mask === null) {
@@ -126,8 +119,11 @@ class PlotComponentFill<ArrayType extends TypedArray, GridType extends Structure
                 return;
             }
 
-            const mask_field = new RawScalarField(this.field.grid, mask);
-            const mask_image = mask_field.getWGLTextureSpec(gl, gl.NEAREST);
+            const {format, type, row_alignment} = getGLFormatTypeAlignment(gl, 'uint8');
+            const mask_image = {'format': format, 'type': type,
+                'width': this.field.grid.ni, 'height': this.field.grid.nj, 'image': mask,
+                'mag_filter': gl.NEAREST, 'row_alignment': row_alignment,
+            };
             
             if (this.mask_texture === null) {
                 this.mask_texture = new WGLTexture(gl, mask_image);
@@ -143,7 +139,7 @@ class PlotComponentFill<ArrayType extends TypedArray, GridType extends Structure
     public async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
         // Basic procedure for the filled contours inspired by https://blog.mbq.me/webgl-weather-globe/
 
-        const {vertices: vertices, texcoords: texcoords} = await this.field.grid.getWGLBuffers(gl);
+        const {vertices: vertices, texcoords: texcoords} = await this.field.grid.getDomainBuffers(gl);
 
         this.cmap_gpu.forEach(cmg => {
             if (this.image_mag_filter === null || this.cmap_mag_filter === null) {
@@ -159,7 +155,17 @@ class PlotComponentFill<ArrayType extends TypedArray, GridType extends Structure
             shader_defines.push('MASK');
         }
 
-        const shader_manger = new ShaderProgramManager(contourfill_vertex_shader_src, ColorMapGPUInterface.applyShader(contourfill_fragment_shader_src), shader_defines);
+        if (this.image_mag_filter === null || this.cmap_mag_filter === null) {
+            throw `Implement magnification filters in a subclass`;
+        }
+
+        const sampler_keys = this.field.getSamplerIds();
+        const sampler_expression = this.field.getExpression();
+        const data_types = this.field.dtypes;
+
+        const frag_shader_src = applySamplerCodeScalar(ColorMapGPUInterface.applyShader(contourfill_fragment_shader_src), sampler_keys, sampler_expression, data_types);
+
+        const shader_manger = new ShaderProgramManager(contourfill_vertex_shader_src, frag_shader_src, shader_defines);
 
         this.gl_elems = {
             gl: gl, shader_manager: shader_manger, map: map, vertices: vertices, texcoords: texcoords,
@@ -175,10 +181,12 @@ class PlotComponentFill<ArrayType extends TypedArray, GridType extends Structure
         const render_data = getRendererData(arg);
         const program = this.gl_elems.shader_manager.getShaderProgram(gl, render_data.shaderData);
 
+        const samplers = Object.fromEntries([...this.fill_texture.entries()])
+
         program.use(
             {'a_pos': gl_elems.vertices, 'a_tex_coord': gl_elems.texcoords},
             {'u_opacity': this.opts.opacity, ...this.gl_elems.shader_manager.getShaderUniforms(render_data)},
-            {'u_fill_sampler': this.fill_texture}
+            samplers
         );
 
         this.cmap_gpu.forEach((cmg, icmg) => {
@@ -212,18 +220,27 @@ class PlotComponentFill<ArrayType extends TypedArray, GridType extends Structure
 
 /** 
  * A raster (i.e. pixel) plot 
+ * 
+ * ## Grid Compatibility
+ * - :white_check_mark: `PlateCarreeGrid`
+ * - :white_check_mark: `PlateCarreeRotatedGrid`
+ * - :white_check_mark: `LambertGrid`
+ * - :x:                `UnstructuredGrid`
+ * - :white_check_mark: `RadarSweepGrid`
+ * - :white_check_mark: `Geostationary`
+ * 
  * @example
  * // Create a raster plot with the provided color map
  * const raster = new Raster(wind_speed_field, {cmap: color_map});
  */
-class Raster<ArrayType extends TypedArray, GridType extends StructuredGrid, MapType extends MapLikeType> extends PlotComponentFill<ArrayType, GridType, MapType> {
+class Raster<ArrayType extends TypedArray, GridType extends DomainBufferGrid, MapType extends MapLikeType> extends PlotComponentFill<ArrayType, GridType, MapType> {
 
     /**
      * Create a raster plot
      * @param field - The field to create the raster plot from
      * @param opts  - Options for creating the raster plot
      */
-    constructor(field: RawScalarField<ArrayType, GridType>, opts: RasterOptions) {
+    constructor(field: ExpressionScalarField<ArrayType, GridType>, opts: RasterOptions) {
         super(field, opts);
     }
 
@@ -231,7 +248,7 @@ class Raster<ArrayType extends TypedArray, GridType extends StructuredGrid, MapT
      * Update the data displayed as a raster plot
      * @param field - The new field to display as a raster plot
      */
-    public async updateField(field: RawScalarField<ArrayType, GridType>, mask?: Uint8Array) {
+    public async updateField(field: ExpressionScalarField<ArrayType, GridType>, mask?: Uint8Array) {
         await super.updateField(field, mask);
     }
 
@@ -256,18 +273,27 @@ class Raster<ArrayType extends TypedArray, GridType extends StructuredGrid, MapT
 
 /** 
  * A filled contoured field 
+ * 
+ * ## Grid Compatibility
+ * - :white_check_mark: `PlateCarreeGrid`
+ * - :white_check_mark: `PlateCarreeRotatedGrid`
+ * - :white_check_mark: `LambertGrid`
+ * - :x:                `UnstructuredGrid`
+ * - :white_check_mark: `RadarSweepGrid`
+ * - :white_check_mark: `Geostationary`
+ * 
  * @example
  * // Create a field of filled contours with the provided color map
  * const fill = new ContourFill(wind_speed_field, {cmap: color_map});
  */
-class ContourFill<ArrayType extends TypedArray, GridType extends StructuredGrid, MapType extends MapLikeType> extends PlotComponentFill<ArrayType, GridType, MapType> {
+class ContourFill<ArrayType extends TypedArray, GridType extends DomainBufferGrid, MapType extends MapLikeType> extends PlotComponentFill<ArrayType, GridType, MapType> {
 
     /**
      * Create a filled contoured field
      * @param field - The field to create filled contours from
      * @param opts  - Options for creating the filled contours
      */
-    constructor(field: RawScalarField<ArrayType, GridType>, opts: ContourFillOptions) {
+    constructor(field: ExpressionScalarField<ArrayType, GridType>, opts: ContourFillOptions) {
         super(field, opts);
     }
 
@@ -275,7 +301,7 @@ class ContourFill<ArrayType extends TypedArray, GridType extends StructuredGrid,
      * Update the data displayed as filled contours
      * @param field - The new field to display as filled contours
      */
-    public async updateField(field: RawScalarField<ArrayType, GridType>, mask?: Uint8Array) {
+    public async updateField(field: ExpressionScalarField<ArrayType, GridType>, mask?: Uint8Array) {
         await super.updateField(field, mask);
     }
 

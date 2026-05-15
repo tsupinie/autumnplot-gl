@@ -1,4 +1,3 @@
-
 function makeSynthetic500mbLayers() {
     const nx = 121, ny = 61;
     const grid = new apgl.PlateCarreeGrid(nx, ny, -130, 20, -65, 55);
@@ -60,26 +59,15 @@ function makeSynthetic500mbLayers() {
         return new apgl.RawVectorField(grid, new arrayType(u), new arrayType(v), {relative_to: 'grid'});
     }
 
-    function makeWindSpeed(key) {
-        const winds = makeWinds(key);
-        const wspd = [];
-
-        for (let idx = 0; idx < winds.u.data.length; idx++) {
-            wspd[idx] = Math.hypot(winds.u.data[idx], winds.v.data[idx]);
-        }
-
-        return new apgl.RawScalarField(grid, new arrayType(wspd));
-    }
-
     const colormap = apgl.colormaps.pw_speed500mb;
 
-    const raw_hght_field = makeHeight(0);
-    const raw_wind_field = makeWinds(0);
-    const raw_ws_field = makeWindSpeed(0);
+    const hght_field = makeHeight(0);
+    const wind_field = makeWinds(0).multiply(1.15);
+    const wind_speed_field = wind_field.magnitude();
 
-    const cntr = new apgl.Contour(raw_hght_field, {interval: 1, color: '#000000', line_width: lev => lev < 565 ? 2 : 4, line_style: lev => lev < 555 ? '--' : '-'});
-    const filled = new apgl.ContourFill(raw_ws_field, {'cmap': colormap, 'opacity': 0.8});
-    const barbs = new apgl.Barbs(raw_wind_field, {color: '#000000', thin_fac: 16});
+    const cntr = new apgl.Contour(hght_field, {interval: 1, color: '#000000', line_width: lev => lev < 565 ? 2 : 4, line_style: lev => lev < 555 ? '--' : '-'});
+    const filled = new apgl.ContourFill(wind_speed_field, {'cmap': colormap, 'opacity': 0.8});
+    const barbs = new apgl.Barbs(wind_field, {color: '#000000', thin_fac: 16});
 
     const labels = new apgl.ContourLabels(cntr, {text_color: '#ffffff', halo: true, font_url_template: 'https://autumnsky.us/glyphs/{fontstack}/{range}.pbf'});
 
@@ -90,22 +78,29 @@ function makeSynthetic500mbLayers() {
 
     function updateTime(time) {
         cntr.updateField(makeHeight(time));
-        filled.updateField(makeWindSpeed(time));
-        barbs.updateField(makeWinds(time));
+        const raw_wind_field = makeWinds(time).multiply(1.15);
+        barbs.updateField(raw_wind_field);
+        filled.updateField(raw_wind_field.magnitude());
         labels.updateField();
 
         window.requestAnimationFrame(updateTime);
     }
 
-    //updateTime(0);
+    // window.setTimeout(() => updateTime(0), 50);
 
-    const svg = apgl.makeColorBar(colormap, {label: "Wind Speed (kts)", fontface: 'Trebuchet MS', 
+    const svg = apgl.makeColorBar(colormap, {label: "Wind Speed (mph)", fontface: 'Trebuchet MS', 
                                              ticks: [20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140],
                                              orientation: 'horizontal', tick_direction: 'bottom'});
 
     return {layers: [ws_layer, hght_layer, barb_layer, label_layer], colorbar: [svg], 
-            sampler: (lon, lat) => ({hght: raw_hght_field.sampleField(lon, lat), 
-                                     barb: raw_wind_field.sampleField(lon, lat)})};
+            sampler: (lon, lat) => {
+                const hght_val = hght_field.sampleField(lon, lat);
+                const barb_val = wind_field.sampleField(lon, lat);
+                const spd_val = wind_speed_field.sampleField(lon, lat);
+                return {hght: hght_val.toFixed(1), 
+                        spd: spd_val.toFixed(1),
+                        barb: `${barb_val[0].toFixed(0)}/${barb_val[1].toFixed(0)}`}
+            }};
 }
 
 async function fetchBinary(fname, dtype) {
@@ -118,33 +113,66 @@ async function fetchBinary(fname, dtype) {
 
     if (dtype == 'uint8') return ary_inflated;
 
-    return new float16.Float16Array(new Float32Array(ary_inflated.buffer));
+    const data_f32 = new Float32Array(ary_inflated.buffer)
+    
+    if (dtype == 'float32') return data_f32;
+
+    const DTYPES = {
+        'float16': float16.Float16Array,
+        'uint16': Uint16Array,
+        'uint32': Uint32Array,
+        'int16': Int16Array,
+        'int32': Int32Array,
+    }
+
+    return new DTYPES[dtype](data_f32);
 }
 
 async function makeHREFLayers() {
-    const grid_href = new apgl.LambertGrid.fromLLCornerLonLat(1799, 1059, -97.5, 38.5, [38.5, 38.5], -122.719528, 21.138123, 3000, 3000);
+    const grid_href = apgl.LambertGrid.fromLLCornerLonLat(1799, 1059, -97.5, 38.5, [38.5, 38.5], -122.719528, 21.138123, 3000, 3000);
 
     const nh_prob_data = await fetchBinary('data/hrefv3.2023051100.f036.mxuphl5000_2000m.nh_max.086400_p99.85_0040km.bin.gz');
-    //const nh_prob_data = await fetchBinary('data/hrrr_pmsl.bin.gz');
     const nh_prob_field = new apgl.RawScalarField(grid_href, nh_prob_data);
     const nh_prob_contour = new apgl.Contour(nh_prob_field, {'levels': [0.1, 0.3, 0.5, 0.7, 0.9], 'color': '#000000'});
-    //const nh_prob_contour = new apgl.Contour(nh_prob_field, {'interval': 400, 'color': '#000000'});
     const nh_prob_layer = new apgl.PlotLayer('nh_probs', nh_prob_contour);
 
+    const labels = new apgl.ContourLabels(nh_prob_contour, {text_color: '#ffffff', halo: true, 
+                                                            label_formatter: val => Math.round(val * 100).toString(),
+                                                            font_url_template: 'https://autumnsky.us/glyphs/{fontstack}/{range}.pbf'});
+    const label_layer = new apgl.PlotLayer('nh_prob_labels', labels);
 
-    const pb_data = await fetchBinary('data/hrefv3.2023051100.f036.mxuphl5000_2000m.086400.pb75.bin.gz');
-    // If I don't draw the contours, this doesn't draw anything. Why is that?
+
+    const pb_data = await fetchBinary('data/hrefv3.2023051100.f036.mxuphl5000_2000m.086400.pb75.bin.gz', 'uint16');
     const href_pb_colors = ['#9d4c1c', '#f2b368', '#792394', '#d99cf9', '#1e3293', '#aabee3', '#bc373b', '#f0928f', '#397d21', '#b5f0ab'];
+
+    // For this example field, the members are packed in reverse order from what the library now expects. So I'm doing the lazy thing and reversing
+    //  the members here rather than remaking the field.
 
     const pb_field = new apgl.RawScalarField(grid_href, pb_data);
     const paintball = new apgl.Paintball(pb_field, {'colors': [...href_pb_colors].reverse()});
     const paintball_layer = new apgl.PlotLayer('paintball', paintball);
 
-    const svg = apgl.makePaintballKey(href_pb_colors,
-                                      ['HRRR', 'HRRR -6h', 'HRW ARW', 'HRW ARW -12h', 'HRW FV3', 'HRW FV3 -12h', 'HRW NSSL', 'HRW NSSL -12h', 'NAM 3k', 'NAM 3k -12h'],
+    const members = ['HRRR', 'HRRR -6h', 'HRW ARW', 'HRW ARW -12h', 'HRW FV3', 'HRW FV3 -12h', 'HRW NSSL', 'HRW NSSL -12h', 'NAM 3k', 'NAM 3k -12h'];
+
+    const svg = apgl.makePaintballKey(href_pb_colors, members,
                                       {n_cols: 5});
 
-    return {layers: [paintball_layer, nh_prob_layer], colorbar: [svg]};
+    return {layers: [paintball_layer, nh_prob_layer, label_layer], colorbar: [svg],
+            sampler: (lon, lat) => {
+                const pb_val = pb_field.sampleField(lon, lat);
+                const nh_prob_val = nh_prob_field.sampleField(lon, lat);
+
+                const pb_mems = [];
+
+                members.forEach((mem, imem, ary) => {
+                    const test_val = 1 << (ary.length - imem - 1);
+                    if (pb_val & test_val) {
+                        pb_mems.push(mem);
+                    }
+                });
+
+                return {pb: pb_mems.join(', '), nh_prob: nh_prob_val.toFixed(2)}
+            }};
 }
 
 async function makeGFSLayers() {
@@ -220,7 +248,6 @@ async function makeObsLayers() {
                             'tsrasn', 'tsra',  'tspl',  'tsgr', '+tsfzrapl', '+tsra', '+tssn', 'tssa', '+tsgr', 
                             '-up', '+up', '-fzup', '+fzup']
 
-    //const resp = await fetch('data/okmeso.json');
     const resp = await fetch('data/surface_20240823_1500.json');
     const obs = await resp.json();
 
@@ -232,19 +259,37 @@ async function makeObsLayers() {
     const obs_grid = new apgl.UnstructuredGrid(obs.map(o => o.coord));
     const obs_field = new apgl.RawObsField(obs_grid, obs.map(o => o.data));
 
-    // Should missing be NaN or null? Also, the function formatter isn't transferrable to JSON. Is that easy enough to fix?
+    const wx_category_colors = {
+        rain: '#2ca25f',
+        freezing_rain: '#e31a1c',
+        sleet: '#6a51a3',
+        snow: '#3182bd',
+        blowing_dust: '#a6611a',
+        thunder: '#ff7f00',
+        fog: '#bdbdbd',
+        none: '#000000'
+    };
+
+    function symbolColor(sym, cat) {
+        return wx_category_colors[cat];
+    }
+
     const station_plot_locs = {
-        //id: {type: 'string', pos: 'lr'},
-        tmpf: {type: 'number', pos: 'ul', color: '#cc0000', formatter: val => val === null ? '' : val.toFixed(0)},
+        tmpf: {type: 'number', pos: 'ul', cmap: apgl.colormaps.pw_t2m, formatter: val => val === null ? '' : val.toFixed(0)},
         dwpf: {type: 'number', pos: 'll', color: '#00aa00', formatter: val => val === null ? '' : val.toFixed(0)}, 
         wind: {type: 'barb', pos: 'c'},
-        preswx: {type: 'symbol', pos: 'cl', color: '#ff00ff'},
+        preswx: {type: 'symbol', pos: 'cl', color: symbolColor},
         skyc: {type: 'symbol', pos: 'c'},
     };
-    const station_plot = new apgl.StationPlot(obs_field, {config: station_plot_locs, thin_fac: 8, font_size: 14});
-    const station_plot_layer = new apgl.PlotLayer('station-plots', station_plot);
 
-    return {layers: [station_plot_layer]};
+    const station_plot = new apgl.StationPlot(obs_field, {config: station_plot_locs, thin_fac: 8, font_size: 14});
+    const station_plot_layer = new apgl.PlotLayer('station-plots-colored', station_plot);
+
+    const temp_cbar = apgl.makeColorBar(apgl.colormaps.pw_t2m, {label: "Temperature (F)", fontface: 'Trebuchet MS',
+                                                               ticks: [-60, -40, -20, 0, 20, 40, 60, 80, 100, 120],
+                                                               orientation: 'horizontal', tick_direction: 'bottom'});
+
+    return {layers: [station_plot_layer], colorbar: [temp_cbar]};
 }
 
 async function makeMRMSLayer() {
@@ -292,6 +337,48 @@ async function makeMRMSLayer() {
     return {layers: [raster_layer], colorbar: [svg_crain, svg_csnow, svg_cicep, svg_cfrzr]};
 }
 
+async function makeNEXRADLayer() {
+    const grid = new apgl.RadarSweepGrid(1832, 720, 2125.0, 459875.0, 21.192626953125, 380.69262695, -97.27776336669922, 35.3333625793457);
+    const data = await fetchBinary('data/KTLX_20230420_004221');
+    const raw_radar = new apgl.RawScalarField(grid, data);
+    const radar_raster = new apgl.Raster(raw_radar, {cmap: apgl.colormaps.nws_storm_clear_refl})
+
+    const radar_layer = new apgl.PlotLayer('nexrad', radar_raster);
+
+    const cbar = apgl.makeColorBar(apgl.colormaps.nws_storm_clear_refl, {label: 'Reflectivity (dBZ)', 
+                                                                         ticks: [-10, 0, 10, 20, 30, 40, 50, 60, 70], 
+                                                                         fontface: 'Trebuchet MS',
+                                                                         orientation: 'horizontal',
+                                                                         tick_direction: 'bottom'});
+
+    return {layers: [radar_layer], colorbar: [cbar], 
+            sampler: (lon, lat) => {
+                const refl_val = raw_radar.sampleField(lon, lat);
+                return {refl: refl_val.toFixed(1)}
+            }};
+}
+
+async function makeGOESLayer() {
+    // CONUS mid-level water vapor
+    const grid = new apgl.GeostationaryImage(2500, 1500, -0.10136, 0.12824, 0.03864, 0.04424, -75.0);
+    const data = await fetchBinary('data/g19_conus_band9_20251028_160236.gz');
+
+    const cmap = apgl.colormaps.wv_cimss;
+    const raw_sat = new apgl.RawScalarField(grid, data);
+    const sat_raster = new apgl.Raster(raw_sat, {cmap: cmap});
+
+    const sat_layer = new apgl.PlotLayer('goes', sat_raster);
+
+    const cbar = apgl.makeColorBar(cmap, {label: 'Brightness Temperature (K)', 
+                                          ticks: [170, 180, 190, 200, 210, 220, 230, 240, 250, 260, 270], 
+                                          fontface: 'Trebuchet MS',
+                                          orientation: 'horizontal',
+                                          tick_direction: 'bottom'});
+    
+    return {layers: [sat_layer], colorbar: [cbar]};
+}
+
+
 const views = {
     'default': {
         name: "Synthetic 500mb",
@@ -322,12 +409,24 @@ const views = {
         name: "MRMS",
         makeLayers: makeMRMSLayer,
         maxZoom: 8.5,
-    }
+    },
+    'nexrad-l2': {
+        name: "NEXRAD",
+        makeLayers: makeNEXRADLayer,
+        maxZoom: 14,
+    },
+    'goes': {
+        name: "GOES",
+        makeLayers: makeGOESLayer,
+        maxZoom: 9,
+    },
 };
 
 window.addEventListener('load', () => {
     const menu = document.querySelector('#selection select');
     menu.innerHTML = Object.entries(views).map(([k, v]) => `<option value="${k}">${v.name}</option>`).join('');
+
+    apgl.initAutumnPlot({contour_workers: 4});
 
     const use_mapbox = false;
     const use_globe = true;
@@ -368,11 +467,24 @@ window.addEventListener('load', () => {
 
     let current_layers = [];
 
+    const readout = document.querySelector('#readout');
+    let sampler = null;
+
+    const getLatLon = (ev) => {
+        if (sampler === null || sampler === undefined) return;
+
+        const coord = ev.lngLat.wrap();
+        const sample = sampler(coord.lng, coord.lat);
+        const str = Object.entries(sample).map(([sn, s]) => `${sn}: ${s}`).join(', ');
+        readout.innerHTML = str;
+    }
+
     async function updateMap() {
         const view = views[menu.value];
         map.setMaxZoom(view.maxZoom);
 
-        const {layers, colorbar, sampler} = await view.makeLayers();
+        const {layers, colorbar, sampler: sampler_} = await view.makeLayers();
+        sampler = sampler_;
 
         current_layers.forEach(lyr => {
             map.removeLayer(lyr.id);
@@ -392,23 +504,17 @@ window.addEventListener('load', () => {
 
         current_layers = layers;
 
-        const readout = document.querySelector('#readout');
-
-        const getLatLon = (ev) => {
-            const coord = ev.lngLat.wrap();
-            const sample = sampler(coord.lng, coord.lat);
-            const str = Object.entries(sample).map(([sn, s]) => Array.isArray(s) ? `${sn}: ${s[0].toFixed(0)}/${s[1].toFixed(0)}` : `${sn}: ${s.toFixed(1)}`).join(', ');
-            readout.innerHTML = str;
-        }
-
         if (sampler !== undefined) {
             map.on('mousemove', getLatLon);
+            readout.style.display = 'block';
         }
         else {
             map.off('mousemove', getLatLon);
+            readout.style.display = 'none';
         }
     }
 
     map.on('load', updateMap);
     menu.addEventListener('change', updateMap);
 });
+

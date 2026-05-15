@@ -1,22 +1,15 @@
 
-import Module from './cpp/marchingsquares';
+import * as Comlink from 'comlink';
+
+import { GridCoords } from './grids/Grid';
+import { ContourData, ContourableTypedArray } from "./AutumnTypes";
+import { initMSModule } from "./WasmInterface";
 import { MarchingSquaresModule } from './cpp/marchingsquares';
-import './cpp/marchingsquares.wasm';
-import { Grid } from "./Grid";
-import { ContourData, TypedArray } from "./AutumnTypes";
 
-let msm_promise: Promise<MarchingSquaresModule> | null = null;
+let _msm: MarchingSquaresModule | null = null;
 
-interface InitMSModuleOpts {
-    document_script?: string;
-}
-
-function initMSModule(opts: InitMSModuleOpts) {
-    if (msm_promise === null) {
-        msm_promise = Module({'locateFile': (fname: string, dir: string) => (opts.document_script === undefined ? dir : opts.document_script) + fname});
-    }
-
-    return msm_promise;
+async function init(wasm_base_url: string | undefined) {
+    _msm = await initMSModule({document_script: wasm_base_url});
 }
 
 /** Options for contouring data via {@link RawScalarField.getContours | RawScalarField.getContours()} */
@@ -37,7 +30,7 @@ interface FieldContourOpts {
     quad_as_tri?: boolean;
 }
 
-async function contourCreator<ArrayType extends TypedArray>(data: ArrayType, grid: Grid, opts: FieldContourOpts) {
+async function contourCreator(data: ContourableTypedArray, grid_coords: GridCoords, opts: FieldContourOpts) {
     if (opts.interval === undefined && opts.levels === undefined) {
         throw "Must supply either an interval or levels to contourCreator()"
     }
@@ -45,18 +38,25 @@ async function contourCreator<ArrayType extends TypedArray>(data: ArrayType, gri
     const interval = opts.interval === undefined ? 0 : opts.interval;
     const quad_as_tri = opts.quad_as_tri === undefined ? false : opts.quad_as_tri;
 
-    const msm = await initMSModule({});
-
-    const grid_coords = grid.getGridCoords();
+    const msm = _msm === null ? await initMSModule({}) : _msm;
+    _msm = msm;
 
     const getContourLevels = data instanceof Float32Array ? msm.getContourLevelsFloat32 : msm.getContourLevelsFloat16;
     const makeContours = data instanceof Float32Array ? msm.makeContoursFloat32 : msm.makeContoursFloat16;
 
-    const levels = opts.levels === undefined ? getContourLevels(data, grid.ni, grid.nj, interval) : opts.levels;
-    const contours = makeContours(data, grid_coords.x, grid_coords.y, levels, (x: number, y: number) => grid.transform(x, y, {inverse: true}), quad_as_tri);
+    const levels = opts.levels === undefined ? getContourLevels(data, grid_coords.x.length, grid_coords.y.length, interval) : opts.levels;
+    const contours = makeContours(data, grid_coords.x, grid_coords.y, levels, quad_as_tri);
 
     return contours as ContourData;
 }
 
-export {contourCreator, initMSModule};
-export type {FieldContourOpts};
+const ep_interface = {
+    'contourCreator': contourCreator,
+    'init': init,
+}
+
+type ContourCreatorWorker = typeof ep_interface;
+
+Comlink.expose(ep_interface);
+
+export type {ContourCreatorWorker, FieldContourOpts}

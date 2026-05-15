@@ -9,7 +9,8 @@ import { Color } from './Color';
 
 import { normalizeOptions } from './utils';
 import { ColorMap } from './Colormap';
-import { StructuredGrid, UnstructuredGrid } from './Grid';
+import { StructuredGrid} from './grids/StructuredGrid';
+import { UnstructuredGrid } from './grids/UnstructuredGrid';
 
 /** Options for {@link Contour} components */
 interface ContourOptions {
@@ -77,6 +78,15 @@ interface ContourGLElems<MapType extends MapLikeType> {
 
 /** 
  * A field of contoured data.
+ * 
+ *  ## Grid Compatibility
+ * - :white_check_mark: `PlateCarreeGrid`
+ * - :white_check_mark: `PlateCarreeRotatedGrid`
+ * - :white_check_mark: `LambertGrid`
+ * - :x:                `UnstructuredGrid`
+ * - :white_check_mark: `RadarSweepGrid`
+ * - :white_check_mark: `Geostationary`
+ * 
  * @example
  * // Create a contoured height field, with black contours every 30 m (assuming the height field is in 
  * // meters).
@@ -199,6 +209,7 @@ class Contour<ArrayType extends TypedArray, GridType extends StructuredGrid, Map
         const bearing = gl_elems.map.getBearing();
         const pitch = gl_elems.map.getPitch();
 
+        // XXX: This will compile another shader each time updateField() is called. Is there a way to not do that?
         this.contours.forEach(cnt => cnt.render(gl, arg, [map_width, map_height], zoom, bearing, pitch));
     }
 }
@@ -234,6 +245,13 @@ interface ContourLabelOptions {
     font_url_template?: string;
 
     /**
+     * Function to format the labels from numbers to a string
+     * @example val => Math.round(val).toString() // Round a number before to the nearest integer before converting to a string
+     * @default val => val.toString()
+     */
+    label_formatter?: (val: number) => string;
+
+    /**
      * Text color for the contour labels
      * @default '#000000'
      */
@@ -263,6 +281,7 @@ const contour_label_opt_defaults: Required<ContourLabelOptions> = {
     font_face: 'Trebuchet MS',
     font_size: 12,
     font_url_template: '',
+    label_formatter: (val: number) => val.toString(),
     text_color: '#000000',
     halo_color: '#000000',
     halo: false,
@@ -325,7 +344,7 @@ class ContourLabels<ArrayType extends TypedArray, GridType extends StructuredGri
 
         Object.entries(contour_data).forEach(([level, contours]) => {
             const icntr = (parseFloat(level) - contour_levels[0]);
-            const level_str = level.toString();
+            const level_str = this.opts.label_formatter(level as unknown as keyof typeof contour_data);
 
             contours.forEach(contour => {
                 const c_map = contour.map(v => {
@@ -403,6 +422,7 @@ class ContourLabels<ArrayType extends TypedArray, GridType extends StructuredGri
         const map_height = gl_elems.map.getCanvas().height;
         const map_zoom = gl_elems.map.getZoom();
 
+        // XXX: This will compile another shader each time updateField() is called. Is there a way to not do that?
         this.text_collection.render(gl, arg, [map_width, map_height], map_zoom);
     }
 }

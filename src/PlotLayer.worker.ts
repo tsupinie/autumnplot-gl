@@ -1,5 +1,4 @@
 
-import { getMinZoom } from "./utils";
 import { LineData, Polyline } from "./AutumnTypes";
 
 import * as Comlink from 'comlink';
@@ -372,10 +371,11 @@ function makePolylines(lines: LineData[]) : Polyline {
     return ret;
 }
 
+
 const ep_interface = {
     'makeBBElements': makeBBElements, 
     'makeDomainVerticesAndTexCoords': makeDomainVerticesAndTexCoords,
-    'makePolyLines': makePolylines
+    'makePolyLines': makePolylines,
 }
 
 type PlotLayerWorker = typeof ep_interface;

@@ -9,7 +9,8 @@ import { LineData, RenderMethodArg, TypedArray, WebGLAnyRenderingContext, WindPr
 import { Float16Array } from "@petamoriken/float16";
 import { ColorMap } from "./Colormap";
 import { Color } from "./Color";
-import { Grid } from "./Grid";
+import { Grid } from "./grids/Grid";
+import { AutoZoomGrid } from "./grids/AutoZoom";
 
 const LINE_WIDTH_MULTIPLIER = 2.5;
 
@@ -112,14 +113,24 @@ const hodograph_opt_defaults: Required<HodographOptions> = {
     max_wind_speed_ring: 80
 }
 
-interface HodographGLElems<ArrayType extends TypedArray, GridType extends Grid, MapType extends MapLikeType> {
+interface HodographGLElems<ArrayType extends TypedArray, GridType extends AutoZoomGrid, MapType extends MapLikeType> {
     gl: WebGLAnyRenderingContext;
     map: MapType;
     bg_billboard: BillboardCollection<ArrayType, GridType>;
 }
 
-/** A class representing a field of hodograph plots */
-class Hodographs<GridType extends Grid, MapType extends MapLikeType> extends PlotComponent<MapType> {
+/** 
+ * A class representing a field of hodograph plots 
+ * 
+ * ## Grid Compatibility
+ * - :white_check_mark: `PlateCarreeGrid`
+ * - :white_check_mark: `PlateCarreeRotatedGrid`
+ * - :white_check_mark: `LambertGrid`
+ * - :white_check_mark: `UnstructuredGrid`
+ * - :x:                `RadarSweepGrid`
+ * - :x:                `Geostationary`
+ */
+class Hodographs<GridType extends AutoZoomGrid, MapType extends MapLikeType> extends PlotComponent<MapType> {
     private profile_field: RawProfileField<GridType>;
     public readonly opts: Required<HodographOptions>;
 

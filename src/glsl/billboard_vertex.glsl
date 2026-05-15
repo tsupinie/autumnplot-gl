@@ -14,8 +14,6 @@ uniform highp float u_bb_mag_bin_size;
 uniform highp float u_bb_mag_wrap;
 uniform int u_rotate_with_map;
 
-uniform sampler2D u_u_sampler;
-uniform sampler2D u_v_sampler;
 uniform sampler2D u_rot_sampler;
 
 out highp vec2 v_tex_coord;
@@ -72,8 +70,8 @@ void main() {
     vec2 data_texcoord = a_tex_coord;
     data_texcoord.x = fract(data_texcoord.x);
 
-    highp float u = texture(u_u_sampler, data_texcoord).r;
-    highp float v = texture(u_v_sampler, data_texcoord).r;
+    highp float u = get_field_value_u(data_texcoord);
+    highp float v = get_field_value_v(data_texcoord);
     highp float rot = texture(u_rot_sampler, data_texcoord).r;
 
     lowp float bb_aspect = u_bb_width / u_bb_height;

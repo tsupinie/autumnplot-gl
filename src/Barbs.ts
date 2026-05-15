@@ -7,7 +7,7 @@ import { MapLikeType } from "./Map";
 import { BillboardSpec, RenderMethodArg, TypedArray, WebGLAnyRenderingContext } from "./AutumnTypes";
 import { Color } from "./Color";
 import { ColorMap } from "./Colormap";
-import { Grid } from "./Grid";
+import { AutoZoomGrid } from "./grids/AutoZoom";
 
 const BASE_BARB_DIMS: BillboardSpec = {
     BB_WIDTH: 85,
@@ -168,7 +168,7 @@ const barb_opt_defaults: Required<BarbsOptions> = {
     thin_fac: 1
 }
 
-interface BarbsGLElems<ArrayType extends TypedArray, GridType extends Grid, MapType extends MapLikeType> {
+interface BarbsGLElems<ArrayType extends TypedArray, GridType extends AutoZoomGrid, MapType extends MapLikeType> {
     map: MapType;
     barb_billboards: BillboardCollection<ArrayType, GridType>;
 }
@@ -176,12 +176,21 @@ interface BarbsGLElems<ArrayType extends TypedArray, GridType extends Grid, MapT
 /** 
  * A class representing a field of wind barbs. The barbs are automatically thinned based on the zoom level on the map; the user only has to provide a
  * thinning factor at zoom level 1.
+ * 
+ * ## Grid Compatibility
+ * - :white_check_mark: `PlateCarreeGrid`
+ * - :white_check_mark: `PlateCarreeRotatedGrid`
+ * - :white_check_mark: `LambertGrid`
+ * - :white_check_mark: `UnstructuredGrid`
+ * - :x:                `RadarSweepGrid`
+ * - :x:                `Geostationary`
+ * 
  * @example
  * // Create a barb field with black barbs and plotting every 16th wind barb in both i and j at zoom level 1
  * const vector_field = new RawVectorField(grid, u_data, v_data);
  * const barbs = new Barbs(vector_field, {color: '#000000', thin_fac: 16});
  */
-class Barbs<ArrayType extends TypedArray, GridType extends Grid, MapType extends MapLikeType> extends PlotComponent<MapType> {
+class Barbs<ArrayType extends TypedArray, GridType extends AutoZoomGrid, MapType extends MapLikeType> extends PlotComponent<MapType> {
     /** The vector field */
     private fields: RawVectorField<ArrayType, GridType>;
     public readonly opts: Required<BarbsOptions>;

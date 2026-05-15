@@ -3,11 +3,13 @@ import { RenderMethodArg, WebGLAnyRenderingContext } from "./AutumnTypes";
 import { MapLikeType } from "./Map";
 import { PlotComponent } from "./PlotComponent";
 import { normalizeOptions } from "./utils";
-import { Grid } from "./Grid";
+import { Grid } from "./grids/Grid";
+import { AutoZoomGrid } from "./grids/AutoZoom";
 import { RawObsField } from "./RawField";
 import { HorizontalAlign, TextCollection, TextCollectionOptions, TextSpec, VerticalAlign } from "./TextCollection";
 import { Float16Array } from "@petamoriken/float16";
 import { Color } from "./Color";
+import { ColorMap } from "./Colormap";
 import Barbs from "./Barbs";
 
 /**
@@ -41,6 +43,12 @@ interface SPNumberConfig {
      * @default '#000000'
      */
     color?: string;
+
+    /**
+     * A colormap to use for coloring numeric values
+     * @default null
+     */
+    cmap?: ColorMap | null;
 
     /**
      * Whether to draw a halo (outline) around the number
@@ -182,9 +190,9 @@ interface SPSymbolConfig {
      * The color to use to draw the symbol
      * @default '#000000'
      */
-    color?: string;
+    color?: string | ((symbol: SPSymbol | null, category: SPSymbolCategory) => string);
 
-        /**
+    /**
      * Whether to draw a halo (outline) around the string
      * @default true;
      */
@@ -254,7 +262,7 @@ const station_plot_opts_defaults: Required<StationPlotOptions<never>> = {
     font_url_template: '',
 };
 
-interface StationPlotGLElems<GridType extends Grid, MapType extends MapLikeType> {
+interface StationPlotGLElems<GridType extends AutoZoomGrid, MapType extends MapLikeType> {
     map: MapType;
     gl: WebGLAnyRenderingContext;
     barb_components: Barbs<Float16Array, GridType, MapType>[];
@@ -277,8 +285,33 @@ function positionToAlignmentAndOffset(pos: SPPosition, off_size?: number) {
     return {horizontal_align: ha, vertical_align: va, offset_x: xoff, offset_y: yoff};
 }
 
+type SPSymbolCategory = 'freezing_rain' | 'sleet' | 'snow' | 'rain' | 'blowing_dust' | 'thunder' | 'fog' | 'none';
+
+function symbolCategory(symbol: SPSymbol) : SPSymbolCategory {
+    const sym = symbol.toLowerCase();
+
+    if (sym.includes('fzra') || (sym.includes('fz') && sym.includes('ra'))) return 'freezing_rain';
+    if (sym.includes('pl')) return 'sleet';
+    if (sym.includes('sn') || sym.includes('sg') || sym.includes('gs')) return 'snow';
+    if (sym.includes('ra') || sym.includes('dz')) return 'rain';
+    if (sym.includes('du') || sym.includes('ds') || sym.includes('ss') || sym.includes('blsa') || sym.includes('bldu') || sym.includes('blpy')) return 'blowing_dust';
+    if (sym.includes('ts') || sym.includes('thdr')) return 'thunder';
+    if (sym.includes('fg')) return 'fog';
+
+    return 'none';
+}
+
 /** 
  * Station model plots for observed data
+ * 
+ * ## Grid Compatibility
+ * - :white_check_mark: `PlateCarreeGrid`
+ * - :white_check_mark: `PlateCarreeRotatedGrid`
+ * - :white_check_mark: `LambertGrid`
+ * - :white_check_mark: `UnstructuredGrid`
+ * - :x:                `RadarSweepGrid`
+ * - :x:                `Geostationary`
+ * 
  * @example
  * // Specify how to set up the station plot
  * const station_plot_locs = {
@@ -292,11 +325,11 @@ function positionToAlignmentAndOffset(pos: SPPosition, off_size?: number) {
  * // Create the station plot
  * const station_plot = new StationPlot(obs_field, {config: station_plot_locs, thin_fac: 8, font_size: 14});
  */
-class StationPlot<GridType extends Grid, MapType extends MapLikeType, ObsFieldName extends string> extends PlotComponent<MapType> {
+class StationPlot<GridType extends AutoZoomGrid, MapType extends MapLikeType, ObsFieldName extends string> extends PlotComponent<MapType> {
     private field: RawObsField<GridType, ObsFieldName>;
     public readonly opts: Required<StationPlotOptions<ObsFieldName>>;
     private gl_elems: StationPlotGLElems<GridType, MapType> | null;
-    private text_components: TextCollection[] | null;
+    private text_components: TextCollection[][] | null;
 
     /**
      * Create station plots
@@ -333,9 +366,14 @@ class StationPlot<GridType extends Grid, MapType extends MapLikeType, ObsFieldNa
 
         const font_url = font_url_template.replace('{fontstack}', this.opts.font_face);
 
+        const coords = this.field.grid.getEarthCoords();
+        const zoom = this.field.grid.getMinVisibleZoom(this.opts.thin_fac);
+
         let ibarb = 0;
 
-        const sub_component_promises = Object.entries<SPConfig>(this.opts.config).map(async ([k_, config]) => {
+        let sub_component_promises: Promise<TextCollection>[][] = [];
+
+        Object.entries<SPConfig>(this.opts.config).forEach(async ([k_, config]) => {
             const k = k_ as ObsFieldName;
 
             if (config.type == 'number' || config.type == 'string') {
@@ -343,29 +381,46 @@ class StationPlot<GridType extends Grid, MapType extends MapLikeType, ObsFieldNa
                 const color = config.color === undefined ? Color.fromHex('#000000') : Color.normalizeColor(config.color);
                 const halo_color = config.halo_color === undefined ? Color.fromHex('#ffffff') : Color.normalizeColor(config.halo_color);
                 const halo = config.halo === undefined ? true : config.halo;
-
-                const coords = this.field.grid.getEarthCoords();
-                const zoom = this.field.grid.getMinVisibleZoom(this.opts.thin_fac);
+                let cmap: ColorMap | null = null;
 
                 let text_specs: TextSpec[];
                 if (config.type == 'number') {
+                    cmap = config.cmap === undefined ? null : config.cmap;
                     const comp = this.field.getScalar(k);
                     const formatter = config.formatter === undefined ? (val: number | null) => val === null ? 'null' : val.toString() : config.formatter;
-    
-                    text_specs = comp.map((v, i) => ({text: formatter(v), lat: coords.lats[i], lon: coords.lons[i], min_zoom: zoom[i]}));
+
+                    text_specs = comp.map((v, i) => {
+                        const spec: TextSpec = {
+                            text: formatter(v),
+                            lat: coords.lats[i],
+                            lon: coords.lons[i],
+                            min_zoom: zoom[i],
+                        };
+
+                        if (v !== null) 
+                            spec.data_value = v;
+
+                        return spec;
+                    });
                 }
                 else {
                     const comp = this.field.getStrings(k);
-                    text_specs = comp.map((v, i) => ({text: v === null ? '' : v, lat: coords.lats[i], lon: coords.lons[i], min_zoom: zoom[i]}));
+                    text_specs = comp.map((v, i) => ({
+                        text: v === null ? '' : v,
+                        lat: coords.lats[i],
+                        lon: coords.lons[i],
+                        min_zoom: zoom[i],
+                    }));
                 }
 
                 const tc_opts: TextCollectionOptions = {
                     ...positionToAlignmentAndOffset(pos),
                     font_size: this.opts.font_size, halo: halo, 
                     text_color: color, halo_color: halo_color,
+                    cmap: cmap
                 };
 
-                return await TextCollection.make(gl, text_specs, font_url, tc_opts);
+                sub_component_promises.push([TextCollection.make(gl, text_specs, font_url, tc_opts)]);
             }
             else if (config.type == 'barb') {
                 const comp = this.field.getVector(k);
@@ -374,34 +429,60 @@ class StationPlot<GridType extends Grid, MapType extends MapLikeType, ObsFieldNa
             }
             else if (config.type == 'symbol') {
                 const pos = config.pos;
-                const color = config.color === undefined ? Color.fromHex('#000000') : Color.normalizeColor(config.color);
+                const color = config.color === undefined ? '#000000' : config.color;
                 const halo_color = config.halo_color === undefined ? Color.fromHex('#ffffff') : Color.normalizeColor(config.halo_color);
                 const halo = config.halo === undefined ? true : config.halo;
 
                 const comp = this.field.getStrings(k) as (SPSymbol | null)[];
-                const coords = this.field.grid.getEarthCoords();
-                const zoom = this.field.grid.getMinVisibleZoom(this.opts.thin_fac);
-
                 const wxsym_font_url = font_url_template.replace('{fontstack}', 'wx_symbols');
-                const text_specs: TextSpec[] = comp.map((v, i) => ({text: v === null ? '' : String.fromCharCode(SYMBOLS[v]), 
-                                                                    lat: coords.lats[i], lon: coords.lons[i], min_zoom: zoom[i]}));
                 
-                const tc_opts: TextCollectionOptions = {
-                    ...positionToAlignmentAndOffset(pos),
-                    font_size: this.opts.font_size, halo: halo, 
-                    text_color: color, halo_color: halo_color,
-                };
+                type TextSpecDataColor = {specs: TextSpec[], color: string};
+                const text_spec_data: TextSpecDataColor[] = [];
 
-                if (tc_opts.offset_x !== undefined) tc_opts.offset_x -= 3;
+                comp.forEach((v, i) => {
+                    const v_cat: SPSymbolCategory = v === null ? 'none' : symbolCategory(v);
+                    const text_color = typeof color === 'string' ? color : color(v, v_cat);
+                    const text_spec_data_filtered = text_spec_data.filter(tsd => tsd.color == text_color)
 
-                return await TextCollection.make(gl, text_specs, wxsym_font_url, tc_opts);
+                    let text_spec_color : TextSpecDataColor;
+                    if (text_spec_data_filtered.length == 0) {
+                        text_spec_color = {specs: [], color: text_color};
+                        text_spec_data.push(text_spec_color);
+                    }
+                    else {
+                        text_spec_color = text_spec_data_filtered[0];
+                    }
+
+                    text_spec_color.specs.push({
+                        text: v === null ? '' : String.fromCharCode(SYMBOLS[v]),
+                        lat: coords.lats[i],
+                        lon: coords.lons[i],
+                        min_zoom: zoom[i],
+                    });
+                });
+
+                const promises: Promise<TextCollection>[] = []
+
+                text_spec_data.forEach(tsd => {
+                    const tc_opts: TextCollectionOptions = {
+                        ...positionToAlignmentAndOffset(pos),
+                        font_size: this.opts.font_size, halo: halo, 
+                        text_color: Color.normalizeColor(tsd.color), halo_color: halo_color,
+                    };
+
+                    if (tc_opts.offset_x !== undefined) tc_opts.offset_x -= 3;
+
+                    promises.push(TextCollection.make(gl, tsd.specs, wxsym_font_url, tc_opts));
+                });
+
+                sub_component_promises.push(promises);
             }
             else {
                 throw `Unknown station plot configuration type ${(config as any).type}`;
             }
         });
 
-        this.text_components = (await Promise.all(sub_component_promises)).filter((c: TextCollection | undefined) : c is TextCollection => c !== undefined);
+        this.text_components = await Promise.all(sub_component_promises.map(p => Promise.all(p)));
         map.triggerRepaint();
     }
 
@@ -444,12 +525,12 @@ class StationPlot<GridType extends Grid, MapType extends MapLikeType, ObsFieldNa
         const map_zoom = gl_elems.map.getZoom();
 
         let itext = 0, ibarb = 0;
-        Object.values<SPConfig>(this.opts.config).forEach(comp => {
+        Object.values<SPConfig>(this.opts.config).forEach((comp, idx) => {
             if (comp.type == 'barb') {
                 barb_components[ibarb++].render(gl, arg);
             }
             else {
-                text_components[itext++].render(gl, arg, [map_width, map_height], map_zoom);
+                text_components[itext++].forEach(tc => tc.render(gl, arg, [map_width, map_height], map_zoom));
             }
         });
     }

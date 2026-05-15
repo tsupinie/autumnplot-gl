@@ -1,4 +1,4 @@
-import { TypedArray } from "./AutumnTypes";
+import { TypedArray, TypedArrayStr } from "./AutumnTypes";
 
 function getMinZoom(jlat: number, ilon: number, thin_fac_base: number) {
     const zoom_base = 1;
@@ -102,4 +102,80 @@ function mergeShaderCode(snippet: string, main: string) {
     return snippet + "\n" + main;
 }
 
-export {zip, getMinZoom, getOS, Cache, normalizeOptions, getArrayConstructor, mergeShaderCode};
+function applySamplerCodeScalar(src: string, sampler_names: string[], sampler_expression: string, dtypes: TypedArrayStr[]) {
+    // TAS: find a better place for this to live.
+    const SAMPLER_DTYPES = {
+        'float16': 'sampler2D', 'float32': 'sampler2D', 
+        'uint8': 'lowp usampler2D', 'uint16': 'mediump usampler2D', 'uint32': 'highp usampler2D',
+        'int16': 'mediump isampler2D', 'int32': 'highp isampler2D',
+    };
+
+    const SHADER_DTYPES = {
+        'float16': 'highp float', 'float32': 'highp float',
+        'uint8': 'uint', 'uint16': 'uint', 'uint32': 'uint',
+        'int16': 'int', 'int32': 'int',
+    }
+
+    const samplers = sampler_names.map((v, i) => `uniform ${SAMPLER_DTYPES[dtypes[i]]} ${v};`).join("\n");
+    const sampler_get = sampler_names.map((v, i) => `    ${SHADER_DTYPES[dtypes[i]]} ${v}_val = texture(${v}, tex_coord).r;`).join("\n");
+
+    sampler_names.forEach(v => sampler_expression = sampler_expression.replaceAll(v, `${v}_val`));
+
+    // TAS: This assumes that the return type of the expression is the same as the type of the inputs. May need to revisit this later.
+    const sampler_code = `
+${samplers}
+
+${SHADER_DTYPES[dtypes[0]]} get_field_value(lowp vec2 tex_coord) {
+${sampler_get}
+    return ${sampler_expression};
+}`;
+
+    return mergeShaderCode(sampler_code, src);
+}
+
+function applySamplerCodeVector(src: string, sampler_names: {u: string[], v: string[]}, sampler_expressions: {u: string, v: string}) {
+    const samplers = sampler_names.u.map(v => `uniform sampler2D ${v};`).join("\n") + "\n" +
+                     sampler_names.v.map(v => `uniform sampler2D ${v};`).join("\n");
+    const sampler_u_get = sampler_names.u.map(v => `    highp float ${v}_val = texture(${v}, tex_coord).r;`).join("\n");
+    const sampler_v_get = sampler_names.v.map(v => `    highp float ${v}_val = texture(${v}, tex_coord).r;`).join("\n");
+
+    let sampler_expression_u = sampler_expressions.u;
+    sampler_names.u.forEach(v => sampler_expression_u = sampler_expression_u.replaceAll(v, `${v}_val`));
+    let sampler_expression_v = sampler_expressions.v;
+    sampler_names.v.forEach(v => sampler_expression_v = sampler_expression_v.replaceAll(v, `${v}_val`));
+
+    const sampler_code = `
+${samplers}
+
+highp float get_field_value_u(lowp vec2 tex_coord) {
+${sampler_u_get}
+    return ${sampler_expression_u};
+}
+
+highp float get_field_value_v(lowp vec2 tex_coord) {
+${sampler_v_get}
+    return ${sampler_expression_v};
+}`;
+
+    return mergeShaderCode(sampler_code, src);
+}
+
+function argMin<T>(ary: T[] | TypedArray) {
+    if (ary.length === 0) {
+        return -1;
+    }
+
+    let min = ary[0];
+    let minIndex = 0;
+
+    for (let i = 1; i < ary.length; i++) {
+        if (ary[i] < min) {
+            minIndex = i;
+            min = ary[i];
+        }
+    }
+
+    return minIndex;
+}
+
+export {zip, getMinZoom, getOS, Cache, normalizeOptions, getArrayConstructor, mergeShaderCode, applySamplerCodeScalar, applySamplerCodeVector, argMin};

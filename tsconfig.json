@@ -4,7 +4,7 @@
         "noImplicitAny": true,
         "sourceMap": true,
         "module": "esnext",
-        "target": "es5",
+        "target": "es2021",
         "allowJs": true,
         "allowSyntheticDefaultImports": true,
         "moduleResolution": "node",

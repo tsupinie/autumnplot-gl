@@ -1,10 +1,17 @@
 #version 300 es
 
 in highp vec2 v_tex_coord;
+
+#ifdef DATA
+in highp float v_value;
+#endif
+
 uniform sampler2D u_sdf_sampler;
 uniform int u_is_halo;
 
+#ifndef DATA
 uniform lowp vec4 u_text_color;
+#endif
 uniform lowp vec4 u_halo_color;
 
 #define SDF_FILL 0.75
@@ -18,7 +25,13 @@ void main() {
     lowp float step_width = 0.08;
     lowp float alpha = smoothstep(SDF_FILL - step_width, SDF_FILL + step_width, sdf_val);
 
-    lowp vec4 color = u_is_halo == 1 ? u_halo_color : u_text_color;
+#ifdef DATA
+    lowp vec4 text_color = apply_colormap(v_value);
+#else
+    lowp vec4 text_color = u_text_color;
+#endif
+
+    lowp vec4 color = u_is_halo == 1 ? u_halo_color : text_color;
 
     if (u_is_halo == 1) {
         alpha = min(smoothstep(SDF_HALO - step_width, SDF_HALO + step_width, sdf_val), 1.0 - alpha);

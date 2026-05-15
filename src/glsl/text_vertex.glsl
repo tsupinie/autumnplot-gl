@@ -10,7 +10,15 @@ in vec3 a_pos;
 in vec2 a_offset;
 in vec2 a_tex_coord;
 
+#ifdef DATA
+in highp float a_value;
+#endif
+
 out highp vec2 v_tex_coord;
+
+#ifdef DATA
+out highp float v_value;
+#endif
 
 mat4 scalingMatrix(float x_scale, float y_scale, float z_scale) {
     return mat4(x_scale, 0.0,     0.0,     0.0,
@@ -33,4 +41,8 @@ void main() {
 
     gl_Position = projectTile(a_pos.xy + globe_offset) + u_font_size / 12. * 1.5 * map_stretch_matrix * vec4(offset, 0., 0.);
     v_tex_coord = a_tex_coord;
+
+#ifdef DATA
+    v_value = a_value;
+#endif
 }

@@ -111,7 +111,7 @@ void checkGridSize(size_t grid_size, int nx, int ny) {
 
 template<typename T>
 emscripten::val makeContoursWASM(const emscripten::val& data, const emscripten::val& xs, const emscripten::val& ys, const emscripten::val& values,
-                                 const emscripten::val& grid_transformer, const emscripten::val& quad_as_tri_) {
+                                 const emscripten::val& quad_as_tri_) {
     auto memory = emscripten::val::module_property("HEAPU8")["buffer"];
 
     int nx = xs["length"].as<int>();
@@ -167,8 +167,7 @@ emscripten::val makeContoursWASM(const emscripten::val& data, const emscripten::
         js_contours[value].call<void>("push", emscripten::val::array());
 
         for (auto plit = it->point_list.begin(); plit != it->point_list.end(); ++plit) {
-            auto pt_trans = grid_transformer(plit->x, plit->y);
-            js_contours[value][contour_index].call<void>("push", pt_trans);
+            js_contours[value][contour_index].call<void>("push", emscripten::val::array(std::vector<float>{plit->x, plit->y}));
         }
     }
     auto t4 = std::chrono::steady_clock::now();

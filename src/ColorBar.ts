@@ -1,6 +1,7 @@
 
 import { ColorMap } from "./Colormap";
 import { Color } from "./Color";
+import { normalizeOptions } from "./utils";
 
 /** The orientation for color bars (horizontal or vertical) */
 type ColorbarOrientation = 'horizontal' | 'vertical';
@@ -8,7 +9,7 @@ type ColorbarOrientation = 'horizontal' | 'vertical';
 /** Which side of a color bar the ticks are on */
 type ColorbarTickDirection = 'top' | 'bottom' | 'left' | 'right';
 
-/** Options for {@link ColorBar}s */
+/** Options for {@link makeColorBar} */
 interface ColorBarOptions {
     /** The label to place along the color bar */
     label?: string;
@@ -293,11 +294,23 @@ interface PaintballKeyOptions {
      */
     n_cols?: number;
 
+    /**
+     * The space allocated for the text for each color swatch in pixels
+     * @default 100
+     */
+    swatch_text_space?: number;
+
     /** 
      * A font face to use for the label and tick values.
      * @default 'sans-serif'
      */
     fontface?: string;
+}
+
+const paintball_key_opt_defaults: Required<PaintballKeyOptions> = {
+    n_cols: 1,
+    swatch_text_space: 100,
+    fontface: 'sans-serif',
 }
 
 /**
@@ -318,18 +331,18 @@ function makePaintballKey(colors: (Color | string)[], labels: string[], opts?: P
         throw `Mismatch between the number of colors (${colors.length}) and the number of labels (${labels.length})`;
     }
 
-    opts = opts === undefined ? {} : opts;
-    const n_cols = opts.n_cols === undefined ? 1: opts.n_cols;
-    const fontface = opts.fontface === undefined ? 'sans-serif' : opts.fontface;
+    const opts_ = normalizeOptions(opts, paintball_key_opt_defaults);
 
     let height: number, width: number;
 
     const swatch_width = 20;
     const swatch_height = 20;
     const swatch_text_pad = 3;
-    const swatch_text_space = 100;
+    const swatch_text_space = opts_.swatch_text_space;
     const swatch_width_pad = 5;
     const swatch_height_pad = 5;
+    const n_cols = opts_.n_cols;
+    const fontface = opts_.fontface;
 
     const n_rows = Math.ceil(colors.length / n_cols);
 

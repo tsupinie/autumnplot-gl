@@ -1,16 +1,18 @@
 
 import { RenderMethodArg, TypedArray, WebGLAnyRenderingContext, getRendererData } from "./AutumnTypes";
 import { Color } from "./Color";
-import { StructuredGrid } from "./Grid";
+import { DomainBufferGrid } from "./grids/DomainBuffer";
 import { MapLikeType } from "./Map";
-import { PlotComponent } from "./PlotComponent";
-import { RawScalarField } from "./RawField";
+import { PlotComponent, getGLFormatTypeAlignment } from "./PlotComponent";
+import { ExpressionScalarField } from "./RawField";
 import { ShaderProgramManager } from "./ShaderManager";
-import { normalizeOptions } from "./utils";
-import { WGLBuffer, WGLTexture } from "autumn-wgl";
+import { applySamplerCodeScalar, normalizeOptions } from "./utils";
+import { WGLBuffer, WGLFramebuffer, WGLProgram, WGLTexture } from "autumn-wgl";
 
-const paintball_vertex_shader_src = require('./glsl/paintball_vertex.glsl');
-const paintball_fragment_shader_src = require('./glsl/paintball_fragment.glsl');
+const paintball_step1_vertex_shader_src = require('./glsl/paintball_step1_vertex.glsl');
+const paintball_step2_vertex_shader_src = require('./glsl/paintball_step2_vertex.glsl');
+const paintball_step1_fragment_shader_src = require('./glsl/paintball_step1_fragment.glsl');
+const paintball_step2_fragment_shader_src = require('./glsl/paintball_step2_fragment.glsl');
 
 /** Options for {@link Paintball} components */
 interface PaintballOptions {
@@ -31,11 +33,15 @@ const paintball_opt_defaults: Required<PaintballOptions> = {
     opacity: 1
 }
 
-interface PaintballGLElems {
+interface PaintballGLElems<MapType extends MapLikeType> {
     gl: WebGLAnyRenderingContext;
-    shader_manager: ShaderProgramManager;
-    vertices: WGLBuffer;
-    texcoords: WGLBuffer;
+    map: MapType;
+    shader_program_1: WGLProgram;
+    shader_manager_2: ShaderProgramManager;
+    vertices_step1: WGLBuffer;
+    vertices_step2: WGLBuffer;
+    texcoords_step2: WGLBuffer;
+    framebuffer: WGLFramebuffer;
 }
 
 /** 
@@ -44,14 +50,22 @@ interface PaintballGLElems {
  * the data for the paintball plot is given as a single field with the objects from each member encoded as "bits" in the field. Because the field is made up
  * of single-precision floats, this works for up to 24 members. (Technically speaking, I don't need the quotes around "bits", as they're bits of the 
  * significand of an IEEE 754 float.)
+ * 
+ * ## Grid Compatibility
+ * - :white_check_mark: `PlateCarreeGrid`
+ * - :white_check_mark: `PlateCarreeRotatedGrid`
+ * - :white_check_mark: `LambertGrid`
+ * - :x:                `UnstructuredGrid`
+ * - :white_check_mark: `RadarSweepGrid`
+ * - :white_check_mark: `Geostationary`
  */
-class Paintball<ArrayType extends TypedArray, GridType extends StructuredGrid, MapType extends MapLikeType> extends PlotComponent<MapType> {
-    private field: RawScalarField<ArrayType, GridType>;
+class Paintball<ArrayType extends TypedArray, GridType extends DomainBufferGrid, MapType extends MapLikeType> extends PlotComponent<MapType> {
+    private field: ExpressionScalarField<ArrayType, GridType>;
     public readonly opts: Required<PaintballOptions>;
-    private readonly color_components: number[];
+    private readonly color_components: [number, number, number, number][];
 
-    private gl_elems: PaintballGLElems | null;
-    private fill_texture: WGLTexture | null;
+    private gl_elems: PaintballGLElems<MapType> | null;
+    private fill_texture: Map<string, WGLTexture> | null;
 
     /**
      * Create a paintball plot
@@ -60,13 +74,13 @@ class Paintball<ArrayType extends TypedArray, GridType extends StructuredGrid, M
      *               `M2` is the same thing for member 2, and `M3` and `M4` and up to `Mn` are the same thing for the rest of the members.
      * @param opts  - Options for creating the paintball plot
      */
-    constructor(field: RawScalarField<ArrayType, GridType>, opts?: PaintballOptions) {
+    constructor(field: ExpressionScalarField<ArrayType, GridType>, opts?: PaintballOptions) {
         super();
 
         this.field = field;
 
         this.opts = normalizeOptions(opts, paintball_opt_defaults);
-        this.color_components = this.opts.colors.map(color => Color.fromHex(color).toRGBATuple()).flat();
+        this.color_components = this.opts.colors.map(color => Color.fromHex(color).toRGBATuple());
         
         this.gl_elems = null;
         this.fill_texture = null;
@@ -76,7 +90,7 @@ class Paintball<ArrayType extends TypedArray, GridType extends StructuredGrid, M
      * Update the field displayed as a paintball plot
      * @param field - The new field to display as a paintball plot
      */
-    public async updateField(field: RawScalarField<ArrayType, GridType>) {
+    public async updateField(field: ExpressionScalarField<ArrayType, GridType>) {
         this.field = field;
 
         if (this.gl_elems === null) return;
@@ -84,14 +98,7 @@ class Paintball<ArrayType extends TypedArray, GridType extends StructuredGrid, M
 
         gl.pixelStorei(gl.UNPACK_ALIGNMENT, 2);
 
-        const fill_image = this.field.getWGLTextureSpec(gl, gl.NEAREST);
-
-        if (this.fill_texture === null) {
-            this.fill_texture = new WGLTexture(gl, fill_image);
-        }
-        else {
-            this.fill_texture.setImageData(fill_image);
-        }
+        this.fill_texture = this.field.updateTexImageData(gl, gl.NEAREST, this.fill_texture);
     }
 
     /**
@@ -101,14 +108,30 @@ class Paintball<ArrayType extends TypedArray, GridType extends StructuredGrid, M
     public async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
         gl.getExtension('OES_texture_float');
 
-        const {vertices: verts_buf, texcoords: tex_coords_buf} = await this.field.grid.getWGLBuffers(gl);
-        const vertices = verts_buf;
-        const texcoords = tex_coords_buf;
+        const vertices_step1 = new WGLBuffer(gl, new Float32Array([-1., -1., 1., -1., -1., 1., 1., 1.]), 2, gl.TRIANGLE_STRIP);
+        const {vertices: vertices_step2, texcoords: texcoords_step2} = await this.field.grid.getDomainBuffers(gl);
 
-        const shader_manager = new ShaderProgramManager(paintball_vertex_shader_src, paintball_fragment_shader_src, []);
+        const sampler_keys = this.field.getSamplerIds();
+        const sampler_expression = this.field.getExpression();
+        const dtypes = this.field.dtypes;
+
+        const step1_frag_shader_src = applySamplerCodeScalar(paintball_step1_fragment_shader_src, sampler_keys, sampler_expression, dtypes);
+
+        const shader_program_step1 = new WGLProgram(gl, paintball_step1_vertex_shader_src, step1_frag_shader_src);
+        const shader_manager_step2 = new ShaderProgramManager(paintball_step2_vertex_shader_src, paintball_step2_fragment_shader_src, []);
+
+        const {format, type, row_alignment} = getGLFormatTypeAlignment(gl, 'float16');
+
+        const fb_texture = new WGLTexture(gl, {format: format, type: type,
+            width: this.field.grid.ni, height: this.field.grid.nj, image: null,
+            mag_filter: gl.LINEAR, row_alignment: row_alignment});
+
+        const fb = new WGLFramebuffer(gl, fb_texture);
 
         this.gl_elems = {
-            gl: gl, shader_manager: shader_manager, vertices: vertices, texcoords: texcoords,
+            gl: gl, map: map, shader_program_1: shader_program_step1, shader_manager_2: shader_manager_step2, 
+            vertices_step1: vertices_step1, vertices_step2: vertices_step2, texcoords_step2: texcoords_step2,
+            framebuffer: fb
         };
 
         this.updateField(this.field);
@@ -121,33 +144,60 @@ class Paintball<ArrayType extends TypedArray, GridType extends StructuredGrid, M
     public render(gl: WebGLAnyRenderingContext, arg: RenderMethodArg) {
         if (this.gl_elems === null || this.fill_texture === null) return;
         const gl_elems = this.gl_elems;
+        const fill_texture = this.fill_texture;
+
+        const map = gl_elems.map;
+        const viewport_width = map.getCanvas().width;
+        const viewport_height = map.getCanvas().height;
 
         const render_data = getRendererData(arg);
-        const program = this.gl_elems.shader_manager.getShaderProgram(gl, render_data.shaderData);
+        const program_step1 = this.gl_elems.shader_program_1;
+        const program_step2 = this.gl_elems.shader_manager_2.getShaderProgram(gl, render_data.shaderData);
 
-        // Render to framebuffer
-        program.use(
-            {'a_pos': gl_elems.vertices, 'a_tex_coord': gl_elems.texcoords},
-            {'u_opacity': this.opts.opacity, 'u_colors': this.color_components, 'u_num_colors': this.opts.colors.length, 'u_offset': 0,
-             ...this.gl_elems.shader_manager.getShaderUniforms(render_data)},
-            {'u_fill_sampler': this.fill_texture}
-        );
+        const samplers = Object.fromEntries([...this.fill_texture.entries()])
 
-        gl.enable(gl.BLEND);
-        gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+        this.color_components.forEach((color, icolor) => {
+            // Render to framebuffer to pull out an individual member from the packed field
+            program_step1.use(
+                {'a_pos': gl_elems.vertices_step1},
+                {'u_imem': icolor},
+                samplers
+            );
 
-        program.draw();
+            gl_elems.framebuffer.clear([0, 0, 0, 1]);
+            gl_elems.framebuffer.renderTo(0, 0, this.field.grid.ni, this.field.grid.nj);
 
-        if (render_data.type != 'maplibre' || !render_data.shaderData.define.includes('GLOBE')) {
-            program.setUniforms({'u_offset': -2});
-            program.draw();
-    
-            program.setUniforms({'u_offset': -1});
-            program.draw();
-    
-            program.setUniforms({'u_offset': 1});
-            program.draw();
-        }
+            gl.enable(gl.BLEND);
+            gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+
+            program_step1.draw();
+
+            // Now render the framebuffer as a filled contour
+            program_step2.use(
+                {'a_pos': gl_elems.vertices_step2, 'a_tex_coord': gl_elems.texcoords_step2},
+                {'u_opacity': this.opts.opacity, 'u_color': color, 'u_offset': 0,
+                ...gl_elems.shader_manager_2.getShaderUniforms(render_data)},
+                {'u_fill_sampler': gl_elems.framebuffer.texture}
+            );
+
+            WGLFramebuffer.screen(gl).renderTo(0, 0, viewport_width, viewport_height);
+
+            gl.enable(gl.BLEND);
+            gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+
+            program_step2.draw();
+
+            if (render_data.type != 'maplibre' || !render_data.shaderData.define.includes('GLOBE')) {
+                program_step2.setUniforms({'u_offset': -2});
+                program_step2.draw();
+        
+                program_step2.setUniforms({'u_offset': -1});
+                program_step2.draw();
+        
+                program_step2.setUniforms({'u_offset': 1});
+                program_step2.draw();
+            }
+        });
     }
 }
 
