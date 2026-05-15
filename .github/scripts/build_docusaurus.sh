@@ -44,6 +44,7 @@ rm -rf docs
 
 git branch gh-pages remotes/origin/gh-pages
 git checkout gh-pages
+rm -rf docs
 
 # And add the docs we just created to the repo and commit
 mv build docs
