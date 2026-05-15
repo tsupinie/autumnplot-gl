@@ -4,6 +4,7 @@ DEVELOP_PATH=../autumplot-gl-develop
 DOCUSAURUS_CONFIG=docusaurus.config.ts
 VERSION=`cat package.json | grep '"version"' | sed 's/^.*"version": "\(.*\)".*$/\1/'`
 
+# Ensure the correct version of typescript is used for emscripten
 cd `which em++ | xargs dirname`
 npm i
 cd -
@@ -39,11 +40,12 @@ npm run build
 
 # Now checkout the github pages branch
 git checkout -- package.json package-lock.json $DOCUSAURUS_CONFIG
+rm -rf docs 
+
 git branch gh-pages remotes/origin/gh-pages
 git checkout gh-pages
 
 # And add the docs we just created to the repo and commit
-rm -rf docs 
 mv build docs
 
 git config --global user.email "tsupinie@gmail.com"
