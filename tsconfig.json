@@ -1,5 +1,6 @@
 {
     "compilerOptions": {
+        "rootDir": ".",
         "outDir": "./dist/",
         "noImplicitAny": true,
         "sourceMap": true,
@@ -10,7 +11,7 @@
         "moduleResolution": "bundler",
         "resolveJsonModule": true,
         "strict": true,
-        "types": ["node"],
+        "types": ["node", "emscripten"],
         "noUncheckedSideEffectImports": false
     }
 }

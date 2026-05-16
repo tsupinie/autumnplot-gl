@@ -19,7 +19,7 @@
     "author": "Tim Supinie",
     "license": "MIT",
     "devDependencies": {
-        "@types/emscripten": "^1.39.10",
+        "@types/emscripten": "^1.41.5",
         "@types/kd-tree-javascript": "^1.0.3",
         "@types/luxon": "^3.2.0",
         "@types/node": "^25.8.0",
