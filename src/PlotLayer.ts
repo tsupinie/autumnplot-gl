@@ -165,6 +165,19 @@ class MultiPlotLayer<MapType extends MapLikeType> extends PlotLayerBase<MapType>
             this.field_key = key;
         }
     }
+
+    /**
+     * Remove a field with a given key
+     * @param key - The key of the field to remove
+     */
+    public removeField(key: string) {
+        delete this.fields[key];
+
+        if (key == this.field_key) {
+            this.field_key = null;
+            this.repaint();
+        }
+    }
 }
 
 export {PlotLayer, MultiPlotLayer};

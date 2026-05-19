@@ -73,8 +73,10 @@ function makeSynthetic500mbLayers() {
 
     const hght_layer = new apgl.PlotLayer('height', cntr);
     const ws_layer = new apgl.PlotLayer('wind-speed', filled);
-    const barb_layer = new apgl.PlotLayer('barbs', barbs);
+    const barb_layer = new apgl.MultiPlotLayer('barbs');
     const label_layer = new apgl.PlotLayer('label', labels);
+
+    barb_layer.addField(barbs, 'stuff');
 
     function updateTime(time) {
         cntr.updateField(makeHeight(time));
@@ -87,6 +89,8 @@ function makeSynthetic500mbLayers() {
     }
 
     // window.setTimeout(() => updateTime(0), 50);
+
+    // window.setTimeout(() => barb_layer.removeField('stuff'), 1000);
 
     const svg = apgl.makeColorBar(colormap, {label: "Wind Speed (mph)", fontface: 'Trebuchet MS', 
                                              ticks: [20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140],
