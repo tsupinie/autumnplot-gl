@@ -157,24 +157,36 @@ class Contour<ArrayType extends TypedArray, GridType extends StructuredGrid, Map
         });
 
         // Make one PolylineCollection for each combination of line width and line style
-        const promises = line_data.map(async ld => {
-            const plc_opts: PolylineCollectionOpts = {line_width: ld.line_width, line_style: ld.line_style};
-            if (this.opts.cmap !== null) {
-                plc_opts.cmap = this.opts.cmap;
-            }
-            else {
-                plc_opts.color = this.opts.color;
-            }
+        if (this.contours === null) {
+            const promises = line_data.map(async ld => {
+                const plc_opts: PolylineCollectionOpts = {line_width: ld.line_width, line_style: ld.line_style};
+                if (this.opts.cmap !== null) {
+                    plc_opts.cmap = this.opts.cmap;
+                }
+                else {
+                    plc_opts.color = this.opts.color;
+                }
 
-            return await PolylineCollection.make(gl, ld.data, plc_opts);
-        });
+                return await PolylineCollection.make(gl, ld.data, plc_opts);
+            });
 
-        Promise.all(promises).then(values => {
-            if (this.gl_elems === null) return;
+            Promise.all(promises).then(values => {
+                if (this.gl_elems === null) return;
 
-            this.contours = values;
-            this.gl_elems.map.triggerRepaint();
-        });
+                this.contours = values;
+                this.gl_elems.map.triggerRepaint();
+            });
+        }
+        else {
+            const contours = this.contours;
+            const promises = line_data.map(async (ld, ild) => contours[ild].update(ld.data));
+            
+            Promise.all(promises).then(() => {
+                if (this.gl_elems === null) return;
+
+                this.gl_elems.map.triggerRepaint();
+            });
+        }
     }
 
     public async getContours() {
@@ -394,7 +406,13 @@ class ContourLabels<ArrayType extends TypedArray, GridType extends StructuredGri
             text_color: Color.fromHex(this.opts.text_color), halo_color: Color.fromHex(this.opts.halo_color),
         };
 
-        this.text_collection = await TextCollection.make(gl, text_specs, font_url, tc_opts);
+        if (this.text_collection === null) {
+            this.text_collection = await TextCollection.make(gl, text_specs, font_url, tc_opts);
+        }
+        else {
+            this.text_collection.update(text_specs);
+        }
+
         map.triggerRepaint();
     }
 

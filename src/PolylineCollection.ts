@@ -5,6 +5,7 @@ import { ColorMap, ColorMapGPUInterface } from "./Colormap";
 import { Color } from "./Color";
 import { layer_worker } from "./PlotComponent";
 import { ShaderProgramManager } from "./ShaderManager";
+import { normalizeOptions } from "./utils";
 
 const polyline_vertex_src = require('./glsl/polyline_vertex.glsl');
 const polyline_fragment_src = require('./glsl/polyline_fragment.glsl');
@@ -31,9 +32,18 @@ interface PolylineCollectionOpts {
     offset_scale?: number;
     offset_rotates_with_map?: boolean;
     color?: string;
-    cmap?: ColorMap;
+    cmap?: ColorMap | null;
     line_width?: number;
     line_style?: LineStyle | number[];
+}
+
+const polyline_collection_opt_defaults: Required<PolylineCollectionOpts> = {
+    offset_scale: 1,
+    offset_rotates_with_map: true,
+    color: '#000000',
+    cmap: null,
+    line_width: 1,
+    line_style: '-'
 }
 
 function makeDashTexture(gl: WebGLAnyRenderingContext, line_style: LineStyle) {
@@ -53,77 +63,131 @@ function makeDashTexture(gl: WebGLAnyRenderingContext, line_style: LineStyle) {
     return [dash_array.length, new WGLTexture(gl, fill_image)] as [number, WGLTexture];
 }
 
+interface PolyLineCollectionGLElems {
+    vertices: WGLBuffer;
+    extrusion: WGLBuffer;
+    offset: WGLBuffer | null;
+    min_zoom: WGLBuffer | null;
+    line_data: WGLBuffer | null;
+}
+
 class PolylineCollection {
     public readonly width: number;
-    public readonly scale: number | null;
+    public scale: number | null;
 
-    private readonly shader_manager: ShaderProgramManager;
+    public opts: Required<PolylineCollectionOpts>;
 
-    private readonly vertices: WGLBuffer;
-    private readonly extrusion: WGLBuffer;
+    private readonly gl: WebGLAnyRenderingContext;
+    private gl_elems: PolyLineCollectionGLElems | null;
+    private shader_manager: ShaderProgramManager;
 
-    private readonly offset: WGLBuffer | null;
-    private readonly min_zoom: WGLBuffer | null;
-    private readonly line_data: WGLBuffer | null;
     private readonly color: Color;
-    private readonly cmap_gpu: ColorMapGPUInterface | null;
-    private readonly offset_rotates_with_map: boolean;
+    private cmap_gpu: ColorMapGPUInterface | null;
     private readonly dash_texture: WGLTexture;
     private readonly n_dash: number;
+    private has_offset: boolean;
+    private has_zoom: boolean;
+    private has_colormap: boolean;
 
     private constructor(gl: WebGLAnyRenderingContext, polyline: Polyline, opts?: PolylineCollectionOpts) {
-        opts = opts === undefined ? {} : opts;
-        const color_hex = opts.color === undefined ? '#000000' : opts.color;
-        this.color = Color.fromHex(color_hex);
+        this.opts = normalizeOptions(opts, polyline_collection_opt_defaults);
+        this.color = Color.fromHex(this.opts.color);
+        this.gl = gl;
 
-        const line_width = opts.line_width === undefined ? 1 : opts.line_width;
-        const line_style = opts.line_style === undefined ? '-' : opts.line_style;
-        this.offset_rotates_with_map = opts.offset_rotates_with_map === undefined ? true : opts.offset_rotates_with_map;
+        this.width = this.opts.line_width;
 
-        this.width = line_width;
+        this.gl_elems = null;
 
-        const shader_defines = [];
+        [this.n_dash, this.dash_texture] = makeDashTexture(gl, this.opts.line_style);
 
-        this.vertices = new WGLBuffer(gl, polyline['vertices'], 3, gl.TRIANGLE_STRIP);
-        this.extrusion = new WGLBuffer(gl, polyline['extrusion'], 2, gl.TRIANGLE_STRIP);
+        this.has_offset = false;
+        this.has_zoom = false;
+        this.has_colormap = false;
+    
+        const {shader, cmap_gpu, scale} = this.compile_shader(this.has_offset, this.has_zoom, this.has_colormap);
+        this.shader_manager = shader;
+        this.cmap_gpu = cmap_gpu;
+        this.scale = scale;
+
+        this._update(polyline);
+    }
+
+    private _update(polyline: Polyline) {
+        const gl = this.gl;
+
+        const vertices = new WGLBuffer(gl, polyline['vertices'], 3, gl.TRIANGLE_STRIP);
+        const extrusion = new WGLBuffer(gl, polyline['extrusion'], 2, gl.TRIANGLE_STRIP);
+        
+        let offset: WGLBuffer | null = null;
+        let has_offset = polyline.offsets !== undefined;
 
         if (polyline.offsets !== undefined) {
-            this.offset = new WGLBuffer(gl, polyline.offsets, 2, gl.TRIANGLE_STRIP);
-            this.scale = opts.offset_scale === undefined ? 1 : opts.offset_scale;
-            shader_defines.push('OFFSET');
+            offset = new WGLBuffer(gl, polyline.offsets, 2, gl.TRIANGLE_STRIP);
         }
-        else {
-            this.offset = null;
-            this.scale = null;
-        }
+
+        let min_zoom: WGLBuffer | null = null;
+        let has_zoom = polyline.zoom !== undefined;
 
         if (polyline.zoom !== undefined) {
-            this.min_zoom = new WGLBuffer(gl, polyline.zoom, 1, gl.TRIANGLE_STRIP);
-            shader_defines.push('ZOOM');
+            min_zoom = new WGLBuffer(gl, polyline.zoom, 1, gl.TRIANGLE_STRIP);
         }
-        else {
-            this.min_zoom = null;
+
+        let line_data: WGLBuffer | null = null;
+        let has_colormap = polyline.data !== undefined;
+
+        if (polyline.data !== undefined) {
+            line_data = new WGLBuffer(gl, polyline.data, 1, gl.TRIANGLE_STRIP);
         }
+
+        this.gl_elems = {vertices: vertices, extrusion: extrusion, offset: offset, min_zoom: min_zoom, line_data};
+
+        if (has_offset != this.has_offset || has_zoom != this.has_zoom || has_colormap != this.has_colormap) {
+            // If any of the offset, zoom, or colormap has changed, we do need to recompile the shader
+            this.has_offset = has_offset;
+            this.has_zoom = has_zoom;
+            this.has_colormap = has_colormap;
+
+            const {shader, cmap_gpu, scale} = this.compile_shader(this.has_offset, this.has_zoom, this.has_colormap);
+            this.shader_manager = shader;
+            this.cmap_gpu = cmap_gpu;
+            this.scale = scale;
+        }
+    }
+
+    private compile_shader(add_offset: boolean, add_zoom: boolean, add_colormap: boolean) {
+        const gl = this.gl;
+        const shader_defines: string[] = [];
 
         let fragment_src = polyline_fragment_src;
-        if (polyline.data !== undefined) {
+        let scale: number | null = null;
+
+        if (add_offset) {
+            shader_defines.push('OFFSET');
+            scale = this.opts.offset_scale;
+        }
+
+        if (add_zoom) {
+            shader_defines.push('ZOOM');
+        }
+
+        let cmap_gpu: ColorMapGPUInterface | null = null;
+
+        if (add_colormap) {
             shader_defines.push('DATA');
 
-            this.line_data = new WGLBuffer(gl, polyline.data, 1, gl.TRIANGLE_STRIP);
-
-            const cmap = opts.cmap === undefined ? new ColorMap([0, 1], [color_hex], {overflow_color: color_hex, underflow_color: color_hex}) : opts.cmap;
-            this.cmap_gpu = new ColorMapGPUInterface(cmap);
-            this.cmap_gpu.setupShaderVariables(gl, gl.NEAREST);
+            const color_hex = this.opts.color;
+            const cmap = this.opts.cmap === null ? new ColorMap([0, 1], [color_hex], {overflow_color: color_hex, underflow_color: color_hex}) : this.opts.cmap;
+            cmap_gpu = new ColorMapGPUInterface(cmap);
+            cmap_gpu.setupShaderVariables(gl, gl.NEAREST);
 
             fragment_src = ColorMapGPUInterface.applyShader(fragment_src);
         }
-        else {
-            this.line_data = null;
-            this.cmap_gpu = null;
-        }
 
-        [this.n_dash, this.dash_texture] = makeDashTexture(gl, line_style);
-        this.shader_manager = new ShaderProgramManager(polyline_vertex_src, fragment_src, shader_defines);
+        return {
+            shader: new ShaderProgramManager(polyline_vertex_src, fragment_src, shader_defines),
+            cmap_gpu: cmap_gpu,
+            scale: scale,
+        }
     }
 
     static async make(gl: WebGLAnyRenderingContext, lines: LineData[], opts?: PolylineCollectionOpts) {
@@ -131,29 +195,37 @@ class PolylineCollection {
         return new PolylineCollection(gl, polylines, opts);
     }
 
+    async update(lines: LineData[]) {
+        const polyline = await layer_worker.makePolyLines(lines);
+        this._update(polyline);
+    }
+
     public render(gl: WebGLAnyRenderingContext, arg: RenderMethodArg, [map_width, map_height]: [number, number], map_zoom: number, map_bearing: number, map_pitch: number) {
+        if (this.gl_elems === null) return;
+        const {vertices, extrusion, offset, min_zoom, line_data} = this.gl_elems
+
         const render_data = getRendererData(arg);
         const program = this.shader_manager.getShaderProgram(gl, render_data.shaderData);
 
-        const attributes: Record<string, WGLBuffer> = {'a_pos': this.vertices, 'a_extrusion': this.extrusion};
+        const attributes: Record<string, WGLBuffer> = {'a_pos': vertices, 'a_extrusion': extrusion};
         const uniforms: Record<string, number | number[]> = {
             'u_line_width': this.width, 'u_map_width': map_width, 'u_map_height': map_height, 'u_offset': 0, 'u_zoom': map_zoom,
             'u_dash_pattern_length': this.n_dash, ...this.shader_manager.getShaderUniforms(render_data)
         };
         const textures: Record<string, WGLTexture> = {'u_dash_sampler': this.dash_texture};
 
-        if (this.offset !== null && this.scale !== null) {
-            attributes['a_offset'] = this.offset;
+        if (offset !== null && this.scale !== null) {
+            attributes['a_offset'] = offset;
             uniforms['u_offset_scale'] = this.scale * (map_height / map_width);
-            uniforms['u_offset_rotates_with_map'] = this.offset_rotates_with_map ? 1 : 0;
+            uniforms['u_offset_rotates_with_map'] = this.opts.offset_rotates_with_map ? 1 : 0;
         }
 
-        if (this.min_zoom !== null) {
-            attributes['a_min_zoom'] = this.min_zoom;
+        if (min_zoom !== null) {
+            attributes['a_min_zoom'] = min_zoom;
         }
 
-        if (this.line_data !== null) {
-            attributes['a_data'] = this.line_data;
+        if (line_data !== null) {
+            attributes['a_data'] = line_data;
         }
         else {
             uniforms['u_color'] = this.color.toRGBATuple();

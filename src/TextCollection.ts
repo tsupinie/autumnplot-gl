@@ -200,20 +200,31 @@ const text_collection_opt_defaults: Required<TextCollectionOptions> = {
     offset_y: 0
 }
 
+interface TextCollectionGLElems {
+    anchors: WGLBuffer;
+    offsets: WGLBuffer;
+    texcoords: WGLBuffer;
+    data: WGLBuffer | null;
+}
+
 class TextCollection {
-    readonly shader_manager: ShaderProgramManager;
-    readonly anchors: WGLBuffer;
-    readonly offsets: WGLBuffer;
-    readonly texcoords: WGLBuffer;
-    readonly data: WGLBuffer | null;
+    shader_manager: ShaderProgramManager;
     readonly texture: WGLTexture;
 
-    readonly cmap_gpu: ColorMapGPUInterface | null;
+    cmap_gpu: ColorMapGPUInterface | null;
 
     readonly opts: Required<TextCollectionOptions>;
 
+    private readonly gl: WebGLAnyRenderingContext;
+    private gl_elems: TextCollectionGLElems | null;
+    private readonly font_atlas: FontAtlas;
+    private has_data: boolean;
+
     private constructor(gl: WebGLAnyRenderingContext, text_locs: TextSpec[], font_atlas: FontAtlas, opts?: TextCollectionOptions) {
         this.opts = normalizeOptions(opts, text_collection_opt_defaults);
+        this.gl = gl;
+        this.font_atlas = font_atlas;
+        this.gl_elems = null;
 
         const text_color_hex = this.opts.text_color === undefined ? new Color([0, 0, 0, 1]) : this.opts.text_color;
         
@@ -234,6 +245,17 @@ class TextCollection {
 
         this.texture = new WGLTexture(gl, image);
 
+        this.has_data = false;
+        const {shader, cmap_gpu} = this.compile_shader(this.has_data);
+        this.shader_manager = shader;
+        this.cmap_gpu = cmap_gpu;
+
+        this.update(text_locs);
+    }
+
+    public update(text_locs: TextSpec[], ) {
+        const gl = this.gl;
+        const font_atlas = this.font_atlas;
         const n_verts = text_locs.map(tl => tl.text.length).reduce((a, b) => a + b, 0) * 6;
 
         const anchor_data = new Float32Array(n_verts * 3);
@@ -321,31 +343,42 @@ class TextCollection {
             }
         });
 
+        const anchors = new WGLBuffer(gl, anchor_data, 3, gl.TRIANGLE_STRIP);
+        const offsets = new WGLBuffer(gl, offset_data, 2, gl.TRIANGLE_STRIP);
+        const texcoords = new WGLBuffer(gl, tc_data, 2, gl.TRIANGLE_STRIP);
+        const data = has_data ? new WGLBuffer(gl, value_data, 1, gl.TRIANGLE_STRIP) : null;
+        this.gl_elems = {anchors: anchors, offsets: offsets, texcoords: texcoords, data: data};
+
+        if (has_data != this.has_data) {
+            // If the previous data set didn't have data associated with it, then we really do need to recompile the shader for it.
+            this.has_data = has_data;
+            const {shader, cmap_gpu} = this.compile_shader(this.has_data);
+            this.shader_manager = shader;
+            this.cmap_gpu = cmap_gpu;
+        }
+    }
+
+    private compile_shader(add_colormap: boolean) {
+        const gl = this.gl;
         const shader_defines: string[] = [];
         let fragment_src = text_fragment_shader_src;
+        let cmap_gpu: ColorMapGPUInterface | null = null;
 
-        if (has_data) {
+        if (add_colormap) {
             shader_defines.push('DATA');
 
-            this.data = new WGLBuffer(gl, value_data, 1, gl.TRIANGLE_STRIP);
-
-            const cmap = this.opts.cmap === null ? new ColorMap([0, 1], [text_color_hex], {overflow_color: text_color_hex, underflow_color: text_color_hex}) : this.opts.cmap;
-            this.cmap_gpu = new ColorMapGPUInterface(cmap);
-            this.cmap_gpu.setupShaderVariables(gl, gl.NEAREST);
+            const text_color = this.opts.text_color;
+            const cmap = this.opts.cmap === null ? new ColorMap([0, 1], [text_color], {overflow_color: text_color, underflow_color: text_color}) : this.opts.cmap;
+            cmap_gpu = new ColorMapGPUInterface(cmap);
+            cmap_gpu.setupShaderVariables(gl, gl.NEAREST);
 
             fragment_src = ColorMapGPUInterface.applyShader(fragment_src);
         }
-        else {
-            this.data = null;
-            this.cmap_gpu = null;
-        }
 
-        this.shader_manager = new ShaderProgramManager(text_vertex_shader_src, fragment_src, shader_defines);
-
-        this.anchors = new WGLBuffer(gl, anchor_data, 3, gl.TRIANGLE_STRIP);
-        this.offsets = new WGLBuffer(gl, offset_data, 2, gl.TRIANGLE_STRIP);
-        this.texcoords = new WGLBuffer(gl, tc_data, 2, gl.TRIANGLE_STRIP);
-        this.data = has_data ? new WGLBuffer(gl, value_data, 1, gl.TRIANGLE_STRIP) : null;
+        return {
+            shader: new ShaderProgramManager(text_vertex_shader_src, fragment_src, shader_defines),
+            cmap_gpu: cmap_gpu
+        };
     }
 
     static async make(gl: WebGLAnyRenderingContext, text_locs: TextSpec[], fontstack_url_template: string, opts?: TextCollectionOptions) {
@@ -378,10 +411,13 @@ class TextCollection {
     }
 
     render(gl: WebGLAnyRenderingContext, arg: RenderMethodArg, [map_width, map_height]: [number, number], map_zoom: number) {
+        if (this.gl_elems === null) return;
+        const {anchors, offsets, texcoords, data} = this.gl_elems;
+
         const render_data = getRendererData(arg);
         const program = this.shader_manager.getShaderProgram(gl, render_data.shaderData);
 
-        const attributes: Record<string, any> = {'a_pos': this.anchors, 'a_offset': this.offsets, 'a_tex_coord': this.texcoords};
+        const attributes: Record<string, any> = {'a_pos': anchors, 'a_offset': offsets, 'a_tex_coord': texcoords};
 
         const uniforms: Record<string, any> = {
             'u_map_width': map_width, 'u_map_height': map_height, 'u_map_zoom': map_zoom, 'u_font_size': this.opts.font_size,
@@ -389,8 +425,8 @@ class TextCollection {
             ...this.shader_manager.getShaderUniforms(render_data)
         }
 
-        if (this.data !== null) {
-            attributes['a_value'] = this.data;
+        if (data !== null) {
+            attributes['a_value'] = data;
         }
         else {
             uniforms['u_text_color'] = this.opts.text_color.toRGBATuple();
