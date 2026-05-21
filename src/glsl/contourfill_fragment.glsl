@@ -7,6 +7,7 @@ uniform sampler2D u_mask_sampler;
 #endif
 
 uniform highp float u_opacity;
+
 #ifdef MASK
 uniform int u_mask_val;
 #endif
@@ -23,7 +24,7 @@ void main() {
     draw_mask = int(mask_val * 255.0) == u_mask_val ? 1 : 0;
 #endif
 
-    if (isnan(fill_val) || draw_mask == 0) {
+    if (isnan(fill_val) && isnan(u_missing) || fill_val == u_missing || draw_mask == 0) {
         discard;
     }
 

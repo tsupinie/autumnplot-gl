@@ -111,7 +111,7 @@ void checkGridSize(size_t grid_size, int nx, int ny) {
 
 template<typename T>
 emscripten::val makeContoursWASM(const emscripten::val& data, const emscripten::val& xs, const emscripten::val& ys, const emscripten::val& values,
-                                 const emscripten::val& quad_as_tri_) {
+                                 const emscripten::val& quad_as_tri_, const emscripten::val& missing) {
     auto memory = emscripten::val::module_property("HEAPU8")["buffer"];
 
     int nx = xs["length"].as<int>();
@@ -139,10 +139,11 @@ emscripten::val makeContoursWASM(const emscripten::val& data, const emscripten::
     }
 
     bool quad_as_tri = quad_as_tri_.as<bool>();
+    float missing_val = missing.as<float>();
 
     auto t1 = std::chrono::steady_clock::now();
 
-    std::vector<Contour> contours = makeContours(data_ary, xs_ary, ys_ary, nx, ny, levels, quad_as_tri);
+    std::vector<Contour> contours = makeContours(data_ary, xs_ary, ys_ary, nx, ny, levels, quad_as_tri, T(missing_val));
 
     auto t2 = std::chrono::steady_clock::now();
  
@@ -183,7 +184,7 @@ emscripten::val makeContoursWASM(const emscripten::val& data, const emscripten::
 }
 
 template<typename T>
-emscripten::val getContourLevelsWASM(const emscripten::val& grid, int nx, int ny, float interval) {
+emscripten::val getContourLevelsWASM(const emscripten::val& grid, int nx, int ny, float interval, const emscripten::val& missing) {
     auto memory = emscripten::val::module_property("HEAPU8")["buffer"];
 
     checkGridSize(grid["length"].as<int>(), nx, ny);
@@ -192,7 +193,9 @@ emscripten::val getContourLevelsWASM(const emscripten::val& grid, int nx, int ny
     auto grid_memview = grid["constructor"].new_(memory, reinterpret_cast<uintptr_t>(grid_ary), nx * ny);
     grid_memview.call<void>("set", grid);
 
-    std::vector<float> levels = getContourLevels(grid_ary, nx, ny, interval);
+    float missing_val = missing.as<float>();
+
+    std::vector<float> levels = getContourLevels(grid_ary, nx, ny, interval, T(missing_val));
 
     delete[] grid_ary;
 

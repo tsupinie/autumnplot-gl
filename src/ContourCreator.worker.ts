@@ -35,6 +35,8 @@ async function contourCreator(data: ContourableTypedArray, grid_coords: GridCoor
         throw "Must supply either an interval or levels to contourCreator()"
     }
 
+    const missing = NaN;
+
     const interval = opts.interval === undefined ? 0 : opts.interval;
     const quad_as_tri = opts.quad_as_tri === undefined ? false : opts.quad_as_tri;
 
@@ -44,8 +46,8 @@ async function contourCreator(data: ContourableTypedArray, grid_coords: GridCoor
     const getContourLevels = data instanceof Float32Array ? msm.getContourLevelsFloat32 : msm.getContourLevelsFloat16;
     const makeContours = data instanceof Float32Array ? msm.makeContoursFloat32 : msm.makeContoursFloat16;
 
-    const levels = opts.levels === undefined ? getContourLevels(data, grid_coords.x.length, grid_coords.y.length, interval) : opts.levels;
-    const contours = makeContours(data, grid_coords.x, grid_coords.y, levels, quad_as_tri);
+    const levels = opts.levels === undefined ? getContourLevels(data, grid_coords.x.length, grid_coords.y.length, interval, missing) : opts.levels;
+    const contours = makeContours(data, grid_coords.x, grid_coords.y, levels, quad_as_tri, missing);
 
     return contours as ContourData;
 }

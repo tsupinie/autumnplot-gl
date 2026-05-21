@@ -127,6 +127,7 @@ class BillboardCollection<ArrayType extends TypedArray, GridType extends AutoZoo
             {'u_bb_size': bb_size, 'u_bb_width': bb_width, 'u_bb_height': bb_height,
              'u_bb_mag_bin_size': this.spec.BB_MAG_BIN_SIZE, 'u_bb_mag_wrap': this.spec.BB_MAG_WRAP, 'u_offset': 0,
              'u_map_aspect': map_height / map_width, 'u_zoom': map_zoom, 'u_rotate_with_map': this.rotate_with_map ? 1 : 0,
+             'u_missing': NaN,
               ...this.gl_elems.shader_manager.getShaderUniforms(render_data)},
             samplers
         );

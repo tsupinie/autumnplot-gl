@@ -81,9 +81,10 @@ struct Contour {
 };
 
 template<typename T>
-std::vector<Contour> makeContours(const T* grid, const float* xs, const float* ys, const int nx, const int ny, const std::vector<float>& values, const bool quad_as_tri);
+std::vector<Contour> makeContours(const T* grid, const float* xs, const float* ys, const int nx, const int ny, const std::vector<float>& values, const bool quad_as_tri,
+                                  const T missing);
 
 template<typename T>
-std::vector<float> getContourLevels(T* grid, int nx, int ny, float interval) noexcept;
+std::vector<float> getContourLevels(T* grid, int nx, int ny, float interval, T missing) noexcept;
 
 #endif

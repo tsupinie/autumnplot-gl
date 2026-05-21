@@ -118,15 +118,24 @@ function applySamplerCodeScalar(src: string, sampler_names: string[], sampler_ex
 
     const samplers = sampler_names.map((v, i) => `uniform ${SAMPLER_DTYPES[dtypes[i]]} ${v};`).join("\n");
     const sampler_get = sampler_names.map((v, i) => `    ${SHADER_DTYPES[dtypes[i]]} ${v}_val = texture(${v}, tex_coord).r;`).join("\n");
+    const sampler_missing_check = sampler_names.map((v, i) => {
+        const nan_check = ['float16', 'float32'].includes(dtypes[i]) ? `isnan(${v}_val) && isnan(u_missing)` : 'false';
+        return `(${nan_check} || ${v}_val == u_missing)`;
+    }).join(' || ');
 
     sampler_names.forEach(v => sampler_expression = sampler_expression.replaceAll(v, `${v}_val`));
 
     // TAS: This assumes that the return type of the expression is the same as the type of the inputs. May need to revisit this later.
     const sampler_code = `
 ${samplers}
+uniform ${SHADER_DTYPES[dtypes[0]]} u_missing;
 
 ${SHADER_DTYPES[dtypes[0]]} get_field_value(lowp vec2 tex_coord) {
 ${sampler_get}
+    if (${sampler_missing_check}) {
+        return u_missing;
+    }
+
     return ${sampler_expression};
 }`;
 
@@ -138,6 +147,8 @@ function applySamplerCodeVector(src: string, sampler_names: {u: string[], v: str
                      sampler_names.v.map(v => `uniform sampler2D ${v};`).join("\n");
     const sampler_u_get = sampler_names.u.map(v => `    highp float ${v}_val = texture(${v}, tex_coord).r;`).join("\n");
     const sampler_v_get = sampler_names.v.map(v => `    highp float ${v}_val = texture(${v}, tex_coord).r;`).join("\n");
+    const sampler_u_missing_check = sampler_names.u.map(v => `(isnan(${v}_val) && isnan(u_missing) || ${v}_val == u_missing)`).join(' || ');
+    const sampler_v_missing_check = sampler_names.v.map(v => `(isnan(${v}_val) && isnan(u_missing) || ${v}_val == u_missing)`).join(' || ');
 
     let sampler_expression_u = sampler_expressions.u;
     sampler_names.u.forEach(v => sampler_expression_u = sampler_expression_u.replaceAll(v, `${v}_val`));
@@ -146,14 +157,23 @@ function applySamplerCodeVector(src: string, sampler_names: {u: string[], v: str
 
     const sampler_code = `
 ${samplers}
+uniform highp float u_missing;
 
 highp float get_field_value_u(lowp vec2 tex_coord) {
 ${sampler_u_get}
+    if (${sampler_u_missing_check}) {
+        return u_missing;
+    }
+
     return ${sampler_expression_u};
 }
 
 highp float get_field_value_v(lowp vec2 tex_coord) {
 ${sampler_v_get}
+    if (${sampler_v_missing_check}) {
+        return u_missing;
+    }
+
     return ${sampler_expression_v};
 }`;
 

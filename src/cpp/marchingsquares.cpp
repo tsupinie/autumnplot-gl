@@ -192,7 +192,8 @@ MarchingSquaresSegmentList* selectSegmentList(const bool quad_as_tri) {
 #define MAX4(a, b, c, d) (MAX(MAX(a, b), MAX(c, d)))
 
 template<typename T>
-std::vector<Contour> makeContours(const T* grid, const float* xs, const float* ys, const int nx, const int ny, const std::vector<float>& values, const bool quad_as_tri) {
+std::vector<Contour> makeContours(const T* grid, const float* xs, const float* ys, const int nx, const int ny, const std::vector<float>& values, const bool quad_as_tri,
+                                  const T missing) {
     T esw, ese, enw, ene;
     float c;
     char segs_idx;
@@ -213,7 +214,8 @@ std::vector<Contour> makeContours(const T* grid, const float* xs, const float* y
             enw = grid[i + nx * (j + 1)];
             ene = grid[(i + 1) + nx * (j + 1)];
 
-            if (std::isnan(esw) || std::isnan(ese) || std::isnan(enw) || std::isnan(ene)) continue;
+            if (std::isnan(esw) || std::isnan(ese) || std::isnan(enw) || std::isnan(ene) || 
+                esw == missing || ese == missing || enw == missing || ene == missing) continue;
 
             T min_grid_val = MIN4(esw, ese, enw, ene);
             T max_grid_val = MAX4(esw, ese, enw, ene);
@@ -402,14 +404,16 @@ std::vector<Contour> makeContours(const T* grid, const float* xs, const float* y
     return contours;
 };
 
-template std::vector<Contour> makeContours(const float* grid, const float* xs, const float* ys, const int nx, const int ny, const std::vector<float>& value, const bool quad_as_tri);
-template std::vector<Contour> makeContours(const float16_t* grid, const float* xs, const float* ys, const int nx, const int ny, const std::vector<float>& value, const bool quad_as_tri);
+template std::vector<Contour> makeContours(const float* grid, const float* xs, const float* ys, const int nx, const int ny, const std::vector<float>& value, const bool quad_as_tri,
+                                           const float missing);
+template std::vector<Contour> makeContours(const float16_t* grid, const float* xs, const float* ys, const int nx, const int ny, const std::vector<float>& value, const bool quad_as_tri,
+                                           const float16_t missing);
 
 template<typename T>
-std::vector<float> getContourLevels(T* grid, int nx, int ny, float interval) noexcept {
+std::vector<float> getContourLevels(T* grid, int nx, int ny, float interval, T missing) noexcept {
     T minval = std::numeric_limits<T>::infinity(), maxval = -std::numeric_limits<T>::infinity();
     for (int idx = 0; idx < nx * ny; idx++) {
-        if (std::isnan(grid[idx])) continue;
+        if (std::isnan(grid[idx]) || grid[idx] == missing) continue;
 
         minval = MIN(minval, grid[idx]);
         maxval = MAX(maxval, grid[idx]);
@@ -428,5 +432,5 @@ std::vector<float> getContourLevels(T* grid, int nx, int ny, float interval) noe
     return levels;
 };
 
-template std::vector<float> getContourLevels(float* grid, int nx, int ny, float interval);
-template std::vector<float> getContourLevels(float16_t* grid, int nx, int ny, float interval);
+template std::vector<float> getContourLevels(float* grid, int nx, int ny, float interval, float missing);
+template std::vector<float> getContourLevels(float16_t* grid, int nx, int ny, float interval, float16_t missing);
