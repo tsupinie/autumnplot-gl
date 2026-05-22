@@ -185,7 +185,8 @@ class PlotComponentFill<ArrayType extends TypedArray, GridType extends DomainBuf
 
         program.use(
             {'a_pos': gl_elems.vertices, 'a_tex_coord': gl_elems.texcoords},
-            {'u_opacity': this.opts.opacity, 'u_missing': NaN, ...this.gl_elems.shader_manager.getShaderUniforms(render_data)},
+            {'u_opacity': this.opts.opacity, 'u_missing': this.field.missing_value, 'u_pixel_size': [1 / this.field.grid.ni, 1 / this.field.grid.nj],
+             ...this.gl_elems.shader_manager.getShaderUniforms(render_data)},
             samplers
         );
 

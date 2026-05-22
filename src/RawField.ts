@@ -3,7 +3,7 @@ import { Float16Array } from "@petamoriken/float16";
 import { ContourData, TypedArray, TypedArrayStr, WebGLAnyRenderingContext, WindProfile, isContourable, isStormRelativeWindProfile } from "./AutumnTypes";
 import { FieldContourOpts } from "./ContourCreator.worker";
 import { Grid } from "./grids/Grid";
-import { Cache, getArrayConstructor, zip } from "./utils";
+import { Cache, getArrayConstructor, normalizeOptions, zip } from "./utils";
 import { WGLTexture, WGLTextureSpec } from "autumn-wgl";
 import { getContourWorkerPool, getGLFormatTypeAlignment } from "./PlotComponent";
 import { AutoZoomGrid } from "./grids/AutoZoom";
@@ -36,6 +36,18 @@ function getArrayDType(ary: TypedArray) : TypedArrayStr {
     return 'float16';
 }
 
+interface RawScalarFieldOpts {
+    /**
+     * Value to use as the "missing" value.
+     * @default NaN
+     */
+    missing_value?: number;
+};
+
+const field_opt_defaults: Required<RawScalarFieldOpts> = {
+    missing_value: NaN
+};
+
 abstract class ExpressionScalarField<ArrayType extends TypedArray, GridType extends Grid> {
     public abstract updateTexImageData(gl: WebGLAnyRenderingContext, image_mag_filter: number, fill_textures: Map<string, WGLTexture> | null) : Map<string, WGLTexture>;
     public abstract getSamplerIds(): string[];
@@ -46,6 +58,7 @@ abstract class ExpressionScalarField<ArrayType extends TypedArray, GridType exte
     abstract get grid() : GridType;
     abstract get aryConstructor() : new(...args: any[]) => ArrayType;
     abstract get dtypes() : TypedArrayStr[];
+    abstract get missing_value() : number;
 
     private operand(other: ExpressionScalarField<ArrayType, GridType> | number, operand: '+' | '-' | '*' | '/'): ComputedScalarField<ArrayType, GridType> {
         const FUNCS = {
@@ -112,6 +125,7 @@ abstract class ExpressionScalarField<ArrayType extends TypedArray, GridType exte
 class RawScalarField<ArrayType extends TypedArray, GridType extends Grid> extends ExpressionScalarField<ArrayType, GridType> {
     public readonly grid: GridType;
     public readonly data: ArrayType;
+    public readonly opts: Required<RawScalarFieldOpts>;
 
     private readonly contour_cache: Cache<[FieldContourOpts], Promise<ContourData>>;
 
@@ -120,11 +134,12 @@ class RawScalarField<ArrayType extends TypedArray, GridType extends Grid> extend
      * @param grid - The grid on which the data are defined
      * @param data - The data, which should be given as a 1D array in row-major order, with the first element being at the lower-left corner of the grid.
      */
-    constructor(grid: GridType, data: ArrayType) {
+    constructor(grid: GridType, data: ArrayType, opts?: RawScalarFieldOpts) {
         super();
 
         this.grid = grid;
         this.data = data;
+        this.opts = normalizeOptions(opts, field_opt_defaults);
 
         if (grid.ni * grid.nj != data.length) {
             throw `Data size (${data.length}) doesn't match the grid dimensions (${grid.ni} x ${grid.nj}; expected ${grid.ni * grid.nj} points)`;
@@ -138,7 +153,7 @@ class RawScalarField<ArrayType extends TypedArray, GridType extends Grid> extend
             if (!isContourable(tex_data)) throw `Type check for contourable array failed`;
 
             const pool = getContourWorkerPool(undefined, 1); // 1 worker is the default; if the user requests more, the pool will be pre-created with the correct number of workers
-            const contour_data = await pool.contourCreator(tex_data, grid.getGridCoords(), opts);
+            const contour_data = await pool.contourCreator(tex_data, grid.getGridCoords(), {...opts, missing_value: this.opts.missing_value});
 
             for (const v in contour_data) {
                 for (let ic = 0; ic < contour_data[v].length; ic++) {
@@ -161,6 +176,10 @@ class RawScalarField<ArrayType extends TypedArray, GridType extends Grid> extend
     /** @internal */
     get dtypes() {
         return [getArrayDType(this.data)];
+    }
+
+    get missing_value() {
+        return this.opts.missing_value;
     }
 
     /** @internal */
@@ -264,7 +283,7 @@ class RawScalarField<ArrayType extends TypedArray, GridType extends Grid> extend
         const new_grid = this.grid.getThinnedGrid(thin_fac, map_max_zoom)
         const thin_data = new_grid.thinDataArray(this.grid, this.data);
 
-        return new RawScalarField(new_grid, thin_data) as this;
+        return new RawScalarField(new_grid, thin_data, this.opts) as this;
     }
 
     /**
@@ -316,6 +335,10 @@ class ComputedScalarField<ArrayType extends TypedArray, GridType extends Grid> e
     /** @internal */
     get dtypes(): TypedArrayStr[] {
         return this.raw_fields.map(f => f.dtypes).flat();
+    }
+
+    get missing_value() {
+        return this.raw_fields[0].missing_value;
     }
 
     /** @internal */
@@ -426,6 +449,12 @@ interface RawVectorFieldOptions {
      * @default 'grid'
      */
     relative_to?: VectorRelativeTo;
+
+    /**
+     * Value to use as the "missing" value.
+     * @default NaN
+     */
+    missing_value?: number;
 }
 
 function scalarIdToVectorComponentId(id: string, component: 'u' | 'v') {
@@ -440,6 +469,7 @@ abstract class ExpressionVectorField<ArrayType extends TypedArray, GridType exte
     protected readonly u: ExpressionScalarField<ArrayType, GridType>;
     protected readonly v: ExpressionScalarField<ArrayType, GridType>;
     public readonly relative_to: VectorRelativeTo;
+    public readonly missing_value: number;
 
     constructor(u: ExpressionScalarField<ArrayType, GridType>, v: ExpressionScalarField<ArrayType, GridType>, opts?: RawVectorFieldOptions) {
         this.u = u;
@@ -447,6 +477,7 @@ abstract class ExpressionVectorField<ArrayType extends TypedArray, GridType exte
 
         opts = opts === undefined ? {}: opts;
         this.relative_to = opts.relative_to === undefined ? 'grid' : opts.relative_to;
+        this.missing_value = opts.missing_value === undefined ? NaN : opts.missing_value;
     }
 
     private operandScalar(other: ExpressionScalarField<ArrayType, GridType> | number, operand: '*' | '/'): ComputedVectorField<ArrayType, GridType> {
@@ -458,12 +489,12 @@ abstract class ExpressionVectorField<ArrayType extends TypedArray, GridType exte
         if (typeof other === 'number') {
             const u = new ComputedScalarField([this.u], `{0} ${operand} ${other.toFixed(100)}`, v => FUNCS[operand](v, other));
             const v = new ComputedScalarField([this.v], `{0} ${operand} ${other.toFixed(100)}`, v => FUNCS[operand](v, other));
-            return new ComputedVectorField(u, v, {relative_to: this.relative_to});
+            return new ComputedVectorField(u, v, {relative_to: this.relative_to, missing_value: this.missing_value});
         }
 
         const u = new ComputedScalarField([this.u, other], `{0} ${operand} {1}`, FUNCS[operand]);
         const v = new ComputedScalarField([this.v, other], `{0} ${operand} {1}`, FUNCS[operand]);
-        return new ComputedVectorField(u, v, {relative_to: this.relative_to});
+        return new ComputedVectorField(u, v, {relative_to: this.relative_to, missing_value: this.missing_value});
     }
 
     private operandVector(other: ExpressionVectorField<ArrayType, GridType>, operand: '+' | '-'): ComputedVectorField<ArrayType, GridType> {
@@ -474,7 +505,7 @@ abstract class ExpressionVectorField<ArrayType extends TypedArray, GridType exte
 
         const u = new ComputedScalarField([this.u, other.u], `{0} ${operand} {1}`, FUNCS[operand]);
         const v = new ComputedScalarField([this.v, other.v], `{0} ${operand} {1}`, FUNCS[operand]);
-        return new ComputedVectorField(u, v, {relative_to: this.relative_to});
+        return new ComputedVectorField(u, v, {relative_to: this.relative_to, missing_value: this.missing_value});
     }
 
     /**
@@ -614,8 +645,11 @@ class RawVectorField<ArrayType extends TypedArray, GridType extends AutoZoomGrid
      * @param opts - Options for creating the vector field.
      */
     constructor(grid: GridType, u_ary: ArrayType, v_ary: ArrayType, opts?: RawVectorFieldOptions) {
-        const u = new RawScalarField(grid, u_ary);
-        const v = new RawScalarField(grid, v_ary);
+        opts = opts === undefined ? {} : opts;
+        const missing_value = opts.missing_value === undefined ? NaN : opts.missing_value;
+
+        const u = new RawScalarField(grid, u_ary, {missing_value: missing_value});
+        const v = new RawScalarField(grid, v_ary, {missing_value: missing_value});
         super(u, v, opts);
 
         this.u_ary = u_ary;

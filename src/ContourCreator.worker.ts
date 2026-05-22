@@ -30,15 +30,18 @@ interface FieldContourOpts {
     quad_as_tri?: boolean;
 }
 
-async function contourCreator(data: ContourableTypedArray, grid_coords: GridCoords, opts: FieldContourOpts) {
+interface ContourCreatorOpts extends FieldContourOpts {
+    missing_value?: number;
+}
+
+async function contourCreator(data: ContourableTypedArray, grid_coords: GridCoords, opts: ContourCreatorOpts) {
     if (opts.interval === undefined && opts.levels === undefined) {
         throw "Must supply either an interval or levels to contourCreator()"
     }
 
-    const missing = NaN;
-
     const interval = opts.interval === undefined ? 0 : opts.interval;
     const quad_as_tri = opts.quad_as_tri === undefined ? false : opts.quad_as_tri;
+    const missing = opts.missing_value === undefined ? NaN : opts.missing_value;
 
     const msm = _msm === null ? await initMSModule({}) : _msm;
     _msm = msm;
@@ -61,4 +64,4 @@ type ContourCreatorWorker = typeof ep_interface;
 
 Comlink.expose(ep_interface);
 
-export type {ContourCreatorWorker, FieldContourOpts}
+export type {ContourCreatorWorker, FieldContourOpts, ContourCreatorOpts}

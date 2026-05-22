@@ -31,12 +31,13 @@ function makeSynthetic500mbLayers() {
 
     function makeWinds(key) {
         let u = [], v = [];
+        const missing = -9999.;
         for (i = 0; i < nx; i++) {
             for (j = 0; j < ny; j++) {
                 const idx = i + j * nx;
 
                 if (i < 10 && j < 10) {
-                    u[idx] = v[idx] = NaN;
+                    u[idx] = v[idx] = missing;
                 }
                 else {
                     let v_fac = 1;
@@ -56,7 +57,7 @@ function makeSynthetic500mbLayers() {
             }
         }
 
-        return new apgl.RawVectorField(grid, new arrayType(u), new arrayType(v), {relative_to: 'grid'});
+        return new apgl.RawVectorField(grid, new arrayType(u), new arrayType(v), {relative_to: 'grid', missing_value: missing});
     }
 
     const colormap = apgl.colormaps.pw_speed500mb;
