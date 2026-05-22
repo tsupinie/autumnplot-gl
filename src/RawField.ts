@@ -401,6 +401,11 @@ class ComputedScalarField<ArrayType extends TypedArray, GridType extends Grid> e
      */
     public sampleFieldWithCoord(lon: number, lat: number) {
         const field_samples = this.raw_fields.map(f => f.sampleFieldWithCoord(lon, lat));
+        const any_missing = field_samples.map(s => isNaN(s.sample) && isNaN(this.missing_value) || s.sample == this.missing_value).reduce((a, b) => a || b, false);
+
+        if (any_missing) 
+            return {sample: this.missing_value, sample_lon: field_samples[0].sample_lon, sample_lat: field_samples[0].sample_lat};
+
         return {sample: this.cpu_func(...field_samples.map(s => s.sample)), sample_lon: field_samples[0].sample_lon, sample_lat: field_samples[0].sample_lat};
     }
 
@@ -595,6 +600,11 @@ abstract class ExpressionVectorField<ArrayType extends TypedArray, GridType exte
     public sampleField(lon: number, lat: number) : [number, number] {
         const u_sample = this.u.sampleFieldWithCoord(lon, lat);
         const v_sample = this.v.sampleFieldWithCoord(lon, lat);
+
+        if (isNaN(u_sample.sample) && isNaN(this.missing_value) || u_sample.sample == this.missing_value ||
+            isNaN(v_sample.sample) && isNaN(this.missing_value) || v_sample.sample == this.missing_value) {
+            return [this.missing_value, this.missing_value];
+        }
 
         const rot = this.relative_to == 'earth' ? 0 : this.grid.getVectorRotationAtPoint(u_sample.sample_lon, u_sample.sample_lat);
         const mag = Math.hypot(u_sample.sample, v_sample.sample);
