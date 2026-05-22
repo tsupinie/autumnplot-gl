@@ -430,9 +430,17 @@ class ComputedScalarField<ArrayType extends TypedArray, GridType extends Grid> e
 
     /** @internal */
     public *iterateCPU(): Generator<number, void, unknown> {
+        const missing = this.missing_value;
         function* mapGenerator<T extends any[], U>(gen: Generator<T>, func: (...arg: T) => U) {
             for (const elem of gen) {
-                yield func(...elem);
+                const any_missing = elem.map(s => isNaN(s.sample) && isNaN(missing) || s.sample == missing).reduce((a, b) => a || b, false);
+                
+                if (any_missing) {
+                    yield missing;
+                }
+                else {
+                    yield func(...elem);
+                }
             }
         }
 
