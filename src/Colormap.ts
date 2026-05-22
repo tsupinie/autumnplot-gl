@@ -348,6 +348,12 @@ class ColorMapGPUInterface {
 
         const levels = this.colormap.levels;
         const n_lev = levels.length;
+        
+        // Discrete colormaps use the entire texture range, but continuous should remove the half-pixels on either end of the texture
+        //  It's done in the shader other places, but I can do it here when creating the index texture
+        const cmap_is_discrete = isDiscreteColorMap(this.colormap);
+        const scale = cmap_is_discrete ? 1 : (n_lev - 1) / n_lev;
+        const offset = cmap_is_discrete ? 0 : 1 / (2 * n_lev);
 
         const input_norm = levels.map((lev, ilev) => ilev / (n_lev - 1));
         const cmap_norm = levels.map(lev => (lev - levels[0]) / (levels[n_lev - 1] - levels[0]));
@@ -356,7 +362,7 @@ class ColorMapGPUInterface {
             for (jlev = 0; !(cmap_norm[jlev] <= lev && lev <= cmap_norm[jlev + 1]); jlev++) {}
 
             const alpha = (lev - cmap_norm[jlev]) / (cmap_norm[jlev + 1] - cmap_norm[jlev]);
-            return input_norm[jlev] * (1 - alpha) + input_norm[jlev + 1] * alpha;
+            return offset + scale * (input_norm[jlev] * (1 - alpha) + input_norm[jlev + 1] * alpha);
         });
 
         return new Float16Array(inv_cmap_norm);
