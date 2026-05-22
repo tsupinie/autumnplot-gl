@@ -306,8 +306,8 @@ class ColorMapGPUInterface {
     }
 
     public setupShaderVariables(gl: WebGLAnyRenderingContext, mag_filter: number) {
-        const index_map = makeIndexMap(this.colormap);
-        const cmap_image = makeTextureImage(this.colormap);
+        const index_map = this.makeIndexMap();
+        const cmap_image = this.makeTextureImage();
 
         const {format: format_nonlin, type: type_nonlin, row_alignment: row_alignment_nonlin} = getGLFormatTypeAlignment(gl, 'float16');
 
@@ -335,55 +335,57 @@ class ColorMapGPUInterface {
                              'u_n_index': N_INDEX_MAP, 'u_underflow_color': underflow_color, 'u_overflow_color': overflow_color});
         program.bindTextures({'u_cmap_sampler': this.gl_elems.cmap_texture, 'u_cmap_nonlin_sampler': this.gl_elems.cmap_nonlin_texture});
     }
-}
 
-/**
- * Make a canvas image corresponding to a color map
- * @param colormap - The color map to use
- * @returns A canvas element containing each color of the color map
- */
-function makeTextureImage(colormap: ColorMap) {
-    const cmap_image = document.createElement('canvas');
-    cmap_image.width = colormap.colors.length;
-    cmap_image.height = 1;
-
-    let ctx = cmap_image.getContext('2d');
-
-    colormap.colors.forEach((stop, istop) => {
-        if (ctx === null) {
-            throw "Could not get rendering context for colormap image canvas";
+    /** @internal */
+    private makeIndexMap() {
+        // Build a texture to account for nonlinear colormaps (basically inverts the relationship between
+        //  the normalized index and the normalized level)
+        const n_nonlin = N_INDEX_MAP;
+        const map_norm = [];
+        for (let i = 0; i < n_nonlin; i++) {
+            map_norm.push(i / (n_nonlin - 1));
         }
 
-        ctx.fillStyle = stop.toRGBAHex();
-        ctx.fillRect(istop, 0, 1, 1);
-    });
+        const levels = this.colormap.levels;
+        const n_lev = levels.length;
 
-    return cmap_image;
-}
+        const input_norm = levels.map((lev, ilev) => ilev / (n_lev - 1));
+        const cmap_norm = levels.map(lev => (lev - levels[0]) / (levels[n_lev - 1] - levels[0]));
+        const inv_cmap_norm = map_norm.map(lev => {
+            let jlev;
+            for (jlev = 0; !(cmap_norm[jlev] <= lev && lev <= cmap_norm[jlev + 1]); jlev++) {}
 
-function makeIndexMap(colormap: ColorMap) {
-    // Build a texture to account for nonlinear colormaps (basically inverts the relationship between
-    //  the normalized index and the normalized level)
-    const n_nonlin = N_INDEX_MAP;
-    const map_norm = [];
-    for (let i = 0; i < n_nonlin; i++) {
-        map_norm.push(i / (n_nonlin - 1));
+            const alpha = (lev - cmap_norm[jlev]) / (cmap_norm[jlev + 1] - cmap_norm[jlev]);
+            return input_norm[jlev] * (1 - alpha) + input_norm[jlev + 1] * alpha;
+        });
+
+        return new Float16Array(inv_cmap_norm);
     }
 
-    const levels = colormap.levels;
-    const n_lev = levels.length - 1;
+    /**
+     * @internal
+     * Make a canvas image corresponding to a color map
+     * @param colormap - The color map to use
+     * @returns A canvas element containing each color of the color map
+     */
+    private makeTextureImage() {
+        const cmap_image = document.createElement('canvas');
+        cmap_image.width = this.colormap.colors.length;
+        cmap_image.height = 1;
 
-    const input_norm = levels.map((lev, ilev) => ilev / n_lev);
-    const cmap_norm = levels.map(lev => (lev - levels[0]) / (levels[n_lev] - levels[0]));
-    const inv_cmap_norm = map_norm.map(lev => {
-        let jlev;
-        for (jlev = 0; !(cmap_norm[jlev] <= lev && lev <= cmap_norm[jlev + 1]); jlev++) {}
+        let ctx = cmap_image.getContext('2d');
 
-        const alpha = (lev - cmap_norm[jlev]) / (cmap_norm[jlev + 1] - cmap_norm[jlev]);
-        return input_norm[jlev] * (1 - alpha) + input_norm[jlev + 1] * alpha;
-    });
+        this.colormap.colors.forEach((stop, istop) => {
+            if (ctx === null) {
+                throw "Could not get rendering context for colormap image canvas";
+            }
 
-    return new Float16Array(inv_cmap_norm);
+            ctx.fillStyle = stop.toRGBAHex();
+            ctx.fillRect(istop, 0, 1, 1);
+        });
+
+        return cmap_image;
+    }
 }
 
 export {ColorMap, ColorMapDiscrete, ColorMapContinuous, isDiscreteColorMap, isContinuousColorMap,
