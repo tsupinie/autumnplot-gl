@@ -25,7 +25,7 @@ interface ColorMapOptions {
 }
 
 /** A mapping from values to colors */
-class ColorMap {
+abstract class ColorMap {
     public readonly levels: number[];
     public readonly colors: Color[];
     public readonly overflow_color: Color | null;
@@ -38,10 +38,6 @@ class ColorMap {
      * @param opts   - Options for the color map
      */
     constructor(levels: number[], colors: Color[] | string[], opts?: ColorMapOptions) {
-        if (levels.length != colors.length + 1) {
-            throw `Mismatch between number of levels (${levels.length}) and number of colors (${colors.length}; expected ${levels.length - 1})`;
-        }
-
         this.levels = levels;
         this.colors = colors.map(c => Color.normalizeColor(c));
 
@@ -64,27 +60,9 @@ class ColorMap {
         return this.colors.map(s => s.a);
     }
 
-    /**
-     * Sample from the color map
-     * @param val - The value to sample from the color map
-     * @returns A color as an RGBA hex string
-     */
-    public getColor(val: number) : string {
-        if (val < this.levels[0]) {
-            return this.underflow_color === null ? '#00000000' : this.underflow_color.toRGBAHex();
-        }
+    abstract getColor(val: number) : string;
 
-        if (val > this.levels[this.levels.length - 1]) {
-            return this.overflow_color === null ? '#00000000' : this.overflow_color.toRGBAHex();
-        }
-
-        let ilev = -1;
-        for (ilev = 0; ilev < this.levels.length - 1; ilev++) {
-            if (this.levels[ilev] <= val && val < this.levels[ilev + 1]) break;
-        }
-
-        return this.colors[Math.min(ilev, this.levels.length - 2)].toRGBAHex();
-    }
+    abstract getMagFilter(gl: WebGLAnyRenderingContext) : number;
 
     /**
      * Make a new color map with different opacities. The opacities are set by func.
@@ -125,7 +103,7 @@ class ColorMap {
             }
         }
         
-        return new ColorMap(new_levels, new_colors, opts);
+        return new ColorMapDiscrete(new_levels, new_colors, opts);
     }
 
     /**
@@ -178,8 +156,84 @@ class ColorMap {
             levels.push(level_min + ilev * level_step);
         }
 
-        return new ColorMap(levels, stops);
+        return new ColorMapDiscrete(levels, stops);
     }
+}
+
+function isDiscreteColorMap(obj: ColorMap) : obj is ColorMapDiscrete {
+    return obj.levels.length == obj.colors.length + 1;
+}
+
+class ColorMapDiscrete extends ColorMap {
+    constructor(levels: number[], colors: Color[] | string[], opts?: ColorMapOptions) {
+        if (levels.length != colors.length + 1) {
+            throw `Mismatch between number of levels (${levels.length}) and number of colors (${colors.length}; expected ${levels.length - 1})`;
+        }
+
+        super(levels, colors, opts);
+    }
+
+    /**
+     * Sample from the color map
+     * @param val - The value to sample from the color map
+     * @returns A color as an RGBA hex string
+     */
+    public getColor(val: number) : string {
+        if (val < this.levels[0]) {
+            return this.underflow_color === null ? '#00000000' : this.underflow_color.toRGBAHex();
+        }
+
+        if (val > this.levels[this.levels.length - 1]) {
+            return this.overflow_color === null ? '#00000000' : this.overflow_color.toRGBAHex();
+        }
+
+        let ilev = -1;
+        for (ilev = 0; ilev < this.levels.length - 1; ilev++) {
+            if (this.levels[ilev] <= val && val < this.levels[ilev + 1]) break;
+        }
+
+        return this.colors[Math.min(ilev, this.levels.length - 2)].toRGBAHex();
+    }
+
+    public getMagFilter(gl: WebGLAnyRenderingContext): number {
+        return gl.NEAREST;
+    }
+}
+
+class ColorMapContinuous extends ColorMap {
+    constructor(levels: number[], colors: Color[] | string[], opts?: ColorMapOptions) {
+        if (levels.length != colors.length) {
+            throw `Mismatch between number of levels (${levels.length}) and number of colors (${colors.length}; expected ${levels.length})`;
+        }
+
+        super(levels, colors, opts);
+    }
+
+    public getColor(val: number): string {
+        if (val < this.levels[0]) {
+            return this.underflow_color === null ? '#00000000' : this.underflow_color.toRGBAHex();
+        }
+
+        if (val > this.levels[this.levels.length - 1]) {
+            return this.overflow_color === null ? '#00000000' : this.overflow_color.toRGBAHex();
+        }
+
+        let ilev = -1;
+        for (ilev = 0; ilev < this.levels.length - 1; ilev++) {
+            if (this.levels[ilev] <= val && val < this.levels[ilev + 1]) break;
+        }
+
+        const alpha = (val - this.levels[ilev]) / (this.levels[ilev + 1] - this.levels[ilev]);
+        return Color.lerp(this.colors[ilev], this.colors[ilev + 1], alpha).toRGBAHex();
+    }
+
+    public getMagFilter(gl: WebGLAnyRenderingContext): number {
+        return gl.LINEAR;
+    }
+}
+
+function isContinuousColorMap(obj: ColorMap) : obj is ColorMapContinuous {
+    return obj.levels.length == obj.colors.length + 1;
 }
 
 function buildColormap(cm_data: {levels: number[], colors: string[]}, overflow: 'under' | 'over' | 'both' | 'neither') {
@@ -193,7 +247,7 @@ function buildColormap(cm_data: {levels: number[], colors: string[]}, overflow: 
         opts.underflow_color = cm_data.colors[0];
     }
 
-    return new ColorMap(cm_data.levels, cm_data.colors, opts);
+    return new ColorMapDiscrete(cm_data.levels, cm_data.colors, opts);
 }
 
 // This was dumb. Fix this later.
@@ -216,7 +270,7 @@ const wv_cimss = buildColormap(wv_cimss_data, 'neither');
  * @returns a Colormap object
  */
 const redblue = (level_min: number, level_max: number, n_colors: number) => {
-    return ColorMap.diverging('#ff0000', '#0000ff', level_min, level_max, n_colors);
+    return ColorMapDiscrete.diverging('#ff0000', '#0000ff', level_min, level_max, n_colors);
 }
 
 /**
@@ -227,7 +281,7 @@ const redblue = (level_min: number, level_max: number, n_colors: number) => {
  * @returns a Colormap object
  */
 const bluered = (level_min: number, level_max: number, n_colors: number) => {
-    return ColorMap.diverging('#0000ff', '#ff0000', level_min, level_max, n_colors);
+    return ColorMapDiscrete.diverging('#0000ff', '#ff0000', level_min, level_max, n_colors);
 }
 
 
@@ -332,5 +386,6 @@ function makeIndexMap(colormap: ColorMap) {
     return new Float16Array(inv_cmap_norm);
 }
 
-export {ColorMap, ColorMapGPUInterface, bluered, redblue, pw_speed500mb, pw_speed850mb, pw_cape, pw_t2m, pw_td2m, nws_storm_clear_refl, wv_cimss}
+export {ColorMap, ColorMapDiscrete, ColorMapContinuous, isDiscreteColorMap, isContinuousColorMap,
+        ColorMapGPUInterface, bluered, redblue, pw_speed500mb, pw_speed850mb, pw_cape, pw_t2m, pw_td2m, nws_storm_clear_refl, wv_cimss}
 export type {ColorMapOptions};

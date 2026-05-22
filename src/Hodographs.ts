@@ -7,7 +7,7 @@ import { MapLikeType } from "./Map";
 import { RawProfileField } from "./RawField";
 import { LineData, RenderMethodArg, TypedArray, WebGLAnyRenderingContext, WindProfile, isStormRelativeWindProfile } from "./AutumnTypes";
 import { Float16Array } from "@petamoriken/float16";
-import { ColorMap } from "./Colormap";
+import { ColorMap, ColorMapDiscrete } from "./Colormap";
 import { Color } from "./Color";
 import { Grid } from "./grids/Grid";
 import { AutoZoomGrid } from "./grids/AutoZoom";
@@ -63,7 +63,7 @@ function _createHodoBackgroundTexture(line_width: number, arrow_head: boolean) {
     return canvas;
 };
 
-const HODO_CMAP = new ColorMap([0, 1, 3, 6, 9], ['#ffffcc', '#a1dab4', '#41b6c4', '#225ea8']);
+const HODO_CMAP = new ColorMapDiscrete([0, 1, 3, 6, 9], ['#ffffcc', '#a1dab4', '#41b6c4', '#225ea8']);
 
 /** Options for {@link Hodographs} components */
 interface HodographOptions {

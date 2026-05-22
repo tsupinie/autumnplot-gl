@@ -1,5 +1,5 @@
 
-import { ColorMap } from "./Colormap";
+import { ColorMap, ColorMapDiscrete, ColorMapContinuous, isDiscreteColorMap } from "./Colormap";
 import { Color } from "./Color";
 import { normalizeOptions } from "./utils";
 
@@ -94,6 +94,18 @@ const createElement = (tagname: string, attributes?: Record<string, string | num
  * document.getElementById('colorbar-container').appendChild(svg);
  */
 function makeColorBar(colormap: ColorMap, opts: ColorBarOptions) {
+    if (isDiscreteColorMap(colormap)) {
+        return makeColorBarDiscrete(colormap, opts);
+    }
+
+    return makeColorBarContinuous(colormap, opts);
+}
+
+function makeColorBarContinuous(colormap: ColorMapContinuous, opts: ColorBarOptions) {
+
+}
+
+function makeColorBarDiscrete(colormap: ColorMapDiscrete, opts: ColorBarOptions) {
     const label = opts.label || "";
     const ticks = opts.ticks || colormap.levels;
     const orientation = opts.orientation || 'vertical';

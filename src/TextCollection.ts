@@ -1,6 +1,6 @@
 import { getRendererData, isWebGL2Ctx, RenderMethodArg, WebGLAnyRenderingContext } from "./AutumnTypes";
 import { Color } from "./Color";
-import { ColorMap, ColorMapGPUInterface } from "./Colormap";
+import { ColorMap, ColorMapDiscrete, ColorMapGPUInterface } from "./Colormap";
 import { LngLat } from "./Map";
 import { ShaderProgramManager } from "./ShaderManager";
 import { Cache, normalizeOptions } from "./utils";
@@ -368,7 +368,7 @@ class TextCollection {
             shader_defines.push('DATA');
 
             const text_color = this.opts.text_color;
-            const cmap = this.opts.cmap === null ? new ColorMap([0, 1], [text_color], {overflow_color: text_color, underflow_color: text_color}) : this.opts.cmap;
+            const cmap = this.opts.cmap === null ? new ColorMapDiscrete([0, 1], [text_color], {overflow_color: text_color, underflow_color: text_color}) : this.opts.cmap;
             cmap_gpu = new ColorMapGPUInterface(cmap);
             cmap_gpu.setupShaderVariables(gl, gl.NEAREST);
 

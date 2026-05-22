@@ -90,6 +90,10 @@ const hsv2rgb = (hsv: [number, number, number]) : [number, number, number] => {
     return [r_prime + m, g_prime + m, b_prime + m];
 }
 
+function lerp(a: number, b: number, alpha: number) {
+    return (1 - alpha) * a + alpha * b;
+}
+
 /** A class for handling colors and translations between different color spaces */
 class Color {
     private rgba: [number, number, number, number];
@@ -185,6 +189,15 @@ class Color {
 
     static normalizeColor(color: Color | string) {
         return color instanceof Color ? color : Color.fromHex(color);
+    }
+
+    static lerp(color1: Color, color2: Color, alpha: number) {
+        return new Color([
+            lerp(color1.r, color2.r, alpha),
+            lerp(color1.g, color2.g, alpha),
+            lerp(color1.b, color2.b, alpha),
+            lerp(color1.a, color2.a, alpha),
+        ]);
     }
 }
 

@@ -9,7 +9,8 @@ import StationPlot, {StationPlotOptions, SPPosition, SPNumberConfig, SPStringCon
 import { PlotLayer, MultiPlotLayer } from './PlotLayer';
 import { WindProfile, StormRelativeWindProfile, GroundRelativeWindProfile, WebGLAnyRenderingContext, TypedArray, ContourData } from "./AutumnTypes";
 import { MapLikeType } from "./Map";
-import { ColorMap, ColorMapOptions, bluered, redblue, pw_speed500mb, pw_speed850mb, pw_cape, pw_t2m, pw_td2m, nws_storm_clear_refl, wv_cimss } from './Colormap';
+import { ColorMap, ColorMapDiscrete, ColorMapContinuous, ColorMapOptions, 
+         bluered, redblue, pw_speed500mb, pw_speed850mb, pw_cape, pw_t2m, pw_td2m, nws_storm_clear_refl, wv_cimss } from './Colormap';
 import { Color } from "./Color";
 import { makeColorBar, makePaintballKey, ColorbarOrientation, ColorbarTickDirection, ColorBarOptions, PaintballKeyOptions } from "./ColorBar";
 import { LineStyle } from "./PolylineCollection";
@@ -68,7 +69,8 @@ export {PlotComponent,
         StationPlot, StationPlotOptions, SPPosition, SPNumberConfig, SPStringConfig, SPBarbConfig, SPSymbolConfig, SPConfig, SPDataConfig, SPSymbol,
         PlotLayer, MultiPlotLayer, 
         MapLikeType, LineStyle,
-        ColorMap, ColorMapOptions, colormaps, makeColorBar, makePaintballKey, Color, ColorbarOrientation, ColorbarTickDirection, ColorBarOptions, PaintballKeyOptions,
+        ColorMap, ColorMapDiscrete, ColorMapContinuous, ColorMapOptions, 
+        colormaps, makeColorBar, makePaintballKey, Color, ColorbarOrientation, ColorbarTickDirection, ColorBarOptions, PaintballKeyOptions,
         RawScalarField, ComputedScalarField, ExpressionScalarField, RawVectorField, ComputedVectorField, ExpressionVectorField, RawProfileField, RawObsField, ObsRawData,
         Grid, GridType, StructuredGrid, VectorRelativeTo, RawVectorFieldOptions, PlateCarreeGrid, PlateCarreeRotatedGrid, LambertGrid, UnstructuredGrid, RadarSweepGrid, GeostationaryImage,
         AutoZoomGrid,

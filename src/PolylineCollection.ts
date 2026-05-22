@@ -1,7 +1,7 @@
 
 import { WGLBuffer, WGLTexture } from "autumn-wgl";
 import { Polyline, LineData, WebGLAnyRenderingContext, isWebGL2Ctx, RenderMethodArg, getRendererData } from "./AutumnTypes";
-import { ColorMap, ColorMapGPUInterface } from "./Colormap";
+import { ColorMap, ColorMapDiscrete, ColorMapGPUInterface } from "./Colormap";
 import { Color } from "./Color";
 import { layer_worker } from "./PlotComponent";
 import { ShaderProgramManager } from "./ShaderManager";
@@ -176,7 +176,7 @@ class PolylineCollection {
             shader_defines.push('DATA');
 
             const color_hex = this.opts.color;
-            const cmap = this.opts.cmap === null ? new ColorMap([0, 1], [color_hex], {overflow_color: color_hex, underflow_color: color_hex}) : this.opts.cmap;
+            const cmap = this.opts.cmap === null ? new ColorMapDiscrete([0, 1], [color_hex], {overflow_color: color_hex, underflow_color: color_hex}) : this.opts.cmap;
             cmap_gpu = new ColorMapGPUInterface(cmap);
             cmap_gpu.setupShaderVariables(gl, gl.NEAREST);
 

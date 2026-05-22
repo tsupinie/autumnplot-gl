@@ -1,6 +1,6 @@
 
 import { PlotComponent, getGLFormatTypeAlignment } from './PlotComponent';
-import { ColorMap, ColorMapGPUInterface} from './Colormap';
+import { ColorMap, ColorMapDiscrete, ColorMapGPUInterface } from './Colormap';
 import { WGLBuffer, WGLTexture } from 'autumn-wgl';
 import { ExpressionScalarField } from './RawField';
 import { MapLikeType } from './Map';
@@ -30,7 +30,7 @@ interface ContourFillOptions {
     opacity?: number;
 }
 
-const default_cmap = new ColorMap([0, 1], ['#000000'], {overflow_color: '#000000', underflow_color: '#000000'})
+const default_cmap = new ColorMapDiscrete([0, 1], ['#000000'], {overflow_color: '#000000', underflow_color: '#000000'})
 
 const contour_fill_opt_defaults: Required<ContourFillOptions> = {
     cmap: [default_cmap],
@@ -45,7 +45,7 @@ interface RasterOptions {
 
     /** 
      * A mask specifying where to use each color map. This should be on the same grid as the RawScalarField passed. 
-     * A 1 in the mask means to use the first colormap, a 2 means to use the second colormap, etc.
+     * A 1 in the mask means to use the first ColorMapDiscrete, a 2 means to use the second ColorMapDiscrete, etc.
      */
     cmap_mask?: Uint8Array | null;
 
@@ -71,47 +71,42 @@ interface PlotComponentFillGLElems<MapType extends MapLikeType> {
     texcoords: WGLBuffer;
 }
 
-class PlotComponentFill<ArrayType extends TypedArray, GridType extends DomainBufferGrid, MapType extends MapLikeType> extends PlotComponent<MapType> {
+abstract class PlotComponentFill<ArrayType extends TypedArray, GridType extends DomainBufferGrid, MapType extends MapLikeType> extends PlotComponent<MapType> {
     private field: ExpressionScalarField<ArrayType, GridType>;
     public readonly opts: Required<ContourFillOptions>;
 
     private readonly cmap_gpu: ColorMapGPUInterface[];
+    private readonly cmaps: ColorMap[];
 
     private gl_elems: PlotComponentFillGLElems<MapType> | null;
     private fill_texture: Map<string, WGLTexture> | null;
     private mask_texture: WGLTexture | null;
-    protected image_mag_filter: number | null;
-    protected cmap_mag_filter: number | null;
 
     constructor(field: ExpressionScalarField<ArrayType, GridType>, opts: ContourFillOptions) {
         super();
 
         this.field = field;
         this.opts = normalizeOptions(opts, contour_fill_opt_defaults);
-        this.opts.cmap = Array.isArray(this.opts.cmap) ? this.opts.cmap : [this.opts.cmap];
 
-        this.cmap_gpu = this.opts.cmap.map(cm => new ColorMapGPUInterface(cm));
+        this.cmaps = Array.isArray(this.opts.cmap) ? this.opts.cmap : [this.opts.cmap];
+        this.cmap_gpu = this.cmaps.map(cm => new ColorMapGPUInterface(cm));
 
         this.gl_elems = null;
         this.fill_texture = null;
         this.mask_texture = null;
-        this.image_mag_filter = null;
-        this.cmap_mag_filter = null;
     }
+
+    protected abstract getImageMagFilter(gl: WebGLAnyRenderingContext): number;
 
     public async updateField(field: ExpressionScalarField<ArrayType, GridType>, mask?: Uint8Array) {
         this.field = field;
-
-        if (this.image_mag_filter === null || this.cmap_mag_filter === null) {
-            throw `Implement magnification filters in a subclass`;
-        }
 
         if (this.gl_elems === null) return;
 
         const gl = this.gl_elems.gl;
         const map = this.gl_elems.map;
     
-        this.fill_texture = this.field.updateTexImageData(gl, this.image_mag_filter, this.fill_texture);
+        this.fill_texture = this.field.updateTexImageData(gl, this.getImageMagFilter(gl), this.fill_texture);
 
         if (mask !== undefined) {
             if (this.opts.cmap_mask === null) {
@@ -141,22 +136,14 @@ class PlotComponentFill<ArrayType extends TypedArray, GridType extends DomainBuf
 
         const {vertices: vertices, texcoords: texcoords} = await this.field.grid.getDomainBuffers(gl);
 
-        this.cmap_gpu.forEach(cmg => {
-            if (this.image_mag_filter === null || this.cmap_mag_filter === null) {
-                throw `Implement magnification filters in a subclass`;
-            }
-
-            cmg.setupShaderVariables(gl, this.cmap_mag_filter);
+        this.cmap_gpu.forEach((cmg, icmg) => {
+            cmg.setupShaderVariables(gl, this.cmaps[icmg].getMagFilter(gl));
         });
 
         const shader_defines = [];
 
         if (this.opts.cmap_mask !== null) {
             shader_defines.push('MASK');
-        }
-
-        if (this.image_mag_filter === null || this.cmap_mag_filter === null) {
-            throw `Implement magnification filters in a subclass`;
         }
 
         const sampler_keys = this.field.getSamplerIds();
@@ -245,6 +232,10 @@ class Raster<ArrayType extends TypedArray, GridType extends DomainBufferGrid, Ma
         super(field, opts);
     }
 
+    protected getImageMagFilter(gl: WebGLAnyRenderingContext): number {
+        return gl.NEAREST;
+    }
+
     /**
      * Update the data displayed as a raster plot
      * @param field - The new field to display as a raster plot
@@ -258,8 +249,6 @@ class Raster<ArrayType extends TypedArray, GridType extends DomainBufferGrid, Ma
      * Add the raster plot to a map
      */
     public async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
-        this.image_mag_filter = gl.NEAREST;
-        this.cmap_mag_filter = gl.LINEAR;
         await super.onAdd(map, gl);
     }
 
@@ -298,6 +287,10 @@ class ContourFill<ArrayType extends TypedArray, GridType extends DomainBufferGri
         super(field, opts);
     }
 
+    protected getImageMagFilter(gl: WebGLAnyRenderingContext): number {
+        return gl.LINEAR;
+    }
+
     /**
      * Update the data displayed as filled contours
      * @param field - The new field to display as filled contours
@@ -311,8 +304,6 @@ class ContourFill<ArrayType extends TypedArray, GridType extends DomainBufferGri
      * Add the filled contours to a map
      */
     public async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
-        this.image_mag_filter = gl.LINEAR;
-        this.cmap_mag_filter = gl.NEAREST;
         await super.onAdd(map, gl);
     }
 
