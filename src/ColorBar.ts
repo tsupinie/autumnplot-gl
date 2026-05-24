@@ -64,6 +64,14 @@ interface ColorBarOptions {
     outline_and_text_color?: string;
 };
 
+interface ColorBarOptionsInternal {
+    bar_left: number;
+    bar_top: number; 
+    bar_width: number;
+    bar_height: number;
+    orientation: ColorbarOrientation;
+}
+
 const createElement = (tagname: string, attributes?: Record<string, string | number>, parent?: SVGElement) => {
     const elem = document.createElementNS('http://www.w3.org/2000/svg', tagname);
 
@@ -94,18 +102,6 @@ const createElement = (tagname: string, attributes?: Record<string, string | num
  * document.getElementById('colorbar-container').appendChild(svg);
  */
 function makeColorBar(colormap: ColorMap, opts: ColorBarOptions) {
-    if (isDiscreteColorMap(colormap)) {
-        return makeColorBarDiscrete(colormap, opts);
-    }
-
-    return makeColorBarContinuous(colormap, opts);
-}
-
-function makeColorBarContinuous(colormap: ColorMapContinuous, opts: ColorBarOptions) {
-
-}
-
-function makeColorBarDiscrete(colormap: ColorMapDiscrete, opts: ColorBarOptions) {
     const label = opts.label || "";
     const ticks = opts.ticks || colormap.levels;
     const orientation = opts.orientation || 'vertical';
@@ -114,6 +110,7 @@ function makeColorBarDiscrete(colormap: ColorMapDiscrete, opts: ColorBarOptions)
     const size_long = opts.size_long || 600;
     const size_short = opts.size_short || size_long / 9;
     const outline_and_text_color = opts.outline_and_text_color || '#000000';
+    const n_colors = colormap.colors.length;
 
     const tick_dir = opts.tick_direction || (orientation == 'vertical' ? 'left' : 'bottom');
 
@@ -171,10 +168,15 @@ function makeColorBarDiscrete(colormap: ColorMapDiscrete, opts: ColorBarOptions)
         bar_high_arrow = colormap.overflow_color === null ? bar_right : bar_right + bar_cross_size / (Math.sqrt(3) * 2);
     }
 
-    const n_colors = colormap.colors.length;
-
     const root = createElement('svg', {width: width, height: height});
     const gbar = createElement('g', {}, root);
+    
+    if (isDiscreteColorMap(colormap)) {
+        makeColorBarDiscrete(gbar, colormap, {bar_left, bar_top, bar_width, bar_height, orientation});
+    }
+    else {
+        makeColorBarContinuous(gbar, colormap, {bar_left, bar_top, bar_width, bar_height, orientation});
+    }
 
     let gtickattrs;
     if (orientation == 'vertical') {
@@ -186,21 +188,6 @@ function makeColorBarDiscrete(colormap: ColorMapDiscrete, opts: ColorBarOptions)
                                             {'text-anchor': 'middle', transform: `translate(${bar_left}, ${bar_top})`}
     }
     const gticks = createElement('g', gtickattrs, root);
-
-    // Make the colored background
-    colormap.colors.forEach((color, icolor) => {
-        let attrs: Record<string, string | number> = {};
-
-        if (orientation == 'vertical') {
-            attrs = {
-                x: bar_left, y: bar_top + bar_height * (1 - (icolor + 1) / n_colors), width: bar_width, height: bar_height / n_colors};
-        }
-        else {
-            attrs = {x: bar_left + bar_width * icolor / n_colors, y: bar_top, width: bar_width / n_colors, height: bar_height};
-        }
-
-        createElement('rect', {...attrs, fill: color.toRGBHex(), opacity: color.a}, gbar);
-    });
 
     // Make the overflow and underflow triangles
     if (colormap.underflow_color !== null) {
@@ -239,8 +226,11 @@ function makeColorBarDiscrete(colormap: ColorMapDiscrete, opts: ColorBarOptions)
         if (level <= colormap.levels[ilevel] && ilevel > 0)
             ilevel -= 1;
         ilevel += (level - colormap.levels[ilevel]) / (colormap.levels[ilevel + 1] - colormap.levels[ilevel]);
-        const tickattrs = orientation == 'vertical' ? {transform: `translate(0, ${bar_height * (1 - ilevel / n_colors)})`} : 
-                                                      {transform: `translate(${bar_width * ilevel / n_colors}, 0)`};
+
+        const translate = isDiscreteColorMap(colormap) ? ilevel / n_colors : (level - first_level) / (last_level - first_level);
+        const tickattrs = orientation == 'vertical' ? {transform: `translate(0, ${bar_height * (1 - translate)})`} : 
+                                                      {transform: `translate(${bar_width * translate}, 0)`};
+
         const gtick = createElement('g', tickattrs, gticks);
 
         let lineattrs;
@@ -296,6 +286,55 @@ function makeColorBarDiscrete(colormap: ColorMapDiscrete, opts: ColorBarOptions)
     label_elem.textContent = label;
 
     return root;
+}
+
+function makeColorBarContinuous(root: SVGElement, colormap: ColorMapContinuous, opts: ColorBarOptionsInternal) {
+    const {bar_left, bar_top, bar_width, bar_height, orientation} = opts;
+    const first_level = colormap.levels[0];
+    const last_level = colormap.levels[colormap.levels.length - 1];
+
+    const attrs = {x: bar_left, y: bar_top, width: bar_width, height: bar_height};
+
+    const [x_end, y_end] = orientation == 'vertical' ? [0, 1] : [1, 0];
+    
+    const gradient = createElement('linearGradient', {id: 'colormap-gradient', x1: 0, y1: 0, x2: x_end, y2: y_end}, root);
+
+    const colors = [...colormap.colors];
+    const levels = [...colormap.levels];
+
+    if (orientation == 'vertical') {
+        colors.reverse();
+        levels.reverse();
+    }
+
+    colors.forEach((color, icolor) => {
+        const level = levels[icolor];
+        const offset = (level - first_level) / (last_level - first_level);
+        createElement('stop', {offset: `${(orientation == 'vertical' ? 1 - offset : offset) * 100}%`, 'stop-color': color.toRGBHex(), 'stop-opacity': color.a}, gradient);
+    });
+
+    createElement('rect', {...attrs, fill: 'url(#colormap-gradient)'}, root);
+}
+
+function makeColorBarDiscrete(root: SVGElement, colormap: ColorMapDiscrete, opts: ColorBarOptionsInternal) {
+    const {bar_left, bar_top, bar_width, bar_height, orientation} = opts;
+
+    const n_colors = colormap.colors.length;
+
+    // Make the colored background
+    colormap.colors.forEach((color, icolor) => {
+        let attrs: Record<string, string | number> = {};
+
+        if (orientation == 'vertical') {
+            attrs = {
+                x: bar_left, y: bar_top + bar_height * (1 - (icolor + 1) / n_colors), width: bar_width, height: bar_height / n_colors};
+        }
+        else {
+            attrs = {x: bar_left + bar_width * icolor / n_colors, y: bar_top, width: bar_width / n_colors, height: bar_height};
+        }
+
+        createElement('rect', {...attrs, fill: color.toRGBHex(), opacity: color.a}, root);
+    });
 }
 
 /** Options for {@link makePaintballKey | makePaintballKey()} */
