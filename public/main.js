@@ -61,6 +61,7 @@ function makeSynthetic500mbLayers() {
     }
 
     const colormap = apgl.colormaps.pw_speed500mb;
+    // const colormap = new apgl.ColorMapContinuous([20, 30, 120], ['#eeeeee00', '#ccccccff', '#000000ff']);
 
     const hght_field = makeHeight(0);
     const wind_field = makeWinds(0).multiply(1.15);
