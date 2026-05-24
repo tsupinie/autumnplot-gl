@@ -188,7 +188,7 @@ abstract class PlotComponentFill<ArrayType extends TypedArray, GridType extends 
             cmg.bindShaderVariables(program);
 
             gl.enable(gl.BLEND);
-            gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+            gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
     
             program.draw();
     
