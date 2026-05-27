@@ -306,22 +306,10 @@ class ColorMapGPUInterface {
     }
 
     public setupShaderVariables(gl: WebGLAnyRenderingContext, mag_filter: number) {
-        const index_map = this.makeIndexMap();
-        const cmap_image = this.makeTextureImage();
+        const cmap_nonlin_texture = this.makeIndexMapTexture(gl);
+        const cmap_image = this.makeColorMapTexture(gl, mag_filter);
 
-        const {format: format_nonlin, type: type_nonlin, row_alignment: row_alignment_nonlin} = getGLFormatTypeAlignment(gl, 'float16');
-
-        const cmap_image_spec = {'format': gl.RGBA, 'type': gl.UNSIGNED_BYTE, 'image': cmap_image, 'mag_filter': mag_filter};
-        const cmap_texture = new WGLTexture(gl, cmap_image_spec);
-
-        const cmap_nonlin_image = {'format': format_nonlin, 'type': type_nonlin, 
-            'width': index_map.length, 'height': 1,
-            'image': new Uint16Array(index_map.buffer), 
-            'mag_filter': gl.LINEAR, 'row_alignment': row_alignment_nonlin,
-        };
-
-        const cmap_nonlin_texture = new WGLTexture(gl, cmap_nonlin_image);
-        this.gl_elems = {cmap_texture: cmap_texture, cmap_nonlin_texture: cmap_nonlin_texture};
+        this.gl_elems = {cmap_texture: cmap_image, cmap_nonlin_texture: cmap_nonlin_texture};
     }
 
     public bindShaderVariables(program: WGLProgram) {
@@ -337,7 +325,7 @@ class ColorMapGPUInterface {
     }
 
     /** @internal */
-    private makeIndexMap() {
+    private makeIndexMapTexture(gl: WebGLAnyRenderingContext) {
         // Build a texture to account for nonlinear colormaps (basically inverts the relationship between
         //  the normalized index and the normalized level)
         const n_nonlin = N_INDEX_MAP;
@@ -365,32 +353,37 @@ class ColorMapGPUInterface {
             return offset + scale * (input_norm[jlev] * (1 - alpha) + input_norm[jlev + 1] * alpha);
         });
 
-        return new Float16Array(inv_cmap_norm);
+        const {format: format_nonlin, type: type_nonlin, row_alignment: row_alignment_nonlin} = getGLFormatTypeAlignment(gl, 'float16');
+
+        const cmap_nonlin_image = {'format': format_nonlin, 'type': type_nonlin, 
+            'width': inv_cmap_norm.length, 'height': 1,
+            'image': new Uint16Array((new Float16Array(inv_cmap_norm)).buffer), 
+            'mag_filter': gl.LINEAR, 'row_alignment': row_alignment_nonlin,
+        };
+
+        return new WGLTexture(gl, cmap_nonlin_image);
     }
 
     /**
      * @internal
-     * Make a canvas image corresponding to a color map
-     * @param colormap - The color map to use
-     * @returns A canvas element containing each color of the color map
+     * @returns The texture representation for the colormap
      */
-    private makeTextureImage() {
-        const cmap_image = document.createElement('canvas');
-        cmap_image.width = this.colormap.colors.length;
-        cmap_image.height = 1;
+    private makeColorMapTexture(gl: WebGLAnyRenderingContext, mag_filter: number) {
+        const cmap_ary = new Uint8Array(this.colormap.colors.length * 4);
 
-        let ctx = cmap_image.getContext('2d');
-
-        this.colormap.colors.forEach((stop, istop) => {
-            if (ctx === null) {
-                throw "Could not get rendering context for colormap image canvas";
-            }
-
-            ctx.fillStyle = stop.toRGBAHex();
-            ctx.fillRect(istop, 0, 1, 1);
+        let iary = 0;
+        this.colormap.colors.forEach(color => {
+            cmap_ary[iary++] = color.r * 255;
+            cmap_ary[iary++] = color.g * 255;
+            cmap_ary[iary++] = color.b * 255;
+            cmap_ary[iary++] = color.a * 255;
         });
 
-        return cmap_image;
+        const cmap_image_spec = {'format': gl.RGBA, 'type': gl.UNSIGNED_BYTE, 'image': cmap_ary, 
+            'width': this.colormap.colors.length, 'height': 1,
+            'mag_filter': mag_filter};
+
+        return new WGLTexture(gl, cmap_image_spec);
     }
 }
 
