@@ -236,7 +236,7 @@ function isContinuousColorMap(obj: ColorMap) : obj is ColorMapContinuous {
     return obj.levels.length == obj.colors.length + 1;
 }
 
-function buildColormap(cm_data: {levels: number[], colors: string[]}, overflow: 'under' | 'over' | 'both' | 'neither') {
+function buildColormap(cm_data: {type: string, levels: number[], colors: string[]}, overflow: 'under' | 'over' | 'both' | 'neither') {
     const n_colors = cm_data.colors.length;
     const opts: ColorMapOptions = {};
 
@@ -247,7 +247,12 @@ function buildColormap(cm_data: {levels: number[], colors: string[]}, overflow: 
         opts.underflow_color = cm_data.colors[0];
     }
 
-    return new ColorMapDiscrete(cm_data.levels, cm_data.colors, opts);
+    if (cm_data.type == 'discrete')
+        return new ColorMapDiscrete(cm_data.levels, cm_data.colors, opts);
+    else if (cm_data.type == 'continuous')
+        return new ColorMapContinuous(cm_data.levels, cm_data.colors, opts);
+
+    throw `Unknown color map type ${cm_data.type}`;
 }
 
 // This was dumb. Fix this later.
