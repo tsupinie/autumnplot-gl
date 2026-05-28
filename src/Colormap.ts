@@ -236,15 +236,16 @@ function isContinuousColorMap(obj: ColorMap) : obj is ColorMapContinuous {
     return obj.levels.length == obj.colors.length + 1;
 }
 
-function buildColormap(cm_data: {type: string, levels: number[], colors: string[]}, overflow: 'under' | 'over' | 'both' | 'neither') {
+function buildColormap(cm_data: {type: string, levels: number[], colors: string[], overflow?: string, underflow?: string}, 
+                       overflow: 'under' | 'over' | 'both' | 'neither') {
     const n_colors = cm_data.colors.length;
     const opts: ColorMapOptions = {};
 
     if (overflow == 'over' || overflow == 'both') {
-        opts.overflow_color = cm_data.colors[n_colors - 1];
+        opts.overflow_color = cm_data.overflow === undefined ? cm_data.colors[n_colors - 1] : cm_data.overflow;
     }
     if (overflow == 'under' || overflow == 'both') {
-        opts.underflow_color = cm_data.colors[0];
+        opts.underflow_color = cm_data.underflow === undefined ? cm_data.colors[0] : cm_data.underflow;
     }
 
     if (cm_data.type == 'discrete')
@@ -255,9 +256,6 @@ function buildColormap(cm_data: {type: string, levels: number[], colors: string[
     throw `Unknown color map type ${cm_data.type}`;
 }
 
-// This was dumb. Fix this later.
-wv_cimss_data.colors = wv_cimss_data.colors.reverse();
-
 // Some built-in colormaps
 const pw_speed500mb = buildColormap(spd500_colormap_data, 'over').withOpacity((levl, levu) => Math.min((levu - 20) / 10, 1.));
 const pw_speed850mb = buildColormap(spd850_colormap_data, 'over').withOpacity((levl, levu) => Math.min((levu - 20) / 10, 1.));
@@ -265,7 +263,9 @@ const pw_cape = buildColormap(cape_colormap_data, 'over').withOpacity((levl, lev
 const pw_t2m = buildColormap(t2m_colormap_data, 'both');
 const pw_td2m = buildColormap(td2m_colormap_data, 'both');
 const nws_storm_clear_refl = buildColormap(nws_storm_clear_refl_colormap_data, 'over');
-const wv_cimss = buildColormap(wv_cimss_data, 'neither');
+
+// https://cimss.ssec.wisc.edu/goes/visit/water_vapor_enhancement.html
+const wv_cimss = buildColormap(wv_cimss_data, 'over');
 
 /**
  * Create a diverging red/blue colormap, where red corresponds to the lowest value and blue corresponds to the highest value
