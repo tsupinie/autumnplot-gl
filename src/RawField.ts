@@ -805,20 +805,19 @@ class RawObsField<GridType extends AutoZoomGrid, ObsFieldName extends string> {
             return [u, v];
         }
 
-        const u_data = new Float16Array(this.grid.ni * this.grid.nj).fill(parseFloat('nan'));
-        const v_data = new Float16Array(this.grid.ni * this.grid.nj).fill(parseFloat('nan'));
+        const u_list: (number | null)[] = [], v_list: (number | null)[] = [];
 
         vector_field_data.forEach(([wspd, wdir], idat) => {
             if (wspd === null || wdir === null) {
+                u_list.push(null); v_list.push(null);
                 return;
             }
 
             const [u, v] = vec2comp(wspd, wdir);
-            u_data[idat] = u;
-            v_data[idat] = v;
+            u_list.push(u); v_list.push(v);
         });
 
-        return new RawVectorField(this.grid, u_data, v_data, {relative_to: 'earth'});
+        return new RawVectorField(this.grid, this.grid.listToArray(u_list), this.grid.listToArray(v_list), {relative_to: 'earth'});
     }
 }
 

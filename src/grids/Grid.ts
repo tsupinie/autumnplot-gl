@@ -1,3 +1,4 @@
+import { Float16Array } from "@petamoriken/float16";
 import { TypedArray } from "../AutumnTypes";
 
 interface EarthCoords {
@@ -36,6 +37,19 @@ abstract class Grid {
 
     public abstract getThinnedGrid(thin_fac: number, map_max_zoom: number): this;
     public abstract thinDataArray<ArrayType extends TypedArray>(original_grid: Grid, ary: ArrayType): ArrayType;
+
+    public listToArray(list: (number | null)[]) {
+        const ary = new Float16Array(this.ni * this.nj).fill(parseFloat('nan'));
+
+        list.forEach((item, idat) => {
+            if (item === null)
+                return;
+
+            ary[idat] = item;
+        });
+
+        return ary;
+    }
 
     public abstract copy(): Grid;
 }
