@@ -209,7 +209,7 @@ async function makeGFSLayers() {
     return {layers: [t2m_filllayer, t2m_contourlayer, label_layer], colorbar: [svg]};
 }
 
-function makeHodoLayers() {
+async function makeHodoLayers() {
     const hodo_u = [];
     const hodo_v = [];
     const hodo_z = [];
@@ -221,16 +221,68 @@ function makeHodoLayers() {
         hodo_v.push(20 * (Math.sin(z / hodo_zmax * Math.PI) + 1));
         hodo_z.push(z);
     }
-    const profs = [
-        {ilon: 0, jlat: 0, smu: 0, smv: 20, u: hodo_u, v: hodo_v, z: hodo_z},
-        {ilon: 1, jlat: 0, smu: 0, smv: 20, u: hodo_u, v: hodo_v, z: hodo_z},
-        {ilon: 0, jlat: 1, smu: 0, smv: 20, u: hodo_u, v: hodo_v, z: hodo_z},
-        {ilon: 1, jlat: 1, smu: 0, smv: 20, u: hodo_u, v: hodo_v, z: hodo_z},
-        {ilon: 0, jlat: 2, smu: 0, smv: 20, u: hodo_u, v: hodo_v, z: hodo_z},
-    ];
-    const hodo_grid = new apgl.PlateCarreeGrid(2, 3, -97.44, 35.17, -96.94, 36.17);
-    const raw_prof_field = new apgl.RawProfileField(hodo_grid, profs);
-    const hodos = new apgl.Hodographs(raw_prof_field, {bgcolor: '#000000', thin_fac: 64, max_wind_speed_ring: 40});
+
+    const resp = await fetch('data/hodographs.dat');
+    const blob = await resp.blob();
+    const ary = new Uint8Array(await blob.arrayBuffer());
+    const ary_inflated = pako.inflate(ary);
+
+    const unpack = (data_packed) => {
+        const n_profiles = new Uint16Array(data_packed.buffer, 0, 1)[0];
+        const profile_lengths = new Uint8Array(data_packed.buffer, 2, n_profiles);
+        const n_pad = 4 - (n_profiles + 2) % 4;
+
+        let i_start = n_profiles + 2 + n_pad;
+        const profiles = [...profile_lengths].map(prof_len => {
+            const [lat, lon] = new Float32Array(data_packed.buffer, i_start, 2);
+            const [jlat, ilon] = new Uint16Array(data_packed.buffer, i_start + 8, 2);
+            const [storm_u, storm_v] = new Float32Array(data_packed.buffer, i_start + 12, 2);
+
+            const u = new Float32Array(data_packed.buffer, i_start + 20, prof_len);
+            const v = new Float32Array(data_packed.buffer, i_start + 20 + 4 * prof_len, prof_len);
+            const z = new Float32Array(data_packed.buffer, i_start + 20 + 2 * 4 * prof_len, prof_len);
+
+            i_start += (20 + 3 * 4 * prof_len);
+
+            if (lat == 40 && lon == -99) {
+                return {lat: lat, lon: lon, jlat: jlat, ilon: ilon, smu: 0, smv: 20,
+                        u: hodo_u, v: hodo_v, z: hodo_z};
+            }
+
+            return {lat: lat, lon: lon, jlat: jlat, ilon: ilon, smu: storm_u, smv: storm_v, 
+                    u: u, v: v, z: z};
+        });
+
+        // XXX: This assumes a PlateCarree grid. That will break when RAP data are introduced
+        const min_lat = profiles.map(prof => prof.lat).reduce((a, b) => Math.min(a, b));
+        const max_lat = profiles.map(prof => prof.lat).reduce((a, b) => Math.max(a, b));
+        const min_lon = profiles.map(prof => prof.lon).reduce((a, b) => Math.min(a, b));
+        const max_lon = profiles.map(prof => prof.lon).reduce((a, b) => Math.max(a, b));
+
+        const ni_start = profiles.map(prof => prof.ilon).reduce((a, b) => Math.min(a, b));
+        const ni = profiles.map(prof => prof.ilon).reduce((a, b) => Math.max(a, b)) + 1;
+
+        if (profiles[0].lat > profiles[profiles.length - 1].lat) {
+            // I was a dum-dum and put 0, 0 for the profile indices at the *northwest* corner of the domain for ERA5.
+            const nj_ = profiles.map(prof => prof.jlat).reduce((a, b) => Math.max(a, b)) + 1;
+            profiles.forEach(prof => {
+                prof.jlat = nj_ - prof.jlat - 1;
+            });
+        }
+
+        const nj = profiles.map(prof => prof.jlat).reduce((a, b) => Math.max(a, b)) + 1;
+        const nj_start = profiles.map(prof => prof.jlat).reduce((a, b) => Math.min(a, b));
+        const dlon = (max_lon - min_lon) / (ni - ni_start - 1);
+        const dlat = (max_lat - min_lat) / (nj - nj_start - 1);
+
+        const grid = new apgl.PlateCarreeGrid(ni, nj, min_lon - ni_start * dlon, min_lat - nj_start * dlat, max_lon, max_lat);
+        const profile_grid = new apgl.RawProfileField(grid, profiles);
+
+        return profile_grid
+    }
+
+    const raw_prof_field = unpack(ary_inflated);
+    const hodos = new apgl.Hodographs(raw_prof_field, {bgcolor: '#000000', thin_fac: 32, max_wind_speed_ring: 40});
     const hodo_layer = new apgl.PlotLayer('hodos', hodos);
 
     return {layers: [hodo_layer]};

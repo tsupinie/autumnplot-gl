@@ -177,6 +177,7 @@ class Hodographs<GridType extends AutoZoomGrid, MapType extends MapLikeType> ext
         const min_visible_zoom = this.profile_field.grid.getMinVisibleZoom(this.opts.thin_fac);
         
         const hodo_polyline = profiles.map((prof, iprof) => {
+            const iprof_zoom = prof.ilon + prof.jlat * this.profile_field.grid.ni;
             return {
                 'offsets': [...prof['u']].map((u, ipt) => {
                     if (isStormRelativeWindProfile(prof)) {
@@ -185,7 +186,7 @@ class Hodographs<GridType extends AutoZoomGrid, MapType extends MapLikeType> ext
                     return [u, prof['v'][ipt]];
                 }),
                 'vertices': [...prof['u']].map(u => [lons[iprof], lats[iprof]]),
-                'zoom': min_visible_zoom[iprof],
+                'zoom': min_visible_zoom[iprof_zoom],
                 'data': [...prof['z']],
             } as LineData;
         });
@@ -198,6 +199,8 @@ class Hodographs<GridType extends AutoZoomGrid, MapType extends MapLikeType> ext
                 return {vertices: []} as LineData;
             }
 
+            const iprof_zoom = prof.ilon + prof.jlat * this.profile_field.grid.ni;
+
             const sm_mag = Math.hypot(prof['smu'], prof['smv']);
             const sm_ang = Math.PI / 2 - Math.atan2(-prof['smv'], -prof['smu']);
             const buffer = 2
@@ -206,7 +209,7 @@ class Hodographs<GridType extends AutoZoomGrid, MapType extends MapLikeType> ext
                 'offsets': [[buffer * Math.sin(sm_ang), buffer * Math.cos(sm_ang)], 
                               [sm_mag * Math.sin(sm_ang), sm_mag * Math.cos(sm_ang)]],
                 'vertices': [[lons[iprof], lats[iprof]], [lons[iprof], lats[iprof]]],
-                'zoom': min_visible_zoom[iprof]
+                'zoom': min_visible_zoom[iprof_zoom]
             } as LineData;
         });
 
