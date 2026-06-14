@@ -210,7 +210,19 @@ async function makeGFSLayers() {
 }
 
 async function makeHodoLayers() {
-    resp = await fetch('data/hodographs.dat');
+    const hodo_u = [];
+    const hodo_v = [];
+    const hodo_z = [];
+    const hodo_nz = 40;
+    const hodo_zmax = 9;
+    for (let kdz = 0; kdz < hodo_nz; kdz++) {
+        const z = kdz / (hodo_nz - 1) * hodo_zmax;
+        hodo_u.push(-20 * Math.cos(z / hodo_zmax * Math.PI));
+        hodo_v.push(20 * (Math.sin(z / hodo_zmax * Math.PI) + 1));
+        hodo_z.push(z);
+    }
+
+    const resp = await fetch('data/hodographs.dat');
     const blob = await resp.blob();
     const ary = new Uint8Array(await blob.arrayBuffer());
     const ary_inflated = pako.inflate(ary);
@@ -231,6 +243,11 @@ async function makeHodoLayers() {
             const z = new Float32Array(data_packed.buffer, i_start + 20 + 2 * 4 * prof_len, prof_len);
 
             i_start += (20 + 3 * 4 * prof_len);
+
+            if (lat == 40 && lon == -99) {
+                return {lat: lat, lon: lon, jlat: jlat, ilon: ilon, smu: 0, smv: 20,
+                        u: hodo_u, v: hodo_v, z: hodo_z};
+            }
 
             return {lat: lat, lon: lon, jlat: jlat, ilon: ilon, smu: storm_u, smv: storm_v, 
                     u: u, v: v, z: z};
@@ -415,6 +432,11 @@ async function makeGOESLayer() {
 
 
 const views = {
+    'hodo': {
+        name: "Hodographs",
+        makeLayers: makeHodoLayers,
+        maxZoom: 7,
+    },
     'default': {
         name: "Synthetic 500mb",
         makeLayers: makeSynthetic500mbLayers,
@@ -428,11 +450,6 @@ const views = {
     'gfs': {
         name: "GFS",
         makeLayers: makeGFSLayers,
-        maxZoom: 7,
-    },
-    'hodo': {
-        name: "Hodographs",
-        makeLayers: makeHodoLayers,
         maxZoom: 7,
     },
     'obs': {
