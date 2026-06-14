@@ -432,11 +432,6 @@ async function makeGOESLayer() {
 
 
 const views = {
-    'hodo': {
-        name: "Hodographs",
-        makeLayers: makeHodoLayers,
-        maxZoom: 7,
-    },
     'default': {
         name: "Synthetic 500mb",
         makeLayers: makeSynthetic500mbLayers,
@@ -450,6 +445,11 @@ const views = {
     'gfs': {
         name: "GFS",
         makeLayers: makeGFSLayers,
+        maxZoom: 7,
+    },
+    'hodo': {
+        name: "Hodographs",
+        makeLayers: makeHodoLayers,
         maxZoom: 7,
     },
     'obs': {
