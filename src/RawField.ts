@@ -58,6 +58,7 @@ abstract class ExpressionScalarField<ArrayType extends TypedArray, GridType exte
     abstract get grid() : GridType;
     abstract get aryConstructor() : new(...args: any[]) => ArrayType;
     abstract get dtypes() : TypedArrayStr[];
+    abstract get output_dtype() : TypedArrayStr;
     abstract get missing_value() : number;
 
     private operand(other: ExpressionScalarField<ArrayType, GridType> | number, operand: '+' | '-' | '*' | '/'): ComputedScalarField<ArrayType, GridType> {
@@ -176,6 +177,10 @@ class RawScalarField<ArrayType extends TypedArray, GridType extends Grid> extend
     /** @internal */
     get dtypes() {
         return [getArrayDType(this.data)];
+    }
+
+    get output_dtype() {
+        return getArrayDType(this.data);
     }
 
     get missing_value() {
@@ -335,6 +340,18 @@ class ComputedScalarField<ArrayType extends TypedArray, GridType extends Grid> e
     /** @internal */
     get dtypes(): TypedArrayStr[] {
         return this.raw_fields.map(f => f.dtypes).flat();
+    }
+
+    /** @internal */
+    get output_dtype() : TypedArrayStr {
+        if (this.raw_fields.length == 1) return 'float32'; // Assume if there's only one field that it's multiplied by a constant float
+
+        const output_dtypes = this.raw_fields.map(f => f.output_dtype);
+        const all_ints = output_dtypes.map(t => t.includes('int')).reduce((a, b) => a && b, true);
+        const all_unsigned = output_dtypes.map(t => t.includes('uint')).reduce((a, b) => a && b, true);
+        const return_type = !all_ints ? 'float32' : all_unsigned ? 'uint32' : 'int32';
+
+        return return_type;
     }
 
     get missing_value() {
@@ -603,6 +620,16 @@ abstract class ExpressionVectorField<ArrayType extends TypedArray, GridType exte
     /** @internal */
     public get grid() {
         return this.u.grid
+    }
+
+    /** @internal */
+    get dtypes() {
+        return {u: this.u.dtypes, v: this.v.dtypes};
+    }
+
+    /** @internal */
+    get output_dtype() {
+        return {u: this.u.output_dtype, v: this.v.output_dtype};
     }
 
     /**

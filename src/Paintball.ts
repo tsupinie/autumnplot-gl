@@ -114,8 +114,9 @@ class Paintball<ArrayType extends TypedArray, GridType extends DomainBufferGrid,
         const sampler_keys = this.field.getSamplerIds();
         const sampler_expression = this.field.getExpression();
         const dtypes = this.field.dtypes;
+        const output_dtype = this.field.output_dtype;
 
-        const step1_frag_shader_src = applySamplerCodeScalar(paintball_step1_fragment_shader_src, sampler_keys, sampler_expression, dtypes);
+        const step1_frag_shader_src = applySamplerCodeScalar(paintball_step1_fragment_shader_src, sampler_keys, sampler_expression, dtypes, output_dtype);
 
         const shader_program_step1 = new WGLProgram(gl, paintball_step1_vertex_shader_src, step1_frag_shader_src);
         const shader_manager_step2 = new ShaderProgramManager(paintball_step2_vertex_shader_src, paintball_step2_fragment_shader_src, []);

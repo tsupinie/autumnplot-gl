@@ -96,8 +96,10 @@ class BillboardCollection<ArrayType extends TypedArray, GridType extends AutoZoo
 
         const sampler_keys = this.field.getSamplerIds();
         const sampler_expressions = this.field.getExpressions();
+        const data_types = this.field.dtypes;
+        const output_dtype = this.field.output_dtype;
 
-        const vertex_shader_src = applySamplerCodeVector(billboard_vertex_shader_src, sampler_keys, sampler_expressions);
+        const vertex_shader_src = applySamplerCodeVector(billboard_vertex_shader_src, sampler_keys, sampler_expressions, data_types, output_dtype);
         const shader_manager = new ShaderProgramManager(vertex_shader_src, fragment_src, shader_defines);
 
         this.gl_elems = {gl: gl, shader_manager: shader_manager, geom_vertices: geom_buffer, vertices: vertices, texcoords: texcoords, texture: texture, 

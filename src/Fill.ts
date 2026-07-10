@@ -162,8 +162,9 @@ class PlotComponentFill<ArrayType extends TypedArray, GridType extends DomainBuf
         const sampler_keys = this.field.getSamplerIds();
         const sampler_expression = this.field.getExpression();
         const data_types = this.field.dtypes;
+        const output_dtype = this.field.output_dtype;
 
-        const frag_shader_src = applySamplerCodeScalar(ColorMapGPUInterface.applyShader(contourfill_fragment_shader_src), sampler_keys, sampler_expression, data_types);
+        const frag_shader_src = applySamplerCodeScalar(ColorMapGPUInterface.applyShader(contourfill_fragment_shader_src), sampler_keys, sampler_expression, data_types, output_dtype);
 
         const shader_manger = new ShaderProgramManager(contourfill_vertex_shader_src, frag_shader_src, shader_defines);
 

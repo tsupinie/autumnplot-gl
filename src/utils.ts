@@ -102,7 +102,7 @@ function mergeShaderCode(snippet: string, main: string) {
     return snippet + "\n" + main;
 }
 
-function applySamplerCodeScalar(src: string, sampler_names: string[], sampler_expression: string, dtypes: TypedArrayStr[]) {
+function getSamplerCode(function_name: string, sampler_names: string[], sampler_expression: string, dtypes: TypedArrayStr[], return_type: TypedArrayStr) {
     // TAS: find a better place for this to live.
     const SAMPLER_DTYPES = {
         'float16': 'sampler2D', 'float32': 'sampler2D', 
@@ -116,21 +116,24 @@ function applySamplerCodeScalar(src: string, sampler_names: string[], sampler_ex
         'int16': 'int', 'int32': 'int',
     }
 
+    const shader_dtypes = dtypes.map(v => SHADER_DTYPES[v]);
+    const return_shader_type = SHADER_DTYPES[return_type];
+    const conversion = return_shader_type == 'highp float' ? 'float' : return_shader_type;
+
     const samplers = sampler_names.map((v, i) => `uniform ${SAMPLER_DTYPES[dtypes[i]]} ${v};`).join("\n");
-    const sampler_get = sampler_names.map((v, i) => `    ${SHADER_DTYPES[dtypes[i]]} ${v}_val = texture(${v}, tex_coord).r;`).join("\n");
+    const sampler_get = sampler_names.map((v, i) => `    ${shader_dtypes[i]} ${v}_val = texture(${v}, tex_coord).r;`).join("\n");
     const sampler_missing_check = sampler_names.map((v, i) => {
         const nan_check = ['float16', 'float32'].includes(dtypes[i]) ? `isnan(${v}_val) && isnan(u_missing)` : 'false';
-        return `(${nan_check} || ${v}_val == u_missing)`;
+        return `(${nan_check} || ${conversion}(${v}_val) == u_missing)`;
     }).join(' || ');
 
-    sampler_names.forEach(v => sampler_expression = sampler_expression.replaceAll(v, `${v}_val`));
+    sampler_names.forEach(v => sampler_expression = sampler_expression.replaceAll(v, `${conversion}(${v}_val)`));
 
-    // TAS: This assumes that the return type of the expression is the same as the type of the inputs. May need to revisit this later.
     const sampler_code = `
+uniform ${return_shader_type} u_missing;
 ${samplers}
-uniform ${SHADER_DTYPES[dtypes[0]]} u_missing;
 
-${SHADER_DTYPES[dtypes[0]]} get_field_value(lowp vec2 tex_coord) {
+${return_shader_type} ${function_name}(lowp vec2 tex_coord) {
 ${sampler_get}
     if (${sampler_missing_check}) {
         return u_missing;
@@ -138,44 +141,22 @@ ${sampler_get}
 
     return ${sampler_expression};
 }`;
+    return sampler_code;
+}
+
+function applySamplerCodeScalar(src: string, sampler_names: string[], sampler_expression: string, dtypes: TypedArrayStr[], return_type: TypedArrayStr) {
+    const sampler_code = getSamplerCode('get_field_value', sampler_names, sampler_expression, dtypes, return_type);
 
     return mergeShaderCode(sampler_code, src);
 }
 
-function applySamplerCodeVector(src: string, sampler_names: {u: string[], v: string[]}, sampler_expressions: {u: string, v: string}) {
-    const samplers = sampler_names.u.map(v => `uniform sampler2D ${v};`).join("\n") + "\n" +
-                     sampler_names.v.map(v => `uniform sampler2D ${v};`).join("\n");
-    const sampler_u_get = sampler_names.u.map(v => `    highp float ${v}_val = texture(${v}, tex_coord).r;`).join("\n");
-    const sampler_v_get = sampler_names.v.map(v => `    highp float ${v}_val = texture(${v}, tex_coord).r;`).join("\n");
-    const sampler_u_missing_check = sampler_names.u.map(v => `(isnan(${v}_val) && isnan(u_missing) || ${v}_val == u_missing)`).join(' || ');
-    const sampler_v_missing_check = sampler_names.v.map(v => `(isnan(${v}_val) && isnan(u_missing) || ${v}_val == u_missing)`).join(' || ');
+function applySamplerCodeVector(src: string, sampler_names: {u: string[], v: string[]}, sampler_expressions: {u: string, v: string}, 
+                                data_types: {u: TypedArrayStr[], v: TypedArrayStr[]}, return_type: {u: TypedArrayStr, v: TypedArrayStr}) {
+    const sampler_code_u = getSamplerCode('get_field_value_u', sampler_names.u, sampler_expressions.u, data_types.u, return_type.u);
+    const sampler_code_v = getSamplerCode('get_field_value_v', sampler_names.v, sampler_expressions.v, data_types.v, return_type.v);
 
-    let sampler_expression_u = sampler_expressions.u;
-    sampler_names.u.forEach(v => sampler_expression_u = sampler_expression_u.replaceAll(v, `${v}_val`));
-    let sampler_expression_v = sampler_expressions.v;
-    sampler_names.v.forEach(v => sampler_expression_v = sampler_expression_v.replaceAll(v, `${v}_val`));
-
-    const sampler_code = `
-${samplers}
-uniform highp float u_missing;
-
-highp float get_field_value_u(lowp vec2 tex_coord) {
-${sampler_u_get}
-    if (${sampler_u_missing_check}) {
-        return u_missing;
-    }
-
-    return ${sampler_expression_u};
-}
-
-highp float get_field_value_v(lowp vec2 tex_coord) {
-${sampler_v_get}
-    if (${sampler_v_missing_check}) {
-        return u_missing;
-    }
-
-    return ${sampler_expression_v};
-}`;
+    // The v sampler code will contain a duplicate u_missing, so we need to remove that
+    const sampler_code = sampler_code_u + '\n' + sampler_code_v.split('\n').slice(2).join('\n');
 
     return mergeShaderCode(sampler_code, src);
 }
