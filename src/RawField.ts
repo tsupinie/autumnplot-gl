@@ -510,14 +510,21 @@ abstract class ExpressionVectorField<ArrayType extends TypedArray, GridType exte
         return new ComputedVectorField(u, v, {relative_to: this.relative_to, missing_value: this.missing_value});
     }
 
-    private operandVector(other: ExpressionVectorField<ArrayType, GridType>, operand: '+' | '-'): ComputedVectorField<ArrayType, GridType> {
+    private operandVector(other: ExpressionVectorField<ArrayType, GridType> | [number, number], operand: '+' | '-'): ComputedVectorField<ArrayType, GridType> {
         const FUNCS = {
             '+': (a: number, b: number) => a + b,
             '-': (a: number, b: number) => a - b,
         };
 
-        const u = new ComputedScalarField([this.u, other.u], `{0} ${operand} {1}`, FUNCS[operand]);
-        const v = new ComputedScalarField([this.v, other.v], `{0} ${operand} {1}`, FUNCS[operand]);
+        if (other instanceof ExpressionVectorField) {        
+            const u = new ComputedScalarField([this.u, other.u], `{0} ${operand} {1}`, FUNCS[operand]);
+            const v = new ComputedScalarField([this.v, other.v], `{0} ${operand} {1}`, FUNCS[operand]);
+            return new ComputedVectorField(u, v, {relative_to: this.relative_to, missing_value: this.missing_value});
+        }
+
+        const [other_u, other_v] = other;
+        const u = new ComputedScalarField([this.u], `{0} ${operand} ${other_u.toFixed(100)}`, u => FUNCS[operand](u, other_u));
+        const v = new ComputedScalarField([this.v], `{0} ${operand} ${other_v.toFixed(100)}`, v => FUNCS[operand](v, other_v));
         return new ComputedVectorField(u, v, {relative_to: this.relative_to, missing_value: this.missing_value});
     }
 
@@ -544,7 +551,7 @@ abstract class ExpressionVectorField<ArrayType extends TypedArray, GridType exte
      * @param other Vector field to add.
      * @returns A `ComputedVectorField` representing the added vector field
      */
-    public add(other: ExpressionVectorField<ArrayType, GridType>): ComputedVectorField<ArrayType, GridType> {
+    public add(other: ExpressionVectorField<ArrayType, GridType> | [number, number]): ComputedVectorField<ArrayType, GridType> {
         return this.operandVector(other, '+');
     }
 
@@ -553,7 +560,7 @@ abstract class ExpressionVectorField<ArrayType extends TypedArray, GridType exte
      * @param other Vector field to subtract.
      * @returns A `ComputedVectorField` representing the subtracted vector field
      */
-    public subtract(other: ExpressionVectorField<ArrayType, GridType>): ComputedVectorField<ArrayType, GridType> {
+    public subtract(other: ExpressionVectorField<ArrayType, GridType> | [number, number]): ComputedVectorField<ArrayType, GridType> {
         return this.operandVector(other, '-');
     }
 
