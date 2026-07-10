@@ -71,7 +71,7 @@ interface PlotComponentFillGLElems<MapType extends MapLikeType> {
     texcoords: WGLBuffer;
 }
 
-class PlotComponentFill<ArrayType extends TypedArray, GridType extends DomainBufferGrid, MapType extends MapLikeType> extends PlotComponent<MapType> {
+abstract class PlotComponentFill<ArrayType extends TypedArray, GridType extends DomainBufferGrid, MapType extends MapLikeType> extends PlotComponent<MapType> {
     private field: ExpressionScalarField<ArrayType, GridType>;
     public readonly opts: Required<ContourFillOptions>;
 
@@ -80,8 +80,6 @@ class PlotComponentFill<ArrayType extends TypedArray, GridType extends DomainBuf
     private gl_elems: PlotComponentFillGLElems<MapType> | null;
     private fill_texture: Map<string, WGLTexture> | null;
     private mask_texture: WGLTexture | null;
-    protected image_mag_filter: number | null;
-    protected cmap_mag_filter: number | null;
 
     constructor(field: ExpressionScalarField<ArrayType, GridType>, opts: ContourFillOptions) {
         super();
@@ -95,23 +93,21 @@ class PlotComponentFill<ArrayType extends TypedArray, GridType extends DomainBuf
         this.gl_elems = null;
         this.fill_texture = null;
         this.mask_texture = null;
-        this.image_mag_filter = null;
-        this.cmap_mag_filter = null;
     }
+
+    protected abstract getImageMagFilter(gl: WebGLAnyRenderingContext): number;
+    protected abstract getCmapMagFilter(gl: WebGLAnyRenderingContext): number;
 
     public async updateField(field: ExpressionScalarField<ArrayType, GridType>, mask?: Uint8Array) {
         this.field = field;
 
-        if (this.image_mag_filter === null || this.cmap_mag_filter === null) {
-            throw `Implement magnification filters in a subclass`;
-        }
 
         if (this.gl_elems === null) return;
 
         const gl = this.gl_elems.gl;
         const map = this.gl_elems.map;
     
-        this.fill_texture = this.field.updateTexImageData(gl, this.image_mag_filter, this.fill_texture);
+        this.fill_texture = this.field.updateTexImageData(gl, this.getImageMagFilter(gl), this.fill_texture);
 
         if (mask !== undefined) {
             if (this.opts.cmap_mask === null) {
@@ -142,21 +138,13 @@ class PlotComponentFill<ArrayType extends TypedArray, GridType extends DomainBuf
         const {vertices: vertices, texcoords: texcoords} = await this.field.grid.getDomainBuffers(gl);
 
         this.cmap_gpu.forEach(cmg => {
-            if (this.image_mag_filter === null || this.cmap_mag_filter === null) {
-                throw `Implement magnification filters in a subclass`;
-            }
-
-            cmg.setupShaderVariables(gl, this.cmap_mag_filter);
+            cmg.setupShaderVariables(gl, this.getCmapMagFilter(gl));
         });
 
         const shader_defines = [];
 
         if (this.opts.cmap_mask !== null) {
             shader_defines.push('MASK');
-        }
-
-        if (this.image_mag_filter === null || this.cmap_mag_filter === null) {
-            throw `Implement magnification filters in a subclass`;
         }
 
         const sampler_keys = this.field.getSamplerIds();
@@ -254,13 +242,19 @@ class Raster<ArrayType extends TypedArray, GridType extends DomainBufferGrid, Ma
         await super.updateField(field, mask);
     }
 
+    protected getImageMagFilter(gl: WebGLAnyRenderingContext) {
+        return gl.NEAREST;
+    }
+
+    protected getCmapMagFilter(gl: WebGLAnyRenderingContext) {
+        return gl.LINEAR;
+    }
+
     /**
      * @internal
      * Add the raster plot to a map
      */
     public async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
-        this.image_mag_filter = gl.NEAREST;
-        this.cmap_mag_filter = gl.LINEAR;
         await super.onAdd(map, gl);
     }
 
@@ -299,6 +293,14 @@ class ContourFill<ArrayType extends TypedArray, GridType extends DomainBufferGri
         super(field, opts);
     }
 
+    protected getImageMagFilter(gl: WebGLAnyRenderingContext) {
+        return gl.LINEAR;
+    }
+
+    protected getCmapMagFilter(gl: WebGLAnyRenderingContext) {
+        return gl.NEAREST;
+    }
+
     /**
      * Update the data displayed as filled contours
      * @param field - The new field to display as filled contours
@@ -312,8 +314,6 @@ class ContourFill<ArrayType extends TypedArray, GridType extends DomainBufferGri
      * Add the filled contours to a map
      */
     public async onAdd(map: MapType, gl: WebGLAnyRenderingContext) {
-        this.image_mag_filter = gl.LINEAR;
-        this.cmap_mag_filter = gl.NEAREST;
         await super.onAdd(map, gl);
     }
 
