@@ -107,7 +107,7 @@ abstract class PlotComponentFill<ArrayType extends TypedArray, GridType extends 
         const gl = this.gl_elems.gl;
         const map = this.gl_elems.map;
     
-        this.fill_texture = this.field.updateTexImageData(gl, this.getImageMagFilter(gl), this.fill_texture);
+        this.fill_texture = this.field.updateTexImageData(gl, gl.NEAREST, this.fill_texture);
 
         if (mask !== undefined) {
             if (this.opts.cmap_mask === null) {
@@ -175,6 +175,7 @@ abstract class PlotComponentFill<ArrayType extends TypedArray, GridType extends 
         program.use(
             {'a_pos': gl_elems.vertices, 'a_tex_coord': gl_elems.texcoords},
             {'u_opacity': this.opts.opacity, 'u_missing': this.field.missing_value, 'u_pixel_size': [1 / this.field.grid.ni, 1 / this.field.grid.nj],
+             'u_interpolate': this.getImageMagFilter(gl) == gl.LINEAR ? 1 : 0,
              ...this.gl_elems.shader_manager.getShaderUniforms(render_data)},
             samplers
         );

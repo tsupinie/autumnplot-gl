@@ -31,6 +31,7 @@ function makeSynthetic500mbLayers() {
 
     function makeWinds(key) {
         let u = [], v = [];
+        let min_u = Infinity, max_u = -Infinity, min_v = Infinity, max_v = -Infinity;
         const missing = -9999.;
         for (i = 0; i < nx; i++) {
             for (j = 0; j < ny; j++) {
@@ -53,11 +54,24 @@ function makeSynthetic500mbLayers() {
         
                     u[idx] = u_earth * mag / Math.hypot(u_earth, v_earth);
                     v[idx] = v_earth * mag / Math.hypot(u_earth, v_earth);
+
+                    min_u = Math.min(min_u, u[idx]);
+                    max_u = Math.max(max_u, u[idx]);
+                    min_v = Math.min(min_v, v[idx]);
+                    max_v = Math.max(max_v, v[idx]);
                 }
             }
         }
 
-        return new apgl.RawVectorField(grid, new arrayType(u), new arrayType(v), {relative_to: 'grid', missing_value: missing});
+        const max_val = Math.max(max_u, max_v);
+        const min_val = Math.min(min_u, min_v);
+
+        const u_scaled = u.map(v_ => Math.floor(v_ == missing ? 255 : 254 * (v_ - min_val) / (max_val - min_val)));
+        const v_scaled = v.map(v_ => Math.floor(v_ == missing ? 255 : 254 * (v_ - min_val) / (max_val - min_val)));
+
+        return new apgl.RawVectorField(grid, new Uint8Array(u_scaled), new Uint8Array(v_scaled), {relative_to: 'grid', missing_value: 255})
+                       .multiply((max_val - min_val) / 254)
+                       .add([min_val, min_val]);
     }
 
     const colormap = apgl.colormaps.pw_speed500mb;
