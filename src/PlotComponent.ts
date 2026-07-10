@@ -94,7 +94,7 @@ function getGLFormatTypeAlignment(gl: WebGLAnyRenderingContext, array_dtype: Typ
         row_alignment = 4;
     }
     else {
-        format = is_webgl2 ? gl.R8 : gl.LUMINANCE;
+        format = is_webgl2 ? gl.R8UI : gl.LUMINANCE;
         type = gl.UNSIGNED_BYTE;
 
         row_alignment = 1;

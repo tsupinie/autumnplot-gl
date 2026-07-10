@@ -5,7 +5,7 @@ in highp vec2 v_tex_coord;
 uniform lowp vec2 u_pixel_size;
 
 #ifdef MASK
-uniform sampler2D u_mask_sampler;
+uniform lowp usampler2D u_mask_sampler;
 #endif
 
 uniform highp float u_opacity;
@@ -29,8 +29,8 @@ void main() {
     int draw_mask = 1;
 
 #ifdef MASK
-    highp float mask_val = texture(u_mask_sampler, v_tex_coord).r;
-    draw_mask = int(mask_val * 255.0) == u_mask_val ? 1 : 0;
+    uint mask_val = texture(u_mask_sampler, v_tex_coord).r;
+    draw_mask = mask_val == uint(u_mask_val) ? 1 : 0;
 #endif
 
     if (isnan(u_missing) && (isnan(fill_val_sw) || isnan(fill_val_se) || isnan(fill_val_ne) || isnan(fill_val_nw)) || 

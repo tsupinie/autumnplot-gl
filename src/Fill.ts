@@ -122,7 +122,7 @@ class PlotComponentFill<ArrayType extends TypedArray, GridType extends DomainBuf
             const {format, type, row_alignment} = getGLFormatTypeAlignment(gl, 'uint8');
             const mask_image = {'format': format, 'type': type,
                 'width': this.field.grid.ni, 'height': this.field.grid.nj, 'image': mask,
-                'mag_filter': gl.NEAREST, 'row_alignment': row_alignment,
+                'mag_filter': gl.NEAREST, 'min_filter': gl.NEAREST, 'row_alignment': row_alignment,
             };
             
             if (this.mask_texture === null) {
