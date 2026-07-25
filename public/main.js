@@ -360,7 +360,19 @@ async function makeObsLayers() {
                                                                ticks: [-60, -40, -20, 0, 20, 40, 60, 80, 100, 120],
                                                                orientation: 'horizontal', tick_direction: 'bottom'});
 
-    return {layers: [station_plot_layer], colorbar: [temp_cbar]};
+    return {layers: [station_plot_layer], colorbar: [temp_cbar],
+        sampler: (lon, lat) => {
+            const obs_val = obs_field.sampleField(lon, lat);
+
+            return {
+                tmpf: obs_val.tmpf.toFixed(1),
+                dwpf: obs_val.dwpf.toFixed(1),
+                wind: `${obs_val.wind[1].toFixed(0)}/${obs_val.wind[0].toFixed(0)}`,
+                preswx: obs_val.preswx,
+                skyc: obs_val.skyc
+            }
+        }
+    };
 }
 
 async function makeMRMSLayer() {
