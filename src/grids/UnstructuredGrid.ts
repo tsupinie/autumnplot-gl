@@ -1,7 +1,7 @@
 import { kdTree } from "kd-tree-javascript";
 import { Cache, argMin, getArrayConstructor } from "../utils";
 import { autoZoomGridMixin } from "./AutoZoom";
-import { Grid, GridCoords } from "./Grid";
+import { Grid, GridCoords, NumberIndexable } from "./Grid";
 import { LngLat } from "../Map";
 import { TypedArray } from "../AutumnTypes";
 
@@ -123,7 +123,7 @@ class UnstructuredGrid extends autoZoomGridMixin(Grid) {
         return new_data;
     }
 
-    public sampleNearestGridPoint(lon: number, lat: number, ary: TypedArray): {sample: number, sample_lon: number, sample_lat: number} {
+    public sampleNearestGridPoint<T>(lon: number, lat: number, ary: NumberIndexable<T>): {sample: T, sample_lon: number, sample_lat: number} {
         // TAS: This is gonna be slow. Need to think about using the kdTree here.
         const idx = argMin(this.coords.map(c => (c.lon - lon) * (c.lon - lon) + (c.lat - lat) * (c.lat - lat)));
         return {sample: ary[idx], sample_lon: this.coords[idx].lon, sample_lat: this.coords[idx].lat};

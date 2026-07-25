@@ -298,7 +298,7 @@ class RawScalarField<ArrayType extends TypedArray, GridType extends Grid> extend
      * @returns The value of the nearest grid point along with the grid point latitude and longitude, or NaNs if the point is outside the grid.
      */
     public sampleFieldWithCoord(lon: number, lat: number) {
-        return this.grid.sampleNearestGridPoint(lon, lat, this.data);
+        return this.grid.sampleNearestGridPoint(lon, lat, this.data, NaN);
     }
 
     /**
@@ -852,6 +852,39 @@ class RawObsField<GridType extends AutoZoomGrid, ObsFieldName extends string> {
         });
 
         return new RawVectorField(this.grid, this.grid.listToArray(u_list), this.grid.listToArray(v_list), {relative_to: 'earth'});
+    }
+
+    /**
+     * Sample this field at a given latitude and longitude.
+     * @param lon - Longitude of the sample in degrees east
+     * @param lat - Latitude of the sample in degrees north
+     * @returns The value of the nearest grid point along with the grid point latitude and longitude.
+     */
+    public sampleFieldWithCoord(lon: number, lat: number) {
+        const missing_val: Record<string, null | [null, null]> = {};
+
+        for (let key in this.data[0]) {
+            const d = this.data[0][key];
+            if (typeof d == 'number' || typeof d == 'string' || d === null) {
+                missing_val[key] = null;
+            }
+            else {
+                missing_val[key] = [null, null];
+            }
+        }
+
+        const field_samples = this.grid.sampleNearestGridPoint(lon, lat, this.data, missing_val as ObsRawData<ObsFieldName>);
+        return field_samples;
+    }
+
+    /**
+     * Sample this field at a given latitude and longitude.
+     * @param lon - Longitude of the sample in degrees east
+     * @param lat - Latitude of the sample in degrees north
+     * @returns The value of the nearest grid point.
+     */
+    public sampleField(lon: number, lat: number) {
+        return this.sampleFieldWithCoord(lon, lat).sample;
     }
 }
 

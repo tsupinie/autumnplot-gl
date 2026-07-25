@@ -1,7 +1,7 @@
 import { WGLBuffer } from "autumn-wgl";
 import { TypedArray, WebGLAnyRenderingContext } from "../AutumnTypes";
 import { argMin, getArrayConstructor, getMinZoom } from "../utils";
-import { EarthCoords, Grid, GridType } from "./Grid";
+import { EarthCoords, Grid, GridType, NumberIndexable } from "./Grid";
 import { layer_worker } from "../PlotComponent";
 import { domainBufferMixin } from "./DomainBuffer";
 import { GridElement } from "./GridCoordinates";
@@ -108,7 +108,7 @@ abstract class StructuredGrid extends domainBufferMixin(Grid) {
         return makeCartesianDomainBuffers(gl, this, simplify_ni, simplify_nj);
     }
 
-    public sampleNearestGridPoint(lon: number, lat: number, ary: TypedArray): {sample: number, sample_lon: number, sample_lat: number} {
+    public sampleNearestGridPoint<T>(lon: number, lat: number, ary: NumberIndexable<T>, missing_val: T): {sample: T, sample_lon: number, sample_lat: number} {
         const [x, y] = this.transform(lon, lat);
         const {x: xs, y: ys} = this.getGridCoords();
 
@@ -123,7 +123,7 @@ abstract class StructuredGrid extends domainBufferMixin(Grid) {
         if (dy < 0) [ll_y, ur_y] = [ur_y, ll_y];
 
         if (x < ll_x - 0.5 * dx || x > ur_x + 0.5 * dx || y < ll_y - 0.5 * dy || y > ur_y + 0.5 * dy) {
-            return {sample: NaN, sample_lon: NaN, sample_lat: NaN};
+            return {sample: missing_val, sample_lon: NaN, sample_lat: NaN};
         }
 
         const i_min = argMin(xs.map(xv => Math.abs(xv - x)));

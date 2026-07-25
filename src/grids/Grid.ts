@@ -16,6 +16,8 @@ type GridType = 'latlon' | 'latlonrot' | 'lcc' | 'unstructured' | 'radar' | 'geo
 const WGS84_SEMIMAJOR = 6378137.0;
 const WGS84_SEMIMINOR = 6356752.314245;
 
+type NumberIndexable<T> = {[index: number]: T};
+
 /** The base class for grid types */
 abstract class Grid {
     public readonly type: GridType;
@@ -33,7 +35,7 @@ abstract class Grid {
     public abstract getEarthCoords(): EarthCoords;
     public abstract getGridCoords(): GridCoords;
     public abstract transform(x: number, y: number, opts?: {inverse?: boolean}): [number, number];
-    public abstract sampleNearestGridPoint(lon: number, lat: number, ary: TypedArray): {sample: number, sample_lon: number, sample_lat: number};
+    public abstract sampleNearestGridPoint<T>(lon: number, lat: number, ary: NumberIndexable<T>, missing_val: T): {sample: T, sample_lon: number, sample_lat: number};
 
     public abstract getThinnedGrid(thin_fac: number, map_max_zoom: number): this;
     public abstract thinDataArray<ArrayType extends TypedArray>(original_grid: Grid, ary: ArrayType): ArrayType;
@@ -57,4 +59,4 @@ abstract class Grid {
 type AbstractConstructor<T> = abstract new(...args: any[]) => T;
 
 export {Grid, WGS84_SEMIMAJOR, WGS84_SEMIMINOR};
-export type {AbstractConstructor, EarthCoords, GridCoords, GridType};
+export type {AbstractConstructor, EarthCoords, GridCoords, GridType, NumberIndexable};
