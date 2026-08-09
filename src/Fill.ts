@@ -5,7 +5,7 @@ import { WGLBuffer, WGLTexture } from 'autumn-wgl';
 import { ExpressionScalarField } from './RawField';
 import { MapLikeType } from './Map';
 import { RenderMethodArg, TypedArray, WebGLAnyRenderingContext, getRendererData } from './AutumnTypes';
-import { applySamplerCodeScalar, normalizeOptions } from './utils';
+import { normalizeOptions } from './utils';
 import { ShaderProgramManager } from './ShaderManager';
 import { DomainBufferGrid } from './grids/DomainBuffer';
 
@@ -147,13 +147,7 @@ abstract class PlotComponentFill<ArrayType extends TypedArray, GridType extends 
             shader_defines.push('MASK');
         }
 
-        const sampler_keys = this.field.getSamplerIds();
-        const sampler_expression = this.field.getExpression();
-        const data_types = this.field.dtypes;
-        const output_dtype = this.field.output_dtype;
-
-        const frag_shader_src = applySamplerCodeScalar(ColorMapGPUInterface.applyShader(contourfill_fragment_shader_src), sampler_keys, sampler_expression, data_types, output_dtype);
-
+        const frag_shader_src = this.field.applySamplerCode(ColorMapGPUInterface.applyShader(contourfill_fragment_shader_src));
         const shader_manger = new ShaderProgramManager(contourfill_vertex_shader_src, frag_shader_src, shader_defines);
 
         this.gl_elems = {

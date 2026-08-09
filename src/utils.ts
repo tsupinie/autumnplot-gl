@@ -102,65 +102,6 @@ function mergeShaderCode(snippet: string, main: string) {
     return snippet + "\n" + main;
 }
 
-function getSamplerCode(function_name: string, sampler_names: string[], sampler_expression: string, dtypes: TypedArrayStr[], return_type: TypedArrayStr) {
-    // TAS: find a better place for this to live.
-    const SAMPLER_DTYPES = {
-        'float16': 'sampler2D', 'float32': 'sampler2D', 
-        'uint8': 'lowp usampler2D', 'uint16': 'mediump usampler2D', 'uint32': 'highp usampler2D',
-        'int16': 'mediump isampler2D', 'int32': 'highp isampler2D',
-    };
-
-    const SHADER_DTYPES = {
-        'float16': 'highp float', 'float32': 'highp float',
-        'uint8': 'uint', 'uint16': 'uint', 'uint32': 'uint',
-        'int16': 'int', 'int32': 'int',
-    }
-
-    const shader_dtypes = dtypes.map(v => SHADER_DTYPES[v]);
-    const return_shader_type = SHADER_DTYPES[return_type];
-    const conversion = return_shader_type == 'highp float' ? 'float' : return_shader_type;
-
-    const samplers = sampler_names.map((v, i) => `uniform ${SAMPLER_DTYPES[dtypes[i]]} ${v};`).join("\n");
-    const sampler_get = sampler_names.map((v, i) => `    ${shader_dtypes[i]} ${v}_val = texture(${v}, tex_coord).r;`).join("\n");
-    const sampler_missing_check = sampler_names.map((v, i) => {
-        const nan_check = ['float16', 'float32'].includes(dtypes[i]) ? `isnan(${v}_val) && isnan(u_missing)` : 'false';
-        return `(${nan_check} || ${conversion}(${v}_val) == u_missing)`;
-    }).join(' || ');
-
-    sampler_names.forEach(v => sampler_expression = sampler_expression.replaceAll(v, `${conversion}(${v}_val)`));
-
-    const sampler_code = `
-uniform ${return_shader_type} u_missing;
-${samplers}
-
-${return_shader_type} ${function_name}(lowp vec2 tex_coord) {
-${sampler_get}
-    if (${sampler_missing_check}) {
-        return u_missing;
-    }
-
-    return ${sampler_expression};
-}`;
-    return sampler_code;
-}
-
-function applySamplerCodeScalar(src: string, sampler_names: string[], sampler_expression: string, dtypes: TypedArrayStr[], return_type: TypedArrayStr) {
-    const sampler_code = getSamplerCode('get_field_value', sampler_names, sampler_expression, dtypes, return_type);
-
-    return mergeShaderCode(sampler_code, src);
-}
-
-function applySamplerCodeVector(src: string, sampler_names: {u: string[], v: string[]}, sampler_expressions: {u: string, v: string}, 
-                                data_types: {u: TypedArrayStr[], v: TypedArrayStr[]}, return_type: {u: TypedArrayStr, v: TypedArrayStr}) {
-    const sampler_code_u = getSamplerCode('get_field_value_u', sampler_names.u, sampler_expressions.u, data_types.u, return_type.u);
-    const sampler_code_v = getSamplerCode('get_field_value_v', sampler_names.v, sampler_expressions.v, data_types.v, return_type.v);
-
-    // The v sampler code will contain a duplicate u_missing, so we need to remove that
-    const sampler_code = sampler_code_u + '\n' + sampler_code_v.split('\n').slice(2).join('\n');
-
-    return mergeShaderCode(sampler_code, src);
-}
-
 function argMin<T>(ary: T[] | TypedArray) {
     if (ary.length === 0) {
         return -1;
@@ -179,4 +120,4 @@ function argMin<T>(ary: T[] | TypedArray) {
     return minIndex;
 }
 
-export {zip, getMinZoom, getOS, Cache, normalizeOptions, getArrayConstructor, mergeShaderCode, applySamplerCodeScalar, applySamplerCodeVector, argMin};
+export {zip, getMinZoom, getOS, Cache, normalizeOptions, getArrayConstructor, mergeShaderCode, argMin};
