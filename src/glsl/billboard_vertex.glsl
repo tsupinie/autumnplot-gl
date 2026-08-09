@@ -78,7 +78,7 @@ void main() {
     lowp float ang = (abs(u) < 1e-6 && abs(v) < 1e-6) ? 0. : atan(v, u) - 3.141592654 / 2.0;
     highp float mag = length(vec2(u, v));
 
-    if (isnan(u_missing) && (isnan(u) || isnan(v)) || u == u_missing || v == u_missing) {
+    if ((isnan(u_missing_u) && isnan(u) || u == u_missing_u) || (isnan(u_missing_v) && isnan(v) || v == u_missing_v)) {
         min_zoom = 99.;
     }
 

@@ -118,12 +118,14 @@ class BillboardCollection<ArrayType extends TypedArray, GridType extends AutoZoo
             ...Object.fromEntries([...this.wind_textures.v.entries()])
         };
 
+        const missing = this.field.component_missing_values;
+
         program.use(
             {'a_geom': gl_elems.geom_vertices, 'a_pos': gl_elems.vertices, 'a_tex_coord': gl_elems.texcoords},
             {'u_bb_size': bb_size, 'u_bb_width': bb_width, 'u_bb_height': bb_height,
              'u_bb_mag_bin_size': this.spec.BB_MAG_BIN_SIZE, 'u_bb_mag_wrap': this.spec.BB_MAG_WRAP, 'u_offset': 0,
              'u_map_aspect': map_height / map_width, 'u_zoom': map_zoom, 'u_rotate_with_map': this.rotate_with_map ? 1 : 0,
-             'u_missing': this.field.missing_value,
+             'u_missing_u': missing.u, 'u_missing_v': missing.v,
               ...this.gl_elems.shader_manager.getShaderUniforms(render_data)},
             samplers
         );

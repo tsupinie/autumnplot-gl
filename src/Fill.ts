@@ -168,7 +168,7 @@ abstract class PlotComponentFill<ArrayType extends TypedArray, GridType extends 
 
         program.use(
             {'a_pos': gl_elems.vertices, 'a_tex_coord': gl_elems.texcoords},
-            {'u_opacity': this.opts.opacity, 'u_missing': this.field.missing_value, 'u_pixel_size': [1 / this.field.grid.ni, 1 / this.field.grid.nj],
+            {'u_opacity': this.opts.opacity, 'u_missing': this.field.computed_missing_value, 'u_pixel_size': [1 / this.field.grid.ni, 1 / this.field.grid.nj],
              'u_interpolate': this.getImageMagFilter(gl) == gl.LINEAR ? 1 : 0,
              ...this.gl_elems.shader_manager.getShaderUniforms(render_data)},
             samplers

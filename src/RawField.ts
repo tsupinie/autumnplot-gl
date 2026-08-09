@@ -8,8 +8,8 @@ import { WGLTexture, WGLTextureSpec } from "autumn-wgl";
 import { getContourWorkerPool, getGLFormatTypeAlignment } from "./PlotComponent";
 import { AutoZoomGrid } from "./grids/AutoZoom";
 
-function getSamplerCode(function_name: string, sampler_names: string[], sampler_expression: string, dtypes: TypedArrayStr[], return_type: TypedArrayStr) {
-    // TAS: find a better place for this to live.
+function getSamplerCode(function_name: string, sampler_names: string[], missing_values: number[], sampler_expression: string, 
+                        dtypes: TypedArrayStr[], return_type: TypedArrayStr) {
     const SAMPLER_DTYPES = {
         'float16': 'sampler2D', 'float32': 'sampler2D', 
         'uint8': 'lowp usampler2D', 'uint16': 'mediump usampler2D', 'uint32': 'highp usampler2D',
@@ -29,8 +29,11 @@ function getSamplerCode(function_name: string, sampler_names: string[], sampler_
     const samplers = sampler_names.map((v, i) => `uniform ${SAMPLER_DTYPES[dtypes[i]]} ${v};`).join("\n");
     const sampler_get = sampler_names.map((v, i) => `    ${shader_dtypes[i]} ${v}_val = texture(${v}, tex_coord).r;`).join("\n");
     const sampler_missing_check = sampler_names.map((v, i) => {
-        const nan_check = ['float16', 'float32'].includes(dtypes[i]) ? `isnan(${v}_val) && isnan(u_missing)` : 'false';
-        return `(${nan_check} || ${conversion}(${v}_val) == u_missing)`;
+        const miss_val = missing_values[i];
+        if (isNaN(miss_val)) return `isnan(${v}_val)`
+        const n_decimal = ['float16', 'float32'].includes(dtypes[i]) ? 100 : 0;
+        const suffix = dtypes[i].includes('u') ? 'u' : ''
+        return `${v}_val == ${miss_val.toFixed(n_decimal)}${suffix}`;
     }).join(' || ');
 
     sampler_names.forEach(v => sampler_expression = sampler_expression.replaceAll(v, `${conversion}(${v}_val)`));
@@ -101,7 +104,8 @@ abstract class ExpressionScalarField<ArrayType extends TypedArray, GridType exte
     abstract get aryConstructor() : new(...args: any[]) => ArrayType;
     abstract get dtypes() : TypedArrayStr[];
     abstract get output_dtype() : TypedArrayStr;
-    abstract get missing_value() : number;
+    abstract get missing_values() : number[];
+    abstract get computed_missing_value() : number;
 
     private operand(other: ExpressionScalarField<ArrayType, GridType> | number, operand: '+' | '-' | '*' | '/'): ComputedScalarField<ArrayType, GridType> {
         const FUNCS = {
@@ -164,7 +168,8 @@ abstract class ExpressionScalarField<ArrayType extends TypedArray, GridType exte
     public abstract sampleFieldWithCoord(lon: number, lat: number) : {sample: number, sample_lon: number, sample_lat: number};
 
     public applySamplerCode(src: string) : string {
-        const sampler_code = getSamplerCode('get_field_value', this.getSamplerIds(), this.getExpression(), this.dtypes, this.output_dtype);
+        const sampler_code = getSamplerCode('get_field_value', this.getSamplerIds(), this.missing_values, this.getExpression(),
+                                            this.dtypes, this.output_dtype);
         return mergeShaderCode(sampler_code, src);
     }
 }
@@ -188,6 +193,9 @@ class RawScalarField<ArrayType extends TypedArray, GridType extends Grid> extend
         this.grid = grid;
         this.data = data;
         this.opts = normalizeOptions(opts, field_opt_defaults);
+
+        // This is hacky, and you should fix the normalizeOptions machinery to incorporate this.
+        if (getArrayDType(this.data).includes('int') && opts?.missing_value === undefined) this.opts.missing_value = 0;
 
         if (grid.ni * grid.nj != data.length) {
             throw `Data size (${data.length}) doesn't match the grid dimensions (${grid.ni} x ${grid.nj}; expected ${grid.ni * grid.nj} points)`;
@@ -230,7 +238,11 @@ class RawScalarField<ArrayType extends TypedArray, GridType extends Grid> extend
         return getArrayDType(this.data);
     }
 
-    get missing_value() {
+    get missing_values() {
+        return [this.opts.missing_value];
+    }
+
+    get computed_missing_value() {
         return this.opts.missing_value;
     }
 
@@ -401,8 +413,12 @@ class ComputedScalarField<ArrayType extends TypedArray, GridType extends Grid> e
         return return_type;
     }
 
-    get missing_value() {
-        return this.raw_fields[0].missing_value;
+    get missing_values() {
+        return this.raw_fields.map(f => f.missing_values).flat();
+    }
+
+    get computed_missing_value() {
+        return this.raw_fields[0].computed_missing_value;
     }
 
     /** @internal */
@@ -464,11 +480,13 @@ class ComputedScalarField<ArrayType extends TypedArray, GridType extends Grid> e
      * @returns The value of the nearest grid point along with the grid point latitude and longitude, or NaNs if the point is outside the grid.
      */
     public sampleFieldWithCoord(lon: number, lat: number) {
+        const missing_check = (sample: number, missing: number) => isNaN(sample) && isNaN(missing) || sample == missing;
+
         const field_samples = this.raw_fields.map(f => f.sampleFieldWithCoord(lon, lat));
-        const any_missing = field_samples.map(s => isNaN(s.sample) && isNaN(this.missing_value) || s.sample == this.missing_value).reduce((a, b) => a || b, false);
+        const any_missing = field_samples.map((s, i) => missing_check(s.sample, this.raw_fields[i].computed_missing_value)).reduce((a, b) => a || b, false);
 
         if (any_missing) 
-            return {sample: this.missing_value, sample_lon: field_samples[0].sample_lon, sample_lat: field_samples[0].sample_lat};
+            return {sample: this.computed_missing_value, sample_lon: field_samples[0].sample_lon, sample_lat: field_samples[0].sample_lat};
 
         return {sample: this.cpu_func(...field_samples.map(s => s.sample)), sample_lon: field_samples[0].sample_lon, sample_lat: field_samples[0].sample_lat};
     }
@@ -494,13 +512,16 @@ class ComputedScalarField<ArrayType extends TypedArray, GridType extends Grid> e
 
     /** @internal */
     public *iterateCPU(): Generator<number, void, unknown> {
-        const missing = this.missing_value;
+        const missing_check = (sample: number, missing: number) => isNaN(sample) && isNaN(missing) || sample == missing;
+
+        const computed_missing = this.computed_missing_value;
+        const raw_missing = this.raw_fields.map(f => f.computed_missing_value)
         function* mapGenerator<T extends any[], U>(gen: Generator<T>, func: (...arg: T) => U) {
             for (const elem of gen) {
-                const any_missing = elem.map(s => isNaN(s.sample) && isNaN(missing) || s.sample == missing).reduce((a, b) => a || b, false);
+                const any_missing = elem.map((s, i) => missing_check(s, raw_missing[i])).reduce((a, b) => a || b, false);
                 
                 if (any_missing) {
-                    yield missing;
+                    yield computed_missing;
                 }
                 else {
                     yield func(...elem);
@@ -679,6 +700,10 @@ abstract class ExpressionVectorField<ArrayType extends TypedArray, GridType exte
         return {u: this.u.output_dtype, v: this.v.output_dtype};
     }
 
+    get component_missing_values() {
+        return {u: this.u.missing_values, v: this.v.missing_values};
+    }
+
     /**
      * Sample this field at a given latitude and longitude.
      * @param lon - Longitude of the sample in degrees east
@@ -735,12 +760,13 @@ abstract class ExpressionVectorField<ArrayType extends TypedArray, GridType exte
         const sampler_expressions = this.getExpressions();
         const data_types = this.dtypes;
         const return_type = this.output_dtype;
+        const missing_values = this.component_missing_values;
 
-        const sampler_code_u = getSamplerCode('get_field_value_u', sampler_names.u, sampler_expressions.u, data_types.u, return_type.u);
-        const sampler_code_v = getSamplerCode('get_field_value_v', sampler_names.v, sampler_expressions.v, data_types.v, return_type.v);
+        const sampler_code_u = getSamplerCode('get_field_value_u', sampler_names.u, missing_values.u, sampler_expressions.u, data_types.u, return_type.u);
+        const sampler_code_v = getSamplerCode('get_field_value_v', sampler_names.v, missing_values.v, sampler_expressions.v, data_types.v, return_type.v);
 
         // The v sampler code will contain a duplicate u_missing, so we need to remove that
-        const sampler_code = sampler_code_u + '\n' + sampler_code_v.split('\n').slice(2).join('\n');
+        const sampler_code = sampler_code_u.replaceAll('u_missing', 'u_missing_u') + '\n' + sampler_code_v.replaceAll('u_missing', 'u_missing_v');
 
         return mergeShaderCode(sampler_code, src);
     }
