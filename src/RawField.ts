@@ -361,7 +361,7 @@ class RawScalarField<ArrayType extends TypedArray, GridType extends Grid> extend
      * @returns The value of the nearest grid point along with the grid point latitude and longitude, or NaNs if the point is outside the grid.
      */
     public sampleFieldWithCoord(lon: number, lat: number) {
-        return this.grid.sampleNearestGridPoint(lon, lat, this.data, NaN);
+        return this.grid.sampleNearestGridPoint(lon, lat, this.data, this.computed_missing_value);
     }
 
     /**
