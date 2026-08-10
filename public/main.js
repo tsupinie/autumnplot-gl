@@ -70,8 +70,7 @@ function makeSynthetic500mbLayers() {
         const v_scaled = v.map(v_ => Math.floor(v_ == missing ? 255 : 254 * (v_ - min_val) / (max_val - min_val)));
 
         return new apgl.RawVectorField(grid, new Uint8Array(u_scaled), new Uint8Array(v_scaled), {relative_to: 'grid', missing_value: 255})
-                       .multiply((max_val - min_val) / 254)
-                       .add([min_val, min_val]);
+                       .applyScaleAndOffset((max_val - min_val) / 254, [min_val, min_val], -999.);
     }
 
     const colormap = apgl.colormaps.pw_speed500mb;

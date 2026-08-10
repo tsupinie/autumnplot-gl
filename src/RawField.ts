@@ -116,10 +116,10 @@ abstract class ExpressionScalarField<ArrayType extends TypedArray, GridType exte
         };
 
         if (typeof other === 'number') {
-            return new ComputedScalarField([this], `{0} ${operand} ${other.toFixed(100)}`, v => FUNCS[operand](v, other));
+            return new ComputedScalarField([this], `{0} ${operand} ${other.toFixed(100)}`, v => FUNCS[operand](v, other), this.computed_missing_value);
         }
 
-        return new ComputedScalarField([this, other], `{0} ${operand} {1}`, FUNCS[operand]);
+        return new ComputedScalarField([this, other], `{0} ${operand} {1}`, FUNCS[operand], this.computed_missing_value);
     }
 
     /**
@@ -160,6 +160,10 @@ abstract class ExpressionScalarField<ArrayType extends TypedArray, GridType exte
      */
     public subtract(other: ExpressionScalarField<ArrayType, GridType> | number): ComputedScalarField<ArrayType, GridType> {
         return this.operand(other, '-');
+    }
+
+    public applyScaleAndOffset(scale: number, offset: number, missing_value?: number) {
+        return this.multiply(scale).add(offset).withComputedMissingValue(missing_value === undefined ? NaN : missing_value);
     }
 
     public abstract getThinnedField(thin_fac: number, map_max_zoom: number) : this;
@@ -324,7 +328,7 @@ class RawScalarField<ArrayType extends TypedArray, GridType extends Grid> extend
      * wind_speed_field = RawScalarField.aggreateFields(Math.hypot, u_field, v_field);
      */
     public static aggregateFields<ArrayType extends TypedArray, GridType extends Grid>(func: (...args: number[]) => number, ...args: RawScalarField<ArrayType, GridType>[]) {
-        return (new ComputedScalarField(args, '', func)).renderCPU();
+        return (new ComputedScalarField(args, '', func, args[0].computed_missing_value)).renderCPU();
     }
 
     /**
@@ -377,13 +381,19 @@ class ComputedScalarField<ArrayType extends TypedArray, GridType extends Grid> e
     private readonly raw_fields: ExpressionScalarField<ArrayType, GridType>[];
     private readonly expression: string;
     private readonly cpu_func: (...arg: number[]) => number;
+    private readonly _computed_missing_value: number;
 
-    constructor(raw_fields: ExpressionScalarField<ArrayType, GridType>[], expression: string, cpu_func: (...arg: number[]) => number) {
+    constructor(raw_fields: ExpressionScalarField<ArrayType, GridType>[], expression: string, cpu_func: (...arg: number[]) => number, computed_missing_value: number) {
         super();
 
         this.raw_fields = raw_fields;
         this.expression = expression;
         this.cpu_func = cpu_func;
+        this._computed_missing_value = computed_missing_value;
+    }
+
+    withComputedMissingValue(computed_missing_value: number) {
+        return new ComputedScalarField(this.raw_fields, this.expression, this.cpu_func, computed_missing_value);
     }
 
     /** @internal */
@@ -418,7 +428,7 @@ class ComputedScalarField<ArrayType extends TypedArray, GridType extends Grid> e
     }
 
     get computed_missing_value() {
-        return this.raw_fields[0].computed_missing_value;
+        return this._computed_missing_value;
     }
 
     /** @internal */
@@ -470,7 +480,7 @@ class ComputedScalarField<ArrayType extends TypedArray, GridType extends Grid> e
 
     /** @internal */
     public getThinnedField(thin_fac: number, map_max_zoom: number) {
-        return new ComputedScalarField(this.raw_fields.map(f => f.getThinnedField(thin_fac, map_max_zoom)), this.expression, this.cpu_func) as this;
+        return new ComputedScalarField(this.raw_fields.map(f => f.getThinnedField(thin_fac, map_max_zoom)), this.expression, this.cpu_func, this.computed_missing_value) as this;
     }
 
     /**
@@ -567,7 +577,7 @@ abstract class ExpressionVectorField<ArrayType extends TypedArray, GridType exte
     protected readonly u: ExpressionScalarField<ArrayType, GridType>;
     protected readonly v: ExpressionScalarField<ArrayType, GridType>;
     public readonly relative_to: VectorRelativeTo;
-    public readonly missing_value: number;
+    public readonly computed_missing_value: number;
 
     constructor(u: ExpressionScalarField<ArrayType, GridType>, v: ExpressionScalarField<ArrayType, GridType>, opts?: RawVectorFieldOptions) {
         this.u = u;
@@ -575,7 +585,11 @@ abstract class ExpressionVectorField<ArrayType extends TypedArray, GridType exte
 
         opts = opts === undefined ? {}: opts;
         this.relative_to = opts.relative_to === undefined ? 'grid' : opts.relative_to;
-        this.missing_value = opts.missing_value === undefined ? NaN : opts.missing_value;
+        this.computed_missing_value = opts.missing_value === undefined ? NaN : opts.missing_value;
+    }
+
+    withComputedMissingValue(missing_value: number) {
+        return new ComputedVectorField(this.u, this.v, {relative_to: this.relative_to, missing_value: missing_value});
     }
 
     private operandScalar(other: ExpressionScalarField<ArrayType, GridType> | number, operand: '*' | '/'): ComputedVectorField<ArrayType, GridType> {
@@ -585,14 +599,14 @@ abstract class ExpressionVectorField<ArrayType extends TypedArray, GridType exte
         };
 
         if (typeof other === 'number') {
-            const u = new ComputedScalarField([this.u], `{0} ${operand} ${other.toFixed(100)}`, v => FUNCS[operand](v, other));
-            const v = new ComputedScalarField([this.v], `{0} ${operand} ${other.toFixed(100)}`, v => FUNCS[operand](v, other));
-            return new ComputedVectorField(u, v, {relative_to: this.relative_to, missing_value: this.missing_value});
+            const u = new ComputedScalarField([this.u], `{0} ${operand} ${other.toFixed(100)}`, v => FUNCS[operand](v, other), this.u.computed_missing_value);
+            const v = new ComputedScalarField([this.v], `{0} ${operand} ${other.toFixed(100)}`, v => FUNCS[operand](v, other), this.v.computed_missing_value);
+            return new ComputedVectorField(u, v, {relative_to: this.relative_to, missing_value: this.computed_missing_value});
         }
 
-        const u = new ComputedScalarField([this.u, other], `{0} ${operand} {1}`, FUNCS[operand]);
-        const v = new ComputedScalarField([this.v, other], `{0} ${operand} {1}`, FUNCS[operand]);
-        return new ComputedVectorField(u, v, {relative_to: this.relative_to, missing_value: this.missing_value});
+        const u = new ComputedScalarField([this.u, other], `{0} ${operand} {1}`, FUNCS[operand], this.u.computed_missing_value);
+        const v = new ComputedScalarField([this.v, other], `{0} ${operand} {1}`, FUNCS[operand], this.v.computed_missing_value);
+        return new ComputedVectorField(u, v, {relative_to: this.relative_to, missing_value: this.computed_missing_value});
     }
 
     private operandVector(other: ExpressionVectorField<ArrayType, GridType> | [number, number], operand: '+' | '-'): ComputedVectorField<ArrayType, GridType> {
@@ -602,15 +616,15 @@ abstract class ExpressionVectorField<ArrayType extends TypedArray, GridType exte
         };
 
         if (other instanceof ExpressionVectorField) {        
-            const u = new ComputedScalarField([this.u, other.u], `{0} ${operand} {1}`, FUNCS[operand]);
-            const v = new ComputedScalarField([this.v, other.v], `{0} ${operand} {1}`, FUNCS[operand]);
-            return new ComputedVectorField(u, v, {relative_to: this.relative_to, missing_value: this.missing_value});
+            const u = new ComputedScalarField([this.u, other.u], `{0} ${operand} {1}`, FUNCS[operand], this.u.computed_missing_value);
+            const v = new ComputedScalarField([this.v, other.v], `{0} ${operand} {1}`, FUNCS[operand], this.v.computed_missing_value);
+            return new ComputedVectorField(u, v, {relative_to: this.relative_to, missing_value: this.computed_missing_value});
         }
 
         const [other_u, other_v] = other;
-        const u = new ComputedScalarField([this.u], `{0} ${operand} ${other_u.toFixed(100)}`, u => FUNCS[operand](u, other_u));
-        const v = new ComputedScalarField([this.v], `{0} ${operand} ${other_v.toFixed(100)}`, v => FUNCS[operand](v, other_v));
-        return new ComputedVectorField(u, v, {relative_to: this.relative_to, missing_value: this.missing_value});
+        const u = new ComputedScalarField([this.u], `{0} ${operand} ${other_u.toFixed(100)}`, u => FUNCS[operand](u, other_u), this.u.computed_missing_value);
+        const v = new ComputedScalarField([this.v], `{0} ${operand} ${other_v.toFixed(100)}`, v => FUNCS[operand](v, other_v), this.v.computed_missing_value);
+        return new ComputedVectorField(u, v, {relative_to: this.relative_to, missing_value: this.computed_missing_value});
     }
 
     /**
@@ -649,6 +663,10 @@ abstract class ExpressionVectorField<ArrayType extends TypedArray, GridType exte
         return this.operandVector(other, '-');
     }
 
+    public applyScaleAndOffset(scale: number, offset: [number, number], missing_value?: number) {
+        return this.multiply(scale).add(offset).withComputedMissingValue(missing_value === undefined ? NaN : missing_value);
+    }
+
     /** @internal */
     public updateTexImageData(gl: WebGLAnyRenderingContext, image_mag_filter: number, fill_textures: {u: Map<string, WGLTexture>, v: Map<string, WGLTexture>} | null) {
         const translateKeys = <V>(map: Map<string, V>, component: 'u' | 'v', reverse: boolean) => {
@@ -674,7 +692,7 @@ abstract class ExpressionVectorField<ArrayType extends TypedArray, GridType exte
      * @returns A `ComputedScalarField` representing the subtracted vector field
      */
     public magnitude() {
-        return new ComputedScalarField([this.u, this.v], 'length(vec2({0}, {1}))', Math.hypot);
+        return new ComputedScalarField([this.u, this.v], 'length(vec2({0}, {1}))', Math.hypot, this.computed_missing_value);
     }
 
     /** @internal */
@@ -715,9 +733,9 @@ abstract class ExpressionVectorField<ArrayType extends TypedArray, GridType exte
         const u_sample = this.u.sampleFieldWithCoord(lon, lat);
         const v_sample = this.v.sampleFieldWithCoord(lon, lat);
 
-        if (isNaN(u_sample.sample) && isNaN(this.missing_value) || u_sample.sample == this.missing_value ||
-            isNaN(v_sample.sample) && isNaN(this.missing_value) || v_sample.sample == this.missing_value) {
-            return [this.missing_value, this.missing_value];
+        if (isNaN(u_sample.sample) && isNaN(this.u.computed_missing_value) || u_sample.sample == this.u.computed_missing_value ||
+            isNaN(v_sample.sample) && isNaN(this.v.computed_missing_value) || v_sample.sample == this.v.computed_missing_value) {
+            return [this.computed_missing_value, this.computed_missing_value];
         }
 
         const rot = this.relative_to == 'earth' ? 0 : this.grid.getVectorRotationAtPoint(u_sample.sample_lon, u_sample.sample_lat);
