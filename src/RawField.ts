@@ -162,15 +162,12 @@ abstract class ExpressionScalarField<ArrayType extends TypedArray, GridType exte
         return this.operand(other, '-');
     }
 
-    public applyScaleAndOffset(scale: number, offset: number, missing_value?: number) {
-        return this.multiply(scale).add(offset).withComputedMissingValue(missing_value === undefined ? NaN : missing_value);
-    }
-
     public abstract getThinnedField(thin_fac: number, map_max_zoom: number) : this;
 
     public abstract sampleField(lon: number, lat: number) : number;
     public abstract sampleFieldWithCoord(lon: number, lat: number) : {sample: number, sample_lon: number, sample_lat: number};
 
+    /** @internal */
     public applySamplerCode(src: string) : string {
         const sampler_code = getSamplerCode('get_field_value', this.getSamplerIds(), this.missing_values, this.getExpression(),
                                             this.dtypes, this.output_dtype);
@@ -238,16 +235,30 @@ class RawScalarField<ArrayType extends TypedArray, GridType extends Grid> extend
         return [getArrayDType(this.data)];
     }
 
+    /** @internal */
     get output_dtype() {
         return getArrayDType(this.data);
     }
 
+    /** @internal */
     get missing_values() {
         return [this.opts.missing_value];
     }
 
+    /** @internal */
     get computed_missing_value() {
         return this.opts.missing_value;
+    }
+
+    /**
+     * Apply a scale and offset to this scalar field
+     * @param scale - The scale to apply
+     * @param offset - The offset to apply
+     * @param missing_value - An optional missing value to use for the field after the scale and offset have been applied. Defaults to NaN.
+     * @returns A computed scalar field with the applied scale and offset
+     */
+    public applyScaleAndOffset(scale: number, offset: number, missing_value?: number) {
+        return this.multiply(scale).add(offset).withComputedMissingValue(missing_value === undefined ? NaN : missing_value);
     }
 
     /** @internal */
@@ -423,10 +434,12 @@ class ComputedScalarField<ArrayType extends TypedArray, GridType extends Grid> e
         return return_type;
     }
 
+    /** @internal */
     get missing_values() {
         return this.raw_fields.map(f => f.missing_values).flat();
     }
 
+    /** @internal */
     get computed_missing_value() {
         return this._computed_missing_value;
     }
@@ -588,6 +601,7 @@ abstract class ExpressionVectorField<ArrayType extends TypedArray, GridType exte
         this.computed_missing_value = opts.missing_value === undefined ? NaN : opts.missing_value;
     }
 
+    /** @internal */
     withComputedMissingValue(missing_value: number) {
         return new ComputedVectorField(this.u, this.v, {relative_to: this.relative_to, missing_value: missing_value});
     }
@@ -663,10 +677,6 @@ abstract class ExpressionVectorField<ArrayType extends TypedArray, GridType exte
         return this.operandVector(other, '-');
     }
 
-    public applyScaleAndOffset(scale: number, offset: [number, number], missing_value?: number) {
-        return this.multiply(scale).add(offset).withComputedMissingValue(missing_value === undefined ? NaN : missing_value);
-    }
-
     /** @internal */
     public updateTexImageData(gl: WebGLAnyRenderingContext, image_mag_filter: number, fill_textures: {u: Map<string, WGLTexture>, v: Map<string, WGLTexture>} | null) {
         const translateKeys = <V>(map: Map<string, V>, component: 'u' | 'v', reverse: boolean) => {
@@ -718,6 +728,7 @@ abstract class ExpressionVectorField<ArrayType extends TypedArray, GridType exte
         return {u: this.u.output_dtype, v: this.v.output_dtype};
     }
 
+    /** @internal */
     get component_missing_values() {
         return {u: this.u.missing_values, v: this.v.missing_values};
     }
@@ -773,6 +784,7 @@ abstract class ExpressionVectorField<ArrayType extends TypedArray, GridType exte
         };
     }
 
+    /** @internal */
     public applySamplerCode(src: string) : string {
         const sampler_names = this.getSamplerIds();
         const sampler_expressions = this.getExpressions();
@@ -812,6 +824,17 @@ class RawVectorField<ArrayType extends TypedArray, GridType extends AutoZoomGrid
 
         this.u_ary = u_ary;
         this.v_ary = v_ary;
+    }
+
+    /**
+     * Apply a scale and offset to this vector field
+     * @param scale - The scale to apply
+     * @param offset - The offset to apply (should be a vector [u, v])
+     * @param missing_value - An optional missing value to use for the field after the scale and offset have been applied. Defaults to NaN.
+     * @returns A computed vector field with the applied scale and offset
+     */
+    public applyScaleAndOffset(scale: number, offset: [number, number], missing_value?: number) {
+        return this.multiply(scale).add(offset).withComputedMissingValue(missing_value === undefined ? NaN : missing_value);
     }
 
     /** @internal */
