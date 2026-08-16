@@ -10,7 +10,7 @@ import { AutoZoomGrid } from "./grids/AutoZoom";
 
 const missingCheck = (sample: number, missing: number | null) => missing !== null && (isNaN(sample) && isNaN(missing) || sample == missing);
 
-function getSamplerCode(function_name: string, sampler_names: string[], missing_values: number[], sampler_expression: string, 
+function getSamplerCode(function_name: string, sampler_names: string[], missing_values: (number | null)[], sampler_expression: string, 
                         dtypes: TypedArrayStr[], return_type: TypedArrayStr) {
     const SAMPLER_DTYPES = {
         'float16': 'sampler2D', 'float32': 'sampler2D', 
@@ -30,13 +30,20 @@ function getSamplerCode(function_name: string, sampler_names: string[], missing_
 
     const samplers = sampler_names.map((v, i) => `uniform ${SAMPLER_DTYPES[dtypes[i]]} ${v};`).join("\n");
     const sampler_get = sampler_names.map((v, i) => `    ${shader_dtypes[i]} ${v}_val = texture(${v}, tex_coord).r;`).join("\n");
-    const sampler_missing_check = sampler_names.map((v, i) => {
+    const sampler_missing_check_conditional = sampler_names.map((v, i) => {
         const miss_val = missing_values[i];
-        if (isNaN(miss_val)) return `isnan(${v}_val)`
+        if (miss_val === null) return null;
+        if (isNaN(miss_val)) return `isnan(${v}_val)`;
         const n_decimal = ['float16', 'float32'].includes(dtypes[i]) ? 100 : 0;
         const suffix = dtypes[i].includes('u') ? 'u' : ''
         return `${v}_val == ${miss_val.toFixed(n_decimal)}${suffix}`;
-    }).join(' || ');
+    }).filter(v => v !== null).join(' || ');
+
+    // If there are no conditionals, don't even output the if check
+    const sampler_missing_check = sampler_missing_check_conditional.length == 0 ? "" : `
+    if (${sampler_missing_check_conditional}) {
+        return u_missing;
+    }`;
 
     sampler_names.forEach(v => sampler_expression = sampler_expression.replaceAll(v, `${conversion}(${v}_val)`));
 
@@ -46,9 +53,7 @@ ${samplers}
 
 ${return_shader_type} ${function_name}(lowp vec2 tex_coord) {
 ${sampler_get}
-    if (${sampler_missing_check}) {
-        return u_missing;
-    }
+    ${sampler_missing_check}
 
     return ${sampler_expression};
 }`;
@@ -88,11 +93,11 @@ interface RawScalarFieldOpts {
      * Value to use as the "missing" value.
      * @default NaN
      */
-    missing_value?: number;
+    missing_value?: number | null;
 };
 
 const field_opt_defaults: Required<RawScalarFieldOpts> = {
-    missing_value: NaN
+    missing_value: null
 };
 
 abstract class ExpressionScalarField<ArrayType extends TypedArray, GridType extends Grid> {
@@ -106,7 +111,7 @@ abstract class ExpressionScalarField<ArrayType extends TypedArray, GridType exte
     abstract get aryConstructor() : new(...args: any[]) => ArrayType;
     abstract get dtypes() : TypedArrayStr[];
     abstract get output_dtype() : TypedArrayStr;
-    abstract get missing_values() : number[];
+    abstract get missing_values() : (number | null)[];
     abstract get computed_missing_value() : number;
 
     private operand(other: ExpressionScalarField<ArrayType, GridType> | number, operand: '+' | '-' | '*' | '/'): ComputedScalarField<ArrayType, GridType> {
@@ -197,9 +202,6 @@ class RawScalarField<ArrayType extends TypedArray, GridType extends Grid> extend
         this.data = data;
         this.opts = normalizeOptions(opts, field_opt_defaults);
 
-        // This is hacky, and you should fix the normalizeOptions machinery to incorporate this.
-        if (getArrayDType(this.data).includes('int') && opts?.missing_value === undefined) this.opts.missing_value = 0;
-
         if (grid.ni * grid.nj != data.length) {
             throw `Data size (${data.length}) doesn't match the grid dimensions (${grid.ni} x ${grid.nj}; expected ${grid.ni * grid.nj} points)`;
         }
@@ -211,8 +213,10 @@ class RawScalarField<ArrayType extends TypedArray, GridType extends Grid> extend
             const tex_data = this.getTextureData();
             if (!isContourable(tex_data)) throw `Type check for contourable array failed`;
 
+            const miss_val = this.opts.missing_value === null ? NaN : this.opts.missing_value;
+
             const pool = getContourWorkerPool(undefined, 1); // 1 worker is the default; if the user requests more, the pool will be pre-created with the correct number of workers
-            const contour_data = await pool.contourCreator(tex_data, grid.getGridCoords(), {...opts, missing_value: this.opts.missing_value});
+            const contour_data = await pool.contourCreator(tex_data, grid.getGridCoords(), {...opts, missing_value: miss_val});
 
             for (const v in contour_data) {
                 for (let ic = 0; ic < contour_data[v].length; ic++) {
@@ -249,7 +253,7 @@ class RawScalarField<ArrayType extends TypedArray, GridType extends Grid> extend
 
     /** @internal */
     get computed_missing_value() {
-        return this.opts.missing_value;
+        return this.opts.missing_value === null ? NaN : this.opts.missing_value;
     }
 
     /**
@@ -394,9 +398,9 @@ class ComputedScalarField<ArrayType extends TypedArray, GridType extends Grid> e
     private readonly raw_fields: ExpressionScalarField<ArrayType, GridType>[];
     private readonly expression: string;
     private readonly cpu_func: (...arg: number[]) => number;
-    private readonly _computed_missing_value: number;
+    private readonly _computed_missing_value: number | null;
 
-    constructor(raw_fields: ExpressionScalarField<ArrayType, GridType>[], expression: string, cpu_func: (...arg: number[]) => number, computed_missing_value: number) {
+    constructor(raw_fields: ExpressionScalarField<ArrayType, GridType>[], expression: string, cpu_func: (...arg: number[]) => number, computed_missing_value: number | null) {
         super();
 
         this.raw_fields = raw_fields;
@@ -443,7 +447,7 @@ class ComputedScalarField<ArrayType extends TypedArray, GridType extends Grid> e
 
     /** @internal */
     get computed_missing_value() {
-        return this._computed_missing_value;
+        return this._computed_missing_value === null ? NaN : this._computed_missing_value;
     }
 
     /** @internal */
@@ -578,7 +582,7 @@ interface RawVectorFieldOptions {
      * Value to use as the "missing" value.
      * @default NaN
      */
-    missing_value?: number;
+    missing_value?: number | null;
 }
 
 function scalarIdToVectorComponentId(id: string, component: 'u' | 'v') {
@@ -593,7 +597,7 @@ abstract class ExpressionVectorField<ArrayType extends TypedArray, GridType exte
     protected readonly u: ExpressionScalarField<ArrayType, GridType>;
     protected readonly v: ExpressionScalarField<ArrayType, GridType>;
     public readonly relative_to: VectorRelativeTo;
-    public readonly computed_missing_value: number;
+    public readonly computed_missing_value: number | null;
 
     constructor(u: ExpressionScalarField<ArrayType, GridType>, v: ExpressionScalarField<ArrayType, GridType>, opts?: RawVectorFieldOptions) {
         this.u = u;
@@ -601,7 +605,7 @@ abstract class ExpressionVectorField<ArrayType extends TypedArray, GridType exte
 
         opts = opts === undefined ? {}: opts;
         this.relative_to = opts.relative_to === undefined ? 'grid' : opts.relative_to;
-        this.computed_missing_value = opts.missing_value === undefined ? NaN : opts.missing_value;
+        this.computed_missing_value = opts.missing_value === undefined ? null : opts.missing_value;
     }
 
     /** @internal */
@@ -736,6 +740,10 @@ abstract class ExpressionVectorField<ArrayType extends TypedArray, GridType exte
         return {u: this.u.missing_values, v: this.v.missing_values};
     }
 
+    get component_computed_missing_value() {
+        return {u: this.u.computed_missing_value, v: this.v.computed_missing_value};
+    }
+
     /**
      * Sample this field at a given latitude and longitude.
      * @param lon - Longitude of the sample in degrees east
@@ -819,7 +827,7 @@ class RawVectorField<ArrayType extends TypedArray, GridType extends AutoZoomGrid
      */
     constructor(grid: GridType, u_ary: ArrayType, v_ary: ArrayType, opts?: RawVectorFieldOptions) {
         opts = opts === undefined ? {} : opts;
-        const missing_value = opts.missing_value === undefined ? NaN : opts.missing_value;
+        const missing_value = opts.missing_value === undefined ? null : opts.missing_value;
 
         const u = new RawScalarField(grid, u_ary, {missing_value: missing_value});
         const v = new RawScalarField(grid, v_ary, {missing_value: missing_value});

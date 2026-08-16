@@ -118,7 +118,7 @@ class BillboardCollection<ArrayType extends TypedArray, GridType extends AutoZoo
             ...Object.fromEntries([...this.wind_textures.v.entries()])
         };
 
-        const missing = this.field.component_missing_values;
+        const missing = this.field.component_computed_missing_value;
 
         program.use(
             {'a_geom': gl_elems.geom_vertices, 'a_pos': gl_elems.vertices, 'a_tex_coord': gl_elems.texcoords},
