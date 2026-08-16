@@ -171,8 +171,8 @@ abstract class ExpressionScalarField<ArrayType extends TypedArray, GridType exte
 
     public abstract getThinnedField(thin_fac: number, map_max_zoom: number) : this;
 
-    public abstract sampleField(lon: number, lat: number) : number | null;
-    public abstract sampleFieldWithCoord(lon: number, lat: number) : {sample: number | null, sample_lon: number, sample_lat: number};
+    public abstract sampleField(lon: number, lat: number) : number;
+    public abstract sampleFieldWithCoord(lon: number, lat: number) : {sample: number, sample_lon: number, sample_lat: number};
 
     /** @internal */
     public applySamplerCode(src: string) : string {
@@ -510,17 +510,12 @@ class ComputedScalarField<ArrayType extends TypedArray, GridType extends Grid> e
      */
     public sampleFieldWithCoord(lon: number, lat: number) {
         const field_samples = this.raw_fields.map(f => f.sampleFieldWithCoord(lon, lat));
-        const field_sample_values = field_samples.map(s => s.sample);
-    
-        const do_missing_check = (obj: (number | null)[]) : obj is number[] => {
-            return obj.map((s, i) => s === null || missingCheck(s, this.raw_fields[i].computed_missing_value)).reduce((a, b) => a || b, false);
-        }
+        const any_missing = field_samples.map((s, i) => missingCheck(s.sample, this.raw_fields[i].computed_missing_value)).reduce((a, b) => a || b, false);
 
-        if (do_missing_check(field_sample_values)) 
+        if (any_missing) 
             return {sample: this.computed_missing_value, sample_lon: field_samples[0].sample_lon, sample_lat: field_samples[0].sample_lat};
 
-        return {sample: this.cpu_func(...(field_sample_values as number[])),
-                sample_lon: field_samples[0].sample_lon, sample_lat: field_samples[0].sample_lat};
+        return {sample: this.cpu_func(...field_samples.map(s => s.sample)), sample_lon: field_samples[0].sample_lon, sample_lat: field_samples[0].sample_lat};
     }
 
     /**
@@ -751,12 +746,12 @@ abstract class ExpressionVectorField<ArrayType extends TypedArray, GridType exte
      * @returns A tuple containing the [`bearing`, `magnitude`] of the vector field at the nearest grid point. The bearing is given as degrees from north, increasing clockwise. 
      *  If the point is outside the grid, it returns [NaN, NaN] instead.
      */
-    public sampleField(lon: number, lat: number) : [number | null, number | null] {
+    public sampleField(lon: number, lat: number) : [number, number] {
         const u_sample = this.u.sampleFieldWithCoord(lon, lat);
         const v_sample = this.v.sampleFieldWithCoord(lon, lat);
 
-        if (u_sample.sample === null || missingCheck(u_sample.sample, this.u.computed_missing_value) || 
-            v_sample.sample === null || missingCheck(v_sample.sample, this.v.computed_missing_value)) {
+        if (isNaN(u_sample.sample) && isNaN(this.u.computed_missing_value) || u_sample.sample == this.u.computed_missing_value ||
+            isNaN(v_sample.sample) && isNaN(this.v.computed_missing_value) || v_sample.sample == this.v.computed_missing_value) {
             return [this.computed_missing_value, this.computed_missing_value];
         }
 
