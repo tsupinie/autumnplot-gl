@@ -8,6 +8,8 @@ import { WGLTexture, WGLTextureSpec } from "autumn-wgl";
 import { getContourWorkerPool, getGLFormatTypeAlignment } from "./PlotComponent";
 import { AutoZoomGrid } from "./grids/AutoZoom";
 
+const missingCheck = (sample: number, missing: number | null) => missing !== null && (isNaN(sample) && isNaN(missing) || sample == missing);
+
 function getSamplerCode(function_name: string, sampler_names: string[], missing_values: number[], sampler_expression: string, 
                         dtypes: TypedArrayStr[], return_type: TypedArrayStr) {
     const SAMPLER_DTYPES = {
@@ -503,10 +505,8 @@ class ComputedScalarField<ArrayType extends TypedArray, GridType extends Grid> e
      * @returns The value of the nearest grid point along with the grid point latitude and longitude, or NaNs if the point is outside the grid.
      */
     public sampleFieldWithCoord(lon: number, lat: number) {
-        const missing_check = (sample: number, missing: number) => isNaN(sample) && isNaN(missing) || sample == missing;
-
         const field_samples = this.raw_fields.map(f => f.sampleFieldWithCoord(lon, lat));
-        const any_missing = field_samples.map((s, i) => missing_check(s.sample, this.raw_fields[i].computed_missing_value)).reduce((a, b) => a || b, false);
+        const any_missing = field_samples.map((s, i) => missingCheck(s.sample, this.raw_fields[i].computed_missing_value)).reduce((a, b) => a || b, false);
 
         if (any_missing) 
             return {sample: this.computed_missing_value, sample_lon: field_samples[0].sample_lon, sample_lat: field_samples[0].sample_lat};
@@ -535,13 +535,11 @@ class ComputedScalarField<ArrayType extends TypedArray, GridType extends Grid> e
 
     /** @internal */
     public *iterateCPU(): Generator<number, void, unknown> {
-        const missing_check = (sample: number, missing: number) => isNaN(sample) && isNaN(missing) || sample == missing;
-
         const computed_missing = this.computed_missing_value;
         const raw_missing = this.raw_fields.map(f => f.computed_missing_value)
         function* mapGenerator<T extends any[], U>(gen: Generator<T>, func: (...arg: T) => U) {
             for (const elem of gen) {
-                const any_missing = elem.map((s, i) => missing_check(s, raw_missing[i])).reduce((a, b) => a || b, false);
+                const any_missing = elem.map((s, i) => missingCheck(s, raw_missing[i])).reduce((a, b) => a || b, false);
                 
                 if (any_missing) {
                     yield computed_missing;
