@@ -577,7 +577,7 @@ interface RawVectorFieldOptions {
      * Value to use as the "missing" value.
      * @default NaN
      */
-    missing_value?: number | null;
+    missing_value?: number;
 }
 
 function scalarIdToVectorComponentId(id: string, component: 'u' | 'v') {
@@ -592,7 +592,7 @@ abstract class ExpressionVectorField<ArrayType extends TypedArray, GridType exte
     protected readonly u: ExpressionScalarField<ArrayType, GridType>;
     protected readonly v: ExpressionScalarField<ArrayType, GridType>;
     public readonly relative_to: VectorRelativeTo;
-    public readonly computed_missing_value: number | null;
+    public readonly computed_missing_value: number;
 
     constructor(u: ExpressionScalarField<ArrayType, GridType>, v: ExpressionScalarField<ArrayType, GridType>, opts?: RawVectorFieldOptions) {
         this.u = u;
@@ -600,7 +600,7 @@ abstract class ExpressionVectorField<ArrayType extends TypedArray, GridType exte
 
         opts = opts === undefined ? {}: opts;
         this.relative_to = opts.relative_to === undefined ? 'grid' : opts.relative_to;
-        this.computed_missing_value = opts.missing_value === undefined ? null : opts.missing_value;
+        this.computed_missing_value = opts.missing_value === undefined ? NaN : opts.missing_value;
     }
 
     /** @internal */
