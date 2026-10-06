@@ -74,6 +74,9 @@ void main() {
     highp float v = get_field_value_v(data_texcoord);
     highp float rot = texture(u_rot_sampler, data_texcoord).r;
 
+    // u == -0 causes MacOS to flip the barb 180 degrees from what it should be
+    if (u == -0.) u = 0.;
+
     lowp float bb_aspect = u_bb_width / u_bb_height;
     lowp float ang = (abs(u) < 1e-6 && abs(v) < 1e-6) ? 0. : atan(v, u) - 3.141592654 / 2.0;
     highp float mag = length(vec2(u, v));
