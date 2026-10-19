@@ -208,7 +208,7 @@ interface TextCollectionGLElems {
 }
 
 class TextCollection {
-    shader_manager: ShaderProgramManager;
+    readonly shader_manager: ShaderProgramManager;
     readonly texture: WGLTexture;
 
     cmap_gpu: ColorMapGPUInterface | null;
@@ -245,10 +245,10 @@ class TextCollection {
         };
 
         this.texture = new WGLTexture(gl, image);
+        this.shader_manager = new ShaderProgramManager();
 
         this.has_data = false;
-        const {shader, cmap_gpu, shader_src_key} = this.compile_shader(this.has_data);
-        this.shader_manager = shader;
+        const {cmap_gpu, shader_src_key} = this.compile_shader(this.has_data);
         this.cmap_gpu = cmap_gpu;
         this.shader_src_key = shader_src_key;
 
@@ -354,9 +354,9 @@ class TextCollection {
         if (has_data != this.has_data) {
             // If the previous data set didn't have data associated with it, then we really do need to recompile the shader for it.
             this.has_data = has_data;
-            const {shader, cmap_gpu} = this.compile_shader(this.has_data);
-            this.shader_manager = shader;
+            const {cmap_gpu, shader_src_key} = this.compile_shader(this.has_data);
             this.cmap_gpu = cmap_gpu;
+            this.shader_src_key = shader_src_key;
         }
     }
 
@@ -377,11 +377,9 @@ class TextCollection {
             fragment_src = ColorMapGPUInterface.applyShader(fragment_src);
         }
 
-        const shader = new ShaderProgramManager(shader_defines);
-        const shader_src_key = shader.addShaderProgram(text_vertex_shader_src, fragment_src);
+        const shader_src_key = this.shader_manager.addShaderProgram(text_vertex_shader_src, fragment_src, shader_defines);
 
         return {
-            shader: shader,
             cmap_gpu: cmap_gpu,
             shader_src_key: shader_src_key,
         };

@@ -3,8 +3,8 @@ import { RenderShaderData, RendererData, WebGLAnyRenderingContext } from "./Autu
 import { mergeShaderCode } from "./utils";
 import { md5 } from "js-md5";
 
-function makeSourceKey(vertex_shader_src: string, fragment_shader_src: string) {
-    return md5.hex(`${vertex_shader_src}-${fragment_shader_src}`);
+function makeSourceKey(vertex_shader_src: string, fragment_shader_src: string, shader_defines: string[]) {
+    return md5.hex(JSON.stringify({defines: shader_defines, vertex: vertex_shader_src, fragment: fragment_shader_src}));
 }
 
 function makeShaderKey(source_key: string, shader_variant: string) {
@@ -12,20 +12,17 @@ function makeShaderKey(source_key: string, shader_variant: string) {
 }
 
 class ShaderProgramManager {
-    public readonly shader_defines: string[];
     private readonly program_map:  Map<string, WGLProgram>;
-    private readonly source_map: Map<string, {vertex: string, fragment: string}>;
+    private readonly source_map: Map<string, {defines: string[], vertex: string, fragment: string}>;
 
-    constructor(shader_defines: string[]) {
-        this.shader_defines = shader_defines;
-
+    constructor() {
         this.program_map = new Map();
         this.source_map = new Map();
     }
 
-    addShaderProgram(vertex_shader_src: string, fragment_shader_src: string) {
-        const source_key = makeSourceKey(vertex_shader_src, fragment_shader_src);
-        this.source_map.set(source_key, {vertex: vertex_shader_src, fragment: fragment_shader_src});
+    addShaderProgram(vertex_shader_src: string, fragment_shader_src: string, shader_defines: string[]) {
+        const source_key = makeSourceKey(vertex_shader_src, fragment_shader_src, shader_defines);
+        this.source_map.set(source_key, {defines: shader_defines, vertex: vertex_shader_src, fragment: fragment_shader_src});
         return source_key;
     }
 
@@ -40,7 +37,7 @@ class ShaderProgramManager {
 
         const sources = this.source_map.get(source_key);
         if (sources === undefined) throw `Unknown source key '${source_key}' in ShaderProgramManager`;
-        const {vertex: vertex_shader_src, fragment: fragment_shader_src} = sources;
+        const {defines: shader_defines, vertex: vertex_shader_src, fragment: fragment_shader_src} = sources;
 
         let vertex_src;
         if (shader_data !== null) {
@@ -58,7 +55,7 @@ class ShaderProgramManager {
             vertex_src = mergeShaderCode(prelude, vertex_shader_src);
         }
 
-        const program = new WGLProgram(gl, vertex_src, fragment_shader_src, {define: this.shader_defines});
+        const program = new WGLProgram(gl, vertex_src, fragment_shader_src, {define: shader_defines});
         this.program_map.set(shader_key, program);
 
         return program;

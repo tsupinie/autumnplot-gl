@@ -79,7 +79,7 @@ class PolylineCollection {
 
     private readonly gl: WebGLAnyRenderingContext;
     private gl_elems: PolyLineCollectionGLElems | null;
-    private shader_manager: ShaderProgramManager;
+    private readonly shader_manager: ShaderProgramManager;
     private shader_src_key: string;
 
     private readonly color: Color;
@@ -104,9 +104,10 @@ class PolylineCollection {
         this.has_offset = false;
         this.has_zoom = false;
         this.has_colormap = false;
+
+        this.shader_manager = new ShaderProgramManager();
     
-        const {shader, cmap_gpu, scale, shader_src_key} = this.compile_shader(this.has_offset, this.has_zoom, this.has_colormap);
-        this.shader_manager = shader;
+        const {cmap_gpu, scale, shader_src_key} = this.compile_shader(this.has_offset, this.has_zoom, this.has_colormap);
         this.cmap_gpu = cmap_gpu;
         this.scale = scale;
         this.shader_src_key = shader_src_key;
@@ -149,8 +150,7 @@ class PolylineCollection {
             this.has_zoom = has_zoom;
             this.has_colormap = has_colormap;
 
-            const {shader, cmap_gpu, scale, shader_src_key} = this.compile_shader(this.has_offset, this.has_zoom, this.has_colormap);
-            this.shader_manager = shader;
+            const {cmap_gpu, scale, shader_src_key} = this.compile_shader(this.has_offset, this.has_zoom, this.has_colormap);
             this.cmap_gpu = cmap_gpu;
             this.scale = scale;
             this.shader_src_key = shader_src_key;
@@ -186,11 +186,9 @@ class PolylineCollection {
             fragment_src = ColorMapGPUInterface.applyShader(fragment_src);
         }
 
-        const shader = new ShaderProgramManager(shader_defines);
-        const shader_src_key = shader.addShaderProgram(polyline_vertex_src, fragment_src);
+        const shader_src_key = this.shader_manager.addShaderProgram(polyline_vertex_src, fragment_src, shader_defines);
 
         return {
-            shader: shader,
             cmap_gpu: cmap_gpu,
             scale: scale,
             shader_src_key: shader_src_key,

@@ -65,7 +65,7 @@ const raster_opt_defaults: Required<RasterOptions> = {
 interface PlotComponentFillGLElems<MapType extends MapLikeType> {
     gl: WebGLAnyRenderingContext;
     map: MapType;
-    shader_manager: ShaderProgramManager;
+    shader_defines: string[],
     vertices: WGLBuffer;
 
     texcoords: WGLBuffer;
@@ -76,6 +76,7 @@ abstract class PlotComponentFill<ArrayType extends TypedArray, GridType extends 
     public readonly opts: Required<ContourFillOptions>;
 
     private readonly cmap_gpu: ColorMapGPUInterface[];
+    private readonly shader_manager: ShaderProgramManager;
 
     private gl_elems: PlotComponentFillGLElems<MapType> | null;
     private fill_texture: Map<string, WGLTexture> | null;
@@ -90,6 +91,7 @@ abstract class PlotComponentFill<ArrayType extends TypedArray, GridType extends 
         this.opts.cmap = Array.isArray(this.opts.cmap) ? this.opts.cmap : [this.opts.cmap];
 
         this.cmap_gpu = this.opts.cmap.map(cm => new ColorMapGPUInterface(cm));
+        this.shader_manager = new ShaderProgramManager();
 
         this.gl_elems = null;
         this.fill_texture = null;
@@ -108,10 +110,10 @@ abstract class PlotComponentFill<ArrayType extends TypedArray, GridType extends 
 
         const gl = this.gl_elems.gl;
         const map = this.gl_elems.map;
-        const shader_manager = this.gl_elems.shader_manager;
+        const shader_defines = this.gl_elems.shader_defines;
 
         const frag_shader_src = this.field.applySamplerCode(ColorMapGPUInterface.applyShader(contourfill_fragment_shader_src));
-        this.shader_src_key = shader_manager.addShaderProgram(contourfill_vertex_shader_src, frag_shader_src);
+        this.shader_src_key = this.shader_manager.addShaderProgram(contourfill_vertex_shader_src, frag_shader_src, shader_defines);
     
         this.fill_texture = this.field.updateTexImageData(gl, gl.NEAREST, this.fill_texture);
 
@@ -153,10 +155,8 @@ abstract class PlotComponentFill<ArrayType extends TypedArray, GridType extends 
             shader_defines.push('MASK');
         }
 
-        const shader_manger = new ShaderProgramManager(shader_defines);
-
         this.gl_elems = {
-            gl: gl, shader_manager: shader_manger, map: map, vertices: vertices, texcoords: texcoords,
+            gl: gl, shader_defines: shader_defines, map: map, vertices: vertices, texcoords: texcoords,
         };
 
         this.updateField(this.field, this.opts.cmap_mask === null ? undefined : this.opts.cmap_mask);
@@ -167,7 +167,7 @@ abstract class PlotComponentFill<ArrayType extends TypedArray, GridType extends 
         const gl_elems = this.gl_elems;
 
         const render_data = getRendererData(arg);
-        const program = this.gl_elems.shader_manager.getShaderProgram(gl, this.shader_src_key, render_data.shaderData);
+        const program = this.shader_manager.getShaderProgram(gl, this.shader_src_key, render_data.shaderData);
 
         const samplers = Object.fromEntries([...this.fill_texture.entries()])
 
@@ -175,7 +175,7 @@ abstract class PlotComponentFill<ArrayType extends TypedArray, GridType extends 
             {'a_pos': gl_elems.vertices, 'a_tex_coord': gl_elems.texcoords},
             {'u_opacity': this.opts.opacity, 'u_missing': this.field.computed_missing_value, 'u_pixel_size': [1 / this.field.grid.ni, 1 / this.field.grid.nj],
              'u_interpolate': this.getImageMagFilter(gl) == gl.LINEAR ? 1 : 0,
-             ...this.gl_elems.shader_manager.getShaderUniforms(render_data)},
+             ...this.shader_manager.getShaderUniforms(render_data)},
             samplers
         );
 

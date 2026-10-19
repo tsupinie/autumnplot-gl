@@ -18,7 +18,7 @@ interface BillboardCollectionOpts {
 
 interface BillboardCollectionGLElems {
     gl: WebGLAnyRenderingContext;
-    shader_manager: ShaderProgramManager;
+    shader_defines: string[];
     geom_vertices: WGLBuffer;
     vertices: WGLBuffer;
     texcoords: WGLBuffer;
@@ -32,6 +32,7 @@ class BillboardCollection<ArrayType extends TypedArray, GridType extends AutoZoo
     public readonly spec: BillboardSpec;
     public readonly color: Color;
     public readonly cmap: ColorMap | null;
+    public readonly shader_manager: ShaderProgramManager;
     public readonly rotate_with_map: boolean;
     public readonly size_multiplier: number;
     public readonly thin_fac: number;
@@ -56,6 +57,9 @@ class BillboardCollection<ArrayType extends TypedArray, GridType extends AutoZoo
         this.thin_fac = thin_fac;
         this.max_zoom = max_zoom;
         this.billboard_image = billboard_image;
+
+        this.shader_manager = new ShaderProgramManager();
+
         this.gl_elems = null;
         this.wind_textures = null;
         this.shader_src_key = null;
@@ -67,11 +71,11 @@ class BillboardCollection<ArrayType extends TypedArray, GridType extends AutoZoo
         if (this.gl_elems === null) return;
 
         const gl = this.gl_elems.gl;
-        const shader_manager = this.gl_elems.shader_manager;
+        const shader_defines = this.gl_elems.shader_defines;
         const data = this.field.getThinnedField(this.thin_fac, this.max_zoom);
 
         const vertex_shader_src = this.field.applySamplerCode(billboard_vertex_shader_src);
-        this.shader_src_key = shader_manager.addShaderProgram(vertex_shader_src, billboard_fragment_shader_src);
+        this.shader_src_key = this.shader_manager.addShaderProgram(vertex_shader_src, billboard_fragment_shader_src, shader_defines);
 
         this.wind_textures = data.updateTexImageData(gl, gl.NEAREST, this.wind_textures);
     }
@@ -99,9 +103,7 @@ class BillboardCollection<ArrayType extends TypedArray, GridType extends AutoZoo
             shader_defines.push('COLORMAP');
         }
 
-        const shader_manager = new ShaderProgramManager(shader_defines);
-
-        this.gl_elems = {gl: gl, shader_manager: shader_manager, geom_vertices: geom_buffer, vertices: vertices, texcoords: texcoords, texture: texture, 
+        this.gl_elems = {gl: gl, shader_defines: shader_defines, geom_vertices: geom_buffer, vertices: vertices, texcoords: texcoords, texture: texture, 
                          proj_rot_texture: proj_rotation_tex, cmap_gpu: cmap_gpu};
     }
 
@@ -109,7 +111,7 @@ class BillboardCollection<ArrayType extends TypedArray, GridType extends AutoZoo
         if (this.gl_elems === null || this.wind_textures === null || this.shader_src_key === null) return;
 
         const render_data = getRendererData(arg);
-        const program = this.gl_elems.shader_manager.getShaderProgram(gl, this.shader_src_key, render_data.shaderData);
+        const program = this.shader_manager.getShaderProgram(gl, this.shader_src_key, render_data.shaderData);
 
         const gl_elems = this.gl_elems;
 
@@ -131,7 +133,7 @@ class BillboardCollection<ArrayType extends TypedArray, GridType extends AutoZoo
              'u_bb_mag_bin_size': this.spec.BB_MAG_BIN_SIZE, 'u_bb_mag_wrap': this.spec.BB_MAG_WRAP, 'u_offset': 0,
              'u_map_aspect': map_height / map_width, 'u_zoom': map_zoom, 'u_rotate_with_map': this.rotate_with_map ? 1 : 0,
              'u_missing_u': missing.u, 'u_missing_v': missing.v,
-              ...this.gl_elems.shader_manager.getShaderUniforms(render_data)},
+              ...this.shader_manager.getShaderUniforms(render_data)},
             samplers
         );
 
