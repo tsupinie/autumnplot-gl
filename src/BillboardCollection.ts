@@ -40,6 +40,7 @@ class BillboardCollection<ArrayType extends TypedArray, GridType extends AutoZoo
 
     private gl_elems: BillboardCollectionGLElems | null;
     private wind_textures: {u: Map<string, WGLTexture>, v: Map<string, WGLTexture>} | null;
+    private shader_src_key: string | null;
 
     constructor(field: RawVectorField<ArrayType, GridType>, thin_fac: number, max_zoom: number, 
                 billboard_image: WGLTextureSpec, billboard_spec: BillboardSpec, billboard_size_mult: number, opts?: BillboardCollectionOpts) {
@@ -57,6 +58,7 @@ class BillboardCollection<ArrayType extends TypedArray, GridType extends AutoZoo
         this.billboard_image = billboard_image;
         this.gl_elems = null;
         this.wind_textures = null;
+        this.shader_src_key = null;
     }
 
     public updateField(field: RawVectorField<ArrayType, GridType>) {
@@ -65,7 +67,11 @@ class BillboardCollection<ArrayType extends TypedArray, GridType extends AutoZoo
         if (this.gl_elems === null) return;
 
         const gl = this.gl_elems.gl;
+        const shader_manager = this.gl_elems.shader_manager;
         const data = this.field.getThinnedField(this.thin_fac, this.max_zoom);
+
+        const vertex_shader_src = this.field.applySamplerCode(billboard_vertex_shader_src);
+        this.shader_src_key = shader_manager.addShaderProgram(vertex_shader_src, billboard_fragment_shader_src);
 
         this.wind_textures = data.updateTexImageData(gl, gl.NEAREST, this.wind_textures);
     }
@@ -93,18 +99,17 @@ class BillboardCollection<ArrayType extends TypedArray, GridType extends AutoZoo
             shader_defines.push('COLORMAP');
         }
 
-        const vertex_shader_src = this.field.applySamplerCode(billboard_vertex_shader_src);
-        const shader_manager = new ShaderProgramManager(vertex_shader_src, fragment_src, shader_defines);
+        const shader_manager = new ShaderProgramManager(shader_defines);
 
         this.gl_elems = {gl: gl, shader_manager: shader_manager, geom_vertices: geom_buffer, vertices: vertices, texcoords: texcoords, texture: texture, 
                          proj_rot_texture: proj_rotation_tex, cmap_gpu: cmap_gpu};
     }
 
     public render(gl: WebGLAnyRenderingContext, arg: RenderMethodArg, [map_width, map_height]: [number, number], map_zoom: number, map_bearing: number, map_pitch: number) {
-        if (this.gl_elems === null || this.wind_textures === null) return;
+        if (this.gl_elems === null || this.wind_textures === null || this.shader_src_key === null) return;
 
         const render_data = getRendererData(arg);
-        const program = this.gl_elems.shader_manager.getShaderProgram(gl, render_data.shaderData);
+        const program = this.gl_elems.shader_manager.getShaderProgram(gl, this.shader_src_key, render_data.shaderData);
 
         const gl_elems = this.gl_elems;
 

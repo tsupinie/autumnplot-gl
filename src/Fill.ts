@@ -80,6 +80,7 @@ abstract class PlotComponentFill<ArrayType extends TypedArray, GridType extends 
     private gl_elems: PlotComponentFillGLElems<MapType> | null;
     private fill_texture: Map<string, WGLTexture> | null;
     private mask_texture: WGLTexture | null;
+    private shader_src_key: string | null;
 
     constructor(field: ExpressionScalarField<ArrayType, GridType>, opts: ContourFillOptions) {
         super();
@@ -93,6 +94,7 @@ abstract class PlotComponentFill<ArrayType extends TypedArray, GridType extends 
         this.gl_elems = null;
         this.fill_texture = null;
         this.mask_texture = null;
+        this.shader_src_key = null;
     }
 
     protected abstract getImageMagFilter(gl: WebGLAnyRenderingContext): number;
@@ -106,6 +108,10 @@ abstract class PlotComponentFill<ArrayType extends TypedArray, GridType extends 
 
         const gl = this.gl_elems.gl;
         const map = this.gl_elems.map;
+        const shader_manager = this.gl_elems.shader_manager;
+
+        const frag_shader_src = this.field.applySamplerCode(ColorMapGPUInterface.applyShader(contourfill_fragment_shader_src));
+        this.shader_src_key = shader_manager.addShaderProgram(contourfill_vertex_shader_src, frag_shader_src);
     
         this.fill_texture = this.field.updateTexImageData(gl, gl.NEAREST, this.fill_texture);
 
@@ -147,8 +153,7 @@ abstract class PlotComponentFill<ArrayType extends TypedArray, GridType extends 
             shader_defines.push('MASK');
         }
 
-        const frag_shader_src = this.field.applySamplerCode(ColorMapGPUInterface.applyShader(contourfill_fragment_shader_src));
-        const shader_manger = new ShaderProgramManager(contourfill_vertex_shader_src, frag_shader_src, shader_defines);
+        const shader_manger = new ShaderProgramManager(shader_defines);
 
         this.gl_elems = {
             gl: gl, shader_manager: shader_manger, map: map, vertices: vertices, texcoords: texcoords,
@@ -158,11 +163,11 @@ abstract class PlotComponentFill<ArrayType extends TypedArray, GridType extends 
     }
 
     public render(gl: WebGLAnyRenderingContext, arg: RenderMethodArg) {
-        if (this.gl_elems === null || this.fill_texture === null) return;
+        if (this.gl_elems === null || this.fill_texture === null || this.shader_src_key === null) return;
         const gl_elems = this.gl_elems;
 
         const render_data = getRendererData(arg);
-        const program = this.gl_elems.shader_manager.getShaderProgram(gl, render_data.shaderData);
+        const program = this.gl_elems.shader_manager.getShaderProgram(gl, this.shader_src_key, render_data.shaderData);
 
         const samplers = Object.fromEntries([...this.fill_texture.entries()])
 

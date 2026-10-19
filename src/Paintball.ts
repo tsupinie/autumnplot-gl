@@ -38,6 +38,7 @@ interface PaintballGLElems<MapType extends MapLikeType> {
     map: MapType;
     shader_program_1: WGLProgram;
     shader_manager_2: ShaderProgramManager;
+    shader_src_key: string;
     vertices_step1: WGLBuffer;
     vertices_step2: WGLBuffer;
     texcoords_step2: WGLBuffer;
@@ -114,7 +115,8 @@ class Paintball<ArrayType extends TypedArray, GridType extends DomainBufferGrid,
         const step1_frag_shader_src = this.field.applySamplerCode(paintball_step1_fragment_shader_src);
 
         const shader_program_step1 = new WGLProgram(gl, paintball_step1_vertex_shader_src, step1_frag_shader_src);
-        const shader_manager_step2 = new ShaderProgramManager(paintball_step2_vertex_shader_src, paintball_step2_fragment_shader_src, []);
+        const shader_manager_step2 = new ShaderProgramManager([]);
+        const shader_src_key = shader_manager_step2.addShaderProgram(paintball_step2_vertex_shader_src, paintball_step2_fragment_shader_src);
 
         const {format, type, row_alignment} = getGLFormatTypeAlignment(gl, 'float16');
 
@@ -126,6 +128,7 @@ class Paintball<ArrayType extends TypedArray, GridType extends DomainBufferGrid,
 
         this.gl_elems = {
             gl: gl, map: map, shader_program_1: shader_program_step1, shader_manager_2: shader_manager_step2, 
+            shader_src_key: shader_src_key,
             vertices_step1: vertices_step1, vertices_step2: vertices_step2, texcoords_step2: texcoords_step2,
             framebuffer: fb
         };
@@ -148,7 +151,7 @@ class Paintball<ArrayType extends TypedArray, GridType extends DomainBufferGrid,
 
         const render_data = getRendererData(arg);
         const program_step1 = this.gl_elems.shader_program_1;
-        const program_step2 = this.gl_elems.shader_manager_2.getShaderProgram(gl, render_data.shaderData);
+        const program_step2 = this.gl_elems.shader_manager_2.getShaderProgram(gl, gl_elems.shader_src_key, render_data.shaderData);
 
         const samplers = Object.fromEntries([...this.fill_texture.entries()])
 

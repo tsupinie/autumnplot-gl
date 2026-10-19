@@ -1,32 +1,50 @@
 import { WGLProgram } from "autumn-wgl";
 import { RenderShaderData, RendererData, WebGLAnyRenderingContext } from "./AutumnTypes";
 import { mergeShaderCode } from "./utils";
+import { md5 } from "js-md5";
+
+function makeSourceKey(vertex_shader_src: string, fragment_shader_src: string) {
+    return md5.hex(`${vertex_shader_src}-${fragment_shader_src}`);
+}
+
+function makeShaderKey(source_key: string, shader_variant: string) {
+    return JSON.stringify({source_key: source_key, shader_variant: shader_variant});
+}
 
 class ShaderProgramManager {
-    public readonly vertex_shader_src: string;
-    public readonly fragment_shader_src: string;
     public readonly shader_defines: string[];
     private readonly program_map:  Map<string, WGLProgram>;
+    private readonly source_map: Map<string, {vertex: string, fragment: string}>;
 
-    constructor(vertex_shader_src: string, fragment_shader_src: string, shader_defines: string[]) {
-        this.vertex_shader_src = vertex_shader_src;
-        this.fragment_shader_src = fragment_shader_src;
+    constructor(shader_defines: string[]) {
         this.shader_defines = shader_defines;
 
         this.program_map = new Map();
+        this.source_map = new Map();
     }
 
-    public getShaderProgram(gl: WebGLAnyRenderingContext, shader_data: RenderShaderData | null) {
-        const shader_key = shader_data === null ? 'default' : shader_data.variantName;
+    addShaderProgram(vertex_shader_src: string, fragment_shader_src: string) {
+        const source_key = makeSourceKey(vertex_shader_src, fragment_shader_src);
+        this.source_map.set(source_key, {vertex: vertex_shader_src, fragment: fragment_shader_src});
+        return source_key;
+    }
+
+    public getShaderProgram(gl: WebGLAnyRenderingContext, source_key: string, shader_data: RenderShaderData | null) {
+        const variant_name = shader_data === null ? 'default' : shader_data.variantName;
+        const shader_key = makeShaderKey(source_key, variant_name);
 
         const cached_program = this.program_map.get(shader_key);
         if (cached_program !== undefined) {
             return cached_program;
         }
 
-        let vertex_src = this.vertex_shader_src;
+        const sources = this.source_map.get(source_key);
+        if (sources === undefined) throw `Unknown source key '${source_key}' in ShaderProgramManager`;
+        const {vertex: vertex_shader_src, fragment: fragment_shader_src} = sources;
+
+        let vertex_src;
         if (shader_data !== null) {
-            vertex_src = mergeShaderCode(shader_data.vertexShaderPrelude + '\n' + shader_data.define, vertex_src);
+            vertex_src = mergeShaderCode(shader_data.vertexShaderPrelude + '\n' + shader_data.define, vertex_shader_src);
         }
         else {
             const prelude = `
@@ -37,10 +55,10 @@ class ShaderProgramManager {
                 return result;
             }`;
 
-            vertex_src = mergeShaderCode(prelude, vertex_src);
+            vertex_src = mergeShaderCode(prelude, vertex_shader_src);
         }
 
-        const program = new WGLProgram(gl, vertex_src, this.fragment_shader_src, {define: this.shader_defines});
+        const program = new WGLProgram(gl, vertex_src, fragment_shader_src, {define: this.shader_defines});
         this.program_map.set(shader_key, program);
 
         return program;

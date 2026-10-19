@@ -80,6 +80,7 @@ class PolylineCollection {
     private readonly gl: WebGLAnyRenderingContext;
     private gl_elems: PolyLineCollectionGLElems | null;
     private shader_manager: ShaderProgramManager;
+    private shader_src_key: string;
 
     private readonly color: Color;
     private cmap_gpu: ColorMapGPUInterface | null;
@@ -104,10 +105,11 @@ class PolylineCollection {
         this.has_zoom = false;
         this.has_colormap = false;
     
-        const {shader, cmap_gpu, scale} = this.compile_shader(this.has_offset, this.has_zoom, this.has_colormap);
+        const {shader, cmap_gpu, scale, shader_src_key} = this.compile_shader(this.has_offset, this.has_zoom, this.has_colormap);
         this.shader_manager = shader;
         this.cmap_gpu = cmap_gpu;
         this.scale = scale;
+        this.shader_src_key = shader_src_key;
 
         this._update(polyline);
     }
@@ -147,10 +149,11 @@ class PolylineCollection {
             this.has_zoom = has_zoom;
             this.has_colormap = has_colormap;
 
-            const {shader, cmap_gpu, scale} = this.compile_shader(this.has_offset, this.has_zoom, this.has_colormap);
+            const {shader, cmap_gpu, scale, shader_src_key} = this.compile_shader(this.has_offset, this.has_zoom, this.has_colormap);
             this.shader_manager = shader;
             this.cmap_gpu = cmap_gpu;
             this.scale = scale;
+            this.shader_src_key = shader_src_key;
         }
     }
 
@@ -183,10 +186,14 @@ class PolylineCollection {
             fragment_src = ColorMapGPUInterface.applyShader(fragment_src);
         }
 
+        const shader = new ShaderProgramManager(shader_defines);
+        const shader_src_key = shader.addShaderProgram(polyline_vertex_src, fragment_src);
+
         return {
-            shader: new ShaderProgramManager(polyline_vertex_src, fragment_src, shader_defines),
+            shader: shader,
             cmap_gpu: cmap_gpu,
             scale: scale,
+            shader_src_key: shader_src_key,
         }
     }
 
@@ -205,7 +212,7 @@ class PolylineCollection {
         const {vertices, extrusion, offset, min_zoom, line_data} = this.gl_elems
 
         const render_data = getRendererData(arg);
-        const program = this.shader_manager.getShaderProgram(gl, render_data.shaderData);
+        const program = this.shader_manager.getShaderProgram(gl, this.shader_src_key, render_data.shaderData);
 
         const attributes: Record<string, WGLBuffer> = {'a_pos': vertices, 'a_extrusion': extrusion};
         const uniforms: Record<string, number | number[]> = {

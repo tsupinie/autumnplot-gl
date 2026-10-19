@@ -38,6 +38,7 @@
         "autumn-wgl": "^1.5.5",
         "comlink": "^4.3.1",
         "geographiclib-geodesic": "^2.2.0",
+        "js-md5": "^0.9.2",
         "kd-tree-javascript": "^1.0.3",
         "pbf": "^3.2.1",
         "potpack": "^2.0.0"

@@ -212,6 +212,7 @@ class TextCollection {
     readonly texture: WGLTexture;
 
     cmap_gpu: ColorMapGPUInterface | null;
+    private shader_src_key: string;
 
     readonly opts: Required<TextCollectionOptions>;
 
@@ -246,9 +247,10 @@ class TextCollection {
         this.texture = new WGLTexture(gl, image);
 
         this.has_data = false;
-        const {shader, cmap_gpu} = this.compile_shader(this.has_data);
+        const {shader, cmap_gpu, shader_src_key} = this.compile_shader(this.has_data);
         this.shader_manager = shader;
         this.cmap_gpu = cmap_gpu;
+        this.shader_src_key = shader_src_key;
 
         this.update(text_locs);
     }
@@ -375,9 +377,13 @@ class TextCollection {
             fragment_src = ColorMapGPUInterface.applyShader(fragment_src);
         }
 
+        const shader = new ShaderProgramManager(shader_defines);
+        const shader_src_key = shader.addShaderProgram(text_vertex_shader_src, fragment_src);
+
         return {
-            shader: new ShaderProgramManager(text_vertex_shader_src, fragment_src, shader_defines),
-            cmap_gpu: cmap_gpu
+            shader: shader,
+            cmap_gpu: cmap_gpu,
+            shader_src_key: shader_src_key,
         };
     }
 
@@ -415,7 +421,7 @@ class TextCollection {
         const {anchors, offsets, texcoords, data} = this.gl_elems;
 
         const render_data = getRendererData(arg);
-        const program = this.shader_manager.getShaderProgram(gl, render_data.shaderData);
+        const program = this.shader_manager.getShaderProgram(gl, this.shader_src_key, render_data.shaderData);
 
         const attributes: Record<string, any> = {'a_pos': anchors, 'a_offset': offsets, 'a_tex_coord': texcoords};
 
