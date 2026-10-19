@@ -74,7 +74,7 @@ class BillboardCollection<ArrayType extends TypedArray, GridType extends AutoZoo
         const shader_defines = this.gl_elems.shader_defines;
         const data = this.field.getThinnedField(this.thin_fac, this.max_zoom);
 
-        const vertex_shader_src = this.field.applySamplerCode(billboard_vertex_shader_src);
+        const vertex_shader_src = this.field.applySamplerCode(billboard_vertex_shader_src, true);
         this.shader_src_key = this.shader_manager.addShaderProgram(vertex_shader_src, billboard_fragment_shader_src, shader_defines);
 
         this.wind_textures = data.updateTexImageData(gl, gl.NEAREST, this.wind_textures);

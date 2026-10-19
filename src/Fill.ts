@@ -112,7 +112,7 @@ abstract class PlotComponentFill<ArrayType extends TypedArray, GridType extends 
         const map = this.gl_elems.map;
         const shader_defines = this.gl_elems.shader_defines;
 
-        const frag_shader_src = this.field.applySamplerCode(ColorMapGPUInterface.applyShader(contourfill_fragment_shader_src));
+        const frag_shader_src = this.field.applySamplerCode(ColorMapGPUInterface.applyShader(contourfill_fragment_shader_src), true);
         this.shader_src_key = this.shader_manager.addShaderProgram(contourfill_vertex_shader_src, frag_shader_src, shader_defines);
     
         this.fill_texture = this.field.updateTexImageData(gl, gl.NEAREST, this.fill_texture);
