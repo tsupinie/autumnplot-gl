@@ -111,7 +111,7 @@ class Paintball<ArrayType extends TypedArray, GridType extends DomainBufferGrid,
         const vertices_step1 = new WGLBuffer(gl, new Float32Array([-1., -1., 1., -1., -1., 1., 1., 1.]), 2, gl.TRIANGLE_STRIP);
         const {vertices: vertices_step2, texcoords: texcoords_step2} = await this.field.grid.getDomainBuffers(gl);
 
-        const step1_frag_shader_src = this.field.applySamplerCode(paintball_step1_fragment_shader_src);
+        const step1_frag_shader_src = this.field.applySamplerCode(paintball_step1_fragment_shader_src, false);
 
         const shader_program_step1 = new WGLProgram(gl, paintball_step1_vertex_shader_src, step1_frag_shader_src);
         const shader_manager_step2 = new ShaderProgramManager(paintball_step2_vertex_shader_src, paintball_step2_fragment_shader_src, []);

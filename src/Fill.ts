@@ -147,7 +147,7 @@ abstract class PlotComponentFill<ArrayType extends TypedArray, GridType extends 
             shader_defines.push('MASK');
         }
 
-        const frag_shader_src = this.field.applySamplerCode(ColorMapGPUInterface.applyShader(contourfill_fragment_shader_src));
+        const frag_shader_src = this.field.applySamplerCode(ColorMapGPUInterface.applyShader(contourfill_fragment_shader_src), true);
         const shader_manger = new ShaderProgramManager(contourfill_vertex_shader_src, frag_shader_src, shader_defines);
 
         this.gl_elems = {

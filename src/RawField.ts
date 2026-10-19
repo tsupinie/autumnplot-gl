@@ -11,7 +11,7 @@ import { AutoZoomGrid } from "./grids/AutoZoom";
 const missingCheck = (sample: number, missing: number | null) => missing !== null && (isNaN(sample) && isNaN(missing) || sample == missing);
 
 function getSamplerCode(function_name: string, sampler_names: string[], missing_values: (number | null)[], sampler_expression: string, 
-                        dtypes: TypedArrayStr[], return_type: TypedArrayStr) {
+                        dtypes: TypedArrayStr[], return_type: TypedArrayStr, needs_missing_check: boolean) {
     const SAMPLER_DTYPES = {
         'float16': 'sampler2D', 'float32': 'sampler2D', 
         'uint8': 'lowp usampler2D', 'uint16': 'mediump usampler2D', 'uint32': 'highp usampler2D',
@@ -45,10 +45,12 @@ function getSamplerCode(function_name: string, sampler_names: string[], missing_
         return u_missing;
     }`;
 
+    const missing_val_declaration = !needs_missing_check && sampler_missing_check_conditional.length == 0 ? "" : `uniform ${return_shader_type} u_missing;`;
+
     sampler_names.forEach(v => sampler_expression = sampler_expression.replaceAll(v, `${conversion}(${v}_val)`));
 
     const sampler_code = `
-uniform ${return_shader_type} u_missing;
+${missing_val_declaration}
 ${samplers}
 
 ${return_shader_type} ${function_name}(lowp vec2 tex_coord) {
@@ -175,9 +177,9 @@ abstract class ExpressionScalarField<ArrayType extends TypedArray, GridType exte
     public abstract sampleFieldWithCoord(lon: number, lat: number) : {sample: number, sample_lon: number, sample_lat: number};
 
     /** @internal */
-    public applySamplerCode(src: string) : string {
+    public applySamplerCode(src: string, needs_missing_check: boolean) : string {
         const sampler_code = getSamplerCode('get_field_value', this.getSamplerIds(), this.missing_values, this.getExpression(),
-                                            this.dtypes, this.output_dtype);
+                                            this.dtypes, this.output_dtype, needs_missing_check);
         return mergeShaderCode(sampler_code, src);
     }
 }
@@ -791,15 +793,15 @@ abstract class ExpressionVectorField<ArrayType extends TypedArray, GridType exte
     }
 
     /** @internal */
-    public applySamplerCode(src: string) : string {
+    public applySamplerCode(src: string, needs_missing_check: boolean) : string {
         const sampler_names = this.getSamplerIds();
         const sampler_expressions = this.getExpressions();
         const data_types = this.dtypes;
         const return_type = this.output_dtype;
         const missing_values = this.component_missing_values;
 
-        const sampler_code_u = getSamplerCode('get_field_value_u', sampler_names.u, missing_values.u, sampler_expressions.u, data_types.u, return_type.u);
-        const sampler_code_v = getSamplerCode('get_field_value_v', sampler_names.v, missing_values.v, sampler_expressions.v, data_types.v, return_type.v);
+        const sampler_code_u = getSamplerCode('get_field_value_u', sampler_names.u, missing_values.u, sampler_expressions.u, data_types.u, return_type.u, needs_missing_check);
+        const sampler_code_v = getSamplerCode('get_field_value_v', sampler_names.v, missing_values.v, sampler_expressions.v, data_types.v, return_type.v, needs_missing_check);
 
         // The v sampler code will contain a duplicate u_missing, so we need to remove that
         const sampler_code = sampler_code_u.replaceAll('u_missing', 'u_missing_u') + '\n' + sampler_code_v.replaceAll('u_missing', 'u_missing_v');

@@ -93,7 +93,7 @@ class BillboardCollection<ArrayType extends TypedArray, GridType extends AutoZoo
             shader_defines.push('COLORMAP');
         }
 
-        const vertex_shader_src = this.field.applySamplerCode(billboard_vertex_shader_src);
+        const vertex_shader_src = this.field.applySamplerCode(billboard_vertex_shader_src, true);
         const shader_manager = new ShaderProgramManager(vertex_shader_src, fragment_src, shader_defines);
 
         this.gl_elems = {gl: gl, shader_manager: shader_manager, geom_vertices: geom_buffer, vertices: vertices, texcoords: texcoords, texture: texture, 
